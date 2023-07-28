@@ -47,6 +47,7 @@ This project uses the following technologies and tools:
 
 - [PNPM](https://pnpm.io/) - Package management
 - [Turborepo](https://turbo.build/repo) - High performance build system
+- [Foundry](https://book.getfoundry.sh/) - Ethereum development toolkit
 - [Husky](https://typicode.github.io/husky/) - Git hooks
 - [Typescript](https://www.typescriptlang.org/) - Type-safe codebase
 - [Prettier](https://prettier.io/) - Code formatter
@@ -65,6 +66,17 @@ A Fast, disk space efficient package manager with native workspace support. PNPM
 A high-performance build system for monorepos. Turborepo is a replacement for [Lerna](https://lerna.js.org/) and it is mildly faster than Lerna's integrated counterpart [Nx](https://nx.dev/). It also requires less configuration and has less of a learning curve compared to Nx if used independently.
 
 It is worth mentioning, along side Nodemon, you can get the same development experience as if you were working with [Concurrently](https://github.com/open-cli-tools/concurrently) to run multiple development scripts or packages local to the repository.
+
+#### Foundry
+
+A portable and modular toolkit for Ethereum application development written in Rust.
+
+[Foundry](https://book.getfoundry.sh/) consists of:
+
+- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
+- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
+- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
+- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 
 #### Husky
 
