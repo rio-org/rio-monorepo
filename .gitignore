@@ -17,3 +17,7 @@ coverage
 # Env files
 .env*
 !.env.example
+
+# Foundry
+cache
+out
