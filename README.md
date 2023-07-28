@@ -112,7 +112,7 @@ A pluggable and configurable linting tool that statically analyses your code to 
 
 A monitoring tool that restarts the configured executable when file changes in the configured directory are detected.
 
-Within the `packages/*` directories, you will notice a `nodemode.json` that has an executable script of `exec: pnpm typecheck && pnpm build`. This is to ensure that the codebase is fully type-checked and built - ready for dependants to import. Remember, that the built configuration is only intended for the final built code and not the source code. This form of double Type-checking also quite performant as the Typescript compilation is cached in the form a generate `tsconfig.tsbuildinfo` file thanks to the `incremental: true` Typescript configuration option.
+Within the `packages/*` directories, you will notice a `nodemode.json` that has an executable script of `exec: pnpm typecheck && pnpm build`. This is to ensure that the codebase is fully type-checked and built - ready for dependents to import. Remember, that the built configuration is only intended for the final built code and not the source code. This form of double Type-checking also quite performant as the Typescript compilation is cached in the form a generate `tsconfig.tsbuildinfo` file thanks to the `incremental: true` Typescript configuration option.
 
 #### Jest
 
@@ -157,9 +157,21 @@ pnpm add -g n
 n lts
 ```
 
+#### Foundry
+
+You can install the Foundry toolchain installer, Foundryup, by running the following command.
+
+```sh
+curl -L https://foundry.paradigm.xyz | bash
+```
+
+Then follow the instructions on-screen, which will make the `foundryup` command available in your CLI.
+
+Running `foundryup` by itself will install the latest (nightly) precompiled binaries: `forge`, `cast`, `anvil`, and `chisel`. See `foundryup --help` for more options, like installing from a specific version or commit.
+
 ### Installation
 
-To install the monorepo and all of its dependancies, simply run the following command at the root of the project.
+To install all package dependencies, run the following command at the root of the project.
 
 ```sh
 pnpm install
@@ -167,7 +179,7 @@ pnpm install
 
 ## Usage
 
-To run the monorepo and all of its packages, simply run the following command at the root of the project.
+To run all packages, simply run the following command at the root of the project.
 
 ```sh
 pnpm dev
