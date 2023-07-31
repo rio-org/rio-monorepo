@@ -31,6 +31,7 @@
   - [Prerequisites](#prerequisites)
     - [PNPM](#pnpm-1)
     - [Node LTS (18)](#node-lts-18)
+    - [Foundry](#foundry-1)
   - [Installation](#installation)
 - [Usage](#usage)
 - [Deployment](#deployment)
