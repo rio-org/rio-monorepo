@@ -3,7 +3,7 @@
 <br />
 <div align="center">
   <h1>Rio Network</h1>
-  <p>A network for issuing LSTs</p>
+  <p>A network for issuing LRTs</p>
 
 <a href="./packages/protocol">Protocol</a>
 &nbsp;&nbsp;&nbsp;
@@ -40,7 +40,7 @@
 
 ## About the project
 
-Rio is a network for issuing LSTs. The first LST product is restaked ETH (reETH).
+Rio is a network for issuing LRTs. The first LRT product is restaked ETH (reETH).
 
 ### Built With
 
