@@ -2,7 +2,7 @@
   "name": "@rionetwork/sdk",
   "version": "0.0.0-development",
   "description": "Utilities that simplify interaction with the Rio Network protocol",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "publishConfig": {
     "access": "public"
   },

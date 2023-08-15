@@ -212,6 +212,6 @@ ENTRYPOINT ["node", "index.js"]
 
 ## License
 
-Distributed under the MIT License. See the local `LICENSE` file for more information.
+Distributed under the GPL-3.0 License. See the local `LICENSE` file for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
