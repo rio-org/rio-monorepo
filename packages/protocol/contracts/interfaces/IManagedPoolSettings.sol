@@ -6,8 +6,9 @@ import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.s
 import {IProtocolFeePercentagesProvider} from '@balancer-v2/contracts/interfaces/contracts/standalone-utils/IProtocolFeePercentagesProvider.sol';
 import {IExternalWeightedMath} from '@balancer-v2/contracts/interfaces/contracts/pool-weighted/IExternalWeightedMath.sol';
 import {IRecoveryModeHelper} from '@balancer-v2/contracts/interfaces/contracts/pool-utils/IRecoveryModeHelper.sol';
+import {IManagedPool} from '@balancer-v2/contracts/interfaces/contracts/pool-utils/IManagedPool.sol';
 
-interface IManagedPoolSettings {
+interface IManagedPoolSettings is IManagedPool {
     struct ManagedPoolParams {
         string name;
         string symbol;
@@ -33,4 +34,13 @@ interface IManagedPoolSettings {
         uint256 managementAumFeePercentage;
         uint256 aumFeeId;
     }
+
+    enum ProtocolFeeType {
+        SWAP,
+        FLASH_LOAN,
+        YIELD,
+        AUM
+    }
+
+    function getVault() external view returns (IVault);
 }
