@@ -2,7 +2,7 @@
   "name": "rionetwork",
   "version": "0.0.0-development",
   "description": "The Rio Network Monorepo",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "publishConfig": {
     "access": "restricted"
   },

@@ -2,7 +2,7 @@
   "name": "@rionetwork/protocol",
   "version": "0.0.0-development",
   "description": "The Rio Network protocol contracts",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "publishConfig": {
     "access": "public"
   },

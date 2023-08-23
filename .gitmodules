@@ -7,3 +7,9 @@
 [submodule "packages/protocol/lib/openzeppelin-contracts"]
 	path = packages/protocol/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "packages/protocol/lib/balancer-v2-monorepo"]
+	path = packages/protocol/lib/balancer-v2-monorepo
+	url = https://github.com/balancer/balancer-v2-monorepo
+[submodule "packages/protocol/lib/solady"]
+	path = packages/protocol/lib/solady
+	url = https://github.com/vectorized/solady
