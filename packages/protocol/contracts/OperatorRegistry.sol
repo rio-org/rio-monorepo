@@ -1,22 +1,51 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
+import {LibMap} from '@solady/utils/LibMap.sol';
+import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {BeaconProxy} from '@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol';
+import {OperatorUtilizationHeap} from './lib/utils/OperatorUtilizationHeap.sol';
 import {IOperatorRegistry} from './interfaces/IOperatorRegistry.sol';
+import {IOperator} from './interfaces/IOperator.sol';
 
 contract OperatorRegistry is IOperatorRegistry, OwnableUpgradeable, UUPSUpgradeable {
-    /// @notice The number of operators in the registry.
-    uint256 public operatorCount;
+    using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
+    using FixedPointMathLib for *;
+    using LibMap for *;
 
-    /// @notice A mapping of operator IDs to operator information.
-    mapping(uint256 => Operator) public operators;
+    /// @notice The maximum number of operators allowed in the registry.
+    uint8 public constant MAX_OPERATOR_COUNT = type(uint8).max;
+
+    /// @notice The maximum number of active operators allowed.
+    uint8 public constant MAX_ACTIVE_OPERATOR_COUNT = 64;
+
+    /// @notice The operator contract implementation.
+    address public immutable operatorImpl;
+
+    /// @notice The total number of operators in the registry.
+    uint8 public operatorCount;
+
+    /// @notice The number of active operators in the registry.
+    uint8 public activeOperatorCount;
+
+    /// @notice The packed operator IDs, stored in a utilization priority queue, indexed by token address.
+    mapping(address => LibMap.Uint8Map[2]) activeOperatorsByTokenUtilization;
+
+    /// @notice A mapping of operator ids to operator information.
+    mapping(uint8 => OperatorInfo) public operatorInfo;
 
     /// @notice Require that the caller is the operator's manager.
-    /// @param operatorId The ID of the operator.
-    modifier onlyOperatorManager(uint256 operatorId) {
-        if (msg.sender != operators[operatorId].managerAddress) revert ONLY_OPERATOR_MANAGER();
+    /// @param operatorId The operator's ID.
+    modifier onlyOperatorManager(uint8 operatorId) {
+        if (msg.sender != operatorInfo[operatorId].manager) revert ONLY_OPERATOR_MANAGER();
         _;
+    }
+
+    /// @param _operatorImpl The operator contract implementation.
+    constructor(address _operatorImpl) {
+        operatorImpl = _operatorImpl;
     }
 
     /// @notice Initializes the contract.
@@ -26,113 +55,224 @@ contract OperatorRegistry is IOperatorRegistry, OwnableUpgradeable, UUPSUpgradea
         _transferOwnership(initialOwner);
     }
 
-    /// @notice Adds an operator to the registry.
-    /// @param name The name of the operator.
-    /// @param managerAddress The manager address of the operator.
-    /// @param rewardAddress The reward address of the operator.
-    /// @return id The ID of the operator.
-    function addOperator(string calldata name, address managerAddress, address rewardAddress)
+    /// @notice Creates and registers a new operator.
+    /// @param initialManager The initial manager of the operator.
+    /// @param initialEarningsReceiver The initial reward address of the operator.
+    /// @param initialMetadataURI The initial metadata URI.
+    function createOperator(address initialManager, address initialEarningsReceiver, string calldata initialMetadataURI)
         external
         onlyOwner
-        returns (uint256 id)
+        returns (uint8 operatorId)
     {
-        if (bytes(name).length == 0) revert INVALID_NAME();
-        if (managerAddress == address(0)) revert INVALID_MANAGER_ADDRESS();
-        if (rewardAddress == address(0)) revert INVALID_REWARD_ADDRESS();
+        if (initialManager == address(0)) revert INVALID_MANAGER();
+        if (initialEarningsReceiver == address(0)) revert INVALID_EARNINGS_RECEIVER();
+        if (bytes(initialMetadataURI).length == 0) revert INVALID_METADATA_URI();
 
-        id = ++operatorCount;
+        if (operatorCount == MAX_OPERATOR_COUNT) revert MAX_OPERATOR_COUNT_EXCEEDED();
+        if (activeOperatorCount == MAX_ACTIVE_OPERATOR_COUNT) revert MAX_ACTIVE_OPERATOR_COUNT_EXCEEDED();
 
-        Operator storage operator = operators[id];
-        operator.name = name;
-        operator.active = true;
-        operator.managerAddress = managerAddress;
-        operator.rewardAddress = rewardAddress;
+        // Increment the operator count after assignment (First operator ID is 0)
+        operatorId = operatorCount++;
+        activeOperatorCount++;
 
-        emit OperatorAdded(id, name, managerAddress, rewardAddress);
+        address operator = _deployAndRegisterOperator(initialEarningsReceiver, initialMetadataURI);
+
+        OperatorInfo storage info = operatorInfo[operatorId];
+        info.active = true;
+        info.manager = initialManager;
+        info.earningsReceiver = initialEarningsReceiver;
+        info.operator = operator;
+
+        // TODO: Add asset cap(s) parameter and insert the operator into the heap.
+
+        emit OperatorCreated(operatorId, operator, initialManager, initialEarningsReceiver, initialMetadataURI);
     }
 
     /// @notice Activates an operator.
-    /// @param operatorId The ID of the operator.
-    function activateOperator(uint256 operatorId) external onlyOwner {
-        if (operatorId == 0 || operatorId > operatorCount) revert INVALID_OPERATOR_ID();
+    /// @param operatorId The operator's ID.
+    function activateOperator(uint8 operatorId) external onlyOwner {
+        OperatorInfo storage info = operatorInfo[operatorId];
 
-        Operator storage operator = operators[operatorId];
-        if (operator.active) revert OPERATOR_ALREADY_ACTIVE();
+        if (info.manager == address(0)) revert INVALID_OPERATOR();
+        if (info.active) revert OPERATOR_ALREADY_ACTIVE();
 
-        operators[operatorId].active = true;
+        info.active = true;
+        activeOperatorCount += 1;
+
+        // TODO: Insert operator into the heap.
 
         emit OperatorActivated(operatorId);
     }
 
     /// @notice Deactivates an operator.
-    /// @param operatorId The ID of the operator.
-    function deactivateOperator(uint256 operatorId) external onlyOwner {
-        if (operatorId == 0 || operatorId > operatorCount) revert INVALID_OPERATOR_ID();
+    /// @param operatorId The operator's ID.
+    function deactivateOperator(uint8 operatorId) external onlyOwner {
+        OperatorInfo storage info = operatorInfo[operatorId];
 
-        Operator storage operator = operators[operatorId];
-        if (!operator.active) revert OPERATOR_ALREADY_INACTIVE();
+        if (info.manager == address(0)) revert INVALID_OPERATOR();
+        if (!info.active) revert OPERATOR_ALREADY_INACTIVE();
 
-        operators[operatorId].active = false;
+        info.active = false;
+        activeOperatorCount -= 1;
+
+        // TODO: Remove operator from the heap.
 
         emit OperatorDeactivated(operatorId);
     }
 
-    /// @notice Sets an operator's name.
-    /// @param operatorId The ID of the operator.
-    /// @param newName The name of the operator.
-    function setOperatorName(uint256 operatorId, string calldata newName) external onlyOperatorManager(operatorId) {
-        if (bytes(newName).length == 0) revert INVALID_NAME();
+    /// @notice Sets an operator's earnings receiver.
+    /// @param operatorId The operator's ID.
+    /// @param newEarningsReceiver The new reward address of the operator.
+    function setOperatorEarningsReceiver(uint8 operatorId, address newEarningsReceiver) external onlyOperatorManager(operatorId) {
+        if (newEarningsReceiver == address(0)) revert INVALID_EARNINGS_RECEIVER();
 
-        operators[operatorId].name = newName;
+        OperatorInfo storage info = operatorInfo[operatorId];
 
-        emit OperatorNameSet(operatorId, newName);
+        // Update both the Rio and EigenLayer earnings receivers.
+        info.earningsReceiver = newEarningsReceiver;
+        IOperator(info.operator).setEarningsReceiver(newEarningsReceiver);
+
+        emit OperatorEarningsReceiverSet(operatorId, newEarningsReceiver);
     }
 
-    /// @notice Sets an operator's pending manager address.
-    /// @param operatorId The ID of the operator.
-    /// @param newManagerAddress The manager address of the operator.
-    function setPendingOperatorManagerAddress(uint256 operatorId, address newManagerAddress)
-        external
-        onlyOperatorManager(operatorId)
-    {
-        if (newManagerAddress == address(0)) revert INVALID_MANAGER_ADDRESS();
+    /// @notice Sets the operator's metadata URI.
+    /// @param operatorId The operator's ID.
+    /// @param metadataURI The new metadata URI.
+    function setOperatorMetadataURI(uint8 operatorId, string calldata metadataURI) external onlyOperatorManager(operatorId) {
+        if (bytes(metadataURI).length == 0) revert INVALID_METADATA_URI();
 
-        operators[operatorId].pendingManagerAddress = newManagerAddress;
+        IOperator(operatorInfo[operatorId].operator).setMetadataURI(metadataURI);
 
-        emit OperatorPendingManagerAddressSet(operatorId, newManagerAddress);
+        emit OperatorMetadataURISet(operatorId, metadataURI);
     }
 
-    /// @notice Confirms an operator's pending manager address.
-    /// @param operatorId The ID of the operator.
-    function confirmOperatorManagerAddress(uint256 operatorId) external {
+    /// @notice Sets an operator's pending manager.
+    /// @param operatorId The operator's ID.
+    /// @param newPendingManager The new pending manager of the operator.
+    function setOperatorPendingManager(uint8 operatorId, address newPendingManager) external onlyOperatorManager(operatorId) {
+        if (newPendingManager == address(0)) revert INVALID_PENDING_MANAGER();
+
+        operatorInfo[operatorId].pendingManager = newPendingManager;
+
+        emit OperatorPendingManagerSet(operatorId, newPendingManager);
+    }
+
+    /// @notice Confirms an operator's pending manager.
+    /// @param operatorId The operator's ID.
+    function confirmOperatorManager(uint8 operatorId) external {
         address sender = _msgSender();
 
-        Operator storage operator = operators[operatorId];
-        if (sender != operator.pendingManagerAddress) revert ONLY_PENDING_OPERATOR_MANAGER();
+        OperatorInfo storage info = operatorInfo[operatorId];
+        if (sender != info.pendingManager) revert ONLY_OPERATOR_PENDING_MANAGER();
 
-        delete operator.pendingManagerAddress;
-        operator.managerAddress = sender;
+        delete info.pendingManager;
+        info.manager = sender;
 
-        emit OperatorManagerAddressSet(operatorId, sender);
+        emit OperatorManagerSet(operatorId, sender);
     }
 
-    /// @notice Sets an operator's reward address.
-    /// @param operatorId The ID of the operator.
-    /// @param newRewardAddress The new reward address of the operator.
-    function setOperatorRewardAddress(uint256 operatorId, address newRewardAddress)
-        external
-        onlyOperatorManager(operatorId)
-    {
-        if (newRewardAddress == address(0)) revert INVALID_REWARD_ADDRESS();
+    // TODO: Restrict `allocate` function to the LRT asset manager.
 
-        operators[operatorId].rewardAddress = newRewardAddress;
+    /// @notice Allocates a specified amount of tokens to the operators with the lowest utilization.
+    /// @param token The token to allocate.
+    /// @param allocationSize The amount of tokens to allocate.
+    function allocate(address token, uint256 allocationSize) external returns (uint256 allocated, OperatorAllocation[] memory allocations) {
+        allocations = new OperatorAllocation[](activeOperatorCount);
 
-        emit OperatorRewardAddressSet(operatorId, newRewardAddress);
+        OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForToken(token);
+        if (heap.isEmpty()) revert NO_ACTIVE_OPERATORS();
+
+        OperatorUtilizationHeap.Operator memory operator;
+        uint256 allocationIndex;
+        while (allocated < allocationSize) {
+            operator = heap.getMin();
+
+            OperatorInfo storage info = operatorInfo[operator.id];
+            OperatorAssetInfo memory asset = info.assets[token];
+
+            // If the allocation of the operator with the lowest utilization rate is met,
+            // then exit early. We will not be able to allocate to any other operators.
+            if (asset.allocation >= asset.cap) break;
+
+            uint256 allocation = FixedPointMathLib.min(asset.cap - asset.allocation, allocationSize);
+
+            allocations[allocationIndex] = OperatorAllocation(info.operator, allocation);
+            allocated += allocation;
+
+            heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, allocation.divWad(asset.cap));
+
+            unchecked {
+                ++allocationIndex;
+            }
+        }
+
+        // Update the operator utilization heap in storage.
+        _updateOperatorUtilizationHeapForToken(token, heap);
+
+        // Shrink the array length to the number of allocations made.
+        if (allocationIndex < activeOperatorCount) {
+            assembly {
+                mstore(allocations, allocationIndex)
+            }
+        }
     }
 
     function getPoRAddressListLength() external view override returns (uint256) {}
 
     function getPoRAddressList(uint256 startIndex, uint256 endIndex) external view override returns (string[] memory) {}
 
+    /// @dev Returns the operator utilization heap for the specified token.
+    /// @param token The token to get the heap for.
+    function _getOperatorUtilizationHeapForToken(address token) internal view returns (OperatorUtilizationHeap.Data memory heap) {
+        uint8 numActiveOperators = activeOperatorCount;
+        if (numActiveOperators == 0) return OperatorUtilizationHeap.Data(new OperatorUtilizationHeap.Operator[](0), 0);
+
+        heap = OperatorUtilizationHeap.initialize(MAX_ACTIVE_OPERATOR_COUNT);
+
+        // TODO: Consider loading into memory.
+        LibMap.Uint8Map[2] storage operators = activeOperatorsByTokenUtilization[token];
+        for (uint8 i = 0; i < numActiveOperators;) {
+            unchecked {
+                uint8 id = operators[i / 32].get(i % 32);
+
+                OperatorAssetInfo memory asset = operatorInfo[id].assets[token];
+                heap.operators[i + 1] = OperatorUtilizationHeap.Operator({
+                    id: id,
+                    utilization: asset.allocation.divWad(asset.cap)
+                });
+
+                ++i;
+            }
+        }
+    }
+
+    /// @dev Updates the operator utilization heap in storage for the specified token.
+    /// @param token The token to update the heap for.
+    /// @param heap The heap used to update storage.
+    function _updateOperatorUtilizationHeapForToken(address token, OperatorUtilizationHeap.Data memory heap) internal {
+        LibMap.Uint8Map[2] storage operators = activeOperatorsByTokenUtilization[token];
+
+        uint8 numActiveOperators = activeOperatorCount;
+        for (uint8 i = 0; i < numActiveOperators;) {
+            unchecked {
+                uint8 id = heap.operators[i + 1].id;
+                operators[i / 32].set(i % 32, id);
+                ++i;
+            }
+        }
+    }
+
+    // forgefmt: disable-next-item
+    /// @dev Deploys and registers a new operator contract with the provided parameters.
+    /// @param initialEarningsReceiver The initial reward address of the operator.
+    /// @param initialMetadataURI The initial metadata URI.
+    function _deployAndRegisterOperator(address initialEarningsReceiver, string calldata initialMetadataURI) internal returns (address operator) {
+        operator = address(
+            new BeaconProxy(operatorImpl, abi.encodeCall(IOperator.initialize, (initialEarningsReceiver, initialMetadataURI)))
+        );
+    }
+
+    /// @dev Allows the owner to upgrade the operator registry implementation.
+    /// @param newImplementation The new implementation to upgrade to.
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
