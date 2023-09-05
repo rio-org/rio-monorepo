@@ -31,7 +31,7 @@ contract OperatorRegistry is IOperatorRegistry, OwnableUpgradeable, UUPSUpgradea
     uint8 public activeOperatorCount;
 
     /// @notice The packed operator IDs, stored in a utilization priority queue, indexed by token address.
-    mapping(address => LibMap.Uint8Map[2]) activeOperatorsByTokenUtilization;
+    mapping(address => LibMap.Uint8Map) activeOperatorsByTokenUtilization;
 
     /// @notice A mapping of operator ids to operator information.
     mapping(uint8 => OperatorInfo) public operatorInfo;
@@ -230,10 +230,10 @@ contract OperatorRegistry is IOperatorRegistry, OwnableUpgradeable, UUPSUpgradea
         heap = OperatorUtilizationHeap.initialize(MAX_ACTIVE_OPERATOR_COUNT);
 
         // TODO: Consider loading into memory.
-        LibMap.Uint8Map[2] storage operators = activeOperatorsByTokenUtilization[token];
+        LibMap.Uint8Map storage operators = activeOperatorsByTokenUtilization[token];
         for (uint8 i = 0; i < numActiveOperators;) {
             unchecked {
-                uint8 id = operators[i / 32].get(i % 32);
+                uint8 id = operators.get(i);
 
                 OperatorAssetInfo memory asset = operatorInfo[id].assets[token];
                 heap.operators[i + 1] = OperatorUtilizationHeap.Operator({
@@ -250,13 +250,12 @@ contract OperatorRegistry is IOperatorRegistry, OwnableUpgradeable, UUPSUpgradea
     /// @param token The token to update the heap for.
     /// @param heap The heap used to update storage.
     function _updateOperatorUtilizationHeapForToken(address token, OperatorUtilizationHeap.Data memory heap) internal {
-        LibMap.Uint8Map[2] storage operators = activeOperatorsByTokenUtilization[token];
+        LibMap.Uint8Map storage operators = activeOperatorsByTokenUtilization[token];
 
         uint8 numActiveOperators = activeOperatorCount;
         for (uint8 i = 0; i < numActiveOperators;) {
             unchecked {
-                uint8 id = heap.operators[i + 1].id;
-                operators[i / 32].set(i % 32, id);
+                operators.set(i, heap.operators[i + 1].id);
                 ++i;
             }
         }
