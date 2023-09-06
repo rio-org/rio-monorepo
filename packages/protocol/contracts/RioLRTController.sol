@@ -2,6 +2,7 @@
 pragma solidity 0.8.21;
 
 import {Clone} from '@solady/utils/Clone.sol';
+import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
@@ -11,9 +12,11 @@ import {IBasePoolAuthentication} from './interfaces/IBasePoolAuthentication.sol'
 import {IManagedPoolSettings} from './interfaces/IManagedPoolSettings.sol';
 import {IRioLRTAssetManager} from './interfaces/IRioLRTAssetManager.sol';
 import {IRioLRTController} from './interfaces/IRioLRTController.sol';
+import {IStrategy} from './interfaces/eigenlayer/IStrategy.sol';
 
 contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
     using SafeERC20 for IOpenZeppelinERC20;
+    using FixedPointMathLib for uint256;
 
     /// @notice The minimum weight change duration.
     uint256 public constant MIN_WEIGHT_CHANGE_DURATION = 3 days;
@@ -23,9 +26,6 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
 
     /// @notice The maximum AUM fee percentage.
     uint256 public constant MAX_AUM_FEE_PERCENTAGE = 10e16; // 10%
-
-    /// @notice The number one, with 18 decimals.
-    uint256 private constant _ONE = 1e18;
 
     /// @notice The pool (LRT) that's controlled by this contract.
     IManagedPoolSettings public pool;
@@ -79,50 +79,60 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
     }
 
     /// @notice Add an underlying token to the LRT.
-    /// @param tokenToAdd The token to add.
-    /// @param tokenToAddNormalizedWeight The normalized weight of the token to add.
-    /// @param tokenToAddBalance The balance of the token to add.
-    function addToken(IERC20 tokenToAdd, uint256 tokenToAddNormalizedWeight, uint256 tokenToAddBalance)
-        external
-        onlyOwner
-    {
+    /// @param token The token to add.
+    /// @param strategy The strategy to deposit the token into.
+    /// @param amount The amount of the token to add.
+    /// @param normalizedWeight The normalized weight of the token to add.
+    /// @param targetAUMPercentage The target AUM percentage of the token to add.
+    function addToken(IERC20 token, IStrategy strategy, uint256 amount, uint256 normalizedWeight, uint96 targetAUMPercentage) external onlyOwner {
+        if (address(strategy.underlyingToken()) != address(token)) revert INVALID_STRATEGY_FOR_TOKEN();
+
         address manager = assetManager();
         uint256 supply = pool.getActualSupply();
-        uint256 mintAmount = (supply * tokenToAddNormalizedWeight) / (_ONE - tokenToAddNormalizedWeight);
+        uint256 mintAmount = (supply * normalizedWeight) / (FixedPointMathLib.WAD - normalizedWeight);
 
-        IOpenZeppelinERC20(address(tokenToAdd)).safeTransferFrom(msg.sender, manager, tokenToAddBalance);
+        IOpenZeppelinERC20(address(token)).safeTransferFrom(msg.sender, manager, amount);
 
-        pool.addToken(tokenToAdd, manager, tokenToAddNormalizedWeight, mintAmount, owner());
-        IRioLRTAssetManager(manager).addToken(tokenToAdd, tokenToAddBalance, pool.getVault(), pool.getPoolId());
+        pool.addToken(token, manager, normalizedWeight, mintAmount, owner());
+        IRioLRTAssetManager(manager).addToken(
+            token, amount, IRioLRTAssetManager.TokenConfig(targetAUMPercentage, strategy)
+        );
     }
 
     /// @notice Remove an underlying token from the LRT.
-    /// @param tokenToRemove The token to remove.
-    function removeToken(IERC20 tokenToRemove) external onlyOwner {
+    /// @param token The token to remove.
+    function removeToken(IERC20 token) external onlyOwner {
         IVault vault = pool.getVault();
         bytes32 poolId = pool.getPoolId();
         uint256 supply = pool.getActualSupply();
 
-        (uint256 tokenToRemoveBalance,,,) = vault.getPoolTokenInfo(poolId, tokenToRemove);
+        (uint256 tokenBalance,,,) = vault.getPoolTokenInfo(poolId, token);
 
         (IERC20[] memory registeredTokens,,) = vault.getPoolTokens(poolId);
         uint256[] memory registeredTokensWeights = pool.getNormalizedWeights();
 
         // `registeredTokensWeights` does not contain the BPT, so we need to offset by one.
-        uint256 tokenToRemoveNormalizedWeight;
+        uint256 normalizedWeight;
         for (uint256 i = 1; i < registeredTokens.length; ++i) {
-            if (registeredTokens[i] != tokenToRemove) {
+            if (registeredTokens[i] != token) {
                 continue;
             }
 
-            tokenToRemoveNormalizedWeight = registeredTokensWeights[i - 1];
+            normalizedWeight = registeredTokensWeights[i - 1];
             break;
         }
+        uint256 burnAmount = supply.mulWad(normalizedWeight);
 
-        uint256 burnAmount = (supply * tokenToRemoveNormalizedWeight) / _ONE;
+        // The owner MUST hold enough BPT to withdraw the remaining balance.
+        IRioLRTAssetManager(assetManager()).removeToken(token, tokenBalance, msg.sender);
+        pool.removeToken(token, burnAmount, msg.sender);
+    }
 
-        IRioLRTAssetManager(assetManager()).removeToken(tokenToRemove, tokenToRemoveBalance, vault, poolId, owner());
-        pool.removeToken(tokenToRemove, burnAmount, owner());
+    /// @notice Set the target AUM percentage for a token.
+    /// @param token The token to set the target AUM percentage for.
+    /// @param newTargetAUMPercentage The new target AUM percentage.
+    function setTargetAUMPercentageForToken(IERC20 token, uint96 newTargetAUMPercentage) external onlyOwner {
+        IRioLRTAssetManager(assetManager()).setTargetAUMPercentage(token, newTargetAUMPercentage);
     }
 
     /// @notice Update weights linearly from the current values to the given end weights,

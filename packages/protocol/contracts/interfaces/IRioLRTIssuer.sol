@@ -42,5 +42,19 @@ interface IRioLRTIssuer {
     /// @param symbol The symbol of the new LRT.
     /// @param tokens The underlying tokens of the LRT.
     /// @param controller The LRT controller.
-    event LiquidRestakingTokenIssued(bytes32 id, string name, string symbol, IERC20[] tokens, address controller);
+    /// @param assetManager The LRT asset manager.
+    /// @param operatorRegistry The LRT operator registry.
+    event LiquidRestakingTokenIssued(
+        bytes32 id,
+        string name,
+        string symbol,
+        IERC20[] tokens,
+        address controller,
+        address assetManager,
+        address operatorRegistry
+    );
+
+    /// @notice Initializes the contract.
+    /// @param initialOwner The initial owner of the contract.
+    function initialize(address initialOwner) external;
 }
