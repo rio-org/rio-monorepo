@@ -25,12 +25,21 @@ contract Operator is IOperator, Initializable {
     /// @notice The address that verifies staker delegation signatures and control forced undelegations.
     address public immutable delegationApprover;
 
-    /// @notice The address of the operator registry.
-    address public immutable operatorRegistry;
+    /// @notice The address of the LRT operator registry.
+    address public operatorRegistry;
 
-    /// @notice Require that the caller is the operator registry.
+    /// @notice The LRT asset manager.
+    address public assetManager;
+
+    /// @notice Require that the caller is the LRT's operator registry.
     modifier onlyOperatorRegistry() {
         if (msg.sender != operatorRegistry) revert ONLY_OPERATOR_REGISTRY();
+        _;
+    }
+
+    /// @notice Require that the caller is the LRT's asset manager.
+    modifier onlyAssetManager() {
+        if (msg.sender != assetManager) revert ONLY_ASSET_MANAGER();
         _;
     }
 
@@ -38,26 +47,27 @@ contract Operator is IOperator, Initializable {
     /// @param _eigenPodManager The contract used for creating and managing EigenPods.
     /// @param _delegationManager The primary delegation contract for EigenLayer.
     /// @param _delegationApprover Address to verify staker delegation signatures and control forced undelegations.
-    /// @param _operatorRegistry The address of the operator registry.
     constructor(
         address _strategyManager,
         address _eigenPodManager,
         address _delegationManager,
-        address _delegationApprover,
-        address _operatorRegistry
+        address _delegationApprover
     ) initializer {
         strategyManager = IStrategyManager(_strategyManager);
         eigenPodManager = IEigenPodManager(_eigenPodManager);
         delegationManager = IDelegationManager(_delegationManager);
 
         delegationApprover = _delegationApprover;
-        operatorRegistry = _operatorRegistry;
     }
 
     /// @notice Initializes the contract by registering the operator with EigenLayer.
+    /// @param _assetManager The LRT asset manager.
     /// @param initialEarningsReceiver The initial reward address of the operator.
     /// @param initialMetadataURI The initial metadata URI.
-    function initialize(address initialEarningsReceiver, string calldata initialMetadataURI) external initializer {
+    function initialize(address _assetManager, address initialEarningsReceiver, string calldata initialMetadataURI) external initializer {
+        operatorRegistry = msg.sender;
+        assetManager = _assetManager;
+        
         delegationManager.registerAsOperator(
             IDelegationManager.OperatorDetails(initialEarningsReceiver, delegationApprover, 0), initialMetadataURI
         );
@@ -79,22 +89,22 @@ contract Operator is IOperator, Initializable {
         delegationManager.updateOperatorMetadataURI(newMetadataURI);
     }
 
-    // TODO:
-    // - Restrict staking and withdrawal functions to the LRT asset manager.
-    // - Add a batch deposit function.
-
     /// @notice Approve EigenLayer to spend an ERC20 token, then stake it into an EigenLayer strategy.
     /// @param strategy The strategy to stake the tokens into.
     /// @param token The token to stake.
     /// @param amount The amount of tokens to stake.
-    function stakeERC20(IStrategy strategy, IERC20 token, uint256 amount) external returns (uint256 shares) {
+    function stakeERC20(IStrategy strategy, IERC20 token, uint256 amount) external onlyAssetManager returns (uint256 shares) {
         if (token.allowance(address(this), address(strategyManager)) < amount) {
             token.forceApprove(address(strategyManager), type(uint256).max);
         }
         shares = strategyManager.depositIntoStrategy(strategy, token, amount);
     }
 
-    function stakeETH(bytes[] calldata pubkeys, bytes[] calldata signatures, bytes32[] calldata depositDataRoots) external payable {
+    /// Stake ETH via the operator's EigenPod, using the provided validator information.
+    /// @param pubkeys The validator public keys.
+    /// @param signatures The validator signatures.
+    /// @param depositDataRoots The deposit data roots.
+    function stakeETH(bytes[] calldata pubkeys, bytes[] calldata signatures, bytes32[] calldata depositDataRoots) external payable onlyAssetManager {
         if (msg.value % 32 ether != 0) revert ETH_VALUE_NOT_MULTIPLE_OF_32();
 
         uint256 validators = msg.value / 32;
@@ -107,9 +117,9 @@ contract Operator is IOperator, Initializable {
         }
     }
 
-    function queueWithdrawal() external {}
+    function queueWithdrawal() external onlyAssetManager {}
 
-    function completeQueuedWithdrawal() external {}
+    function completeQueuedWithdrawal() external onlyAssetManager {}
 
-    function completeQueuedWithdrawals() external {}
+    function completeQueuedWithdrawals() external onlyAssetManager {}
 }

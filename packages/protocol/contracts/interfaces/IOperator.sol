@@ -8,13 +8,17 @@ interface IOperator {
     /// @notice Thrown when the caller is not the operator registry.
     error ONLY_OPERATOR_REGISTRY();
 
+    /// @notice Thrown when the caller is not the LRT asset manager.
+    error ONLY_ASSET_MANAGER();
+
     /// @notice Thrown when the ETH value is not a multiple of 32.
     error ETH_VALUE_NOT_MULTIPLE_OF_32();
 
     /// @notice Initializes the contract by registering the operator with EigenLayer.
+    /// @param assetManager The LRT asset manager.
     /// @param initialEarningsReceiver The initial reward address of the operator.
     /// @param initialMetadataURI The initial metadata URI.
-    function initialize(address initialEarningsReceiver, string calldata initialMetadataURI) external;
+    function initialize(address assetManager, address initialEarningsReceiver, string calldata initialMetadataURI) external;
 
     /// @notice Sets the operator's earnings receiver.
     /// @param newEarningsReceiver The new earnings receiver.

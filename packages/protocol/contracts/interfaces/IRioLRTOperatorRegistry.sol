@@ -4,7 +4,13 @@ pragma solidity 0.8.21;
 import {IPoRAddressList} from './IPoRAddressList.sol';
 import {IOperator} from './IOperator.sol';
 
-interface IOperatorRegistry is IPoRAddressList {
+interface IRioLRTOperatorRegistry is IPoRAddressList {
+    /// @dev Operator asset cap configuration information.
+    struct AssetCapConfig {
+        address token;
+        uint128 cap;
+    }
+
     /// @dev Operator asset cap and allocation information.
     struct OperatorAssetInfo {
         uint128 cap;
@@ -37,6 +43,9 @@ interface IOperatorRegistry is IPoRAddressList {
 
     /// @notice Thrown when the caller is not the operator's manager.
     error ONLY_OPERATOR_MANAGER();
+
+    /// @notice Thrown when the caller is not the asset manager.
+    error ONLY_ASSET_MANAGER();
 
     /// @notice Thrown when the caller is not the operator's pending manager.
     error ONLY_OPERATOR_PENDING_MANAGER();
@@ -93,6 +102,12 @@ interface IOperatorRegistry is IPoRAddressList {
     /// @param operatorId The operator's ID.
     event OperatorDeactivated(uint8 indexed operatorId);
 
+    /// @notice Emitted when an operator's asset cap is set.
+    /// @param operatorId The operator's ID.
+    /// @param token The token whose cap was set.
+    /// @param cap The new token cap for the operator.
+    event OperatorAssetCapSet(uint8 indexed operatorId, address token, uint128 cap);
+
     /// @notice Emitted when an operator's earnings receiver is set.
     /// @param operatorId The operator's ID.
     /// @param earningsReceiver The new earnings receiver for the operator.
@@ -112,6 +127,12 @@ interface IOperatorRegistry is IPoRAddressList {
     /// @param operatorId The operator's ID.
     /// @param manager The new manager of the operator.
     event OperatorManagerSet(uint8 indexed operatorId, address manager);
+
+    /// @notice Initializes the contract.
+    /// @param initialOwner The initial owner of the contract.
+    /// @param poolId The LRT Balancer pool ID.
+    /// @param assetManager The LRT asset manager.
+    function initialize(address initialOwner, bytes32 poolId, address assetManager) external;
 
     /// @notice Allocates a specified amount of tokens to the operators with the lowest utilization.
     /// @param token The token to allocate.

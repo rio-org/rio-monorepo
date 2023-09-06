@@ -24,6 +24,9 @@ interface IRioLRTController {
     /// @notice Thrown when the AUM fee is too high.
     error AUM_FEE_TOO_HIGH();
 
+    /// @notice Thrown when the underlying token of the provided strategy is not the pool token.
+    error INVALID_STRATEGY_FOR_TOKEN();
+
     /// @notice Emitted when the security council is updated by the owner.
     event SecurityCouncilChanged(address newSecurityCouncil);
 
@@ -32,8 +35,7 @@ interface IRioLRTController {
     /// @param pool The pool (LRT) that's controlled by this contract.
     /// @param securityCouncil The address of the DAO-managed security council.
     /// @param allowedLPs The addresses of the LPs that are allowed to join the pool.
-    function initialize(address initialOwner, address pool, address securityCouncil, address[] calldata allowedLPs)
-        external;
+    function initialize(address initialOwner, address pool, address securityCouncil, address[] calldata allowedLPs) external;
 
     /// @notice The pool (LRT) that's controlled by this contract.
     function pool() external view returns (IManagedPoolSettings);

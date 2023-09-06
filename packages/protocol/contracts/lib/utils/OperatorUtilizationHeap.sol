@@ -6,6 +6,9 @@ pragma solidity 0.8.21;
 /// structure that organizes operators based on their utilization. The heap allows for efficient insertion,
 /// removal, and updates of operators, as well as retrieval of the operator with the minimum utilization.
 library OperatorUtilizationHeap {
+    /// @notice Thrown when an operator is not found in the heap.
+    error OPERATOR_NOT_FOUND();
+
     /// @notice The root index of the heap.
     uint8 constant ROOT_INDEX = 1;
 
@@ -53,6 +56,19 @@ library OperatorUtilizationHeap {
         _bubbleDown(self, lastOperator, index);
     }
 
+    /// @notice Removes an operator from the heap by its ID.
+    /// @param self The heap data struct.
+    /// @param id The ID of the operator to remove.
+    function removeByID(Data memory self, uint8 id) internal pure {
+        for (uint8 i = 1; i <= self.count; ++i) {
+            if (self.operators[i].id == id) {
+                remove(self, i);
+                return;
+            }
+        }
+        revert OPERATOR_NOT_FOUND();
+    }
+
     /// @notice Updates the utilization of an operator in the heap.
     /// @param self The heap data struct.
     /// @param index The index of the operator to update.
@@ -66,6 +82,20 @@ library OperatorUtilizationHeap {
         } else if (newUtilization < oldUtilization) {
             _bubbleUp(self, self.operators[index], index);
         }
+    }
+
+    /// @notice Updates the utilization of an operator in the heap by its ID.
+    /// @param self The heap data struct.
+    /// @param id The id of the operator to update.
+    /// @param newUtilization The new utilization of the operator.
+    function updateUtilizationByID(Data memory self, uint8 id, uint256 newUtilization) internal pure {
+        for (uint8 i = 1; i <= self.count; ++i) {
+            if (self.operators[i].id == id) {
+                updateUtilization(self, i, newUtilization);
+                return;
+            }
+        }
+        revert OPERATOR_NOT_FOUND();
     }
 
     /// @notice Extracts the minimum operator from the heap.
