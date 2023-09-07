@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.21;
 
-import {IBeaconChainOracle} from './IBeaconChainOracle.sol';
-import {IStrategyManager} from './IStrategyManager.sol';
-import {IEigenPod} from './IEigenPod.sol';
-import {ISlasher} from './ISlasher.sol';
+import {IBeaconChainOracle} from 'contracts/interfaces/eigenlayer/IBeaconChainOracle.sol';
+import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
+import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
+import {ISlasher} from 'contracts/interfaces/eigenlayer/ISlasher.sol';
 
 interface IEigenPodManager {
     /// @notice Creates an EigenPod for the sender.

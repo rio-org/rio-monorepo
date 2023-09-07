@@ -6,10 +6,10 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IRioLRTOperatorRegistry} from './interfaces/IRioLRTOperatorRegistry.sol';
-import {IRioLRTAssetManager} from './interfaces/IRioLRTAssetManager.sol';
-import {IStrategy} from './interfaces/eigenlayer/IStrategy.sol';
-import {IOperator} from './interfaces/IOperator.sol';
+import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
+import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
+import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
 contract RioLRTAssetManager is IRioLRTAssetManager {
     using SafeERC20 for IOpenZeppelinERC20;
@@ -167,7 +167,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
             allocation = operatorAllocations[i].allocation;
 
             IOpenZeppelinERC20(token).safeTransfer(operator, allocation);
-            shares += IOperator(operator).stakeERC20(strategy, IOpenZeppelinERC20(token), allocation);
+            shares += IRioLRTOperator(operator).stakeERC20(strategy, IOpenZeppelinERC20(token), allocation);
 
             unchecked {
                 ++i;

@@ -2,9 +2,9 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IStrategy} from './eigenlayer/IStrategy.sol';
+import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
-interface IOperator {
+interface IRioLRTOperator {
     /// @notice Thrown when the caller is not the operator registry.
     error ONLY_OPERATOR_REGISTRY();
 

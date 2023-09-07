@@ -10,12 +10,12 @@ import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IWETH} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/misc/IWETH.sol';
 import {IAsset} from '@balancer-v2/contracts/interfaces/contracts/vault/IAsset.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
-import {IRioLRTOperatorRegistry} from './interfaces/IRioLRTOperatorRegistry.sol';
-import {IManagedPoolSettings} from './interfaces/IManagedPoolSettings.sol';
-import {IManagedPoolFactory} from './interfaces/IManagedPoolFactory.sol';
-import {IRioLRTAssetManager} from './interfaces/IRioLRTAssetManager.sol';
-import {IRioLRTController} from './interfaces/IRioLRTController.sol';
-import {IRioLRTIssuer} from './interfaces/IRioLRTIssuer.sol';
+import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
+import {IManagedPoolFactory} from 'contracts/interfaces/balancer/IManagedPoolFactory.sol';
+import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
+import {IRioLRTController} from 'contracts/interfaces/IRioLRTController.sol';
+import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 
 contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;

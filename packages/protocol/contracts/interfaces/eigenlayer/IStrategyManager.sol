@@ -2,9 +2,9 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IDelegationManager} from './IDelegationManager.sol';
-import {IStrategy} from './IStrategy.sol';
-import {ISlasher} from './ISlasher.sol';
+import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
+import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
+import {ISlasher} from 'contracts/interfaces/eigenlayer/ISlasher.sol';
 
 /// @title Interface for the primary entrypoint for funds into EigenLayer.
 /// @author Layr Labs, Inc.

@@ -2,13 +2,13 @@
 pragma solidity 0.8.21;
 
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
-import {RioLRTOperatorRegistry} from '../../contracts/RioLRTOperatorRegistry.sol';
-import {RioLRTAssetManager} from '../../contracts/RioLRTAssetManager.sol';
-import {IRioLRTIssuer} from '../../contracts/interfaces/IRioLRTIssuer.sol';
-import {RioLRTController} from '../../contracts/RioLRTController.sol';
-import {RioLRTIssuer} from '../../contracts/RioLRTIssuer.sol';
-import {BalancerDeployer} from './BalancerDeployer.sol';
-import {Operator} from '../../contracts/Operator.sol';
+import {RioLRTOperatorRegistry} from 'contracts/restaking/RioLRTOperatorRegistry.sol';
+import {RioLRTAssetManager} from 'contracts/restaking/RioLRTAssetManager.sol';
+import {RioLRTController} from 'contracts/restaking/RioLRTController.sol';
+import {RioLRTOperator} from 'contracts/restaking/RioLRTOperator.sol';
+import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
+import {RioLRTIssuer} from 'contracts/restaking/RioLRTIssuer.sol';
+import {BalancerDeployer} from 'test/utils/BalancerDeployer.sol';
 
 abstract contract RioDeployer is BalancerDeployer {
     RioLRTIssuer issuer;
@@ -25,7 +25,7 @@ abstract contract RioDeployer is BalancerDeployer {
                 address (new RioLRTAssetManager(VAULT_ADDRESS)),
                 address (new RioLRTOperatorRegistry(
                     VAULT_ADDRESS,
-                    address(new Operator(address(0), address(0), address(0), address(0)))
+                    address(new RioLRTOperator(address(0), address(0), address(0), address(0)))
                 ))
             )
         );

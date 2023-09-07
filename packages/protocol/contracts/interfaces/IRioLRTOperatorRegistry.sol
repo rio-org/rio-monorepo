@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IPoRAddressList} from './IPoRAddressList.sol';
-import {IOperator} from './IOperator.sol';
+import {IPoRAddressList} from 'contracts/interfaces/chainlink/IPoRAddressList.sol';
+import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 
 interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @dev Operator asset cap configuration information.

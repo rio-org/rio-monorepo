@@ -2,10 +2,10 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IManagedPoolSettings} from '../contracts/interfaces/IManagedPoolSettings.sol';
-import {IRioLRTIssuer} from '../contracts/interfaces/IRioLRTIssuer.sol';
-import {RioDeployer} from './lib/RioDeployer.sol';
-import {MockERC20} from './lib/MockERC20.sol';
+import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
+import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
+import {RioDeployer} from 'test/utils/RioDeployer.sol';
+import {MockERC20} from 'test/utils/MockERC20.sol';
 
 contract RioLRTIssuerTest is RioDeployer {
     address public constant SECURITY_COUNCIL = address(0xC0);

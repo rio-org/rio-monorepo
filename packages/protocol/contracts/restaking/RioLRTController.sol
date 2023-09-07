@@ -5,14 +5,14 @@ import {Clone} from '@solady/utils/Clone.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
-import {IBasePoolAuthentication} from './interfaces/IBasePoolAuthentication.sol';
-import {IManagedPoolSettings} from './interfaces/IManagedPoolSettings.sol';
-import {IRioLRTAssetManager} from './interfaces/IRioLRTAssetManager.sol';
-import {IRioLRTController} from './interfaces/IRioLRTController.sol';
-import {IStrategy} from './interfaces/eigenlayer/IStrategy.sol';
+import {IBasePoolAuthentication} from 'contracts/interfaces/balancer/IBasePoolAuthentication.sol';
+import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
+import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
+import {IRioLRTController} from 'contracts/interfaces/IRioLRTController.sol';
+import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
 contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
     using SafeERC20 for IOpenZeppelinERC20;

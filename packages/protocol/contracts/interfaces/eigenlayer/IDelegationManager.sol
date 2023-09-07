@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.21;
 
-import {IStrategy} from './IStrategy.sol';
+import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
 /// @title The interface for the primary delegation contract for EigenLayer.
 /// @author Layr Labs, Inc.

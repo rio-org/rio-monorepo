@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
-import {IStrategy} from './eigenlayer/IStrategy.sol';
+import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
 interface IRioLRTAssetManager {
     /// @notice The asset management configuration for a token.

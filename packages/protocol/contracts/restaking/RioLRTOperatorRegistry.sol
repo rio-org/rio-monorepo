@@ -3,14 +3,14 @@ pragma solidity 0.8.21;
 
 import {LibMap} from '@solady/utils/LibMap.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
+import {BeaconProxy} from '@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
-import {IRioLRTOperatorRegistry} from './interfaces/IRioLRTOperatorRegistry.sol';
-import {BeaconProxy} from '@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol';
-import {OperatorUtilizationHeap} from './lib/utils/OperatorUtilizationHeap.sol';
-import {IOperator} from './interfaces/IOperator.sol';
+import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
+import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 
 contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, UUPSUpgradeable {
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
@@ -200,7 +200,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
         // Update both the Rio and EigenLayer earnings receivers.
         info.earningsReceiver = newEarningsReceiver;
-        IOperator(info.operator).setEarningsReceiver(newEarningsReceiver);
+        IRioLRTOperator(info.operator).setEarningsReceiver(newEarningsReceiver);
 
         emit OperatorEarningsReceiverSet(operatorId, newEarningsReceiver);
     }
@@ -211,7 +211,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     function setOperatorMetadataURI(uint8 operatorId, string calldata metadataURI) external onlyOperatorManager(operatorId) {
         if (bytes(metadataURI).length == 0) revert INVALID_METADATA_URI();
 
-        IOperator(operatorInfo[operatorId].operator).setMetadataURI(metadataURI);
+        IRioLRTOperator(operatorInfo[operatorId].operator).setMetadataURI(metadataURI);
 
         emit OperatorMetadataURISet(operatorId, metadataURI);
     }
@@ -365,7 +365,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param initialMetadataURI The initial metadata URI.
     function _deployAndRegisterOperator(address initialEarningsReceiver, string calldata initialMetadataURI) internal returns (address operator) {
         operator = address(
-            new BeaconProxy(operatorImpl, abi.encodeCall(IOperator.initialize, (assetManager, initialEarningsReceiver, initialMetadataURI)))
+            new BeaconProxy(operatorImpl, abi.encodeCall(IRioLRTOperator.initialize, (assetManager, initialEarningsReceiver, initialMetadataURI)))
         );
     }
 

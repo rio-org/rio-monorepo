@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.21;
 
-import {IEigenPodManager} from './IEigenPodManager.sol';
+import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager.sol';
 
 /// @title The implementation contract used for restaking beacon chain ETH on EigenLayer
 /// @author Layr Labs, Inc.

@@ -4,13 +4,13 @@ pragma solidity 0.8.21;
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {Initializable} from '@openzeppelin/contracts/proxy/utils/Initializable.sol';
-import {IDelegationManager} from './interfaces/eigenlayer/IDelegationManager.sol';
-import {IStrategyManager} from './interfaces/eigenlayer/IStrategyManager.sol';
-import {IEigenPodManager} from './interfaces/eigenlayer/IEigenPodManager.sol';
-import {IStrategy} from './interfaces/eigenlayer/IStrategy.sol';
-import {IOperator} from './interfaces/IOperator.sol';
+import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
+import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
+import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager.sol';
+import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
+import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 
-contract Operator is IOperator, Initializable {
+contract RioLRTOperator is IRioLRTOperator, Initializable {
     using SafeERC20 for IERC20;
 
     /// @notice The primary entry and exit-point for funds into and out of EigenLayer.

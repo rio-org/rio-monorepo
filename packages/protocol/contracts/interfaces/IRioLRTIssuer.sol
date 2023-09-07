@@ -2,7 +2,7 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IManagedPoolSettings} from './IManagedPoolSettings.sol';
+import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
 
 interface IRioLRTIssuer {
     /// @notice Information required to issue a new liquid restaking token.

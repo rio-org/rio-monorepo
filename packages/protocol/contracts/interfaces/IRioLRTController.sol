@@ -2,7 +2,7 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
-import {IManagedPoolSettings} from './IManagedPoolSettings.sol';
+import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
 
 interface IRioLRTController {
     /// @notice Thrown when the contract has already been initialized
