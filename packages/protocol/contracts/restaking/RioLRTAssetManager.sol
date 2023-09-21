@@ -147,7 +147,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     /// @notice Rebalances `token` in the pool (LRT) by processing outstanding withdrawals,
     /// depositing or withdrawing funds from EigenLayer, and updating the pool's cash and managed balances.
     /// @param token The token to rebalance.
-    function rebalance(address token) public onlyAfterRebalanceDelay {
+    function rebalance(address token) external onlyAfterRebalanceDelay {
         (uint256 cash, uint256 aum) = getPoolBalances(token);
 
         // Process outstanding withdrawals before rebalancing, if any.
