@@ -7,11 +7,14 @@ import {Initializable} from '@openzeppelin/contracts/proxy/utils/Initializable.s
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
 import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager.sol';
+import {ISlasher} from 'contracts/interfaces/eigenlayer/ISlasher.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
+import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTOperator is IRioLRTOperator, Initializable {
     using SafeERC20 for IERC20;
+    using Array for *;
 
     /// @notice The primary entry and exit-point for funds into and out of EigenLayer.
     IStrategyManager public immutable strategyManager;
@@ -21,6 +24,9 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
 
     /// @notice The primary delegation contract for EigenLayer.
     IDelegationManager public immutable delegationManager;
+
+    /// @notice The primary 'slashing' contract for EigenLayer.
+    ISlasher public immutable slasher;
 
     /// @notice The address that verifies staker delegation signatures and control forced undelegations.
     address public immutable delegationApprover;
@@ -46,16 +52,19 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param _strategyManager The primary entry and exit-point for funds into and out of EigenLayer.
     /// @param _eigenPodManager The contract used for creating and managing EigenPods.
     /// @param _delegationManager The primary delegation contract for EigenLayer.
+    /// @param _slasher The primary 'slashing' contract for EigenLayer.
     /// @param _delegationApprover Address to verify staker delegation signatures and control forced undelegations.
     constructor(
         address _strategyManager,
         address _eigenPodManager,
         address _delegationManager,
+        address _slasher,
         address _delegationApprover
     ) initializer {
         strategyManager = IStrategyManager(_strategyManager);
         eigenPodManager = IEigenPodManager(_eigenPodManager);
         delegationManager = IDelegationManager(_delegationManager);
+        slasher = ISlasher(_slasher);
 
         delegationApprover = _delegationApprover;
     }
@@ -89,6 +98,12 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         delegationManager.updateOperatorMetadataURI(newMetadataURI);
     }
 
+    /// @notice Gives the `contractAddress` permission to slash this operator.
+    /// @param contractAddress The address of the contract to give permission to.
+    function optIntoSlashing(address contractAddress) external onlyOperatorRegistry {
+        slasher.optIntoSlashing(contractAddress);
+    }
+
     /// @notice Approve EigenLayer to spend an ERC20 token, then stake it into an EigenLayer strategy.
     /// @param strategy The strategy to stake the tokens into.
     /// @param token The token to stake.
@@ -107,7 +122,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     function stakeETH(bytes[] calldata pubkeys, bytes[] calldata signatures, bytes32[] calldata depositDataRoots) external payable onlyAssetManager {
         if (msg.value % 32 ether != 0) revert ETH_VALUE_NOT_MULTIPLE_OF_32();
 
-        uint256 validators = msg.value / 32;
+        uint256 validators = msg.value / 32 ether;
         for (uint256 i = 0; i < validators;) {
             eigenPodManager.stake{value: msg.value}(pubkeys[i], signatures[i], depositDataRoots[i]);
 
@@ -117,9 +132,33 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         }
     }
 
-    function queueWithdrawal() external onlyAssetManager {}
+    /// @notice Queue a withdrawal of the given amount of `shares` to the `withdrawer` from the provided `strategy`.
+    /// @param strategy The strategy to withdraw from.
+    /// @param shares The amount of shares to withdraw.
+    /// @param withdrawer The address who has permission to complete the withdrawal.
+    function queueWithdrawal(IStrategy strategy, uint256 shares, address withdrawer) external onlyAssetManager returns (bytes32 root) {
+        uint256 strategyIndex = _getStrategyIndex(strategy);
+        root = strategyManager.queueWithdrawal(
+            strategyIndex.toArray(),
+            strategy.toArray(),
+            shares.toArray(),
+            withdrawer,
+            false
+        );
+    }
 
-    function completeQueuedWithdrawal() external onlyAssetManager {}
-
-    function completeQueuedWithdrawals() external onlyAssetManager {}
+    /// @dev Return the strategy index for the given strategy instance.
+    /// @param strategy The strategy instance.
+    function _getStrategyIndex(IStrategy strategy) internal view returns (uint256) {
+        uint256 strategyCount = strategyManager.stakerStrategyListLength(address(this));
+        for (uint256 i = 0; i < strategyCount; ) {
+            if (strategyManager.stakerStrategyList(address(this), i) == strategy) {
+                return i;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+        revert INVALID_STRATEGY();
+    }
 }

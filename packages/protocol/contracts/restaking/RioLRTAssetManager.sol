@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
+import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
@@ -24,8 +26,17 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     /// @notice The LRT controller.
     address public controller;
 
+    /// @notice The timestamp at which the pool last rebalanced.
+    uint40 public lastRebalanceTimestamp;
+
+    /// @notice The required delay between rebalances.
+    uint40 public rebalanceDelay;
+
     /// @notice The operator registry used for token allocation.
     IRioLRTOperatorRegistry public operatorRegistry;
+
+    /// @notice The contract used to queue and process withdrawals.
+    IRioLRTWithdrawalQueue public withdrawalQueue;
 
     /// @notice A mapping of tokens to their asset management configurations.
     mapping(address token => TokenConfig config) public configs;
@@ -36,6 +47,12 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     /// @notice Require that the caller is the LRT controller.
     modifier onlyController() {
         if (msg.sender != controller) revert ONLY_LRT_CONTROLLER();
+        _;
+    }
+
+    /// @notice Require that the rebalance delay has been met.
+    modifier onlyAfterRebalanceDelay() {
+        if (block.timestamp - lastRebalanceTimestamp >= rebalanceDelay) revert REBALANCE_DELAY_NOT_MET();
         _;
     }
 
@@ -109,27 +126,59 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         emit TargetAUMPercentageSet(token, newTargetAUMPercentage);
     }
 
-    function rebalance(address token) public {
-        TokenConfig memory config = configs[token];
+    /// @notice Receive underlying tokens as a reward to the LRT.
+    /// @param token The token being rewarded.
+    /// @param amount The amount of tokens being rewarded.
+    function receiveReward(address token, uint256 amount) external {
+        bytes32 _poolId = poolId;
 
+        IOpenZeppelinERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+
+        // Inform the vault of the new 'managed' tokens and move them into the pool's cash balance.
+        IVault.PoolBalanceOp[] memory ops = new IVault.PoolBalanceOp[](2);
+        ops[0] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.UPDATE, _poolId, IERC20(token), getAUM(token) + amount);
+        ops[1] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.DEPOSIT, _poolId, IERC20(token), amount);
+
+        vault.managePoolBalance(ops);
+
+        emit RewardReceived(IERC20(token), amount);
+    }
+
+    /// @notice Rebalances `token` in the pool (LRT) by processing outstanding withdrawals,
+    /// depositing or withdrawing funds from EigenLayer, and updating the pool's cash and managed balances.
+    /// @param token The token to rebalance.
+    function rebalance(address token) public onlyAfterRebalanceDelay {
         (uint256 cash, uint256 aum) = getPoolBalances(token);
+
+        // Process outstanding withdrawals before rebalancing, if any.
+        uint256 owed = withdrawalQueue.getAmountOwedInCurrentEpoch(IERC20(token));
+        if (owed != 0) {
+            (cash, aum) = _processWithdrawalsForToken(token, cash, aum, owed);
+        }
+
+        TokenConfig memory config = configs[token];
         uint256 targetAUM = (cash + aum).mulWad(config.targetAUMPercentage);
         if (targetAUM > aum) {
             // Pool is under-invested. Deposit funds to EigenLayer.
             _depositIntoEigenLayer(config.strategy, token, aum, targetAUM - aum);
         } else {
             // Pool is over-invested. Withdraw funds from EigenLayer.
-            _withdrawFromEigenLayer(token, aum - targetAUM);
+            // TODO: Withdrawer should be set to this contract if queueing due to over-investment.
+            _queueWithdrawalFromEigenLayer(config.strategy, token, aum, aum - targetAUM);
         }
     }
-
-    function rebalanceAll() external {}
 
     /// @notice Returns cash (pool) and managed (EigenLayer) balances for a token.
     /// @param token The token to get the balances for.
     function getPoolBalances(address token) public view returns (uint256 cash, uint256 managed) {
-        (cash,,,) = vault.getPoolTokenInfo(poolId, IERC20(token));
+        cash = getCash(token);
         managed = getAUM(token);
+    }
+
+    /// @notice Returns the cash balance of a token.
+    /// @param token The token to get the cash balance for.
+    function getCash(address token) public view returns (uint256 cash) {
+        (cash,,,) = vault.getPoolTokenInfo(poolId, IERC20(token));
     }
 
     /// @notice Returns the AUM of a token.
@@ -141,7 +190,57 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         aum = config.strategy.sharesToUnderlyingView(strategyShares[address(config.strategy)]);
     }
 
-    /// @notice Deposits funds into the EigenLayer through the operators that are returned from the registry.
+    /// @dev Processes withdrawals for a token by withdrawing cash from the vault and/or
+    /// queuing withdrawals from EigenLayer.
+    /// @param token The token to process withdrawals for.
+    /// @param cash The current cash balance of the token.
+    /// @param aum The current AUM of the token.
+    /// @param owed The amount of tokens owed to withdrawals in the current epoch.
+    function _processWithdrawalsForToken(address token, uint256 cash, uint256 aum, uint256 owed) internal returns (uint256, uint256) {
+        bytes32 _poolId = poolId;
+        uint256 withdrawable = Math.min(cash, owed);
+        uint256 deficit = owed - withdrawable;
+
+        IVault.PoolBalanceOp[] memory ops;
+
+        // The pool has no cash at all. Queue The total amount.
+        if (cash == 0) {
+            // Take the `deficit` from the pool's `aum`.
+            ops = new IVault.PoolBalanceOp[](1);
+            ops[0] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.UPDATE, _poolId, IERC20(token), aum - deficit);
+
+            vault.managePoolBalance(ops);
+
+            withdrawalQueue.recordQueuedEigenLayerWithdrawalsForCurrentEpoch(
+                IERC20(token), _queueWithdrawalFromEigenLayer(configs[token].strategy, token, aum, owed)
+            );
+            return (cash, aum - owed);
+        }
+
+        // Withdraw `withdrawable` from `cash` and takes the `deficit` from the pool's `aum`.
+        ops = new IVault.PoolBalanceOp[](2);
+        ops[0] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.WITHDRAW, _poolId, IERC20(token), withdrawable);
+        ops[1] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.UPDATE, _poolId, IERC20(token), aum - deficit);
+
+        vault.managePoolBalance(ops);
+
+        // Transfer the funds that were withdrawn from the vault to the withdrawal queue.
+        IOpenZeppelinERC20(token).safeTransfer(address(withdrawalQueue), withdrawable);
+
+        // There was enough cash to cover all withdrawals in the current epoch. Mark it as completed.
+        if (withdrawable == owed) {
+            withdrawalQueue.completeWithdrawalsFromPoolForCurrentEpoch(IERC20(token));
+            return (cash - withdrawable, aum);
+        }
+
+        // There is a cash deficit. Queue the remaining amount.
+        withdrawalQueue.recordQueuedEigenLayerWithdrawalsForCurrentEpoch(
+            IERC20(token), _queueWithdrawalFromEigenLayer(configs[token].strategy, token, aum, deficit)
+        );
+        return (cash - withdrawable, aum - deficit);
+    }
+
+    /// @dev Deposits funds into EigenLayer through the operators that are returned from the registry.
     /// @param strategy The strategy to deposit the funds into.
     /// @param token The token to deposit.
     /// @param aum The current AUM of the token.
@@ -176,6 +275,42 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         strategyShares[address(strategy)] += shares;
     }
 
-    /// @param amount The amount of tokens to withdraw from the EigenLayer.
-    function _withdrawFromEigenLayer(address token, uint256 amount) internal {}
+    /// @dev Queues a withdrawal from EigenLayer through the operators that are returned from the registry.
+    /// @param strategy The strategy to withdraw the funds from.
+    /// @param token The token to withdraw.
+    /// @param aum The current AUM of the token.
+    /// @param amount The amount of tokens to withdraw.
+    function _queueWithdrawalFromEigenLayer(IStrategy strategy, address token, uint256 aum, uint256 amount) internal returns (bytes32 aggregateRoot) {
+        bytes32 _poolId = poolId;
+
+        // Remove the tokens from the pool's managed balance.
+        IVault.PoolBalanceOp[] memory ops = new IVault.PoolBalanceOp[](1);
+        ops[0] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.UPDATE, _poolId, IERC20(token), aum - amount);
+
+        vault.managePoolBalance(ops);
+
+        // Deallocate tokens from selected operators.
+        (, IRioLRTOperatorRegistry.OperatorDeallocation[] memory operatorDeallocations) = operatorRegistry.deallocate(token, amount);
+
+        uint256 operatorDeallocationsLength = operatorDeallocations.length;
+        bytes32[] memory roots = new bytes32[](operatorDeallocationsLength);
+
+        address operator;
+        uint256 deallocation;
+        uint256 sharesToWithdraw;
+        uint256 shares;
+        for (uint256 i = 0; i < operatorDeallocationsLength;) {
+            operator = operatorDeallocations[i].operator;
+            deallocation = operatorDeallocations[i].deallocation;
+
+            shares += sharesToWithdraw = strategy.underlyingToSharesView(deallocation);
+            roots[i] = IRioLRTOperator(operator).queueWithdrawal(strategy, shares, address(withdrawalQueue));
+
+            unchecked {
+                ++i;
+            }
+        }
+        strategyShares[address(strategy)] -= shares;
+        aggregateRoot = keccak256(abi.encode(roots));
+    }
 }

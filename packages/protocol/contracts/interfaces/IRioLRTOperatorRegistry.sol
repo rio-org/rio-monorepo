@@ -41,6 +41,12 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
         uint256 allocation;
     }
 
+    /// @notice An operator address and token deallocation.
+    struct OperatorDeallocation {
+        address operator;
+        uint256 deallocation;
+    }
+
     /// @notice Thrown when the caller is not the operator's manager.
     error ONLY_OPERATOR_MANAGER();
 
@@ -138,4 +144,9 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param token The token to allocate.
     /// @param allocationSize The amount of tokens to allocate.
     function allocate(address token, uint256 allocationSize) external returns (uint256 allocated, OperatorAllocation[] memory allocations);
+
+    /// @notice Deallocates a specified amount of tokens from the operators with the highest utilization.
+    /// @param token The token to deallocate.
+    /// @param deallocationSize The amount of tokens to deallocate.
+    function deallocate(address token, uint256 deallocationSize) external returns (uint256 deallocated, OperatorDeallocation[] memory deallocations);
 }

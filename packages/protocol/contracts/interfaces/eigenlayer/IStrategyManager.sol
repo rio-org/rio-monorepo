@@ -92,6 +92,11 @@ interface IStrategyManager {
     /// @return (depositor's strategies, shares in these strategies)
     function getDeposits(address depositor) external view returns (IStrategy[] memory, uint256[] memory);
 
+    /// @notice Strategies in which the staker has nonzero shares
+    /// @param staker The staker whose strategies are being queried
+    /// @param index The index of the strategy to query
+    function stakerStrategyList(address staker, uint256 index) external view returns (IStrategy);
+
     /// @notice Simple getter function that returns `stakerStrategyList[staker].length`.
     function stakerStrategyListLength(address staker) external view returns (uint256);
 

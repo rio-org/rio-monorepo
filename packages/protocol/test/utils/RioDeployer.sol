@@ -25,7 +25,7 @@ abstract contract RioDeployer is BalancerDeployer {
                 address (new RioLRTAssetManager(VAULT_ADDRESS)),
                 address (new RioLRTOperatorRegistry(
                     VAULT_ADDRESS,
-                    address(new RioLRTOperator(address(0), address(0), address(0), address(0)))
+                    address(new RioLRTOperator(address(0), address(0), address(0), address(0), address(0)))
                 ))
             )
         );
