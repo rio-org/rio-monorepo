@@ -139,7 +139,9 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         joinRequest.maxAmountsIn[0] = type(uint256).max;
 
         bytes32 poolId = IManagedPoolSettings(pool).getPoolId();
-        address operatorRegistry = address(new ERC1967Proxy(operatorRegistryImpl, abi.encodeCall(IRioLRTOperatorRegistry.initialize, (msg.sender, poolId, assetManager))));
+        address operatorRegistry = address(
+            new ERC1967Proxy(operatorRegistryImpl, abi.encodeCall(IRioLRTOperatorRegistry.initialize, (msg.sender, poolId, assetManager)))
+        );
 
         // Add liquidity to the pool (LRT), thereby initializing it.
         vault.joinPool(poolId, address(this), msg.sender, joinRequest);

@@ -292,14 +292,13 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         // Deallocate tokens from selected operators.
         (, IRioLRTOperatorRegistry.OperatorDeallocation[] memory operatorDeallocations) = operatorRegistry.deallocate(token, amount);
 
-        uint256 operatorDeallocationsLength = operatorDeallocations.length;
-        bytes32[] memory roots = new bytes32[](operatorDeallocationsLength);
+        bytes32[] memory roots = new bytes32[](operatorDeallocations.length);
 
         address operator;
         uint256 deallocation;
         uint256 sharesToWithdraw;
         uint256 shares;
-        for (uint256 i = 0; i < operatorDeallocationsLength;) {
+        for (uint256 i = 0; i < operatorDeallocations.length;) {
             operator = operatorDeallocations[i].operator;
             deallocation = operatorDeallocations[i].deallocation;
 

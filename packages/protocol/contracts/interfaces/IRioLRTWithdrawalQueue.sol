@@ -23,7 +23,7 @@ interface IRioLRTWithdrawalQueue {
     /// @notice A withdrawal request made by a user.
     struct WithdrawalRequest {
         uint40 epoch;
-        IERC20 token;   
+        IERC20 token;
     }
 
     /// @notice Thrown when the caller is not the LRT asset manager.
