@@ -27,7 +27,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     address public controller;
 
     /// @notice The timestamp at which the pool last rebalanced.
-    uint40 public lastRebalanceTimestamp;
+    uint40 public lastRebalancedAt;
 
     /// @notice The required delay between rebalances.
     uint40 public rebalanceDelay;
@@ -52,7 +52,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
 
     /// @notice Require that the rebalance delay has been met.
     modifier onlyAfterRebalanceDelay() {
-        if (block.timestamp - lastRebalanceTimestamp >= rebalanceDelay) revert REBALANCE_DELAY_NOT_MET();
+        if (block.timestamp - lastRebalancedAt >= rebalanceDelay) revert REBALANCE_DELAY_NOT_MET();
         _;
     }
 
@@ -158,6 +158,8 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     /// depositing or withdrawing funds from EigenLayer, and updating the pool's cash and managed balances.
     /// @param token The token to rebalance.
     function rebalance(address token) external onlyAfterRebalanceDelay {
+        lastRebalancedAt = uint40(block.timestamp);
+
         (uint256 cash, uint256 aum) = getPoolBalances(token);
 
         // Process outstanding withdrawals before rebalancing, if any.
