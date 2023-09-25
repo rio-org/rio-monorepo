@@ -170,13 +170,9 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
 
         TokenConfig memory config = configs[token];
         uint256 targetAUM = (cash + aum).mulWad(config.targetAUMPercentage);
-        if (targetAUM > aum) {
+        if (aum < targetAUM) {
             // Pool is under-invested. Deposit funds to EigenLayer.
             _depositIntoEigenLayer(config.strategy, token, aum, targetAUM - aum);
-        } else {
-            // Pool is over-invested. Withdraw funds from EigenLayer.
-            // TODO: Withdrawer should be set to this contract if queueing due to over-investment.
-            _queueWithdrawalFromEigenLayer(config.strategy, token, aum, aum - targetAUM);
         }
     }
 
