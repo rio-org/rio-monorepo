@@ -11,6 +11,9 @@ interface IRioLRTOperator {
     /// @notice Thrown when the caller is not the LRT asset manager.
     error ONLY_ASSET_MANAGER();
 
+    /// @notice Thrown when a strategy is not registered with EigenLayer.
+    error INVALID_STRATEGY();
+
     /// @notice Thrown when the ETH value is not a multiple of 32.
     error ETH_VALUE_NOT_MULTIPLE_OF_32();
 
@@ -33,4 +36,10 @@ interface IRioLRTOperator {
     /// @param token The token to stake.
     /// @param amount The amount of tokens to stake.
     function stakeERC20(IStrategy strategy, IERC20 token, uint256 amount) external returns (uint256 shares);
+
+    /// @notice Queue a withdrawal of the given amount of `shares` to the `withdrawer` from the provided `strategy`.
+    /// @param strategy The strategy to withdraw from.
+    /// @param shares The amount of shares to withdraw.
+    /// @param withdrawer The address who has permission to complete the withdrawal.
+    function queueWithdrawal(IStrategy strategy, uint256 shares, address withdrawer) external returns (bytes32 root);
 }

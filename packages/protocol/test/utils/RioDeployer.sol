@@ -3,6 +3,7 @@ pragma solidity 0.8.21;
 
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import {RioLRTOperatorRegistry} from 'contracts/restaking/RioLRTOperatorRegistry.sol';
+import {RioLRTWithdrawalQueue} from 'contracts/restaking/RioLRTWithdrawalQueue.sol';
 import {RioLRTAssetManager} from 'contracts/restaking/RioLRTAssetManager.sol';
 import {RioLRTController} from 'contracts/restaking/RioLRTController.sol';
 import {RioLRTOperator} from 'contracts/restaking/RioLRTOperator.sol';
@@ -25,8 +26,9 @@ abstract contract RioDeployer is BalancerDeployer {
                 address (new RioLRTAssetManager(VAULT_ADDRESS)),
                 address (new RioLRTOperatorRegistry(
                     VAULT_ADDRESS,
-                    address(new RioLRTOperator(address(0), address(0), address(0), address(0)))
-                ))
+                    address(new RioLRTOperator(address(0), address(0), address(0), address(0), address(0)))
+                )),
+                address (new RioLRTWithdrawalQueue(address(0), address(0), address(0)))
             )
         );
         issuer = RioLRTIssuer(

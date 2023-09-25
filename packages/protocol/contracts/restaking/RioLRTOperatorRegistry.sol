@@ -285,6 +285,8 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
     }
 
+    function deallocate(address token, uint256 deallocationSize) external onlyAssetManager returns (uint256 deallocated, OperatorDeallocation[] memory deallocations) {} 
+
     function getPoRAddressListLength() external view override returns (uint256) {}
 
     function getPoRAddressList(uint256 startIndex, uint256 endIndex) external view override returns (string[] memory) {}

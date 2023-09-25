@@ -135,6 +135,12 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
         IRioLRTAssetManager(assetManager()).setTargetAUMPercentage(token, newTargetAUMPercentage);
     }
 
+    /// @notice Set the LRT rebalance delay.
+    /// @param newRebalanceDelay The new rebalance delay.
+    function setRebalanceDelay(uint40 newRebalanceDelay) external onlyOwner {
+        IRioLRTAssetManager(assetManager()).setRebalanceDelay(newRebalanceDelay);
+    }
+
     /// @notice Update weights linearly from the current values to the given end weights,
     /// between the current timestamp and the current timestamp plus `duration`.
     /// @param duration The duration of the weight change.
