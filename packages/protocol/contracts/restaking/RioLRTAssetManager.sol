@@ -65,12 +65,16 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     /// @param _poolId The LRT Balancer pool ID.
     /// @param _controller The LRT controller.
     /// @param _operatorRegistry The operator registry used for token allocation.
-    function initialize(bytes32 _poolId, address _controller, address _operatorRegistry) external {
+    /// @param _withdrawalQueue The contract used to queue and process withdrawals.
+    function initialize(bytes32 _poolId, address _controller, address _operatorRegistry, address _withdrawalQueue) external {
         if (poolId != bytes32(0) || _poolId == bytes32(0)) revert INVALID_INITIALIZATION();
 
         poolId = _poolId;
         controller = _controller;
         operatorRegistry = IRioLRTOperatorRegistry(_operatorRegistry);
+        withdrawalQueue = IRioLRTWithdrawalQueue(_withdrawalQueue);
+
+        _setRebalanceDelay(24 hours);
     }
 
     /// @notice Adds a token by setting its config, depositing it into the vault, and updating the balance.
@@ -124,6 +128,12 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         configs[address(token)].targetAUMPercentage = newTargetAUMPercentage;
 
         emit TargetAUMPercentageSet(token, newTargetAUMPercentage);
+    }
+
+    /// @notice Sets the rebalance delay.
+    /// @param newRebalanceDelay The new rebalance delay.
+    function setRebalanceDelay(uint40 newRebalanceDelay) external onlyController {
+        _setRebalanceDelay(newRebalanceDelay);
     }
 
     /// @notice Receive underlying tokens as a reward to the LRT.
@@ -311,5 +321,13 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         }
         strategyShares[address(strategy)] -= shares;
         aggregateRoot = keccak256(abi.encode(roots));
+    }
+
+    /// @dev Sets the rebalance delay.
+    /// @param newRebalanceDelay The new rebalance delay.
+    function _setRebalanceDelay(uint40 newRebalanceDelay) internal {
+        rebalanceDelay = newRebalanceDelay;
+
+        emit RebalanceDelaySet(newRebalanceDelay);
     }
 }

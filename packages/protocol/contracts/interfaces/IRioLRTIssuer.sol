@@ -44,6 +44,7 @@ interface IRioLRTIssuer {
     /// @param controller The LRT controller.
     /// @param assetManager The LRT asset manager.
     /// @param operatorRegistry The LRT operator registry.
+    /// @param withdrawalQueue The LRT withdrawal queue.
     event LiquidRestakingTokenIssued(
         bytes32 id,
         string name,
@@ -51,7 +52,8 @@ interface IRioLRTIssuer {
         IERC20[] tokens,
         address controller,
         address assetManager,
-        address operatorRegistry
+        address operatorRegistry,
+        address withdrawalQueue
     );
 
     /// @notice Initializes the contract.

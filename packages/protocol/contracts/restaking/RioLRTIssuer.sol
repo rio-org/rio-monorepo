@@ -45,6 +45,9 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
     /// @notice The liquid restaking token operator registry implementation.
     address public immutable operatorRegistryImpl;
 
+    /// The liquid restaking token withdrawal queue implementation.
+    address public immutable withdrawalQueueImpl;
+
     /// @notice Returns whether the provided token was issued by this factory.
     mapping(address => bool) public isTokenFromFactory;
 
@@ -55,13 +58,23 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
     /// @param _controllerImpl The liquid restaking token controller implementation.
     /// @param _assetManagerImpl The liquid restaking token asset manager implementation.
     /// @param _operatorRegistryImpl The liquid restaking token operator registry implementation.
-    constructor(address _factory, address _vault, address _weth, address _controllerImpl, address _assetManagerImpl, address _operatorRegistryImpl) initializer {
+    /// @param _withdrawalQueueImpl The liquid restaking token withdrawal queue implementation.
+    constructor(
+        address _factory,
+        address _vault,
+        address _weth,
+        address _controllerImpl,
+        address _assetManagerImpl,
+        address _operatorRegistryImpl,
+        address _withdrawalQueueImpl
+    ) initializer {
         factory = IManagedPoolFactory(_factory);
         vault = IVault(_vault);
         weth = IWETH(_weth);
         controllerImpl = _controllerImpl;
         assetManagerImpl = _assetManagerImpl;
         operatorRegistryImpl = _operatorRegistryImpl;
+        withdrawalQueueImpl = _withdrawalQueueImpl;
     }
 
     /// @notice Initializes the contract.
@@ -93,18 +106,22 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
             weth.deposit{ value: msg.value }();
         }
 
-        uint256 sizeWithBPT = config.amountsIn.length + 1;
-        IManagedPoolSettings.ManagedPoolParams memory creationParams = IManagedPoolSettings.ManagedPoolParams({
-            name: name,
-            symbol: symbol,
-            assetManagers: new address[](config.amountsIn.length)
-        });
-        IVault.JoinPoolRequest memory joinRequest = IVault.JoinPoolRequest({
-            assets: new IAsset[](sizeWithBPT),
-            maxAmountsIn: new uint256[](sizeWithBPT),
-            userData: abi.encode(JoinKind.INIT, config.amountsIn),
-            fromInternalBalance: false
-        });
+        IManagedPoolSettings.ManagedPoolParams memory creationParams;
+        IVault.JoinPoolRequest memory joinRequest;
+        {
+            uint256 sizeWithBPT = config.amountsIn.length + 1;
+            creationParams = IManagedPoolSettings.ManagedPoolParams({
+                name: name,
+                symbol: symbol,
+                assetManagers: new address[](config.amountsIn.length)
+            });
+            joinRequest = IVault.JoinPoolRequest({
+                assets: new IAsset[](sizeWithBPT),
+                maxAmountsIn: new uint256[](sizeWithBPT),
+                userData: abi.encode(JoinKind.INIT, config.amountsIn),
+                fromInternalBalance: false
+            });
+        }
 
         // Deploy the contract that will manage the LRT's underlying assets.
         address assetManager = assetManagerImpl.clone();
@@ -127,7 +144,9 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
             }
             tokenIn.safeTransferFrom(msg.sender, address(this), amountIn);
 
-            ++j;
+            unchecked {
+                ++j;
+            }
         }
 
         // Deploy the pool (LRT) and the controller that will manage it.
@@ -142,15 +161,16 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         address operatorRegistry = address(
             new ERC1967Proxy(operatorRegistryImpl, abi.encodeCall(IRioLRTOperatorRegistry.initialize, (msg.sender, poolId, assetManager)))
         );
+        address withdrawalQueue = withdrawalQueueImpl.clone(abi.encodePacked(poolId));
 
         // Add liquidity to the pool (LRT), thereby initializing it.
         vault.joinPool(poolId, address(this), msg.sender, joinRequest);
 
-        IRioLRTAssetManager(assetManager).initialize(poolId, controller, operatorRegistry);
+        IRioLRTAssetManager(assetManager).initialize(poolId, controller, operatorRegistry, withdrawalQueue);
         IRioLRTController(controller).initialize(msg.sender, pool, config.securityCouncil, config.allowedLPs);
         isTokenFromFactory[pool] = true;
 
-        emit LiquidRestakingTokenIssued(poolId, name, symbol, config.settings.tokens, controller, assetManager, operatorRegistry);
+        emit LiquidRestakingTokenIssued(poolId, name, symbol, config.settings.tokens, controller, assetManager, operatorRegistry, withdrawalQueue);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

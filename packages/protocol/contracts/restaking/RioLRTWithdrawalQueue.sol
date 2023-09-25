@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
+import {Clone} from '@solady/utils/Clone.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
@@ -10,7 +11,7 @@ import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager
 import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
-contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue {
+contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
     using SafeERC20 for IOpenZeppelinERC20;
     using Array for *;
 
@@ -22,9 +23,6 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue {
 
     /// @notice The Balancer vault contract.
     IVault public immutable vault;
-
-    /// @notice The LRT Balancer pool ID.
-    bytes32 public poolId;
 
     /// @notice Current token withdrawal epochs. Incoming withdrawals are included
     /// in the current epoch, which will be queued and incremented by the asset manager.
@@ -42,8 +40,13 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue {
 
     /// @notice Require that the caller is the pool (LRT).
     modifier onlyPool() {
-        if (msg.sender != _getPoolAddress(poolId)) revert ONLY_ASSET_MANAGER();
+        if (msg.sender != _getPoolAddress(poolId())) revert ONLY_ASSET_MANAGER();
         _;
+    }
+
+    /// @notice The LRT Balancer pool ID.
+    function poolId() public pure returns (bytes32) {
+        return _getArgBytes32(0);
     }
 
     /// @param _strategyManager The EigenLayer strategy manager.
@@ -79,7 +82,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue {
             if (amountOut == 0) continue;
 
             token = tokens[i];
-            (cash, , , ) = vault.getPoolTokenInfo(poolId, token);
+            (cash, , , ) = vault.getPoolTokenInfo(poolId(), token);
             if (cash >= amountOut) continue;
 
             uint40 _currentEpoch = currentEpochs[token];
