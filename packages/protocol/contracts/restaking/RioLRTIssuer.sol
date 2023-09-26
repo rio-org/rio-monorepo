@@ -161,7 +161,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         address operatorRegistry = address(
             new ERC1967Proxy(operatorRegistryImpl, abi.encodeCall(IRioLRTOperatorRegistry.initialize, (msg.sender, poolId, assetManager)))
         );
-        address withdrawalQueue = withdrawalQueueImpl.clone(abi.encodePacked(poolId));
+        address withdrawalQueue = withdrawalQueueImpl.clone(abi.encodePacked(poolId, assetManager));
 
         // Add liquidity to the pool (LRT), thereby initializing it.
         vault.joinPool(poolId, address(this), msg.sender, joinRequest);

@@ -8,7 +8,6 @@ import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
-import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
@@ -17,9 +16,6 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
 
     /// @notice The primary entry and exit-point for funds into and out of EigenLayer.
     IStrategyManager public immutable strategyManager;
-
-    /// @notice The LRT asset manager.
-    IRioLRTAssetManager public immutable assetManager;
 
     /// @notice The Balancer vault contract.
     IVault public immutable vault;
@@ -34,7 +30,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
 
     /// @notice Require that the caller is the LRT's asset manager.
     modifier onlyAssetManager() {
-        if (msg.sender != address(assetManager)) revert ONLY_ASSET_MANAGER();
+        if (msg.sender != assetManager()) revert ONLY_ASSET_MANAGER();
         _;
     }
 
@@ -49,12 +45,15 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
         return _getArgBytes32(0);
     }
 
+    /// @notice The LRT asset manager.
+    function assetManager() public pure returns (address) {
+        return _getArgAddress(32);
+    }
+
     /// @param _strategyManager The EigenLayer strategy manager.
-    /// @param _assetManager The LRT asset manager.
     /// @param _vault The Balancer vault contract.
-    constructor(address _strategyManager, address _assetManager, address _vault) {
+    constructor(address _strategyManager, address _vault) {
         strategyManager = IStrategyManager(_strategyManager);
-        assetManager = IRioLRTAssetManager(_assetManager);
         vault = IVault(_vault);
     }
 

@@ -28,7 +28,7 @@ abstract contract RioDeployer is BalancerDeployer {
                     VAULT_ADDRESS,
                     address(new RioLRTOperator(address(0), address(0), address(0), address(0), address(0)))
                 )),
-                address (new RioLRTWithdrawalQueue(address(0), address(0), address(0)))
+                address (new RioLRTWithdrawalQueue(address(0), address(0)))
             )
         );
         issuer = RioLRTIssuer(
