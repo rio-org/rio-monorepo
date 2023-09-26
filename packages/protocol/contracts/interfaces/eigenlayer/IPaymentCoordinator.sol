@@ -40,7 +40,6 @@ interface IPaymentCoordinator {
     /// @notice Getter function for the length of the `merkleRootPosts` array
     function merkleRootPostsLength() external view returns (uint256);
 
-
     /// @notice getter cumulativeTokenAmountClaimedByRecipient (mapping(IERC20 => mapping(address => uint256))
     function cumulativeTokenAmountClaimedByRecipient(IERC20 token, address recipient) external view returns (uint256);
 
