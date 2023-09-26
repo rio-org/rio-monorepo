@@ -27,8 +27,7 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
         address manager;
         /// @dev The address that will manage the operator once confirmed.
         address pendingManager;
-        /// @dev The address that receives operator rewards. This address is used for both Rio and EigenLayer
-        /// rewards. It is tracked in this contract to reduce reward distribution gas costs.
+        /// @dev The address that will receive operator rewards.
         address earningsReceiver;
         /// @dev Operator asset caps and current allocations. ERC20 caps and allocations are stored denominated in
         /// the ERC20's native units, while ETH caps and allocations are denominated in validators (32 ETH chunks).
@@ -137,8 +136,9 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param poolId The LRT Balancer pool ID.
+    /// @param rewardDistributor The LRT reward distributor.
     /// @param assetManager The LRT asset manager.
-    function initialize(address initialOwner, bytes32 poolId, address assetManager) external;
+    function initialize(address initialOwner, bytes32 poolId, address rewardDistributor, address assetManager) external;
 
     /// @notice Allocates a specified amount of tokens to the operators with the lowest utilization.
     /// @param token The token to allocate.

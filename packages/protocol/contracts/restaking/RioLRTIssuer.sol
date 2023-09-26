@@ -42,6 +42,9 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
     /// @notice The liquid restaking token asset manager implementation.
     address public immutable assetManagerImpl;
 
+    /// @notice The liquid restaking token reward distributor implementation.
+    address public immutable rewardDistributorImpl;
+
     /// @notice The liquid restaking token operator registry implementation.
     address public immutable operatorRegistryImpl;
 
@@ -57,6 +60,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
     /// @param _weth The wrapped ether token address.
     /// @param _controllerImpl The liquid restaking token controller implementation.
     /// @param _assetManagerImpl The liquid restaking token asset manager implementation.
+    /// @param _rewardDistributorImpl The liquid restaking token reward distributor implementation.
     /// @param _operatorRegistryImpl The liquid restaking token operator registry implementation.
     /// @param _withdrawalQueueImpl The liquid restaking token withdrawal queue implementation.
     constructor(
@@ -65,6 +69,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         address _weth,
         address _controllerImpl,
         address _assetManagerImpl,
+        address _rewardDistributorImpl,
         address _operatorRegistryImpl,
         address _withdrawalQueueImpl
     ) initializer {
@@ -73,6 +78,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         weth = IWETH(_weth);
         controllerImpl = _controllerImpl;
         assetManagerImpl = _assetManagerImpl;
+        rewardDistributorImpl = _rewardDistributorImpl;
         operatorRegistryImpl = _operatorRegistryImpl;
         withdrawalQueueImpl = _withdrawalQueueImpl;
     }
@@ -106,6 +112,9 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
             weth.deposit{ value: msg.value }();
         }
 
+        // Deploy the contract that will manage the LRT's underlying assets.
+        address assetManager = assetManagerImpl.clone();
+
         IManagedPoolSettings.ManagedPoolParams memory creationParams;
         IVault.JoinPoolRequest memory joinRequest;
         {
@@ -121,31 +130,28 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
                 userData: abi.encode(JoinKind.INIT, config.amountsIn),
                 fromInternalBalance: false
             });
-        }
 
-        // Deploy the contract that will manage the LRT's underlying assets.
-        address assetManager = assetManagerImpl.clone();
+            uint256 j = 1;
+            for (uint256 i = 0; i < config.amountsIn.length; ++i) {
+                IERC20 tokenIn = IERC20(config.settings.tokens[i]);
+                uint256 amountIn = config.amountsIn[i];
 
-        uint256 j = 1;
-        for (uint256 i = 0; i < config.amountsIn.length; ++i) {
-            IERC20 tokenIn = IERC20(config.settings.tokens[i]);
-            uint256 amountIn = config.amountsIn[i];
+                // Populate the asset managers array with the asset manager contract.
+                creationParams.assetManagers[i] = assetManager;
 
-            // Populate the asset managers array with the asset manager contract.
-            creationParams.assetManagers[i] = assetManager;
+                // Populate the asset and amount arrays, leaving the first position open for the BPT.
+                joinRequest.assets[j] = IAsset(address(tokenIn));
+                joinRequest.maxAmountsIn[j] = amountIn;
 
-            // Populate the asset and amount arrays, leaving the first position open for the BPT.
-            joinRequest.assets[j] = IAsset(address(tokenIn));
-            joinRequest.maxAmountsIn[j] = amountIn;
+                // Pull tokens from the caller and enable the vault to pull them, if needed.
+                if (tokenIn.allowance(address(this), address(vault)) < amountIn) {
+                    tokenIn.safeApprove(address(vault), type(uint256).max);
+                }
+                tokenIn.safeTransferFrom(msg.sender, address(this), amountIn);
 
-            // Pull tokens from the caller and enable the vault to pull them, if needed.
-            if (tokenIn.allowance(address(this), address(vault)) < amountIn) {
-                tokenIn.safeApprove(address(vault), type(uint256).max);
-            }
-            tokenIn.safeTransferFrom(msg.sender, address(this), amountIn);
-
-            unchecked {
-                ++j;
+                unchecked {
+                    ++j;
+                }
             }
         }
 
@@ -158,8 +164,10 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         joinRequest.maxAmountsIn[0] = type(uint256).max;
 
         bytes32 poolId = IManagedPoolSettings(pool).getPoolId();
+
+        address rewardDistributor = rewardDistributorImpl.clone(abi.encodePacked(assetManager));
         address operatorRegistry = address(
-            new ERC1967Proxy(operatorRegistryImpl, abi.encodeCall(IRioLRTOperatorRegistry.initialize, (msg.sender, poolId, assetManager)))
+            new ERC1967Proxy(operatorRegistryImpl, abi.encodeCall(IRioLRTOperatorRegistry.initialize, (msg.sender, poolId, rewardDistributor, assetManager)))
         );
         address withdrawalQueue = withdrawalQueueImpl.clone(abi.encodePacked(poolId, assetManager));
 
@@ -170,7 +178,9 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         IRioLRTController(controller).initialize(msg.sender, pool, config.securityCouncil, config.allowedLPs);
         isTokenFromFactory[pool] = true;
 
-        emit LiquidRestakingTokenIssued(poolId, name, symbol, config.settings.tokens, controller, assetManager, operatorRegistry, withdrawalQueue);
+        emit LiquidRestakingTokenIssued(
+            poolId, name, symbol, config.settings.tokens, controller, assetManager, rewardDistributor, operatorRegistry, withdrawalQueue
+        );
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
