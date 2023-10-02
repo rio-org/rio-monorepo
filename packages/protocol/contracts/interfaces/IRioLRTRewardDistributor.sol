@@ -67,4 +67,11 @@ interface IRioLRTRewardDistributor {
     /// @param fromToken The sell token of the swap.
     /// @param amountIn The amount in of the swap.
     event SwapCancelled(address indexed orderContract, address indexed fromToken, uint256 amountIn);
+
+    /// @notice Initializes the contract.
+    /// @param initialOwner The initial owner of the contract.
+    /// @param bpt The BPT (LRT) token address.
+    /// @param treasury The treasury address.
+    /// @param operator The operator reward pool address.
+    function initialize(address initialOwner, address bpt, address treasury, address operator) external;
 }

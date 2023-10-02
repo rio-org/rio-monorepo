@@ -54,25 +54,16 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
     }
 
     /// @notice Initializes the contract.
-    /// @param initialTreasuryShareBPS The initial treasury share in basis points.
-    /// @param initialOperatorShareBPS The initial operator share in basis points.
     /// @param initialOwner The initial owner of the contract.
     /// @param _bpt The BPT (LRT) token address.
     /// @param _treasury The treasury address.
     /// @param _operator The operator reward pool address.
-    function initialize(
-        uint16 initialTreasuryShareBPS,
-        uint16 initialOperatorShareBPS,
-        address initialOwner,
-        address _bpt,
-        address _treasury,
-        address _operator
-    ) external initializer {
+    function initialize(address initialOwner, address _bpt, address _treasury, address _operator) external initializer {
         __UUPSUpgradeable_init();
         _transferOwnership(initialOwner);
 
-        _setTreasuryShareBPS(initialTreasuryShareBPS);
-        _setOperatorShareBPS(initialOperatorShareBPS);
+        _setTreasuryShareBPS(500); // 5%
+        _setOperatorShareBPS(500); // 5%
 
         _setSwapCancellationDelay(24 hours);
 

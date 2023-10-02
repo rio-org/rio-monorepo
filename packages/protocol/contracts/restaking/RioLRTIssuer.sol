@@ -11,6 +11,7 @@ import {IWETH} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/
 import {IAsset} from '@balancer-v2/contracts/interfaces/contracts/vault/IAsset.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
+import {IRioLRTRewardDistributor} from 'contracts/interfaces/IRioLRTRewardDistributor.sol';
 import {IManagedPoolFactory} from 'contracts/interfaces/balancer/IManagedPoolFactory.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
@@ -165,7 +166,9 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
 
         bytes32 poolId = IManagedPoolSettings(pool).getPoolId();
 
-        address rewardDistributor = rewardDistributorImpl.clone(abi.encodePacked(assetManager));
+        address rewardDistributor = address(
+            new ERC1967Proxy(rewardDistributorImpl, abi.encodeCall(IRioLRTRewardDistributor.initialize, (msg.sender, pool, msg.sender, address(0))))
+        );
         address operatorRegistry = address(
             new ERC1967Proxy(operatorRegistryImpl, abi.encodeCall(IRioLRTOperatorRegistry.initialize, (msg.sender, poolId, rewardDistributor, assetManager)))
         );
