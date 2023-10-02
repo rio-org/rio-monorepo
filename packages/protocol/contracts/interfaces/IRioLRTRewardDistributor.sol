@@ -33,8 +33,8 @@ interface IRioLRTRewardDistributor {
     /// @notice Thrown when the amount in is below the minimum.
     error AMOUNT_IN_TOO_LOW();
 
-    /// @notice Thrown when the from token is BPT.
-    error FROM_TOKEN_CANNOT_BE_BPT();
+    /// @notice Thrown when a provided token contract address is invalid.
+    error INVALID_TOKEN();
 
     /// @notice Thrown when swap cancellation is attempted before the `swapCancellationDelay` has elapsed.
     error TOO_SOON_TO_CANCEL();
@@ -55,6 +55,11 @@ interface IRioLRTRewardDistributor {
     /// @notice Emitted when the swap cancellation delay is set.
     /// @param newSwapCancellationDelay The new swap cancellation delay.
     event SwapCancellationDelaySet(uint256 newSwapCancellationDelay);
+
+    /// @notice Emitted when a token exchange configuration is set.
+    /// @param token The token for which the configuration is set.
+    /// @param config The new configuration.
+    event TokenExchangeConfigSet(address token, TokenExchangeConfig config);
 
     /// @notice Emitted when a swap is requested.
     /// @param orderContract The contract that will execute the swap.

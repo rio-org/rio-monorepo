@@ -120,7 +120,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         TokenExchangeConfig memory config = configs[fromToken];
         uint256 amountIn = IERC20(fromToken).balanceOf(address(this));
 
-        if (fromToken == _bpt) revert FROM_TOKEN_CANNOT_BE_BPT();
+        if (fromToken == _bpt) revert INVALID_TOKEN();
         if (config.priceChecker == address(0)) revert NO_PRICE_CHECKER_FOR_TOKEN();
         if (amountIn < config.minAmountIn) revert AMOUNT_IN_TOO_LOW();
 
@@ -188,6 +188,16 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
     /// @param newSwapCancellationDelay The new swap cancellation delay.
     function setSwapCancellationDelay(uint40 newSwapCancellationDelay) external onlyOwner {
         _setSwapCancellationDelay(newSwapCancellationDelay);
+    }
+
+    /// @notice Sets the token exchange configuration for a token.
+    /// @param token The token to set the configuration for.
+    /// @param newConfig The new configuration.
+    function setTokenExchangeConfig(address token, TokenExchangeConfig calldata newConfig) external onlyOwner {
+        if (token == address(0)) revert INVALID_TOKEN();
+        configs[token] = newConfig;
+
+        emit TokenExchangeConfigSet(token, newConfig);
     }
 
     /// @notice Sets the treasury's share of rewards.
