@@ -32,6 +32,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice The LRT Balancer pool ID.
     bytes32 public poolId;
 
+    /// @notice The LRT reward distributor.
+    address public rewardDistributor;
+
     /// @notice The LRT asset manager.
     address public assetManager;
 
@@ -70,12 +73,14 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param _poolId The LRT Balancer pool ID.
+    /// @param _rewardDistributor The LRT reward distributor.
     /// @param _assetManager The LRT asset manager.
-    function initialize(address initialOwner, bytes32 _poolId, address _assetManager) external initializer {
+    function initialize(address initialOwner, bytes32 _poolId, address _rewardDistributor, address _assetManager) external initializer {
         __UUPSUpgradeable_init();
         _transferOwnership(initialOwner);
 
         poolId = _poolId;
+        rewardDistributor = _rewardDistributor;
         assetManager = _assetManager;
     }
 
@@ -101,7 +106,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         operatorId = ++operatorCount;
         activeOperatorCount += 1;
 
-        address operator = _deployAndRegisterOperator(initialEarningsReceiver, initialMetadataURI);
+        address operator = _deployAndRegisterOperator(initialMetadataURI);
 
         OperatorInfo storage info = operatorInfo[operatorId];
         info.active = true;
@@ -196,11 +201,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     function setOperatorEarningsReceiver(uint8 operatorId, address newEarningsReceiver) external onlyOperatorManager(operatorId) {
         if (newEarningsReceiver == address(0)) revert INVALID_EARNINGS_RECEIVER();
 
-        OperatorInfo storage info = operatorInfo[operatorId];
-
-        // Update both the Rio and EigenLayer earnings receivers.
-        info.earningsReceiver = newEarningsReceiver;
-        IRioLRTOperator(info.operator).setEarningsReceiver(newEarningsReceiver);
+        operatorInfo[operatorId].earningsReceiver = newEarningsReceiver;
 
         emit OperatorEarningsReceiverSet(operatorId, newEarningsReceiver);
     }
@@ -363,15 +364,14 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
     // forgefmt: disable-next-item
     /// @dev Deploys and registers a new operator contract with the provided parameters.
-    /// @param initialEarningsReceiver The initial reward address of the operator.
     /// @param initialMetadataURI The initial metadata URI.
-    function _deployAndRegisterOperator(address initialEarningsReceiver, string calldata initialMetadataURI) internal returns (address operator) {
+    function _deployAndRegisterOperator(string calldata initialMetadataURI) internal returns (address operator) {
         operator = address(
-            new BeaconProxy(operatorImpl, abi.encodeCall(IRioLRTOperator.initialize, (assetManager, initialEarningsReceiver, initialMetadataURI)))
+            new BeaconProxy(operatorImpl, abi.encodeCall(IRioLRTOperator.initialize, (assetManager, rewardDistributor, initialMetadataURI)))
         );
     }
 
     /// @dev Allows the owner to upgrade the operator registry implementation.
-    /// @param newImplementation The new implementation to upgrade to.
+    /// @param newImplementation The implementation to upgrade to.
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

@@ -19,13 +19,9 @@ interface IRioLRTOperator {
 
     /// @notice Initializes the contract by registering the operator with EigenLayer.
     /// @param assetManager The LRT asset manager.
-    /// @param initialEarningsReceiver The initial reward address of the operator.
+    /// @param rewardDistributor The LRT reward distributor.
     /// @param initialMetadataURI The initial metadata URI.
-    function initialize(address assetManager, address initialEarningsReceiver, string calldata initialMetadataURI) external;
-
-    /// @notice Sets the operator's earnings receiver.
-    /// @param newEarningsReceiver The new earnings receiver.
-    function setEarningsReceiver(address newEarningsReceiver) external;
+    function initialize(address assetManager, address rewardDistributor, string calldata initialMetadataURI) external;
 
     /// @notice Sets the operator's metadata URI.
     /// @param newMetadataURI The new metadata URI.

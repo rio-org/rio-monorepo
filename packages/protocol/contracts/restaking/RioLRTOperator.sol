@@ -71,25 +71,16 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
 
     /// @notice Initializes the contract by registering the operator with EigenLayer.
     /// @param _assetManager The LRT asset manager.
-    /// @param initialEarningsReceiver The initial reward address of the operator.
+    /// @param rewardDistributor The LRT reward distributor.
     /// @param initialMetadataURI The initial metadata URI.
-    function initialize(address _assetManager, address initialEarningsReceiver, string calldata initialMetadataURI) external initializer {
+    function initialize(address _assetManager, address rewardDistributor, string calldata initialMetadataURI) external initializer {
         operatorRegistry = msg.sender;
         assetManager = _assetManager;
         
         delegationManager.registerAsOperator(
-            IDelegationManager.OperatorDetails(initialEarningsReceiver, delegationApprover, 0), initialMetadataURI
+            IDelegationManager.OperatorDetails(rewardDistributor, delegationApprover, 0), initialMetadataURI
         );
         eigenPodManager.createPod();
-    }
-
-    /// @notice Sets the operator's earnings receiver.
-    /// @param newEarningsReceiver The new earnings receiver.
-    function setEarningsReceiver(address newEarningsReceiver) external onlyOperatorRegistry {
-        IDelegationManager.OperatorDetails memory details = delegationManager.operatorDetails(address(this));
-        details.earningsReceiver = newEarningsReceiver;
-
-        delegationManager.modifyOperatorDetails(details);
     }
 
     /// @notice Sets the operator's metadata URI.
