@@ -372,6 +372,6 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     }
 
     /// @dev Allows the owner to upgrade the operator registry implementation.
-    /// @param newImplementation The new implementation to upgrade to.
+    /// @param newImplementation The implementation to upgrade to.
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

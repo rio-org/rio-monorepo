@@ -234,4 +234,8 @@ interface IStrategyManager {
 
     /// @notice Returns the number of blocks that must pass between the time a withdrawal is queued and the time it can be completed
     function withdrawalDelayBlocks() external view returns (uint256);
+
+    /// @notice Returns whether the withdrawal is pending
+    /// @param withdrawalRoot The root of the withdrawal
+    function withdrawalRootPending(bytes32 withdrawalRoot) external view returns (bool);
 }
