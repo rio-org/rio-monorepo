@@ -115,7 +115,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
 
         uint256 validators = msg.value / 32 ether;
         for (uint256 i = 0; i < validators;) {
-            eigenPodManager.stake{value: msg.value}(pubkeys[i], signatures[i], depositDataRoots[i]);
+            eigenPodManager.stake{value: 32 ether }(pubkeys[i], signatures[i], depositDataRoots[i]);
 
             unchecked {
                 ++i;
