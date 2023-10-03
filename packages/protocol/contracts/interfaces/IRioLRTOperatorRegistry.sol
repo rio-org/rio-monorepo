@@ -133,6 +133,7 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param manager The new manager of the operator.
     event OperatorManagerSet(uint8 indexed operatorId, address manager);
 
+    // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param poolId The LRT Balancer pool ID.
@@ -140,11 +141,13 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param assetManager The LRT asset manager.
     function initialize(address initialOwner, bytes32 poolId, address rewardDistributor, address assetManager) external;
 
+    // forgefmt: disable-next-item
     /// @notice Allocates a specified amount of tokens to the operators with the lowest utilization.
     /// @param token The token to allocate.
     /// @param allocationSize The amount of tokens to allocate.
     function allocate(address token, uint256 allocationSize) external returns (uint256 allocated, OperatorAllocation[] memory allocations);
 
+    // forgefmt: disable-next-item
     /// @notice Deallocates a specified amount of tokens from the operators with the highest utilization.
     /// @param token The token to deallocate.
     /// @param deallocationSize The amount of tokens to deallocate.

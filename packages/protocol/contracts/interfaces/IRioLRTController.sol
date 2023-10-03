@@ -30,6 +30,7 @@ interface IRioLRTController {
     /// @notice Emitted when the security council is updated by the owner.
     event SecurityCouncilChanged(address newSecurityCouncil);
 
+    // forgefmt: disable-next-item
     /// @notice Initializes the controller.
     /// @param initialOwner The initial owner of the contract.
     /// @param pool The pool (LRT) that's controlled by this contract.

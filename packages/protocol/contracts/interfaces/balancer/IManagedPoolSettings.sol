@@ -3,8 +3,8 @@ pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
-import {IProtocolFeePercentagesProvider} from '@balancer-v2/contracts/interfaces/contracts/standalone-utils/IProtocolFeePercentagesProvider.sol';
-import {IExternalWeightedMath} from '@balancer-v2/contracts/interfaces/contracts/pool-weighted/IExternalWeightedMath.sol';
+import {IProtocolFeePercentagesProvider} from '@balancer-v2/contracts/interfaces/contracts/standalone-utils/IProtocolFeePercentagesProvider.sol'; // forgefmt: disable-line
+import {IExternalWeightedMath} from '@balancer-v2/contracts/interfaces/contracts/pool-weighted/IExternalWeightedMath.sol'; // forgefmt: disable-line
 import {IRecoveryModeHelper} from '@balancer-v2/contracts/interfaces/contracts/pool-utils/IRecoveryModeHelper.sol';
 import {IManagedPool} from '@balancer-v2/contracts/interfaces/contracts/pool-utils/IManagedPool.sol';
 

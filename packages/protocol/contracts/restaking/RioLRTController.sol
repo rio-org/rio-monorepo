@@ -84,7 +84,13 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
     /// @param amount The amount of the token to add.
     /// @param normalizedWeight The normalized weight of the token to add.
     /// @param targetAUMPercentage The target AUM percentage of the token to add.
-    function addToken(IERC20 token, IStrategy strategy, uint256 amount, uint256 normalizedWeight, uint96 targetAUMPercentage) external onlyOwner {
+    function addToken(
+        IERC20 token,
+        IStrategy strategy,
+        uint256 amount,
+        uint256 normalizedWeight,
+        uint96 targetAUMPercentage
+    ) external onlyOwner {
         if (address(strategy.underlyingToken()) != address(token)) revert INVALID_STRATEGY_FOR_TOKEN();
 
         address manager = assetManager();

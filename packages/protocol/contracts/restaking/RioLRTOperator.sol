@@ -69,6 +69,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         delegationApprover = _delegationApprover;
     }
 
+    // forgefmt: disable-next-item
     /// @notice Initializes the contract by registering the operator with EigenLayer.
     /// @param _assetManager The LRT asset manager.
     /// @param rewardDistributor The LRT reward distributor.
@@ -76,7 +77,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     function initialize(address _assetManager, address rewardDistributor, string calldata initialMetadataURI) external initializer {
         operatorRegistry = msg.sender;
         assetManager = _assetManager;
-        
+
         delegationManager.registerAsOperator(
             IDelegationManager.OperatorDetails(rewardDistributor, delegationApprover, 0), initialMetadataURI
         );
@@ -95,6 +96,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         slasher.optIntoSlashing(contractAddress);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Approve EigenLayer to spend an ERC20 token, then stake it into an EigenLayer strategy.
     /// @param strategy The strategy to stake the tokens into.
     /// @param token The token to stake.
@@ -106,6 +108,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         shares = strategyManager.depositIntoStrategy(strategy, token, amount);
     }
 
+    // forgefmt: disable-next-item
     /// Stake ETH via the operator's EigenPod, using the provided validator information.
     /// @param pubkeys The validator public keys.
     /// @param signatures The validator signatures.
@@ -115,7 +118,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
 
         uint256 validators = msg.value / 32 ether;
         for (uint256 i = 0; i < validators;) {
-            eigenPodManager.stake{value: 32 ether }(pubkeys[i], signatures[i], depositDataRoots[i]);
+            eigenPodManager.stake{value: 32 ether}(pubkeys[i], signatures[i], depositDataRoots[i]);
 
             unchecked {
                 ++i;
@@ -123,6 +126,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         }
     }
 
+    // forgefmt: disable-next-item
     /// @notice Queue a withdrawal of the given amount of `shares` to the `withdrawer` from the provided `strategy`.
     /// @param strategy The strategy to withdraw from.
     /// @param shares The amount of shares to withdraw.
@@ -130,11 +134,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     function queueWithdrawal(IStrategy strategy, uint256 shares, address withdrawer) external onlyAssetManager returns (bytes32 root) {
         uint256 strategyIndex = _getStrategyIndex(strategy);
         root = strategyManager.queueWithdrawal(
-            strategyIndex.toArray(),
-            strategy.toArray(),
-            shares.toArray(),
-            withdrawer,
-            false
+            strategyIndex.toArray(), strategy.toArray(), shares.toArray(), withdrawer, false
         );
     }
 
@@ -142,7 +142,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param strategy The strategy instance.
     function _getStrategyIndex(IStrategy strategy) internal view returns (uint256) {
         uint256 strategyCount = strategyManager.stakerStrategyListLength(address(this));
-        for (uint256 i = 0; i < strategyCount; ) {
+        for (uint256 i = 0; i < strategyCount;) {
             if (strategyManager.stakerStrategyList(address(this), i) == strategy) {
                 return i;
             }

@@ -12,7 +12,7 @@ import {IMilkman} from 'contracts/interfaces/exchange/IMilkman.sol';
 
 contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
-    
+
     /// @notice The maximum basis points value (100%).
     uint16 public constant MAX_BPS = 10_000;
 
@@ -53,6 +53,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         milkman = IMilkman(_milkman);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param _bpt The BPT (LRT) token address.
@@ -83,10 +84,8 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         IPaymentCoordinator.MerkleLeaf[] calldata leaves,
         uint256[] calldata leafIndexes
     ) external {
-        for (uint256 i = 0; i < proofs.length; ) {
-            paymentCoordinator.proveAndClaimEarnings(
-                proofs[i], rootIndexes[i], leaves[i], leafIndexes[i]
-            );
+        for (uint256 i = 0; i < proofs.length;) {
+            paymentCoordinator.proveAndClaimEarnings(proofs[i], rootIndexes[i], leaves[i], leafIndexes[i]);
             unchecked {
                 ++i;
             }
@@ -104,7 +103,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         uint256 treasuryShare = balance * treasuryShareBPS / MAX_BPS;
         uint256 operatorShare = balance * operatorShareBPS / MAX_BPS;
         uint256 poolShare = balance - treasuryShare - operatorShare;
-        
+
         if (treasuryShare > 0) _bpt.transfer(treasury, treasuryShare);
         if (operatorShare > 0) _bpt.transfer(operator, operatorShare);
         if (poolShare > 0) _bpt.burn(poolShare);
@@ -129,17 +128,9 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         }
 
         orderContract = milkman.requestSwapExactTokensForTokens(
-            amountIn,
-            fromToken,
-            _bpt,
-            address(this),
-            config.priceChecker,
-            config.priceCheckerData
+            amountIn, fromToken, _bpt, address(this), config.priceChecker, config.priceCheckerData
         );
-        orders[orderContract] = SwapOrder({
-            fromToken: fromToken,
-            timestamp: uint40(block.timestamp)
-        });
+        orders[orderContract] = SwapOrder({fromToken: fromToken, timestamp: uint40(block.timestamp)});
 
         emit SwapRequested(orderContract, fromToken, amountIn);
     }
@@ -160,15 +151,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
     ) external {
         if (block.timestamp - orders[orderContract].timestamp < swapCancellationDelay) revert TOO_SOON_TO_CANCEL();
 
-        IMilkman(orderContract).cancelSwap(
-            amountIn,
-            fromToken,
-            bpt,
-            address(this),
-            priceChecker,
-            priceCheckerData
-        );
-
+        IMilkman(orderContract).cancelSwap(amountIn, fromToken, bpt, address(this), priceChecker, priceCheckerData);
         emit SwapCancelled(orderContract, fromToken, amountIn);
     }
 

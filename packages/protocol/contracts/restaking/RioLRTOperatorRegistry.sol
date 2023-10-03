@@ -70,6 +70,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         operatorImpl = _operatorImpl;
     }
 
+    // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param _poolId The LRT Balancer pool ID.
@@ -171,6 +172,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         emit OperatorDeactivated(operatorId);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Sets the operator's asset caps using the provided configurations.
     /// @param operatorId The operator's ID.
     /// @param newConfigs The new asset cap configurations.
@@ -195,6 +197,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
     }
 
+    // forgefmt: disable-next-item
     /// @notice Sets an operator's earnings receiver.
     /// @param operatorId The operator's ID.
     /// @param newEarningsReceiver The new reward address of the operator.
@@ -206,6 +209,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         emit OperatorEarningsReceiverSet(operatorId, newEarningsReceiver);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Sets the operator's metadata URI.
     /// @param operatorId The operator's ID.
     /// @param metadataURI The new metadata URI.
@@ -217,6 +221,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         emit OperatorMetadataURISet(operatorId, metadataURI);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Sets an operator's pending manager.
     /// @param operatorId The operator's ID.
     /// @param newPendingManager The new pending manager of the operator.
@@ -242,6 +247,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         emit OperatorManagerSet(operatorId, sender);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Allocates a specified amount of tokens to the operators with the lowest utilization.
     /// @param token The token to allocate.
     /// @param allocationSize The amount of tokens to allocate.
@@ -286,12 +292,14 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
     }
 
-    function deallocate(address token, uint256 deallocationSize) external onlyAssetManager returns (uint256 deallocated, OperatorDeallocation[] memory deallocations) {} 
+    // forgefmt: disable-next-item
+    function deallocate(address token, uint256 deallocationSize) external onlyAssetManager returns (uint256 deallocated, OperatorDeallocation[] memory deallocations) {}
 
     function getPoRAddressListLength() external view override returns (uint256) {}
 
     function getPoRAddressList(uint256 startIndex, uint256 endIndex) external view override returns (string[] memory) {}
 
+    // forgefmt: disable-next-item
     /// @dev Returns the operator utilization heap for the specified token.
     /// @param token The token to get the heap for.
     function _getOperatorUtilizationHeapForToken(address token) internal view returns (OperatorUtilizationHeap.Data memory heap) {
@@ -330,6 +338,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
     }
 
+    // forgefmt: disable-next-item
     /// @dev Inserts an operator into the utilization heap for the specified token and updates the heap in storage.
     /// @param token The token address.
     /// @param operatorId The operator's ID.

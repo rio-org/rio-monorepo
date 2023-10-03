@@ -63,6 +63,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
         amountOwed = epochWithdrawals[token][currentEpochs[token]].owed;
     }
 
+    // forgefmt: disable-next-item
     /// @notice Queues token withdrawals from `sender` if there is a cash deficit in the pool
     /// and returns the amount of cash that can be paid out immediately.
     /// @param sender The address of the user exiting the pool.
@@ -81,7 +82,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
             if (amountOut == 0) continue;
 
             token = tokens[i];
-            (cash, , , ) = vault.getPoolTokenInfo(poolId(), token);
+            (cash,,,) = vault.getPoolTokenInfo(poolId(), token);
             if (cash >= amountOut) continue;
 
             uint40 _currentEpoch = currentEpochs[token];
@@ -114,6 +115,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
         emit WithdrawalsCompletedForEpoch(_currentEpoch, token, withdrawals.owed);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Records queued EigenLayer withdrawals for the current epoch.
     /// @param token The token to queue withdrawals for.
     /// @param aggregateRoot The aggregate root of the queued withdrawals.
@@ -153,7 +155,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
         bytes32[] memory roots = new bytes32[](queuedWithdrawalCount);
 
         IStrategyManager.QueuedWithdrawal memory queuedWithdrawal;
-        for (uint256 i; i < queuedWithdrawalCount; ) {
+        for (uint256 i; i < queuedWithdrawalCount;) {
             queuedWithdrawal = queuedWithdrawals[i];
 
             roots[i] = _computeWithdrawalRoot(queuedWithdrawal);
@@ -180,7 +182,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
         if (withdrawal.claimed) revert WITHDRAWAL_ALREADY_CLAIMED();
 
         store.claimed = true;
-        
+
         IOpenZeppelinERC20(address(request.token)).safeTransfer(caller, withdrawal.owed);
         emit WithdrawalClaimed(request.epoch, request.token, caller, withdrawal.owed);
     }
@@ -206,6 +208,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
         return address(uint160(uint256(_poolId) >> (12 * 8)));
     }
 
+    // forgefmt: disable-next-item
     /// @dev Computes the withdrawal root for a queued withdrawal.
     /// @param queuedWithdrawal The queued withdrawal.
     function _computeWithdrawalRoot(IStrategyManager.QueuedWithdrawal memory queuedWithdrawal) internal pure returns (bytes32) {

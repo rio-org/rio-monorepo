@@ -61,6 +61,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         vault = IVault(_vault);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Initializes the asset manager.
     /// @param _poolId The LRT Balancer pool ID.
     /// @param _controller The LRT controller.
@@ -198,6 +199,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         aum = config.strategy.sharesToUnderlyingView(strategyShares[address(config.strategy)]);
     }
 
+    // forgefmt: disable-next-item
     /// @dev Processes withdrawals for a token by withdrawing cash from the vault and/or
     /// queuing withdrawals from EigenLayer.
     /// @param token The token to process withdrawals for.
@@ -263,6 +265,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
 
         vault.managePoolBalance(ops);
 
+        // forgefmt: disable-next-item
         // Allocate tokens to selected operators.
         (, IRioLRTOperatorRegistry.OperatorAllocation[] memory operatorAllocations) = operatorRegistry.allocate(token, amount);
 
@@ -283,6 +286,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         strategyShares[address(strategy)] += shares;
     }
 
+    // forgefmt: disable-next-item
     /// @dev Queues a withdrawal from EigenLayer through the operators that are returned from the registry.
     /// @param strategy The strategy to withdraw the funds from.
     /// @param token The token to withdraw.

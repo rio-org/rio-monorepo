@@ -43,7 +43,7 @@ interface IPaymentCoordinator {
     /// @notice getter cumulativeTokenAmountClaimedByRecipient (mapping(IERC20 => mapping(address => uint256))
     function cumulativeTokenAmountClaimedByRecipient(IERC20 token, address recipient) external view returns (uint256);
 
-    /// @notice getter for merkleRootPosts 
+    /// @notice getter for merkleRootPosts
     function merkleRootPosts(uint256 index) external view returns (MerkleRootPost memory);
 
     /// @notice Makes a payment of sum(amounts) paid in `token`, for `operator`'s contributions to an AVS,
@@ -59,16 +59,11 @@ interface IPaymentCoordinator {
     /// @notice Permissioned function which allows withdrawal of EigenLayer's share of `token` from all received payments
     function withdrawEigenLayerShare(IERC20 token, address recipient) external;
 
+    // forgefmt: disable-next-item
     /// @notice Called by a staker or operator to prove the inclusion of their earnings in a posted Merkle root and claim them.
     /// @param proof Merkle proof showing that a leaf containing `(msg.sender, amount)` was included in the `rootIndex`-th
     /// Merkle root posted for the `token`
     /// @param rootIndex Specifies the Merkle root to look up, using `merkleRootsByToken[token][rootIndex]`
     /// @param leaf The leaf to be proven for the Merkle tree
-    function proveAndClaimEarnings(
-        bytes memory proof,
-        uint256 rootIndex,
-        MerkleLeaf memory leaf,
-        uint256 leafIndex
-    ) external;
-
+    function proveAndClaimEarnings(bytes memory proof, uint256 rootIndex, MerkleLeaf memory leaf, uint256 leafIndex) external;
 }

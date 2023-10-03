@@ -52,6 +52,7 @@ interface IRioLRTAssetManager {
     /// @param amount The amount of tokens that were received.
     event RewardReceived(IERC20 indexed token, uint256 amount);
 
+    // forgefmt: disable-next-item
     /// @notice Initializes the asset manager.
     /// @param poolId The LRT Balancer pool ID.
     /// @param controller The LRT controller.
