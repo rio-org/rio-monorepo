@@ -98,6 +98,7 @@ library ValidatorDetails {
         return startIndex;
     }
 
+    // forgefmt: disable-next-item
     /// @dev Remove validator details from storage.
     /// @param position The storage slot.
     /// @param operatorId The Operator ID.
@@ -105,13 +106,7 @@ library ValidatorDetails {
     /// @param keysCount Keys count to load.
     /// @param totalKeysCount Current total keys count for operator.
     /// @return totalKeysCount New total keys count.
-    function removeValidatorDetails(
-        bytes32 position,
-        uint8 operatorId,
-        uint256 startIndex,
-        uint256 keysCount,
-        uint256 totalKeysCount
-    ) internal returns (uint256) {
+    function removeValidatorDetails(bytes32 position, uint8 operatorId, uint256 startIndex, uint256 keysCount, uint256 totalKeysCount) internal returns (uint256) {
         if (keysCount == 0 || startIndex + keysCount > totalKeysCount || totalKeysCount > UINT64_MAX) {
             revert INVALID_KEYS_COUNT();
         }

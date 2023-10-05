@@ -14,8 +14,18 @@ interface IRioLRTOperator {
     /// @notice Thrown when a strategy is not registered with EigenLayer.
     error INVALID_STRATEGY();
 
-    /// @notice Thrown when the ETH value is not a multiple of 32.
-    error ETH_VALUE_NOT_MULTIPLE_OF_32();
+    /// @notice Thrown when the validator count is `0` or does not match the provided ETH value.
+    error INVALID_VALIDATOR_COUNT();
+
+    /// @notice Thrown when the public keys batch length does not match the validator count.
+    /// @param actual The actual length of the batch.
+    /// @param expected The expected length of the batch.
+    error INVALID_PUBLIC_KEYS_BATCH_LENGTH(uint256 actual, uint256 expected);
+
+    /// @notice Thrown when the signatures batch length does not match the validator count.
+    /// @param actual The actual length of the batch.
+    /// @param expected The expected length of the batch.
+    error INVALID_SIGNATURES_BATCH_LENGTH(uint256 actual, uint256 expected);
 
     /// @notice Initializes the contract by registering the operator with EigenLayer.
     /// @param assetManager The LRT asset manager.
