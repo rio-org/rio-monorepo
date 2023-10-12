@@ -5,6 +5,7 @@ import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
+import {IWETH} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/misc/IWETH.sol';
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
@@ -17,8 +18,14 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     using SafeERC20 for IOpenZeppelinERC20;
     using FixedPointMathLib for uint256;
 
+    /// @dev The per-validator deposit amount.
+    uint256 internal constant DEPOSIT_SIZE = 32 ether;
+
     /// @notice The Balancer vault that holds the pool's cash.
     IVault public immutable vault;
+
+    /// @notice The wrapped ether token address.
+    IWETH public immutable weth;
 
     /// @notice The LRT Balancer pool ID.
     bytes32 public poolId;
@@ -26,11 +33,8 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     /// @notice The LRT controller.
     address public controller;
 
-    /// @notice The timestamp at which the pool last rebalanced.
-    uint40 public lastRebalancedAt;
-
     /// @notice The required delay between rebalances.
-    uint40 public rebalanceDelay;
+    uint24 public rebalanceDelay;
 
     /// @notice The operator registry used for token allocation.
     IRioLRTOperatorRegistry public operatorRegistry;
@@ -51,14 +55,17 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     }
 
     /// @notice Require that the rebalance delay has been met.
-    modifier onlyAfterRebalanceDelay() {
-        if (block.timestamp - lastRebalancedAt >= rebalanceDelay) revert REBALANCE_DELAY_NOT_MET();
+    /// @param token The token to check the rebalance delay for.
+    modifier onlyAfterRebalanceDelay(address token) {
+        if (block.timestamp - configs[token].lastRebalancedAt >= rebalanceDelay) revert REBALANCE_DELAY_NOT_MET();
         _;
     }
 
     /// @param _vault The Balancer vault that holds the pool's cash.
-    constructor(address _vault) {
+    /// @param _weth The wrapped ether token address.
+    constructor(address _vault, address _weth) {
         vault = IVault(_vault);
+        weth = IWETH(_weth);
     }
 
     // forgefmt: disable-next-item
@@ -123,7 +130,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     /// @notice Sets the target AUM percentage for a token.
     /// @param token The token to set the target AUM percentage for.
     /// @param newTargetAUMPercentage The new target AUM percentage.
-    function setTargetAUMPercentage(IERC20 token, uint96 newTargetAUMPercentage) external onlyController {
+    function setTargetAUMPercentage(IERC20 token, uint64 newTargetAUMPercentage) external onlyController {
         if (configs[address(token)].strategy == IStrategy(address(0))) revert INVALID_TOKEN();
 
         configs[address(token)].targetAUMPercentage = newTargetAUMPercentage;
@@ -133,7 +140,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
 
     /// @notice Sets the rebalance delay.
     /// @param newRebalanceDelay The new rebalance delay.
-    function setRebalanceDelay(uint40 newRebalanceDelay) external onlyController {
+    function setRebalanceDelay(uint24 newRebalanceDelay) external onlyController {
         _setRebalanceDelay(newRebalanceDelay);
     }
 
@@ -158,8 +165,8 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     /// @notice Rebalances `token` in the pool (LRT) by processing outstanding withdrawals,
     /// depositing or withdrawing funds from EigenLayer, and updating the pool's cash and managed balances.
     /// @param token The token to rebalance.
-    function rebalance(address token) external onlyAfterRebalanceDelay {
-        lastRebalancedAt = uint40(block.timestamp);
+    function rebalance(address token) external onlyAfterRebalanceDelay(token) {
+        configs[token].lastRebalancedAt = uint32(block.timestamp);
 
         (uint256 cash, uint256 aum) = getPoolBalances(token);
 
@@ -173,7 +180,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         uint256 targetAUM = (cash + aum).mulWad(config.targetAUMPercentage);
         if (aum < targetAUM) {
             // Pool is under-invested. Deposit funds to EigenLayer.
-            _depositIntoEigenLayer(config.strategy, token, aum, targetAUM - aum);
+            _depositERC20sIntoEigenLayer(config.strategy, token, aum, targetAUM - aum);
         }
     }
 
@@ -250,12 +257,12 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         return (cash - withdrawable, aum - deficit);
     }
 
-    /// @dev Deposits funds into EigenLayer through the operators that are returned from the registry.
+    /// @dev Deposits tokens into EigenLayer through the operators that are returned from the registry.
     /// @param strategy The strategy to deposit the funds into.
     /// @param token The token to deposit.
     /// @param aum The current AUM of the token.
     /// @param amount The amount of tokens to deposit.
-    function _depositIntoEigenLayer(IStrategy strategy, address token, uint256 aum, uint256 amount) internal {
+    function _depositERC20sIntoEigenLayer(IStrategy strategy, address token, uint256 aum, uint256 amount) internal {
         bytes32 _poolId = poolId;
 
         // Update the vault with the new managed balance and pull funds from the vault.
@@ -267,14 +274,14 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
 
         // forgefmt: disable-next-item
         // Allocate tokens to selected operators.
-        (, IRioLRTOperatorRegistry.OperatorAllocation[] memory operatorAllocations) = operatorRegistry.allocate(token, amount);
+        (, IRioLRTOperatorRegistry.OperatorTokenAllocation[] memory allocations) = operatorRegistry.allocateERC20(token, amount);
 
         address operator;
         uint256 allocation;
         uint256 shares;
-        for (uint256 i = 0; i < operatorAllocations.length;) {
-            operator = operatorAllocations[i].operator;
-            allocation = operatorAllocations[i].allocation;
+        for (uint256 i = 0; i < allocations.length;) {
+            operator = allocations[i].operator;
+            allocation = allocations[i].allocation;
 
             IOpenZeppelinERC20(token).safeTransfer(operator, allocation);
             shares += IRioLRTOperator(operator).stakeERC20(strategy, IOpenZeppelinERC20(token), allocation);
@@ -284,6 +291,44 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
             }
         }
         strategyShares[address(strategy)] += shares;
+    }
+
+    /// @dev Deposits ETH into EigenLayer through the operators that are returned from the registry.
+    /// @param aum The current AUM of the token.
+    /// @param amount The amount of ETH to deposit.
+    function _depositETHIntoEigenLayer(uint256 aum, uint256 amount) internal {
+        bytes32 _poolId = poolId;
+
+        uint256 depositCount = amount / DEPOSIT_SIZE;
+        if (depositCount == 0) return; // Not enough ETH.
+
+        uint256 depositAmount = depositCount * DEPOSIT_SIZE;        
+
+        // Update the vault with the new managed balance and pull funds from the vault.
+        IVault.PoolBalanceOp[] memory ops = new IVault.PoolBalanceOp[](2);
+        ops[0] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.UPDATE, _poolId, IERC20(address(weth)), aum);
+        ops[1] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.WITHDRAW, _poolId, IERC20(address(weth)), depositAmount);
+
+        vault.managePoolBalance(ops);
+
+        // Withdraw `depositAmount` ETH to this contract.
+        weth.withdraw(depositAmount);
+
+        // forgefmt: disable-next-item
+        // Allocate ETH to selected operators.
+        (, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(depositCount);
+
+        uint256 deposits;
+        for (uint256 i = 0; i < allocations.length;) {
+            deposits = allocations[i].deposits;
+
+            IRioLRTOperator(allocations[i].operator).stakeETH{ value: deposits * DEPOSIT_SIZE }(
+                deposits, allocations[i].pubKeyBatch, allocations[i].signatureBatch
+            );
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     // forgefmt: disable-next-item
@@ -327,9 +372,14 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
 
     /// @dev Sets the rebalance delay.
     /// @param newRebalanceDelay The new rebalance delay.
-    function _setRebalanceDelay(uint40 newRebalanceDelay) internal {
+    function _setRebalanceDelay(uint24 newRebalanceDelay) internal {
         rebalanceDelay = newRebalanceDelay;
 
         emit RebalanceDelaySet(newRebalanceDelay);
+    }
+
+    /// @dev Fallback function to receive ETH from the WETH contract.
+    receive() external payable {
+        if (msg.sender != address(weth)) revert SENDER_IS_NOT_WETH();
     }
 }

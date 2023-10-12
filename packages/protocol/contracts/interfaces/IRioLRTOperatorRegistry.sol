@@ -5,16 +5,40 @@ import {IPoRAddressList} from 'contracts/interfaces/chainlink/IPoRAddressList.so
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 
 interface IRioLRTOperatorRegistry is IPoRAddressList {
-    /// @dev Operator asset cap configuration information.
-    struct AssetCapConfig {
+    /// @dev An operator token allocation cap configuration.
+    struct TokenCapConfig {
+        /// @dev The token address.
         address token;
+        /// @dev The maximum amount of the token that can be allocated to the operator.
         uint128 cap;
     }
 
-    /// @dev Operator asset cap and allocation information.
-    struct OperatorAssetInfo {
+    /// @dev Operator token allocation cap and current allocation.
+    struct OperatorTokenInfo {
+        /// @dev The maximum amount of the token that can be allocated to the operator.
         uint128 cap;
+        /// @dev The current amount of the token allocated to the operator.
         uint128 allocation;
+    }
+
+    /// @dev Aggregate validator information for a single operator.
+    struct OperatorValidators {
+        /// @dev The timestamp at which the next batch of pending validators will be considered
+        /// "confirmed".
+        uint40 nextConfirmationTimestamp;
+
+        /// @dev The maximum number of validators approved by the DAO.
+        uint40 cap;
+        /// @dev The total number of keys that have been uploaded (all-time). This number will be
+        /// decremented in the event that pending keys are removed.
+        uint40 total;
+        /// @dev The total number of validator keys that have been confirmed following
+        /// review by the security council (all-time).
+        uint40 confirmed;
+        /// @dev The number of validators that have reached the deposited state (all-time).
+        uint40 deposited;
+        /// @dev The number of validators that have reached the exited state (all-time).
+        uint40 exited;
     }
 
     /// @dev Operator information.
@@ -29,15 +53,30 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
         address pendingManager;
         /// @dev The address that will receive operator rewards.
         address earningsReceiver;
-        /// @dev Operator asset caps and current allocations. ERC20 caps and allocations are stored denominated in
-        /// the ERC20's native units, while ETH caps and allocations are denominated in validators (32 ETH chunks).
-        mapping(address => OperatorAssetInfo) assets;
+        /// @dev Aggregate validator information for the operator.
+        OperatorValidators validators;
+        /// @dev Operator token allocation caps and current allocations.
+        mapping(address => OperatorTokenInfo) tokens;
     }
 
     /// @notice An operator address and token allocation.
-    struct OperatorAllocation {
+    struct OperatorTokenAllocation {
+        /// @dev The operator's contract address.
         address operator;
+        /// @dev The amount of tokens allocated to the operator.
         uint256 allocation;
+    }
+
+    /// @notice An operator address, ETH deposit allocation, and validator details.
+    struct OperatorETHAllocation {
+        /// @dev The operator's contract address.
+        address operator;
+        /// @dev The amount of ETH deposits allocated to the operator.
+        uint256 deposits;
+        /// @dev One or more validator public keys, concatenated together.
+        bytes pubKeyBatch;
+        /// @dev One or more validator signatures, concatenated together.
+        bytes signatureBatch;
     }
 
     /// @notice An operator address and token deallocation.
@@ -76,14 +115,20 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @notice Thrown when an invalid (non-existent) operator contract address is provided.
     error INVALID_OPERATOR();
 
+    /// @notice Thrown when the provided validator count is invalid (zero).
+    error INVALID_VALIDATOR_COUNT();
+
+    /// @notice Thrown when an invalid index is provided.
+    error INVALID_INDEX();
+
     /// @notice Thrown when an attempt is made to activate an already active operator.
     error OPERATOR_ALREADY_ACTIVE();
 
     /// @notice Thrown when an attempt is made to deactivate an already inactive operator.
     error OPERATOR_ALREADY_INACTIVE();
 
-    /// @notice Thrown when no operators are active when attempting to allocate tokens.
-    error NO_ACTIVE_OPERATORS();
+    /// @notice Thrown when there are no active operators with a non-zero allocation cap.
+    error NO_ACTIVE_OPERATORS_WITH_NON_ZERO_CAP();
 
     /// @notice Emitted when an operator is created.
     /// @param operatorId The operator's ID.
@@ -107,11 +152,20 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param operatorId The operator's ID.
     event OperatorDeactivated(uint8 indexed operatorId);
 
-    /// @notice Emitted when an operator's asset cap is set.
+    /// @notice Emitted when an operator's token allocation cap is set.
     /// @param operatorId The operator's ID.
     /// @param token The token whose cap was set.
     /// @param cap The new token cap for the operator.
-    event OperatorAssetCapSet(uint8 indexed operatorId, address token, uint128 cap);
+    event OperatorTokenCapSet(uint8 indexed operatorId, address token, uint128 cap);
+
+    /// @notice Emitted when an operator's validator cap is set.
+    /// @param operatorId The operator's ID.
+    /// @param cap The new maximum active validator cap.
+    event OperatorValidatorCapSet(uint8 indexed operatorId, uint40 cap);
+
+    /// @notice Emitted when the validator key review period is set.
+    /// @param validatorKeyReviewPeriod The new validator key review period.
+    event ValidatorKeyReviewPeriodSet(uint24 validatorKeyReviewPeriod);
 
     /// @notice Emitted when an operator's earnings receiver is set.
     /// @param operatorId The operator's ID.
@@ -133,6 +187,16 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param manager The new manager of the operator.
     event OperatorManagerSet(uint8 indexed operatorId, address manager);
 
+    /// @notice Emitted when an operator uploads a new set of validator details (public keys and signatures).
+    /// @param operatorId The operator's ID.
+    /// @param validatorCount The number of validator details that were added.
+    event OperatorPendingValidatorDetailsAdded(uint8 indexed operatorId, uint256 validatorCount);
+
+    /// @notice Emitted when an operator removes pending validator details (public keys and signatures).
+    /// @param operatorId The operator's ID.
+    /// @param validatorCount The number of pending validator details that were removed.
+    event OperatorPendingValidatorDetailsRemoved(uint8 indexed operatorId, uint256 validatorCount);
+
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
@@ -142,10 +206,14 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     function initialize(address initialOwner, bytes32 poolId, address rewardDistributor, address assetManager) external;
 
     // forgefmt: disable-next-item
-    /// @notice Allocates a specified amount of tokens to the operators with the lowest utilization.
+    /// @notice Allocates a specified amount of ERC20 tokens to the operators with the lowest utilization.
     /// @param token The token to allocate.
     /// @param allocationSize The amount of tokens to allocate.
-    function allocate(address token, uint256 allocationSize) external returns (uint256 allocated, OperatorAllocation[] memory allocations);
+    function allocateERC20(address token, uint256 allocationSize) external returns (uint256 allocated, OperatorTokenAllocation[] memory allocations);
+
+    /// @notice Allocates a specified amount of ETH deposits to the operators with the lowest utilization.
+    /// @param depositSize The amount of deposits to allocate (32 ETH each)
+    function allocateETHDeposits(uint256 depositSize) external returns (uint256 allocated, OperatorETHAllocation[] memory allocations);
 
     // forgefmt: disable-next-item
     /// @notice Deallocates a specified amount of tokens from the operators with the highest utilization.

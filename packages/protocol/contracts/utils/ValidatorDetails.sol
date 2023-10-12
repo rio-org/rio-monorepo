@@ -7,13 +7,13 @@ library ValidatorDetails {
     using ValidatorDetails for bytes32;
 
     /// @dev The validator pubkey byte length.
-    uint64 internal constant PUBKEY_LENGTH = 48;
+    uint256 internal constant PUBKEY_LENGTH = 48;
 
     /// @dev The validator signature byte length.
-    uint64 internal constant SIGNATURE_LENGTH = 96;
+    uint256 internal constant SIGNATURE_LENGTH = 96;
 
-    /// @dev The maximum uint64 value.
-    uint256 internal constant UINT64_MAX = type(uint64).max;
+    /// @dev The maximum uint40 value.
+    uint256 internal constant UINT40_MAX = type(uint40).max;
 
     /// @notice Thrown when the number of keys is invalid.
     error INVALID_KEYS_COUNT();
@@ -58,8 +58,8 @@ library ValidatorDetails {
         uint256 keysCount,
         bytes memory pubkeys,
         bytes memory signatures
-    ) internal returns (uint256) {
-        if (keysCount == 0 || startIndex + keysCount > UINT64_MAX) revert INVALID_KEYS_COUNT();
+    ) internal returns (uint40) {
+        if (keysCount == 0 || startIndex + keysCount > UINT40_MAX) revert INVALID_KEYS_COUNT();
         if (pubkeys.length != keysCount * PUBKEY_LENGTH || signatures.length != keysCount * SIGNATURE_LENGTH) {
             revert LENGTH_MISMATCH();
         }
@@ -95,7 +95,7 @@ library ValidatorDetails {
             }
             emit ValidatorDetailsAdded(operatorId, tempKey);
         }
-        return startIndex;
+        return uint40(startIndex);
     }
 
     // forgefmt: disable-next-item
@@ -106,8 +106,8 @@ library ValidatorDetails {
     /// @param keysCount Keys count to load.
     /// @param totalKeysCount Current total keys count for operator.
     /// @return totalKeysCount New total keys count.
-    function removeValidatorDetails(bytes32 position, uint8 operatorId, uint256 startIndex, uint256 keysCount, uint256 totalKeysCount) internal returns (uint256) {
-        if (keysCount == 0 || startIndex + keysCount > totalKeysCount || totalKeysCount > UINT64_MAX) {
+    function removeValidatorDetails(bytes32 position, uint8 operatorId, uint256 startIndex, uint256 keysCount, uint256 totalKeysCount) internal returns (uint40) {
+        if (keysCount == 0 || startIndex + keysCount > totalKeysCount || totalKeysCount > UINT40_MAX) {
             revert INVALID_KEYS_COUNT();
         }
 
@@ -151,7 +151,7 @@ library ValidatorDetails {
             }
             emit ValidatorDetailsRemoved(operatorId, tempKey);
         }
-        return totalKeysCount;
+        return uint40(totalKeysCount);
     }
 
     /// @dev Load validator details from storage.
@@ -193,7 +193,7 @@ library ValidatorDetails {
 
     /// @dev Allocate memory for `count` validator details.
     /// @param count The number of validators.
-    function allocateValidatorDetails(uint256 count) internal pure returns (bytes memory, bytes memory) {
+    function allocateMemory(uint256 count) internal pure returns (bytes memory, bytes memory) {
         return (new bytes(count * PUBKEY_LENGTH), new bytes(count * SIGNATURE_LENGTH));
     }
 }

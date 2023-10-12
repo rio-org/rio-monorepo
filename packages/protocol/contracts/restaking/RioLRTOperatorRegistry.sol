@@ -11,9 +11,11 @@ import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.s
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
+import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 
 contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, UUPSUpgradeable {
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
+    using ValidatorDetails for bytes32;
     using FixedPointMathLib for *;
     using LibMap for *;
 
@@ -22,6 +24,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
     /// @notice The maximum number of active operators allowed.
     uint8 public constant MAX_ACTIVE_OPERATOR_COUNT = 64;
+
+    /// @dev The validator details storage position.
+    bytes32 internal constant VALIDATOR_DETAILS_POSITION = keccak256('RIO.OPERATOR_REGISTRY.VALIDATOR_DETAILS');
 
     /// @notice The Balancer vault contract.
     IVault public immutable vault;
@@ -44,8 +49,14 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice The number of active operators in the registry.
     uint8 public activeOperatorCount;
 
+    /// @notice The amount of time (in seconds) before uploaded validator keys are considered "vetted".
+    uint24 public validatorKeyReviewPeriod;
+
+    /// @notice The packed operator IDs, stored in a utilization priority queue, for ETH validators.
+    LibMap.Uint8Map internal activeOperatorsByETHDepositUtilization;
+
     /// @notice The packed operator IDs, stored in a utilization priority queue, indexed by token address.
-    mapping(address => LibMap.Uint8Map) activeOperatorsByTokenUtilization;
+    mapping(address => LibMap.Uint8Map) internal activeOperatorsByTokenUtilization;
 
     /// @notice A mapping of operator ids to operator information.
     mapping(uint8 => OperatorInfo) public operatorInfo;
@@ -83,18 +94,22 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         poolId = _poolId;
         rewardDistributor = _rewardDistributor;
         assetManager = _assetManager;
+
+        _setValidatorKeyReviewPeriod(3 days);
     }
 
     /// @notice Creates and registers a new operator.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
     /// @param initialMetadataURI The initial metadata URI.
-    /// @param configs The asset cap configurations.
+    /// @param configs The token allocation cap configurations.
+    /// @param validatorCap The maximum number of active validators allowed.
     function createOperator(
         address initialManager,
         address initialEarningsReceiver,
         string calldata initialMetadataURI,
-        AssetCapConfig[] calldata configs
+        TokenCapConfig[] calldata configs,
+        uint40 validatorCap
     ) external onlyOwner returns (uint8 operatorId) {
         if (initialManager == address(0)) revert INVALID_MANAGER();
         if (initialEarningsReceiver == address(0)) revert INVALID_EARNINGS_RECEIVER();
@@ -115,15 +130,37 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         info.earningsReceiver = initialEarningsReceiver;
         info.operator = operator;
 
+        emit OperatorCreated(operatorId, operator, initialManager, initialEarningsReceiver, initialMetadataURI);
+
+        TokenCapConfig memory config;
+        OperatorUtilizationHeap.Data memory heap;
+
+        // Populate the token allocation caps for the operator.
         for (uint256 i = 0; i < configs.length; ++i) {
-            AssetCapConfig memory config = configs[i];
+            config = configs[i];
             if (config.cap == 0) continue;
 
-            info.assets[config.token] = OperatorAssetInfo(config.cap, 0);
-            _insertOperatorIntoUtilizationHeapForToken(config.token, operatorId, 0);
+            info.tokens[config.token] = OperatorTokenInfo(config.cap, 0);
+
+            heap = _getOperatorUtilizationHeapForToken(config.token);
+            heap.insert(OperatorUtilizationHeap.Operator(operatorId, 0));
+
+            _updateOperatorUtilizationHeap(heap, activeOperatorsByTokenUtilization[config.token]);
+
+            emit OperatorTokenCapSet(operatorId, config.token, config.cap);
         }
 
-        emit OperatorCreated(operatorId, operator, initialManager, initialEarningsReceiver, initialMetadataURI);
+        // Populate the validator cap for the operator, if applicable.
+        if (validatorCap != 0) {
+            info.validators.cap = validatorCap;
+
+            heap = _getOperatorUtilizationHeapForETH();
+            heap.insert(OperatorUtilizationHeap.Operator(operatorId, 0));
+
+            _updateOperatorUtilizationHeap(heap, activeOperatorsByETHDepositUtilization);
+
+            emit OperatorValidatorCapSet(operatorId, validatorCap);
+        }
     }
 
     /// @notice Activates an operator.
@@ -137,14 +174,19 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         info.active = true;
         activeOperatorCount += 1;
 
+        address tokenAddress;
+        OperatorTokenInfo memory token;
+        OperatorUtilizationHeap.Data memory heap;
         (IERC20[] memory registeredTokens,,) = vault.getPoolTokens(poolId);
         for (uint256 i = 0; i < registeredTokens.length; ++i) {
-            OperatorAssetInfo memory asset = info.assets[address(registeredTokens[i])];
-            if (asset.cap == 0) continue;
+            tokenAddress = address(registeredTokens[i]);
+            token = info.tokens[tokenAddress];
+            if (token.cap == 0) continue;
 
-            _insertOperatorIntoUtilizationHeapForToken(
-                address(registeredTokens[i]), operatorId, asset.allocation.divWad(asset.cap)
-            );
+            heap = _getOperatorUtilizationHeapForToken(tokenAddress);
+            heap.insert(OperatorUtilizationHeap.Operator(operatorId, token.allocation.divWad(token.cap)));
+
+            _updateOperatorUtilizationHeap(heap, activeOperatorsByTokenUtilization[tokenAddress]);
         }
 
         emit OperatorActivated(operatorId);
@@ -161,40 +203,79 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         info.active = false;
         activeOperatorCount -= 1;
 
+        OperatorTokenInfo memory token;
+        OperatorUtilizationHeap.Data memory heap;
         (IERC20[] memory registeredTokens,,) = vault.getPoolTokens(poolId);
         for (uint256 i = 0; i < registeredTokens.length; ++i) {
-            OperatorAssetInfo memory asset = info.assets[address(registeredTokens[i])];
-            if (asset.cap == 0) continue;
+            token = info.tokens[address(registeredTokens[i])];
+            if (token.cap == 0) continue;
 
-            _removeOperatorFromUtilizationHeapForToken(address(registeredTokens[i]), operatorId);
+            heap = _getOperatorUtilizationHeapForToken(address(registeredTokens[i]));
+            heap.removeByID(operatorId);
+
+            _updateOperatorUtilizationHeap(heap, activeOperatorsByTokenUtilization[address(registeredTokens[i])]);
         }
 
         emit OperatorDeactivated(operatorId);
     }
 
     // forgefmt: disable-next-item
-    /// @notice Sets the operator's asset caps using the provided configurations.
+    /// @notice Sets the operator's token allocation caps using the provided configurations.
     /// @param operatorId The operator's ID.
-    /// @param newConfigs The new asset cap configurations.
-    function setOperatorAssetCaps(uint8 operatorId, AssetCapConfig[] calldata newConfigs) external onlyOwner {
+    /// @param newConfigs The new token allocation cap configurations.
+    function setOperatorTokenCaps(uint8 operatorId, TokenCapConfig[] calldata newConfigs) external onlyOwner {
         OperatorInfo storage info = operatorInfo[operatorId];
         if (info.manager == address(0)) revert INVALID_OPERATOR();
 
         for (uint256 i = 0; i < newConfigs.length; ++i) {
-            AssetCapConfig memory incoming = newConfigs[i];
-            OperatorAssetInfo memory current = info.assets[incoming.token];
+            TokenCapConfig memory incoming = newConfigs[i];
+            OperatorTokenInfo memory current = info.tokens[incoming.token];
 
             if (current.cap == incoming.cap) continue; // No change
 
+            OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForToken(incoming.token);
             if (current.cap != 0 && incoming.cap == 0) {
-                _removeOperatorFromUtilizationHeapForToken(incoming.token, operatorId);
+                heap.removeByID(operatorId);
             } else if (current.cap == 0 && incoming.cap != 0) {
-                _insertOperatorIntoUtilizationHeapForToken(incoming.token, operatorId, current.allocation.divWad(incoming.cap));
+                heap.insert(OperatorUtilizationHeap.Operator(operatorId, current.allocation.divWad(incoming.cap)));
             } else {
-                _updateOperatorInUtilizationHeapForToken(incoming.token, operatorId, current.allocation.divWad(incoming.cap));
+                heap.updateUtilizationByID(operatorId, current.allocation.divWad(incoming.cap));
             }
-            emit OperatorAssetCapSet(operatorId, incoming.token, incoming.cap);
+            _updateOperatorUtilizationHeap(heap, activeOperatorsByTokenUtilization[incoming.token]);
+
+            emit OperatorTokenCapSet(operatorId, incoming.token, incoming.cap);
         }
+    }
+
+    /// @notice Sets the operator's maximum active validator cap.
+    /// @param operatorId The operator's ID.
+    /// @param newValidatorCap The new maximum active validator cap.
+    function setOperatorValidatorCap(uint8 operatorId, uint40 newValidatorCap) external onlyOwner {
+        OperatorInfo storage info = operatorInfo[operatorId];
+        if (info.manager == address(0)) revert INVALID_OPERATOR();
+
+        OperatorValidators memory validators = info.validators;
+        if (validators.cap == newValidatorCap) return; // No change
+
+        uint40 activeDeposits = validators.deposited - validators.exited;
+
+        OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForETH();
+        if (validators.cap != 0 && newValidatorCap == 0) {
+            heap.removeByID(operatorId);
+        } else if (validators.cap == 0 && newValidatorCap != 0) {
+            heap.insert(OperatorUtilizationHeap.Operator(operatorId, activeDeposits.divWad(newValidatorCap)));
+        } else {
+            heap.updateUtilizationByID(operatorId, activeDeposits.divWad(newValidatorCap));
+        }
+        _updateOperatorUtilizationHeap(heap, activeOperatorsByETHDepositUtilization);
+
+        emit OperatorValidatorCapSet(operatorId, newValidatorCap);
+    }
+
+    /// @notice Sets the amount of time (in seconds) before uploaded validator keys are considered "vetted".
+    /// @param newValidatorKeyReviewPeriod The new validator key review period.
+    function setValidatorKeyReviewPeriod(uint24 newValidatorKeyReviewPeriod) external onlyOwner {
+        _setValidatorKeyReviewPeriod(newValidatorKeyReviewPeriod);
     }
 
     // forgefmt: disable-next-item
@@ -247,34 +328,83 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         emit OperatorManagerSet(operatorId, sender);
     }
 
-    // forgefmt: disable-next-item
-    /// @notice Allocates a specified amount of tokens to the operators with the lowest utilization.
-    /// @param token The token to allocate.
-    /// @param allocationSize The amount of tokens to allocate.
-    function allocate(address token, uint256 allocationSize) external onlyAssetManager returns (uint256 allocated, OperatorAllocation[] memory allocations) {
-        allocations = new OperatorAllocation[](activeOperatorCount);
+    /// @notice Adds pending validator details (public keys and signatures) to storage for the provided operator.
+    /// Each added batch extends the timestamp at which the details will be considered confirmed.
+    /// @param operatorId The operator's ID.
+    /// @param validatorCount The number of validators in the batch.
+    /// @param publicKeys The validator public keys.
+    /// @param signatures The validator signatures.
+    function addValidatorDetails(
+        uint8 operatorId,
+        uint256 validatorCount,
+        bytes calldata publicKeys,
+        bytes calldata signatures
+    ) external onlyOperatorManager(operatorId) {
+        OperatorInfo storage info = operatorInfo[operatorId];
+        OperatorValidators memory validators = info.validators;
 
-        OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForToken(token);
-        if (heap.isEmpty()) revert NO_ACTIVE_OPERATORS();
+        if (validatorCount == 0) revert INVALID_VALIDATOR_COUNT();
+
+        // First check if there are any pending validator details that can be moved into a confirmed state.
+        if (validators.total > validators.confirmed && block.timestamp >= validators.nextConfirmationTimestamp) {
+            info.validators.confirmed = validators.confirmed = validators.total;
+        }
+
+        info.validators.total =VALIDATOR_DETAILS_POSITION.saveValidatorDetails(
+            operatorId, validators.total, validatorCount, publicKeys, signatures
+        );
+        info.validators.nextConfirmationTimestamp = uint40(block.timestamp + validatorKeyReviewPeriod);
+
+        emit OperatorPendingValidatorDetailsAdded(operatorId, validatorCount);
+    }
+
+    /// @notice Removes pending validator details (public keys and signatures) from storage for the provided operator.
+    /// @param operatorId The operator's ID.
+    /// @param fromIndex The index of the first validator to remove.
+    /// @param validatorCount The number of validator to remove.
+    function removeValidatorDetails(uint8 operatorId, uint256 fromIndex, uint256 validatorCount) external onlyOperatorManager(operatorId) {
+        OperatorInfo storage info = operatorInfo[operatorId];
+        OperatorValidators memory validators = info.validators;
+
+        if (validatorCount == 0) revert INVALID_VALIDATOR_COUNT();
+        if (fromIndex < validators.confirmed || fromIndex + validatorCount > validators.total) revert INVALID_INDEX();
+
+        info.validators.total = VALIDATOR_DETAILS_POSITION.removeValidatorDetails(
+            operatorId, fromIndex, validatorCount, validators.total
+        );
+        emit OperatorPendingValidatorDetailsRemoved(operatorId, validatorCount);
+    }
+
+    // forgefmt: disable-next-item
+    /// @notice Allocates a specified amount of ERC20 tokens to the operators with the lowest utilization.
+    /// @param tokenToAllocate The token to allocate.
+    /// @param allocationSize The amount of tokens to allocate.
+    function allocateERC20(address tokenToAllocate, uint256 allocationSize) external onlyAssetManager returns (uint256 allocated, OperatorTokenAllocation[] memory allocations) {
+        allocations = new OperatorTokenAllocation[](activeOperatorCount);
+
+        OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForToken(tokenToAllocate);
+        if (heap.isEmpty()) revert NO_ACTIVE_OPERATORS_WITH_NON_ZERO_CAP();
 
         OperatorUtilizationHeap.Operator memory operator;
+        OperatorTokenInfo memory token;
         uint256 allocationIndex;
+        uint256 allocation;
         while (allocated < allocationSize) {
             operator = heap.getMin();
 
             OperatorInfo storage info = operatorInfo[operator.id];
-            OperatorAssetInfo memory asset = info.assets[token];
+            token = info.tokens[tokenToAllocate];
 
             // If the allocation of the operator with the lowest utilization rate is met,
             // then exit early. We will not be able to allocate to any other operators.
-            if (asset.allocation >= asset.cap) break;
+            if (token.allocation >= token.cap) break;
 
-            uint256 allocation = FixedPointMathLib.min(asset.cap - asset.allocation, allocationSize);
+            allocation = FixedPointMathLib.min(token.cap - token.allocation, allocationSize);
 
-            allocations[allocationIndex] = OperatorAllocation(info.operator, allocation);
+            allocations[allocationIndex] = OperatorTokenAllocation(info.operator, allocation);
             allocated += allocation;
 
-            heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, allocation.divWad(asset.cap));
+            heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, (token.allocation + allocation).divWad(token.cap));
 
             unchecked {
                 ++allocationIndex;
@@ -282,7 +412,80 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
 
         // Update the operator utilization heap in storage.
-        _updateOperatorUtilizationHeapForToken(token, heap);
+        _updateOperatorUtilizationHeap(heap, activeOperatorsByTokenUtilization[tokenToAllocate]);
+
+        // Shrink the array length to the number of allocations made.
+        if (allocationIndex < activeOperatorCount) {
+            assembly {
+                mstore(allocations, allocationIndex)
+            }
+        }
+    }
+
+    // forgefmt: disable-next-item
+    /// @notice Allocates a specified amount of ETH deposits to the operators with the lowest utilization.
+    /// @param depositSize The amount of deposits to allocate (32 ETH each)
+    function allocateETHDeposits(uint256 depositSize) external onlyAssetManager returns (uint256 depositsAllocated, OperatorETHAllocation[] memory allocations) {
+        allocations = new OperatorETHAllocation[](activeOperatorCount);
+
+        OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForETH();
+        if (heap.isEmpty()) revert NO_ACTIVE_OPERATORS_WITH_NON_ZERO_CAP();
+
+        OperatorUtilizationHeap.Operator memory operator;
+        bytes memory pubKeyBatch;
+        bytes memory signatureBatch;
+        uint256 depositAllocation;
+        uint256 allocationIndex;
+        uint256 activeDeposits;
+        uint256 unallocatedConfirmedKeys;
+        while (depositsAllocated < depositSize) {
+            operator = heap.getMin();
+
+            OperatorInfo storage info = operatorInfo[operator.id];
+            OperatorValidators memory validators = info.validators;
+            activeDeposits = validators.deposited - validators.exited;
+
+            // If the current deposited validator count of the operator is greater than or equal to its cap,
+            // then exit early. We will not be able to allocate to any other operators.
+            if (activeDeposits >= validators.cap) break;
+
+            // If the total number of uploaded keys is greater than the number of confirmed keys AND the
+            // current timestamp is greater than or equal to the next confirmation timestamp, then mark all pending keys
+            // as confirmed.
+            if (validators.total > validators.confirmed && block.timestamp >= validators.nextConfirmationTimestamp) {
+                info.validators.confirmed = validators.confirmed = validators.total;
+            }
+
+            // We can only allocate to confirmed keys that have not yet received a deposit.
+            unallocatedConfirmedKeys = validators.confirmed - validators.deposited - validators.exited;
+            if (unallocatedConfirmedKeys == 0) {
+                continue;
+            }
+
+            // Each allocation is a 32 ETH deposit. We can only allocate up to the number of unallocated confirmed keys.
+            depositAllocation = FixedPointMathLib.min(
+                FixedPointMathLib.min(validators.cap - activeDeposits, unallocatedConfirmedKeys), depositSize
+            );
+
+            // Load the allocated validator details from storage and update the deposited validator count.
+            (pubKeyBatch, signatureBatch) = ValidatorDetails.allocateMemory(depositAllocation);
+            VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
+                operator.id, validators.deposited, depositAllocation, pubKeyBatch, signatureBatch, 0
+            );
+            info.validators.deposited += uint40(depositAllocation);
+
+            allocations[allocationIndex] = OperatorETHAllocation(info.operator, depositAllocation, pubKeyBatch, signatureBatch);
+            depositsAllocated += depositAllocation;
+
+            heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, (activeDeposits + depositAllocation).divWad(validators.cap));
+
+            unchecked {
+                ++allocationIndex;
+            }
+        }
+
+        // Update the operator utilization heap in storage.
+        _updateOperatorUtilizationHeap(heap, activeOperatorsByETHDepositUtilization);
 
         // Shrink the array length to the number of allocations made.
         if (allocationIndex < activeOperatorCount) {
@@ -299,76 +502,81 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
     function getPoRAddressList(uint256 startIndex, uint256 endIndex) external view override returns (string[] memory) {}
 
+    /// @dev Sets the amount of time (in seconds) before uploaded validator keys are considered "vetted".
+    /// @param newValidatorKeyReviewPeriod The new validator key review period.
+    function _setValidatorKeyReviewPeriod(uint24 newValidatorKeyReviewPeriod) internal {
+        validatorKeyReviewPeriod = newValidatorKeyReviewPeriod;
+
+        emit ValidatorKeyReviewPeriodSet(newValidatorKeyReviewPeriod);
+    }
+
     // forgefmt: disable-next-item
     /// @dev Returns the operator utilization heap for the specified token.
-    /// @param token The token to get the heap for.
-    function _getOperatorUtilizationHeapForToken(address token) internal view returns (OperatorUtilizationHeap.Data memory heap) {
+    /// Operators MUST have a non-zero cap for the token to be included in the heap.
+    /// @param tokenAddress The token to get the heap for.
+    function _getOperatorUtilizationHeapForToken(address tokenAddress) internal view returns (OperatorUtilizationHeap.Data memory heap) {
         uint8 numActiveOperators = activeOperatorCount;
         if (numActiveOperators == 0) return OperatorUtilizationHeap.Data(new OperatorUtilizationHeap.Operator[](0), 0);
-
+        
         heap = OperatorUtilizationHeap.initialize(MAX_ACTIVE_OPERATOR_COUNT);
+        LibMap.Uint8Map storage operators = activeOperatorsByTokenUtilization[tokenAddress];
 
-        LibMap.Uint8Map storage operators = activeOperatorsByTokenUtilization[token];
+        OperatorTokenInfo memory token;
+        uint8 operatorId;
         unchecked {
             for (uint8 i = 0; i < numActiveOperators; ++i) {
-                uint8 operatorId = operators.get(i);
+                operatorId = operators.get(i);
 
                 // Non-existent operator ID. We've reached the end of the heap.
                 if (operatorId == 0) break;
 
-                OperatorAssetInfo memory asset = operatorInfo[operatorId].assets[token];
+                token = operatorInfo[operatorId].tokens[tokenAddress];
                 heap.operators[i + 1] = OperatorUtilizationHeap.Operator({
                     id: operatorId,
-                    utilization: asset.allocation.divWad(asset.cap)
+                    utilization: token.allocation.divWad(token.cap)
                 });
             }
         }
     }
 
-    /// @dev Updates the operator utilization heap in storage for the specified token.
-    /// @param token The token to update the heap for.
-    /// @param heap The heap used to update storage.
-    function _updateOperatorUtilizationHeapForToken(address token, OperatorUtilizationHeap.Data memory heap) internal {
-        LibMap.Uint8Map storage operators = activeOperatorsByTokenUtilization[token];
-        for (uint8 i = 0; i < heap.count;) {
-            unchecked {
-                operators.set(i, heap.operators[i + 1].id);
-                ++i;
+    /// @dev Returns the ETH deposit operator utilization heap.
+    /// Operators MUST have a non-zero cap to be included in the heap.
+    function _getOperatorUtilizationHeapForETH() internal view returns (OperatorUtilizationHeap.Data memory heap) {
+        uint8 numActiveOperators = activeOperatorCount;
+        if (numActiveOperators == 0) return OperatorUtilizationHeap.Data(new OperatorUtilizationHeap.Operator[](0), 0);
+
+        heap = OperatorUtilizationHeap.initialize(MAX_ACTIVE_OPERATOR_COUNT);
+
+        uint256 activeDeposits;
+        OperatorValidators memory validators;
+        uint8 operatorId;
+        unchecked {
+            for (uint8 i = 0; i < numActiveOperators; ++i) {
+                operatorId = activeOperatorsByETHDepositUtilization.get(i);
+
+                // Non-existent operator ID. We've reached the end of the heap.
+                if (operatorId == 0) break;
+
+                validators = operatorInfo[operatorId].validators;
+                activeDeposits = validators.deposited - validators.exited;
+                heap.operators[i + 1] = OperatorUtilizationHeap.Operator({
+                    id: operatorId,
+                    utilization: activeDeposits.divWad(validators.cap)
+                });
             }
         }
     }
 
-    // forgefmt: disable-next-item
-    /// @dev Inserts an operator into the utilization heap for the specified token and updates the heap in storage.
-    /// @param token The token address.
-    /// @param operatorId The operator's ID.
-    /// @param utilization The operator's utilization.
-    function _insertOperatorIntoUtilizationHeapForToken(address token, uint8 operatorId, uint256 utilization) internal {
-        OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForToken(token);
-        heap.insert(OperatorUtilizationHeap.Operator(operatorId, utilization));
-
-        _updateOperatorUtilizationHeapForToken(token, heap);
-    }
-
-    /// @dev Removes an operator from the utilization heap for the specified token and updates the heap in storage.
-    /// @param token The token address.
-    /// @param operatorId The operator's ID.
-    function _removeOperatorFromUtilizationHeapForToken(address token, uint8 operatorId) internal {
-        OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForToken(token);
-        heap.removeByID(operatorId);
-
-        _updateOperatorUtilizationHeapForToken(token, heap);
-    }
-
-    /// @dev Updates an operator in the utilization heap for the specified token and updates the heap in storage.
-    /// @param token The token address.
-    /// @param operatorId The operator's ID.
-    /// @param utilization The operator's utilization.
-    function _updateOperatorInUtilizationHeapForToken(address token, uint8 operatorId, uint256 utilization) internal {
-        OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForToken(token);
-        heap.updateUtilizationByID(operatorId, utilization);
-
-        _updateOperatorUtilizationHeapForToken(token, heap);
+    /// @dev Updates the `storageUtilizationHeap` using the provided `memoryUtilizationHeap`.
+    /// @param memoryHeap The in-memory heap used to update storage.
+    /// @param storageHeap The packed storage heap.
+    function _updateOperatorUtilizationHeap(OperatorUtilizationHeap.Data memory memoryHeap, LibMap.Uint8Map storage storageHeap) internal {
+        for (uint8 i = 0; i < memoryHeap.count;) {
+            unchecked {
+                storageHeap.set(i, memoryHeap.operators[i + 1].id);
+                ++i;
+            }
+        }
     }
 
     // forgefmt: disable-next-item

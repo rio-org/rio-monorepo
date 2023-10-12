@@ -8,7 +8,11 @@ import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 interface IRioLRTAssetManager {
     /// @notice The asset management configuration for a token.
     struct TokenConfig {
-        uint96 targetAUMPercentage;
+        /// @dev The timestamp at which the token was last rebalanced.
+        uint32 lastRebalancedAt;
+        /// @dev The target managed asset percentage (18 decimals).
+        uint64 targetAUMPercentage;
+        /// @dev The token's EigenLayer strategy contract.
         IStrategy strategy;
     }
 
@@ -26,6 +30,9 @@ interface IRioLRTAssetManager {
 
     /// @notice Thrown when the token is not supported by the asset manager.
     error INVALID_TOKEN();
+
+    /// @notice Thrown when the ETH sender is not the WETH contract.
+    error SENDER_IS_NOT_WETH();
 
     /// @notice Emitted when a token is added.
     /// @param token The token that was added.
@@ -45,7 +52,7 @@ interface IRioLRTAssetManager {
 
     /// @notice Emitted when the rebalance delay is set.
     /// @param newRebalanceDelay The new rebalance delay.
-    event RebalanceDelaySet(uint256 newRebalanceDelay);
+    event RebalanceDelaySet(uint24 newRebalanceDelay);
 
     /// @notice Emitted when a reward is received.
     /// @param token The token that was received.
@@ -75,9 +82,9 @@ interface IRioLRTAssetManager {
     /// @notice Sets the target AUM percentage for a token.
     /// @param token The token to set the target AUM percentage for.
     /// @param newTargetAUMPercentage The new target AUM percentage.
-    function setTargetAUMPercentage(IERC20 token, uint96 newTargetAUMPercentage) external;
+    function setTargetAUMPercentage(IERC20 token, uint64 newTargetAUMPercentage) external;
 
     /// @notice Sets the rebalance delay.
     /// @param newRebalanceDelay The new rebalance delay.
-    function setRebalanceDelay(uint40 newRebalanceDelay) external;
+    function setRebalanceDelay(uint24 newRebalanceDelay) external;
 }

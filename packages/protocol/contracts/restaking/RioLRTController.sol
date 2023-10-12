@@ -89,7 +89,7 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
         IStrategy strategy,
         uint256 amount,
         uint256 normalizedWeight,
-        uint96 targetAUMPercentage
+        uint64 targetAUMPercentage
     ) external onlyOwner {
         if (address(strategy.underlyingToken()) != address(token)) revert INVALID_STRATEGY_FOR_TOKEN();
 
@@ -101,7 +101,7 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
 
         pool.addToken(token, manager, normalizedWeight, mintAmount, owner());
         IRioLRTAssetManager(manager).addToken(
-            token, amount, IRioLRTAssetManager.TokenConfig(targetAUMPercentage, strategy)
+            token, amount, IRioLRTAssetManager.TokenConfig(0, targetAUMPercentage, strategy)
         );
     }
 
@@ -137,13 +137,13 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
     /// @notice Set the target AUM percentage for a token.
     /// @param token The token to set the target AUM percentage for.
     /// @param newTargetAUMPercentage The new target AUM percentage.
-    function setTargetAUMPercentageForToken(IERC20 token, uint96 newTargetAUMPercentage) external onlyOwner {
+    function setTargetAUMPercentageForToken(IERC20 token, uint64 newTargetAUMPercentage) external onlyOwner {
         IRioLRTAssetManager(assetManager()).setTargetAUMPercentage(token, newTargetAUMPercentage);
     }
 
-    /// @notice Set the LRT rebalance delay.
+    /// @notice Set the LRT rebalance delay (in seconds).
     /// @param newRebalanceDelay The new rebalance delay.
-    function setRebalanceDelay(uint40 newRebalanceDelay) external onlyOwner {
+    function setRebalanceDelay(uint24 newRebalanceDelay) external onlyOwner {
         IRioLRTAssetManager(assetManager()).setRebalanceDelay(newRebalanceDelay);
     }
 

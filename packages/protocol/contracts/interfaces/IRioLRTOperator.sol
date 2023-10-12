@@ -43,6 +43,12 @@ interface IRioLRTOperator {
     /// @param amount The amount of tokens to stake.
     function stakeERC20(IStrategy strategy, IERC20 token, uint256 amount) external returns (uint256 shares);
 
+    /// Stake ETH via the operator's EigenPod, using the provided validator information.
+    /// @param validatorCount The number of validators to deposit into.
+    /// @param pubkeyBatch Batched validator public keys.
+    /// @param signatureBatch Batched validator signatures.
+    function stakeETH(uint256 validatorCount, bytes calldata pubkeyBatch, bytes calldata signatureBatch) external payable;
+
     /// @notice Queue a withdrawal of the given amount of `shares` to the `withdrawer` from the provided `strategy`.
     /// @param strategy The strategy to withdraw from.
     /// @param shares The amount of shares to withdraw.
