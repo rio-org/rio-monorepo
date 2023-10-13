@@ -10,6 +10,7 @@ import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
+import {IRioLRTController} from 'contracts/interfaces/IRioLRTController.sol';
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 
@@ -37,11 +38,17 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice The LRT Balancer pool ID.
     bytes32 public poolId;
 
+    /// @notice The LRT controller.
+    IRioLRTController public controller;
+
     /// @notice The LRT reward distributor.
     address public rewardDistributor;
 
     /// @notice The LRT asset manager.
     address public assetManager;
+
+    /// @notice The security daemon's wallet that has been configured by the security council.
+    address public securityDaemon;
 
     /// @notice The total number of operators in the registry.
     uint8 public operatorCount;
@@ -61,6 +68,12 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice A mapping of operator ids to operator information.
     mapping(uint8 => OperatorInfo) public operatorInfo;
 
+    /// @notice Require that the caller is the asset manager.
+    modifier onlyAssetManager() {
+        if (msg.sender != assetManager) revert ONLY_ASSET_MANAGER();
+        _;
+    }
+
     /// @notice Require that the caller is the operator's manager.
     /// @param operatorId The operator's ID.
     modifier onlyOperatorManager(uint8 operatorId) {
@@ -68,9 +81,13 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         _;
     }
 
-    /// @notice Require that the caller is the asset manager.
-    modifier onlyAssetManager() {
-        if (msg.sender != assetManager) revert ONLY_ASSET_MANAGER();
+    /// @notice Require that the caller is the operator's manager OR the security daemon's
+    /// wallet that has been configured by the security council.
+    /// @param operatorId The operator's ID.
+    modifier onlyOperatorManagerOrSecurityDaemon(uint8 operatorId) {
+        if (msg.sender != operatorInfo[operatorId].manager && msg.sender != controller.securityDaemon()) {
+            revert ONLY_OPERATOR_MANAGER_OR_SECURITY_DAEMON();
+        }
         _;
     }
 
@@ -85,13 +102,15 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param _poolId The LRT Balancer pool ID.
+    /// @param _controller The LRT controller.
     /// @param _rewardDistributor The LRT reward distributor.
     /// @param _assetManager The LRT asset manager.
-    function initialize(address initialOwner, bytes32 _poolId, address _rewardDistributor, address _assetManager) external initializer {
+    function initialize(address initialOwner, bytes32 _poolId, address _controller, address _rewardDistributor, address _assetManager) external initializer {
         __UUPSUpgradeable_init();
         _transferOwnership(initialOwner);
 
         poolId = _poolId;
+        controller = IRioLRTController(_controller);
         rewardDistributor = _rewardDistributor;
         assetManager = _assetManager;
 
@@ -350,7 +369,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
             info.validators.confirmed = validators.confirmed = validators.total;
         }
 
-        info.validators.total =VALIDATOR_DETAILS_POSITION.saveValidatorDetails(
+        info.validators.total = VALIDATOR_DETAILS_POSITION.saveValidatorDetails(
             operatorId, validators.total, validatorCount, publicKeys, signatures
         );
         info.validators.nextConfirmationTimestamp = uint40(block.timestamp + validatorKeyReviewPeriod);
@@ -362,7 +381,10 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param operatorId The operator's ID.
     /// @param fromIndex The index of the first validator to remove.
     /// @param validatorCount The number of validator to remove.
-    function removeValidatorDetails(uint8 operatorId, uint256 fromIndex, uint256 validatorCount) external onlyOperatorManager(operatorId) {
+    function removeValidatorDetails(uint8 operatorId, uint256 fromIndex, uint256 validatorCount)
+        external
+        onlyOperatorManagerOrSecurityDaemon(operatorId)
+    {
         OperatorInfo storage info = operatorInfo[operatorId];
         OperatorValidators memory validators = info.validators;
 
@@ -570,7 +592,10 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @dev Updates the `storageUtilizationHeap` using the provided `memoryUtilizationHeap`.
     /// @param memoryHeap The in-memory heap used to update storage.
     /// @param storageHeap The packed storage heap.
-    function _updateOperatorUtilizationHeap(OperatorUtilizationHeap.Data memory memoryHeap, LibMap.Uint8Map storage storageHeap) internal {
+    function _updateOperatorUtilizationHeap(
+        OperatorUtilizationHeap.Data memory memoryHeap,
+        LibMap.Uint8Map storage storageHeap
+    ) internal {
         for (uint8 i = 0; i < memoryHeap.count;) {
             unchecked {
                 storageHeap.set(i, memoryHeap.operators[i + 1].id);

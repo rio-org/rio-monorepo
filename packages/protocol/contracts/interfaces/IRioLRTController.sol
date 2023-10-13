@@ -30,6 +30,9 @@ interface IRioLRTController {
     /// @notice Emitted when the security council is updated by the owner.
     event SecurityCouncilChanged(address newSecurityCouncil);
 
+    /// @notice Emitted when the security daemon's wallet is updated by the owner or the security council.
+    event SecurityDaemonChanged(address newSecurityDaemon);
+
     // forgefmt: disable-next-item
     /// @notice Initializes the controller.
     /// @param initialOwner The initial owner of the contract.
@@ -40,4 +43,8 @@ interface IRioLRTController {
 
     /// @notice The pool (LRT) that's controlled by this contract.
     function pool() external view returns (IManagedPoolSettings);
+
+    /// @notice The security daemon's wallet, which is controlled by the security council and owner.
+    /// The security daemon is responsible for removal of duplicate or invalid validator keys.
+    function securityDaemon() external view returns (address);
 }

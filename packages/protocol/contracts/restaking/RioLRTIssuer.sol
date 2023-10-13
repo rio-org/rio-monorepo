@@ -170,7 +170,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
             new ERC1967Proxy(rewardDistributorImpl, abi.encodeCall(IRioLRTRewardDistributor.initialize, (msg.sender, pool, msg.sender, address(0))))
         );
         address operatorRegistry = address(
-            new ERC1967Proxy(operatorRegistryImpl, abi.encodeCall(IRioLRTOperatorRegistry.initialize, (msg.sender, poolId, rewardDistributor, assetManager)))
+            new ERC1967Proxy(operatorRegistryImpl, abi.encodeCall(IRioLRTOperatorRegistry.initialize, (msg.sender, poolId, controller, rewardDistributor, assetManager)))
         );
         address withdrawalQueue = withdrawalQueueImpl.clone(abi.encodePacked(poolId, assetManager));
 

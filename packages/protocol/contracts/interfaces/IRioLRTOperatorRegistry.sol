@@ -26,7 +26,6 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
         /// @dev The timestamp at which the next batch of pending validators will be considered
         /// "confirmed".
         uint40 nextConfirmationTimestamp;
-
         /// @dev The maximum number of validators approved by the DAO.
         uint40 cap;
         /// @dev The total number of keys that have been uploaded (all-time). This number will be
@@ -87,6 +86,9 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
 
     /// @notice Thrown when the caller is not the operator's manager.
     error ONLY_OPERATOR_MANAGER();
+
+    /// @notice Thrown when the caller is not the operator's manager or OR the security daemon.
+    error ONLY_OPERATOR_MANAGER_OR_SECURITY_DAEMON();
 
     /// @notice Thrown when the caller is not the asset manager.
     error ONLY_ASSET_MANAGER();
@@ -201,9 +203,10 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param poolId The LRT Balancer pool ID.
+    /// @param controller The LRT controller.
     /// @param rewardDistributor The LRT reward distributor.
     /// @param assetManager The LRT asset manager.
-    function initialize(address initialOwner, bytes32 poolId, address rewardDistributor, address assetManager) external;
+    function initialize(address initialOwner, bytes32 poolId, address controller, address rewardDistributor, address assetManager) external;
 
     // forgefmt: disable-next-item
     /// @notice Allocates a specified amount of ERC20 tokens to the operators with the lowest utilization.
@@ -211,6 +214,7 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param allocationSize The amount of tokens to allocate.
     function allocateERC20(address token, uint256 allocationSize) external returns (uint256 allocated, OperatorTokenAllocation[] memory allocations);
 
+    // forgefmt: disable-next-item
     /// @notice Allocates a specified amount of ETH deposits to the operators with the lowest utilization.
     /// @param depositSize The amount of deposits to allocate (32 ETH each)
     function allocateETHDeposits(uint256 depositSize) external returns (uint256 allocated, OperatorETHAllocation[] memory allocations);

@@ -34,6 +34,10 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
     /// pause the LRT, enable recovery mode, and set circuit breakers.
     address public securityCouncil;
 
+    /// @notice The security daemon's wallet, which is controlled by the security council and owner.
+    /// The security daemon is responsible for removal of duplicate or invalid validator keys.
+    address public securityDaemon;
+
     /// @notice Require that the caller is the owner of this contract or
     /// the security council.
     modifier onlyOwnerOrSecurityCouncil() {
@@ -222,6 +226,14 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
         if (aumFeePercentage > MAX_AUM_FEE_PERCENTAGE) revert AUM_FEE_TOO_HIGH();
 
         amount = pool.setManagementAumFeePercentage(aumFeePercentage);
+    }
+
+    /// @notice Sets the security daemon's wallet to a new account (`newSecurityDaemon`).
+    /// @param newSecurityDaemon The new security daemon wallet address.
+    function setSecurityDaemon(address newSecurityDaemon) external onlyOwnerOrSecurityCouncil {
+        securityDaemon = newSecurityDaemon;
+
+        emit SecurityDaemonChanged(newSecurityDaemon);
     }
 
     /// @notice Set a circuit breaker for one or more tokens. The lower and upper bounds are percentages,
