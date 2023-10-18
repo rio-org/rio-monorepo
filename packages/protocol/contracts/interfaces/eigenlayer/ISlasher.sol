@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.21;
 
+import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
+import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
+
 /// @title Interface for the primary 'slashing' contract for EigenLayer.
 /// @author Layr Labs, Inc.
 /// @notice Terms of Service: https://docs.eigenlayer.xyz/overview/terms-of-service
 /// @notice See the `Slasher` contract itself for implementation details.
 interface ISlasher {
-    // struct used to store information about the current state of an operator's obligations to middlewares they are serving
+    /// @notice struct used to store information about the current state of an operator's obligations to middlewares they are serving
     struct MiddlewareTimes {
         // The update block for the middleware whose most recent update was earliest, i.e. the 'stalest' update out of all middlewares the operator is serving
         uint32 stalestUpdateBlock;
@@ -14,7 +17,7 @@ interface ISlasher {
         uint32 latestServeUntilBlock;
     }
 
-    // struct used to store details relevant to a single middleware that an operator has opted-in to serving
+    /// @notice struct used to store details relevant to a single middleware that an operator has opted-in to serving
     struct MiddlewareDetails {
         // the block at which the contract begins being able to finalize the operator's registration with the service via calling `recordFirstStakeUpdate`
         uint32 registrationMayBeginAtBlock;
@@ -23,6 +26,26 @@ interface ISlasher {
         // the block at which the middleware's view of the operator's stake was most recently updated
         uint32 latestUpdateBlock;
     }
+
+    /// @notice Emitted when a middleware times is added to `operator`'s array.
+    event MiddlewareTimesAdded(
+        address operator, uint256 index, uint32 stalestUpdateBlock, uint32 latestServeUntilBlock
+    );
+
+    /// @notice Emitted when `operator` begins to allow `contractAddress` to slash them.
+    event OptedIntoSlashing(address indexed operator, address indexed contractAddress);
+
+    /// @notice Emitted when `contractAddress` signals that it will no longer be able to slash `operator` after the `contractCanSlashOperatorUntilBlock`.
+    event SlashingAbilityRevoked(
+        address indexed operator, address indexed contractAddress, uint32 contractCanSlashOperatorUntilBlock
+    );
+
+    /// @notice Emitted when `slashingContract` 'freezes' the `slashedOperator`.
+    /// @dev The `slashingContract` must have permission to slash the `slashedOperator`, i.e. `canSlash(slasherOperator, slashingContract)` must return 'true'.
+    event OperatorFrozen(address indexed slashedOperator, address indexed slashingContract);
+
+    /// @notice Emitted when `previouslySlashedAddress` is 'unfrozen', allowing them to again move deposited funds within EigenLayer.
+    event FrozenStatusReset(address indexed previouslySlashedAddress);
 
     /// @notice Gives the `contractAddress` permission to slash the funds of the caller.
     /// @dev Typically, this function must be called prior to registering for a middleware.
@@ -63,6 +86,12 @@ interface ISlasher {
     /// @dev removes the middleware's slashing contract to the operator's linked list and revokes the middleware's (i.e. caller's) ability to
     /// slash `operator` once `serveUntil` is reached
     function recordLastStakeUpdateAndRevokeSlashingAbility(address operator, uint32 serveUntilBlock) external;
+
+    /// @notice The StrategyManager contract of EigenLayer
+    function strategyManager() external view returns (IStrategyManager);
+
+    /// @notice The DelegationManager contract of EigenLayer
+    function delegation() external view returns (IDelegationManager);
 
     /// @notice Used to determine whether `staker` is actively 'frozen'. If a staker is frozen, then they are potentially subject to
     /// slashing of their funds, and cannot cannot deposit or withdraw from the strategyManager until the slashing process is completed

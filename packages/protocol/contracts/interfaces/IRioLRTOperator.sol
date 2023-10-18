@@ -11,9 +11,6 @@ interface IRioLRTOperator {
     /// @notice Thrown when the caller is not the LRT asset manager.
     error ONLY_ASSET_MANAGER();
 
-    /// @notice Thrown when a strategy is not registered with EigenLayer.
-    error INVALID_STRATEGY();
-
     /// @notice Thrown when the validator count is `0` or does not match the provided ETH value.
     error INVALID_VALIDATOR_COUNT();
 

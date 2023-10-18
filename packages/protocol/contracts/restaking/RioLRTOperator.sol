@@ -170,25 +170,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param shares The amount of shares to withdraw.
     /// @param withdrawer The address who has permission to complete the withdrawal.
     function queueWithdrawal(IStrategy strategy, uint256 shares, address withdrawer) external onlyAssetManager returns (bytes32 root) {
-        uint256 strategyIndex = _getStrategyIndex(strategy);
-        root = strategyManager.queueWithdrawal(
-            strategyIndex.toArray(), strategy.toArray(), shares.toArray(), withdrawer, false
-        );
-    }
-
-    /// @dev Return the strategy index for the given strategy instance.
-    /// @param strategy The strategy instance.
-    function _getStrategyIndex(IStrategy strategy) internal view returns (uint256) {
-        uint256 strategyCount = strategyManager.stakerStrategyListLength(address(this));
-        for (uint256 i = 0; i < strategyCount;) {
-            if (strategyManager.stakerStrategyList(address(this), i) == strategy) {
-                return i;
-            }
-            unchecked {
-                ++i;
-            }
-        }
-        revert INVALID_STRATEGY();
+        root = delegationManager.queueWithdrawal(strategy.toArray(), shares.toArray(), withdrawer);
     }
 
     /// @dev Compute withdrawal credentials for the given EigenPod.

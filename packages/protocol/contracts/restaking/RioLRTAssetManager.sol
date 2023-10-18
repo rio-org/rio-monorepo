@@ -302,7 +302,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         uint256 depositCount = amount / DEPOSIT_SIZE;
         if (depositCount == 0) return; // Not enough ETH.
 
-        uint256 depositAmount = depositCount * DEPOSIT_SIZE;        
+        uint256 depositAmount = depositCount * DEPOSIT_SIZE;
 
         // Update the vault with the new managed balance and pull funds from the vault.
         IVault.PoolBalanceOp[] memory ops = new IVault.PoolBalanceOp[](2);
@@ -322,7 +322,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
         for (uint256 i = 0; i < allocations.length;) {
             deposits = allocations[i].deposits;
 
-            IRioLRTOperator(allocations[i].operator).stakeETH{ value: deposits * DEPOSIT_SIZE }(
+            IRioLRTOperator(allocations[i].operator).stakeETH{value: deposits * DEPOSIT_SIZE}(
                 deposits, allocations[i].pubKeyBatch, allocations[i].signatureBatch
             );
             unchecked {

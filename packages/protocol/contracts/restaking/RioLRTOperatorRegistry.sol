@@ -377,6 +377,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         emit OperatorPendingValidatorDetailsAdded(operatorId, validatorCount);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Removes pending validator details (public keys and signatures) from storage for the provided operator.
     /// @param operatorId The operator's ID.
     /// @param fromIndex The index of the first validator to remove.

@@ -6,16 +6,16 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
+import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
-import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
     using SafeERC20 for IOpenZeppelinERC20;
     using Array for *;
 
-    /// @notice The primary entry and exit-point for funds into and out of EigenLayer.
-    IStrategyManager public immutable strategyManager;
+    /// @notice The primary delegation contract for EigenLayer.
+    IDelegationManager public immutable delegationManager;
 
     /// @notice The Balancer vault contract.
     IVault public immutable vault;
@@ -50,10 +50,10 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
         return _getArgAddress(32);
     }
 
-    /// @param _strategyManager The EigenLayer strategy manager.
+    /// @param _delegationManager The EigenLayer delegation manager.
     /// @param _vault The Balancer vault contract.
-    constructor(address _strategyManager, address _vault) {
-        strategyManager = IStrategyManager(_strategyManager);
+    constructor(address _delegationManager, address _vault) {
+        delegationManager = IDelegationManager(_delegationManager);
         vault = IVault(_vault);
     }
 
@@ -138,7 +138,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
     function completeEigenLayerWithdrawalsForEpoch(
         uint40 epoch,
         IERC20 token,
-        IStrategyManager.QueuedWithdrawal[] calldata queuedWithdrawals,
+        IDelegationManager.Withdrawal[] calldata queuedWithdrawals,
         uint256[] calldata middlewareTimesIndexes
     ) external {
         EpochWithdrawals storage withdrawals = epochWithdrawals[token][epoch];
@@ -154,12 +154,12 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
         IOpenZeppelinERC20[] memory tokens = address(token).toArray();
         bytes32[] memory roots = new bytes32[](queuedWithdrawalCount);
 
-        IStrategyManager.QueuedWithdrawal memory queuedWithdrawal;
+        IDelegationManager.Withdrawal memory queuedWithdrawal;
         for (uint256 i; i < queuedWithdrawalCount;) {
             queuedWithdrawal = queuedWithdrawals[i];
 
             roots[i] = _computeWithdrawalRoot(queuedWithdrawal);
-            strategyManager.completeQueuedWithdrawal(queuedWithdrawal, tokens, middlewareTimesIndexes[i], true);
+            delegationManager.completeQueuedWithdrawal(queuedWithdrawal, tokens, middlewareTimesIndexes[i], true);
 
             unchecked {
                 ++i;
@@ -208,21 +208,9 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
         return address(uint160(uint256(_poolId) >> (12 * 8)));
     }
 
-    // forgefmt: disable-next-item
-    /// @dev Computes the withdrawal root for a queued withdrawal.
-    /// @param queuedWithdrawal The queued withdrawal.
-    function _computeWithdrawalRoot(IStrategyManager.QueuedWithdrawal memory queuedWithdrawal) internal pure returns (bytes32) {
-        return (
-            keccak256(
-                abi.encode(
-                    queuedWithdrawal.strategies,
-                    queuedWithdrawal.shares,
-                    queuedWithdrawal.depositor,
-                    queuedWithdrawal.withdrawerAndNonce,
-                    queuedWithdrawal.withdrawalStartBlock,
-                    queuedWithdrawal.delegatedAddress
-                )
-            )
-        );
+    /// @dev Returns the keccak256 hash of `withdrawal`.
+    /// @param withdrawal The withdrawal.
+    function _computeWithdrawalRoot(IDelegationManager.Withdrawal memory withdrawal) public pure returns (bytes32) {
+        return keccak256(abi.encode(withdrawal));
     }
 }
