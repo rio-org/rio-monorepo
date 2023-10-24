@@ -23,12 +23,14 @@ contract OperatorUtilizationHeapTest is Test {
         assertEq(heap.count, 1);
         assertEq(heap.operators[1].id, 1);
         assertEq(heap.operators[1].utilization, 5);
+        assertEq(heap.getMin().id, 1);
+        assertEq(heap.getMax().id, 1);
 
         heap.insert(OperatorUtilizationHeap.Operator({id: 2, utilization: 10}));
 
         assertEq(heap.count, 2);
-        assertEq(heap.extractMin().id, 1);
-        assertEq(heap.extractMin().id, 2);
+        assertEq(heap.getMin().id, 1);
+        assertEq(heap.getMax().id, 2);
     }
 
     function test_remove() public {
@@ -143,6 +145,58 @@ contract OperatorUtilizationHeapTest is Test {
         assertEq(heap.extractMin().id, 5);
     }
 
+    function test_extractMax() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
+
+        heap.insert(OperatorUtilizationHeap.Operator({id: 1, utilization: 15}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 2, utilization: 5}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 3, utilization: 20}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 4, utilization: 50}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 5, utilization: 10000}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 6, utilization: 18}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 7, utilization: 44}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 8, utilization: 1000}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 9, utilization: 99}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 10, utilization: 0}));
+
+        assertEq(heap.extractMax().id, 5);
+        assertEq(heap.extractMax().id, 8);
+        assertEq(heap.extractMax().id, 9);
+        assertEq(heap.extractMax().id, 4);
+        assertEq(heap.extractMax().id, 7);
+        assertEq(heap.extractMax().id, 3);
+        assertEq(heap.extractMax().id, 6);
+        assertEq(heap.extractMax().id, 1);
+        assertEq(heap.extractMax().id, 2);
+        assertEq(heap.extractMax().id, 10);
+    }
+
+    function test_extractMinMaxAlternating() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
+
+        heap.insert(OperatorUtilizationHeap.Operator({id: 1, utilization: 67}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 2, utilization: 33}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 3, utilization: 32_423}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 4, utilization: 33}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 5, utilization: 2_365}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 6, utilization: 96}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 7, utilization: 1}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 8, utilization: 8_276_349}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 9, utilization: 891}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 10, utilization: 11}));
+
+        assertEq(heap.extractMax().id, 8);
+        assertEq(heap.extractMin().id, 7);
+        assertEq(heap.extractMax().id, 3);
+        assertEq(heap.extractMin().id, 10);
+        assertEq(heap.extractMax().id, 5);
+        assertEq(heap.extractMin().id, 2);
+        assertEq(heap.extractMax().id, 9);
+        assertEq(heap.extractMin().id, 4);
+        assertEq(heap.extractMax().id, 6);
+        assertEq(heap.extractMin().id, 1);
+    }
+
     function test_getMin() public {
         OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
 
@@ -164,6 +218,27 @@ contract OperatorUtilizationHeapTest is Test {
         }
     }
 
+    function test_getMax() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
+
+        heap.insert(OperatorUtilizationHeap.Operator({id: 1, utilization: 44}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 2, utilization: 1000}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 3, utilization: 0}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 4, utilization: 99}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 5, utilization: 5}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 6, utilization: 10000}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 7, utilization: 15}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 8, utilization: 18}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 9, utilization: 50}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 10, utilization: 20}));
+
+        uint8[10] memory ids = [6, 2, 4, 9, 1, 10, 8, 7, 5, 3];
+        for (uint8 i; i < ids.length; i++) {
+            assertEq(heap.getMax().id, ids[i]);
+            heap.removeByID(ids[i]);
+        }
+    }
+
     function test_isEmpty() public {
         OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
 
@@ -176,5 +251,17 @@ contract OperatorUtilizationHeapTest is Test {
             heap.removeByID(id);
         }
         assertEq(heap.isEmpty(), true);
+    }
+
+    function test_isFull() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
+
+        assertEq(heap.isFull(), false);
+        for (uint8 id; id < 10; id++) {
+            heap.insert(OperatorUtilizationHeap.Operator({id: id, utilization: 0}));
+        }
+        assertEq(heap.isFull(), true);
+        heap.removeByID(0);
+        assertEq(heap.isFull(), false);
     }
 }
