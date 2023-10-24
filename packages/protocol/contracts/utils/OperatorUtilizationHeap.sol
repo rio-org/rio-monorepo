@@ -318,7 +318,7 @@ library OperatorUtilizationHeap {
     /// @param i The index of the node in the heap.
     /// @param m The index of the child or grandchild of the node at index `i`.
     function _isGrandchild(uint8 i, uint8 m) internal pure returns (bool) {
-        return m > 2 * i;
+        return m > 2 * i + 1;
     }
 
     /// @dev Finds the index of the operator with the specified ID in the heap.
@@ -355,8 +355,7 @@ library OperatorUtilizationHeap {
     /// @param self The heap.
     /// @param i The index of the operator to extract.
     function _remove(Data memory self, uint8 i) internal pure {
-        self.operators[i] = self.operators[self.count];
-        self.count--;
+        self.operators[i] = self.operators[self.count--];
     }
 
     /// @dev Returns the index of the smallest child or grandchild of the node at index `i`.

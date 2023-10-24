@@ -264,4 +264,84 @@ contract OperatorUtilizationHeapTest is Test {
         heap.removeByID(0);
         assertEq(heap.isFull(), false);
     }
+
+    function testFuzz_extractMin(uint256[] memory utilizations) public {
+        vm.assume(utilizations.length > 0 && utilizations.length < 50);
+
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
+        for (uint8 i = 0; i < utilizations.length; i++) {
+            vm.assume(utilizations[i] < type(uint128).max);
+            heap.insert(OperatorUtilizationHeap.Operator({id: i, utilization: utilizations[i]}));
+        }
+
+        uint256 currentMinUtilization;
+        uint256 previousMinUtilization;
+        while (!heap.isEmpty()) {
+            currentMinUtilization = heap.extractMin().utilization;
+
+            assertTrue(currentMinUtilization >= previousMinUtilization);
+            previousMinUtilization = currentMinUtilization;
+        }
+    }
+
+    function testFuzz_extractMax(uint256[] memory utilizations) public {
+        vm.assume(utilizations.length > 0 && utilizations.length < 50);
+
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
+        for (uint8 i = 0; i < utilizations.length; i++) {
+            vm.assume(utilizations[i] < type(uint128).max);
+            heap.insert(OperatorUtilizationHeap.Operator({id: i, utilization: utilizations[i]}));
+        }
+
+        uint256 currentMaxUtilization;
+        uint256 previousMaxUtilization = type(uint256).max;
+        while (!heap.isEmpty()) {
+            currentMaxUtilization = heap.extractMax().utilization;
+
+            assertTrue(currentMaxUtilization <= previousMaxUtilization);
+            previousMaxUtilization = currentMaxUtilization;
+        }
+    }
+
+    function testFuzz_getMin(uint256[] memory utilizations) public {
+        vm.assume(utilizations.length > 0 && utilizations.length < 50);
+
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
+        for (uint8 i = 0; i < utilizations.length; i++) {
+            vm.assume(utilizations[i] < type(uint128).max);
+            heap.insert(OperatorUtilizationHeap.Operator({id: i, utilization: utilizations[i]}));
+        }
+
+        uint256 currentMinUtilization;
+        uint256 previousMinUtilization;
+        while (!heap.isEmpty()) {
+            currentMinUtilization = heap.getMin().utilization;
+
+            assertTrue(currentMinUtilization >= previousMinUtilization);
+            previousMinUtilization = currentMinUtilization;
+
+            heap.removeByID(heap.getMin().id);
+        }
+    }
+
+    function testFuzz_getMax(uint256[] memory utilizations) public {
+        vm.assume(utilizations.length > 0 && utilizations.length < 50);
+
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
+        for (uint8 i = 0; i < utilizations.length; i++) {
+            vm.assume(utilizations[i] < type(uint128).max);
+            heap.insert(OperatorUtilizationHeap.Operator({id: i, utilization: utilizations[i]}));
+        }
+
+        uint256 currentMaxUtilization;
+        uint256 previousMaxUtilization = type(uint256).max;
+        while (!heap.isEmpty()) {
+            currentMaxUtilization = heap.getMax().utilization;
+
+            assertTrue(currentMaxUtilization <= previousMaxUtilization);
+            previousMaxUtilization = currentMaxUtilization;
+
+            heap.removeByID(heap.getMax().id);
+        }
+    }
 }
