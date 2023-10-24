@@ -272,10 +272,12 @@ library OperatorUtilizationHeap {
     /// @param self The heap.
     /// @param i The index of the operator to bubble up.
     function _bubbleUpMin(Data memory self, uint8 i) internal pure {
-        uint8 grandparentIndex = i / 4;
-        if (grandparentIndex >= ROOT_INDEX && self.operators[i].utilization < self.operators[grandparentIndex].utilization) {
-            self._swap(i, grandparentIndex);
-            self._bubbleUpMin(grandparentIndex);
+        if (_hasGrandparent(i)) {
+            uint8 grandparentIndex = i / 4;
+            if (self.operators[i].utilization < self.operators[grandparentIndex].utilization) {
+                self._swap(i, grandparentIndex);
+                self._bubbleUpMin(grandparentIndex);
+            }
         }
     }
 
@@ -285,11 +287,19 @@ library OperatorUtilizationHeap {
     /// @param self The heap.
     /// @param i The index of the operator to bubble up.
     function _bubbleUpMax(Data memory self, uint8 i) internal pure {
-        uint8 grandparentIndex = i / 4;
-        if (grandparentIndex >= ROOT_INDEX && self.operators[i].utilization > self.operators[grandparentIndex].utilization) {
-            self._swap(i, grandparentIndex);
-            self._bubbleUpMax(grandparentIndex);
+        if (_hasGrandparent(i)) {
+            uint8 grandparentIndex = i / 4;
+            if (self.operators[i].utilization > self.operators[grandparentIndex].utilization) {
+                self._swap(i, grandparentIndex);
+                self._bubbleUpMax(grandparentIndex);
+            }
         }
+    }
+
+    /// @dev Returns whether the node at the specified index has a grandparent.
+    /// @param i The index of the node in the heap.
+    function _hasGrandparent(uint8 i) internal pure returns (bool) {
+        return i > 3;
     }
 
     /// @dev Returns whether the node at the specified index has a parent.
