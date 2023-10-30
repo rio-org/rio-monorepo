@@ -101,12 +101,9 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         delegationManager.registerAsOperator(
             IDelegationManager.OperatorDetails(rewardDistributor, delegationApprover, 0), initialMetadataURI
         );
-        eigenPodManager.createPod();
-        
-        // Set the withdrawal credentials to the EigenPod's address.
-        withdrawalCredentials = _computeWithdrawalCredentials(
-            address(eigenPodManager.ownerToPod(address(this)))
-        );
+
+        // Deploy an EigenPod and set the withdrawal credentials to its address.
+        withdrawalCredentials = _computeWithdrawalCredentials(eigenPodManager.createPod());
     }
 
     /// @notice Sets the operator's metadata URI.
