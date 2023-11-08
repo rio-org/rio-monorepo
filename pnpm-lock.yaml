@@ -135,6 +135,9 @@ importers:
       tailwindcss:
         specifier: ^3.3.5
         version: 3.3.5
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
 
   packages/protocol: {}
 

@@ -12,7 +12,6 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "src/pages/[daos]/[chain]/[daoId]"
   ],
   "exclude": ["node_modules"]
 }
