@@ -16,7 +16,7 @@ const OnchainDataExample = ({ collectionAddress, chainId }: Props) => {
     abi: BuilderTokenAbi,
     chainId: chainId
   };
-  const { data, isError, isLoading } = useContractRead({
+  const { data, isError } = useContractRead({
     ...contractConfig,
     functionName: 'name'
   });
