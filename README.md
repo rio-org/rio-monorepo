@@ -4,7 +4,7 @@
 <div align="center">
   <p align="center">
     <a href="https://rio.network/" target="blank">
-      <img src="https://i.imgur.com/5JkZb0s.png" width="200" style="border-radius: 12px;" alt="Rio Logo" />
+      <img src="https://i.imgur.com/b1uw4z4.png" width="200" alt="Rio Logo" />
     </a>
   </p>
   <h1>Rio Network</h1>
