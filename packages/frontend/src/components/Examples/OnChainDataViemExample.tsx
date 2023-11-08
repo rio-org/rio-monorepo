@@ -24,7 +24,7 @@ const OnChainDataViemExample = ({ txHash, chainId }: Props) => {
 
   useEffect(() => {
     if (txHash) {
-      getReceipt(txHash);
+      void getReceipt(txHash);
     }
   }, [txHash]);
 

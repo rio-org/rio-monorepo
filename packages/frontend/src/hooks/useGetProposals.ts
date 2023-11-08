@@ -19,7 +19,9 @@ export const useGetProposals = (
   const [data, setData] = useState<Proposal[]>();
 
   const getData = async (client: ApolloClient<NormalizedCacheObject>) => {
-    const { data: subgraphData } = await client.query({
+    const { data: subgraphData } = await client.query<{
+      proposals: Proposal[];
+    }>({
       query: getProposalsByDao(collectionAddress, amount)
     });
     return subgraphData.proposals;

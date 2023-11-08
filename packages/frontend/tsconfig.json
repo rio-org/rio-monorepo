@@ -5,7 +5,8 @@
     "moduleResolution": "node",
     "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "preserve",
-    "isolatedModules": true
+    "isolatedModules": true,
+    "declaration": false
   },
   "include": [
     "next-env.d.ts",
