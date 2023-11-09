@@ -124,18 +124,18 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         bytes32 poolId = _deployUnderlyingPool(name, symbol, config, d);
 
         // Initialize all supporting contracts.
-        address owner = msg.sender;
-        IRioLRTAssetManager(d.assetManager).initialize(owner, poolId, d.controller, d.operatorRegistry, d.withdrawalQueue);
-        IRioLRTController(d.controller).initialize(owner, _getPoolAddress(poolId), d.assetManager, config.securityCouncil, address(d.token).toArray());
-        IRioLRTRewardDistributor(d.rewardDistributor).initialize(owner, _getPoolAddress(poolId), owner, address(0));
-        IRioLRTOperatorRegistry(d.operatorRegistry).initialize(owner, poolId, d.controller, d.rewardDistributor, d.assetManager);
-        IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(owner, poolId, d.assetManager);
+        address caller = msg.sender;
+        IRioLRTAssetManager(d.assetManager).initialize(caller, poolId, d.controller, d.operatorRegistry, d.withdrawalQueue);
+        IRioLRTController(d.controller).initialize(caller, _getPoolAddress(poolId), d.assetManager, config.securityCouncil, address(d.token).toArray());
+        IRioLRTRewardDistributor(d.rewardDistributor).initialize(caller, _getPoolAddress(poolId), caller, address(0));
+        IRioLRTOperatorRegistry(d.operatorRegistry).initialize(caller, poolId, d.controller, d.rewardDistributor, d.assetManager);
+        IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(caller, poolId, d.assetManager);
 
         // Pull underlying tokens into the LRT and initialize the pool.
         for (uint256 i = 0; i < config.amountsIn.length; ++i) {
-            IERC20(config.tokens[i]).safeTransferFrom(msg.sender, d.token, config.amountsIn[i]);
+            IERC20(config.tokens[i]).safeTransferFrom(caller, d.token, config.amountsIn[i]);
         }
-        IRioLRT(d.token).initialize(owner, name, symbol, poolId, IRioLRT.InitializeParams({
+        IRioLRT(d.token).initialize(caller, name, symbol, poolId, IRioLRT.InitializeParams({
             tokensIn: config.tokens,
             amountsIn: config.amountsIn
         }));

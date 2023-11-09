@@ -74,12 +74,17 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         // Pull the maximum token amount from the user.
         _pullToken(params.tokenIn, params.maxAmountIn);
 
-        // Join the underlying pool.
         (IERC20[] memory tokens,,) = vault.getPoolTokens(poolId);
+        uint256 tokenIndex = _findTokenIndex(tokens, IERC20(params.tokenIn));
+
+        uint256[] memory maxAmountsIn = new uint256[](tokens.length);
+        maxAmountsIn[tokenIndex] = params.maxAmountIn;
+
+        // Join the underlying pool.
         bytes memory userData = abi.encode(
-            JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT, params.amountOut, _findTokenIndex(tokens, IERC20(params.tokenIn))
+            JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT, params.amountOut, tokenIndex - 1
         );
-        amountOut = _join(params.tokenIn.toArray(), params.maxAmountIn.toArray(), userData);
+        amountOut = _join(_asAddressArray(tokens), maxAmountsIn, userData);
 
         // Mint LRT to the user.
         _mint(msg.sender, amountOut);
@@ -101,7 +106,7 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
 
         // Join the underlying pool.
         bytes memory userData = abi.encode(JoinKind.ALL_TOKENS_IN_FOR_EXACT_BPT_OUT, params.amountOut);
-        amountOut = _join(params.tokensIn, params.maxAmountsIn, userData);
+        amountOut = _join(params.tokensIn.prepend(_getPoolAddress(poolId)), params.maxAmountsIn.prepend(0), userData);
 
         // Mint LRT to the user.
         _mint(msg.sender, amountOut);
@@ -180,12 +185,13 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         return IOpenZeppelinERC20(pool).balanceOf(address(this));
     }
 
-    /// @dev Returns the index of the given token in the given array.
+    /// @dev Returns the index of the given token in the given array. This function expects
+    /// BPT at index 0, so it begins the search at index 1.
     /// @param tokens The array of tokens to search.
     /// @param token The token to search for.
     function _findTokenIndex(IERC20[] memory tokens, IERC20 token) internal pure returns (uint256) {
         uint256 tokensLength = tokens.length;
-        for (uint256 i = 0; i < tokensLength; ++i) {
+        for (uint256 i = 1; i < tokensLength; ++i) {
             if (tokens[i] == token) {
                 return i;
             }
@@ -198,6 +204,14 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
     function _asIAssetArray(address[] memory tokens) internal pure returns (IAsset[] memory assets) {
         assembly {
             assets := tokens
+        }
+    }
+
+    /// @dev Converts an array of IERC20 tokens to an array of addresses.
+    /// @param tokens The array of IERC20 tokens to convert.
+    function _asAddressArray(IERC20[] memory tokens) internal pure returns (address[] memory addrs) {
+        assembly {
+            addrs := tokens
         }
     }
 
