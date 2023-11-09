@@ -1,3 +1,4 @@
+import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
 import { Chain as WagmiChain } from 'wagmi';
 export type EthereumAddress = `0x${string}`;
 export type EthereumTransactionHash = `0x${string}`;
@@ -38,4 +39,34 @@ export interface Proposal {
   id: string;
   title: string;
   description: string;
+}
+
+export interface ConnectButtonProps {
+  account?: {
+    address: string;
+    balanceDecimals?: number;
+    balanceFormatted?: string;
+    balanceSymbol?: string;
+    displayBalance?: string;
+    displayName: string;
+    ensAvatar?: string;
+    ensName?: string;
+    hasPendingTransactions: boolean;
+  };
+  chain?: {
+    hasIcon: boolean;
+    iconUrl?: string;
+    iconBackground?: string;
+    id: number;
+    name?: string;
+    unsupported?: boolean;
+  };
+  mounted: boolean;
+  authenticationStatus?: AuthenticationStatus;
+  openAccountModal: () => void;
+  openChainModal: () => void;
+  openConnectModal: () => void;
+  accountModalOpen: boolean;
+  chainModalOpen: boolean;
+  connectModalOpen: boolean;
 }

@@ -17,7 +17,7 @@ import {
 } from 'wagmi';
 import { goerli } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import { ThemeProvider } from "@material-tailwind/react";
+import { ThemeProvider } from '@material-tailwind/react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Layout from '../components/Layout';
 import { APP_TITLE } from '../../config';

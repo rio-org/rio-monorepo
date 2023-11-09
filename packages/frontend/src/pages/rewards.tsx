@@ -1,14 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import type { NextPage } from 'next';
 
 const Rewards: NextPage = () => {
-
-
   return (
     <>
-      <h1>
-        Rewards
-      </h1>
+      <h1>Rewards</h1>
     </>
   );
 };

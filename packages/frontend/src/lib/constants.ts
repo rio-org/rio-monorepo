@@ -22,7 +22,7 @@ export const appNavItems = [
     label: 'Rewards',
     slug: '/rewards'
   }
-]
+];
 
 // prettier-ignore
 // Demo Subgraph URLs

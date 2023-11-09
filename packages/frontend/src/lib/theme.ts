@@ -3,9 +3,9 @@ export const theme = {
     styles: {
       base: {
         indicator: {
-          borderRadius: "rounded-xl"
-        },
-      },
-    },
-  },
+          borderRadius: 'rounded-xl'
+        }
+      }
+    }
+  }
 };
