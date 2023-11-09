@@ -52,11 +52,7 @@ abstract contract BalancerDeployer is Test {
         );
 
         // Deploy the Balancer Queries Helper
-        _deployTo(
-            BALANCER_QUERIES_CREATION_CODE,
-            abi.encode(VAULT_ADDRESS),
-            BALANCER_QUERIES_ADDRESS
-        );
+        _deployTo(BALANCER_QUERIES_CREATION_CODE, abi.encode(VAULT_ADDRESS), BALANCER_QUERIES_ADDRESS);
 
         // Deploy the Protocol Fee Provider
         _deployTo(

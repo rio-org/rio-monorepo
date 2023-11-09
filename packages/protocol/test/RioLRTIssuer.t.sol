@@ -8,20 +8,17 @@ import {RioDeployer} from 'test/utils/RioDeployer.sol';
 import {MockERC20} from 'test/utils/MockERC20.sol';
 
 contract RioLRTIssuerTest is RioDeployer {
-    address public constant SECURITY_COUNCIL = address(0xC0);
-    uint256 public constant MIN_SWAP_FEE = 1e12; // 0.0001%
-
     function setUp() public {
         deployRio();
     }
 
-    function test_issueLRT() public {
+    function test_issuesLRTWithValidParams() public {
         address tokenA = address(new MockERC20('Token A', 'A'));
         address tokenB = address(new MockERC20('Token B', 'B'));
 
-        IERC20[] memory tokens = new IERC20[](2);
-        tokens[0] = IERC20(tokenA < tokenB ? tokenA : tokenB);
-        tokens[1] = IERC20(tokenA < tokenB ? tokenB : tokenA);
+        address[] memory tokens = new address[](2);
+        tokens[0] = tokenA < tokenB ? tokenA : tokenB;
+        tokens[1] = tokenA < tokenB ? tokenB : tokenA;
 
         uint256[] memory amountsIn = new uint256[](2);
         amountsIn[0] = 100e18;
@@ -32,28 +29,29 @@ contract RioLRTIssuerTest is RioDeployer {
         normalizedWeights[1] = 0.7e18;
 
         // Allow the issuer to pull the tokens.
-        tokens[0].approve(address(issuer), amountsIn[0]);
-        tokens[1].approve(address(issuer), amountsIn[1]);
+        IERC20(tokens[0]).approve(address(issuer), amountsIn[0]);
+        IERC20(tokens[1]).approve(address(issuer), amountsIn[1]);
 
-        (address pool, address controller) = issuer.issueLRT(
+        IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
             'Restaked Ether',
             'reETH',
             IRioLRTIssuer.LRTConfig({
+                tokens: tokens,
                 amountsIn: amountsIn,
-                allowedLPs: new address[](0),
-                securityCouncil: SECURITY_COUNCIL,
-                settings: IManagedPoolSettings.ManagedPoolSettingsParams({
-                    tokens: tokens,
-                    normalizedWeights: normalizedWeights,
-                    swapFeePercentage: MIN_SWAP_FEE,
-                    swapEnabledOnStart: true,
-                    mustAllowlistLPs: false,
-                    managementAumFeePercentage: 0,
-                    aumFeeId: uint256(IManagedPoolSettings.ProtocolFeeType.AUM)
-                })
+                normalizedWeights: normalizedWeights,
+                swapFeePercentage: MIN_SWAP_FEE,
+                managementAumFeePercentage: 0,
+                swapEnabledOnStart: true,
+                securityCouncil: SECURITY_COUNCIL
             })
         );
-        assertNotEq(pool, address(0));
-        assertNotEq(controller, address(0));
+        assertNotEq(deployment.token, address(0));
+        assertNotEq(deployment.assetManager, address(0));
+        assertNotEq(deployment.controller, address(0));
+        assertNotEq(deployment.rewardDistributor, address(0));
+        assertNotEq(deployment.operatorRegistry, address(0));
+        assertNotEq(deployment.withdrawalQueue, address(0));
+
+        assertGt(IERC20(deployment.token).balanceOf(address(this)), 0);
     }
 }

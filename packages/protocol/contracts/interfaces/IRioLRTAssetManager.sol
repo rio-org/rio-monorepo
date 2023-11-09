@@ -16,9 +16,6 @@ interface IRioLRTAssetManager {
         IStrategy strategy;
     }
 
-    /// @notice Thrown when the contract has already been initialized.
-    error INVALID_INITIALIZATION();
-
     /// @notice Thrown when the caller is not the LRT controller for the asset manager.
     error ONLY_LRT_CONTROLLER();
 
@@ -61,11 +58,12 @@ interface IRioLRTAssetManager {
 
     // forgefmt: disable-next-item
     /// @notice Initializes the asset manager.
+    /// @param initialOwner The initial owner of the contract.
     /// @param poolId The LRT Balancer pool ID.
     /// @param controller The LRT controller.
     /// @param operatorRegistry The operator registry used for token allocation.
     /// @param withdrawalQueue The contract used to queue and process withdrawals.
-    function initialize(bytes32 poolId, address controller, address operatorRegistry, address withdrawalQueue) external;
+    function initialize(address initialOwner, bytes32 poolId, address controller, address operatorRegistry, address withdrawalQueue) external;
 
     /// @notice Adds a token by setting its config, depositing it into the vault, and updating the balance.
     /// @param token The token to add.

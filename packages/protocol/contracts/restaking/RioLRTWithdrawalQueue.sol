@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {Clone} from '@solady/utils/Clone.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
-contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
+contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IOpenZeppelinERC20;
     using Array for *;
 
@@ -19,6 +20,12 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
 
     /// @notice The Balancer vault contract.
     IVault public immutable vault;
+
+    /// @notice The LRT Balancer pool ID.
+    bytes32 public poolId;
+
+    /// @notice The LRT asset manager.
+    address public assetManager;
 
     /// @notice Current token withdrawal epochs. Incoming withdrawals are included
     /// in the current epoch, which will be queued and incremented by the asset manager.
@@ -30,31 +37,34 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
 
     /// @notice Require that the caller is the LRT's asset manager.
     modifier onlyAssetManager() {
-        if (msg.sender != assetManager()) revert ONLY_ASSET_MANAGER();
+        if (msg.sender != assetManager) revert ONLY_ASSET_MANAGER();
         _;
     }
 
     /// @notice Require that the caller is the pool (LRT).
     modifier onlyPool() {
-        if (msg.sender != _getPoolAddress(poolId())) revert ONLY_ASSET_MANAGER();
+        if (msg.sender != _getPoolAddress(poolId)) revert ONLY_ASSET_MANAGER();
         _;
-    }
-
-    /// @notice The LRT Balancer pool ID.
-    function poolId() public pure returns (bytes32) {
-        return _getArgBytes32(0);
-    }
-
-    /// @notice The LRT asset manager.
-    function assetManager() public pure returns (address) {
-        return _getArgAddress(32);
     }
 
     /// @param _delegationManager The EigenLayer delegation manager.
     /// @param _vault The Balancer vault contract.
-    constructor(address _delegationManager, address _vault) {
+    constructor(address _delegationManager, address _vault) initializer {
         delegationManager = IDelegationManager(_delegationManager);
         vault = IVault(_vault);
+    }
+
+    // forgefmt: disable-next-item
+    /// @notice Initializes the withdrawal queue.
+    /// @param initialOwner The initial owner of the contract.
+    /// @param _poolId The LRT Balancer pool ID.
+    /// @param _assetManager The LRT asset manager.
+    function initialize(address initialOwner, bytes32 _poolId, address _assetManager) external initializer {
+        __UUPSUpgradeable_init();
+        _transferOwnership(initialOwner);
+
+        poolId = _poolId;
+        assetManager = _assetManager;
     }
 
     /// @notice Get the amount of `token` owed to withdrawers in the current `epoch`.
@@ -82,7 +92,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
             if (amountOut == 0) continue;
 
             token = tokens[i];
-            (cash,,,) = vault.getPoolTokenInfo(poolId(), token);
+            (cash,,,) = vault.getPoolTokenInfo(poolId, token);
             if (cash >= amountOut) continue;
 
             uint40 _currentEpoch = currentEpochs[token];
@@ -151,7 +161,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
 
         withdrawals.completed = true;
 
-        IOpenZeppelinERC20[] memory tokens = address(token).toArray();
+        IOpenZeppelinERC20[] memory tokens = IOpenZeppelinERC20(address(token)).toArray();
         bytes32[] memory roots = new bytes32[](queuedWithdrawalCount);
 
         IDelegationManager.Withdrawal memory queuedWithdrawal;
@@ -213,4 +223,8 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, Clone {
     function _computeWithdrawalRoot(IDelegationManager.Withdrawal memory withdrawal) public pure returns (bytes32) {
         return keccak256(abi.encode(withdrawal));
     }
+
+    /// @dev Allows the owner to upgrade the withdrawal queue implementation.
+    /// @param newImplementation The implementation to upgrade to.
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

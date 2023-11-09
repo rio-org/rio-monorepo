@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {Clone} from '@solady/utils/Clone.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
@@ -14,7 +14,7 @@ import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol'
 import {IRioLRTController} from 'contracts/interfaces/IRioLRTController.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
-contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
+contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IOpenZeppelinERC20;
     using FixedPointMathLib for uint256;
 
@@ -29,6 +29,9 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
 
     /// @notice The pool (LRT) that's controlled by this contract.
     IManagedPoolSettings public pool;
+
+    /// @notice The contract in charge of managing the LRT's assets.
+    IRioLRTAssetManager public assetManager;
 
     /// @notice The DAO-managed council that has permission to temporarily
     /// pause the LRT, enable recovery mode, and set circuit breakers.
@@ -45,24 +48,21 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
         _;
     }
 
-    /// @notice The contract in charge of managing the LRT's assets.
-    function assetManager() public pure returns (address) {
-        return _getArgAddress(0);
-    }
-
     // forgefmt: disable-next-item
     /// @notice Initializes the controller.
     /// @param initialOwner The initial owner of the contract.
     /// @param _pool The pool (LRT) that's controlled by this contract.
+    /// @param _assetManager The contract in charge of managing the LRT's assets.
     /// @param _securityCouncil The address of the DAO-managed security council.
     /// @param allowedLPs The addresses of the LPs that are allowed to join the pool.
-    function initialize(address initialOwner, address _pool, address _securityCouncil, address[] calldata allowedLPs) external initializer {
+    function initialize(address initialOwner, address _pool, address _assetManager, address _securityCouncil, address[] calldata allowedLPs) external initializer {
+        if (IBasePoolAuthentication(_pool).getOwner() != address(this)) revert INVALID_INITIALIZATION();
+        
+        __UUPSUpgradeable_init();
         _transferOwnership(initialOwner);
 
-        if (address(pool) != address(0) || IBasePoolAuthentication(_pool).getOwner() != address(this)) {
-            revert INVALID_INITIALIZATION();
-        }
         pool = IManagedPoolSettings(_pool);
+        assetManager = IRioLRTAssetManager(_assetManager);
         securityCouncil = _securityCouncil;
 
         if (allowedLPs.length != 0) {
@@ -97,14 +97,14 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
     ) external onlyOwner {
         if (address(strategy.underlyingToken()) != address(token)) revert INVALID_STRATEGY_FOR_TOKEN();
 
-        address manager = assetManager();
+        address _manager = address(assetManager);
         uint256 supply = pool.getActualSupply();
         uint256 mintAmount = (supply * normalizedWeight) / (FixedPointMathLib.WAD - normalizedWeight);
 
-        IOpenZeppelinERC20(address(token)).safeTransferFrom(msg.sender, manager, amount);
+        IOpenZeppelinERC20(address(token)).safeTransferFrom(msg.sender, _manager, amount);
 
-        pool.addToken(token, manager, normalizedWeight, mintAmount, owner());
-        IRioLRTAssetManager(manager).addToken(
+        pool.addToken(token, _manager, normalizedWeight, mintAmount, owner());
+        IRioLRTAssetManager(_manager).addToken(
             token, amount, IRioLRTAssetManager.TokenConfig(0, targetAUMPercentage, strategy)
         );
     }
@@ -134,7 +134,7 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
         uint256 burnAmount = supply.mulWad(normalizedWeight);
 
         // The owner MUST hold enough BPT to withdraw the remaining balance.
-        IRioLRTAssetManager(assetManager()).removeToken(token, tokenBalance, msg.sender);
+        assetManager.removeToken(token, tokenBalance, msg.sender);
         pool.removeToken(token, burnAmount, msg.sender);
     }
 
@@ -142,13 +142,13 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
     /// @param token The token to set the target AUM percentage for.
     /// @param newTargetAUMPercentage The new target AUM percentage.
     function setTargetAUMPercentageForToken(IERC20 token, uint64 newTargetAUMPercentage) external onlyOwner {
-        IRioLRTAssetManager(assetManager()).setTargetAUMPercentage(token, newTargetAUMPercentage);
+        assetManager.setTargetAUMPercentage(token, newTargetAUMPercentage);
     }
 
     /// @notice Set the LRT rebalance delay (in seconds).
     /// @param newRebalanceDelay The new rebalance delay.
     function setRebalanceDelay(uint24 newRebalanceDelay) external onlyOwner {
-        IRioLRTAssetManager(assetManager()).setRebalanceDelay(newRebalanceDelay);
+        assetManager.setRebalanceDelay(newRebalanceDelay);
     }
 
     /// @notice Update weights linearly from the current values to the given end weights,
@@ -252,4 +252,8 @@ contract RioLRTController is IRioLRTController, Clone, OwnableUpgradeable {
     ) external onlyOwnerOrSecurityCouncil {
         pool.setCircuitBreakers(tokens, bptPrices, lowerBoundPercentages, upperBoundPercentages);
     }
+
+    /// @dev Allows the owner to upgrade the controller implementation.
+    /// @param newImplementation The implementation to upgrade to.
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

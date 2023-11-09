@@ -37,9 +37,10 @@ interface IRioLRTController {
     /// @notice Initializes the controller.
     /// @param initialOwner The initial owner of the contract.
     /// @param pool The pool (LRT) that's controlled by this contract.
+    /// @param assetManager The contract in charge of managing the LRT's assets.
     /// @param securityCouncil The address of the DAO-managed security council.
     /// @param allowedLPs The addresses of the LPs that are allowed to join the pool.
-    function initialize(address initialOwner, address pool, address securityCouncil, address[] calldata allowedLPs) external;
+    function initialize(address initialOwner, address pool, address assetManager, address securityCouncil, address[] calldata allowedLPs) external;
 
     /// @notice The pool (LRT) that's controlled by this contract.
     function pool() external view returns (IManagedPoolSettings);

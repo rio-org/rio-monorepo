@@ -83,6 +83,12 @@ interface IRioLRTWithdrawalQueue {
     /// @param amount The withdrawal amount.
     event WithdrawalClaimed(uint40 indexed epoch, IERC20 indexed token, address indexed user, uint256 amount);
 
+    /// @notice Initializes the withdrawal queue.
+    /// @param initialOwner The initial owner of the contract.
+    /// @param poolId The LRT Balancer pool ID.
+    /// @param assetManager The LRT asset manager.
+    function initialize(address initialOwner, bytes32 poolId, address assetManager) external;
+
     /// @notice Get the amount of `token` owed to withdrawers in the current `epoch`.
     /// @param token The withdrawal token.
     function getAmountOwedInCurrentEpoch(IERC20 token) external view returns (uint256 amountOwed);

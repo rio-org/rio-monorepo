@@ -93,7 +93,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
     /// @param _vault The Balancer vault contract.
     /// @param _operatorImpl The operator contract implementation.
-    constructor(address _vault, address _operatorImpl) {
+    constructor(address _vault, address _operatorImpl) initializer {
         vault = IVault(_vault);
         operatorImpl = _operatorImpl;
     }

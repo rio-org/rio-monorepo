@@ -28,10 +28,39 @@ library Array {
         array[0] = element;
     }
 
-    /// @notice Convert an `IERC20` element to an `IOpenZeppelinERC20` array.
+    /// @notice Convert an `IOpenZeppelinERC20` element to an `IOpenZeppelinERC20` array.
     /// @param element The element to convert.
-    function toArray(address element) internal pure returns (IOpenZeppelinERC20[] memory array) {
+    function toArray(IOpenZeppelinERC20 element) internal pure returns (IOpenZeppelinERC20[] memory array) {
         array = new IOpenZeppelinERC20[](1);
-        array[0] = IOpenZeppelinERC20(address(element));
+        array[0] = element;
+    }
+
+    /// @notice Convert an `address` element to an `address` array.
+    /// @param element The element to convert.
+    function toArray(address element) internal pure returns (address[] memory array) {
+        array = new address[](1);
+        array[0] = address(element);
+    }
+
+    /// @dev Returns the passed array prepended with `value`.
+    /// @param array The array to prepend to.
+    /// @param value The value to prepend.
+    function prepend(address[] memory array, address value) internal pure returns (address[] memory newArray) {
+        newArray = new address[](array.length + 1);
+        newArray[0] = value;
+        for (uint256 i = 0; i < array.length; ++i) {
+            newArray[i + 1] = array[i];
+        }
+    }
+
+    /// @dev Returns the passed array prepended with `value`.
+    /// @param array The array to prepend to.
+    /// @param value The value to prepend.
+    function prepend(uint256[] memory array, uint256 value) internal pure returns (uint256[] memory newArray) {
+        newArray = new uint256[](array.length + 1);
+        newArray[0] = value;
+        for (uint256 i = 0; i < array.length; ++i) {
+            newArray[i + 1] = array[i];
+        }
     }
 }

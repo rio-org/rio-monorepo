@@ -7,6 +7,8 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {IWETH} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/misc/IWETH.sol';
 import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
+import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
@@ -14,7 +16,7 @@ import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol'
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
-contract RioLRTAssetManager is IRioLRTAssetManager {
+contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IOpenZeppelinERC20;
     using FixedPointMathLib for uint256;
 
@@ -63,7 +65,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
 
     /// @param _vault The Balancer vault that holds the pool's cash.
     /// @param _weth The wrapped ether token address.
-    constructor(address _vault, address _weth) {
+    constructor(address _vault, address _weth) initializer {
         vault = IVault(_vault);
         weth = IWETH(_weth);
     }
@@ -74,14 +76,13 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     /// @param _controller The LRT controller.
     /// @param _operatorRegistry The operator registry used for token allocation.
     /// @param _withdrawalQueue The contract used to queue and process withdrawals.
-    function initialize(bytes32 _poolId, address _controller, address _operatorRegistry, address _withdrawalQueue) external {
-        if (poolId != bytes32(0) || _poolId == bytes32(0)) revert INVALID_INITIALIZATION();
-
+    function initialize(address initialOwner, bytes32 _poolId, address _controller, address _operatorRegistry, address _withdrawalQueue) external initializer {
         poolId = _poolId;
         controller = _controller;
         operatorRegistry = IRioLRTOperatorRegistry(_operatorRegistry);
         withdrawalQueue = IRioLRTWithdrawalQueue(_withdrawalQueue);
 
+        _transferOwnership(initialOwner);
         _setRebalanceDelay(24 hours);
     }
 
@@ -382,4 +383,8 @@ contract RioLRTAssetManager is IRioLRTAssetManager {
     receive() external payable {
         if (msg.sender != address(weth)) revert SENDER_IS_NOT_WETH();
     }
+
+    /// @dev Allows the owner to upgrade the asset manager implementation.
+    /// @param newImplementation The implementation to upgrade to.
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

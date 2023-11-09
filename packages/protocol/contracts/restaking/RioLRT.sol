@@ -35,15 +35,20 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
 
     // forgefmt: disable-next-item
     /// @notice Initializes the liquid restaking token.
-    /// @param _name The name of the token.
-    /// @param _symbol The symbol of the token.
+    /// @param initialOwner The initial owner of the contract.
+    /// @param name The name of the token.
+    /// @param symbol The symbol of the token.
     /// @param _poolId The LRT Balancer pool ID.
-    function initialize(string calldata _name, string calldata _symbol, bytes32 _poolId) external initializer {
+    /// @param params The parameters required to initialize the pool.
+    function initialize(address initialOwner, string calldata name, string calldata symbol, bytes32 _poolId, InitializeParams calldata params) external initializer returns (uint256) {
         __UUPSUpgradeable_init();
-        __ERC20_init(_name, _symbol);
-        __ERC20Permit_init(_name);
+        __ERC20_init(name, symbol);
+        __ERC20Permit_init(name);
 
         poolId = _poolId;
+
+        _transferOwnership(initialOwner);
+        return _initialize(params, initialOwner);
     }
 
     /// @notice Joins the pool with the exact amounts of the provided tokens,
@@ -55,7 +60,7 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
 
         // Join the underlying pool.
         bytes memory userData = abi.encode(JoinKind.EXACT_TOKENS_IN_FOR_BPT_OUT, params.amountsIn, params.minAmountOut);
-        amountOut = _join(params.tokensIn, params.amountsIn, userData);
+        amountOut = _join(params.tokensIn.prepend(_getPoolAddress(poolId)), params.amountsIn.prepend(0), userData);
 
         // Mint LRT to the user.
         _mint(msg.sender, amountOut);
@@ -112,14 +117,12 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         }
     }
 
+    // forgefmt: disable-next-item
     /// @dev Join the Balancer pool with the given assets and amounts, and return the amount of BPT received.
     /// @param assets The assets to join with.
     /// @param maxAmountsIn The maximum amounts of each asset to join with.
     /// @param userData The encoded join pool user data.
-    function _join(address[] memory assets, uint256[] memory maxAmountsIn, bytes memory userData)
-        internal
-        returns (uint256)
-    {
+    function _join(address[] memory assets, uint256[] memory maxAmountsIn, bytes memory userData) internal returns (uint256) {
         address pool = _getPoolAddress(poolId);
         uint256 balanceBefore = _getBPTBalance(pool);
 
@@ -132,6 +135,24 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         vault.joinPool(poolId, address(this), address(this), request);
 
         return _getBPTBalance(pool) - balanceBefore;
+    }
+
+    /// @dev Initializes the Balancer pool with the given assets and amounts.
+    /// @param params The parameters required to initialize the pool.
+    /// @param recipient The recipient of the LRT.
+    function _initialize(InitializeParams calldata params, address recipient) internal returns (uint256 amountOut) {
+        // Allow the vault to spend the provided tokens.
+        for (uint256 i = 0; i < params.tokensIn.length; ++i) {
+            IOpenZeppelinERC20(params.tokensIn[i]).safeApprove(address(vault), type(uint256).max);
+        }
+
+        bytes memory userData = abi.encode(JoinKind.INIT, params.amountsIn);
+        amountOut = _join(
+            params.tokensIn.prepend(_getPoolAddress(poolId)), params.amountsIn.prepend(type(uint256).max), userData
+        );
+
+        // Mint LRT to the provided `recipient`.
+        _mint(recipient, amountOut);
     }
 
     /// @dev Pulls the exact amounts of the given tokens from the `msg.sender`.
@@ -149,6 +170,7 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
     /// @param token The token to pull.
     /// @param amount The amount of the token to pull.
     function _pullToken(address token, uint256 amount) internal {
+        if (amount == 0) return;
         IOpenZeppelinERC20(token).safeTransferFrom(msg.sender, address(this), amount);
     }
 

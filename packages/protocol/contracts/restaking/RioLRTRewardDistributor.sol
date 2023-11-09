@@ -48,7 +48,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
 
     /// @param _paymentCoordinator The contract used to coordinate payments from AVSs to operators.
     /// @param _milkman The contract used to exchange reward tokens for LRT.
-    constructor(address _paymentCoordinator, address _milkman) {
+    constructor(address _paymentCoordinator, address _milkman) initializer {
         paymentCoordinator = IPaymentCoordinator(_paymentCoordinator);
         milkman = IMilkman(_milkman);
     }
