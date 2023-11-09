@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { appNavItems } from '../../lib/constants'
-import { Tabs, TabsHeader, TabsBody, TabPanel, Tab } from '@material-tailwind/react'
+import { Tabs, TabsHeader, Tab } from '@material-tailwind/react'
 import cx from 'classnames'
 
 type Props = {}

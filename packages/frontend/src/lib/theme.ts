@@ -3,7 +3,7 @@ export const theme = {
     styles: {
       base: {
         indicator: {
-          borderRadius: "rounded-[14px]"
+          borderRadius: "rounded-xl"
         },
       },
     },

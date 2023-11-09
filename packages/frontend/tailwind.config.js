@@ -7,18 +7,6 @@ module.exports = withMT({
     './src/components/**/*.{js,ts,jsx,tsx,mdx}'
   ],
   theme: {
-    // borderRadius: {
-    //   'lg': '16px'
-    // },
-    tab: {
-      styles: {
-        base: {
-          indicator: {
-            borderRadius: "rounded-[14px]"
-          },
-        },
-      },
-    },
     extend: {}
   },
   plugins: []
