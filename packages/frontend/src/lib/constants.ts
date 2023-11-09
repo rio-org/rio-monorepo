@@ -9,6 +9,21 @@ export const testBuilderDaoCollectionAddress =
 export const UINT_64_MAX = BigInt('18446744073709551615');
 export const UINT_32_MAX = BigInt('4294967295');
 
+export const appNavItems = [
+  {
+    label: 'Restake',
+    slug: '/'
+  },
+  {
+    label: 'Withdraw',
+    slug: '/withdraw'
+  },
+  {
+    label: 'Rewards',
+    slug: '/rewards'
+  }
+]
+
 // prettier-ignore
 // Demo Subgraph URLs
 export const PUBLIC_SUBGRAPH_URL = {
