@@ -21,10 +21,8 @@ export default function Layout({ children }: LayoutProps) {
             <RestakeNav />
             <CustomConnectButton />
           </div>
-          <div className="page">
-            <div className="container-fluid w-full mx-auto px-4 md:px-10 py-4">
-              {children}
-            </div>
+          <div className="container-fluid w-full h-full mx-auto px-4 md:px-10 py-4">
+            {children}
           </div>
         </div>
       </main>

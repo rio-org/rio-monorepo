@@ -70,3 +70,10 @@ export interface ConnectButtonProps {
   chainModalOpen: boolean;
   connectModalOpen: boolean;
 }
+
+export interface NetworkStats {
+  tvl: number;
+  apr: number;
+}
+
+export type TokenSymbol = "ETH" | "reETH" | "stETH"; // todo: add more

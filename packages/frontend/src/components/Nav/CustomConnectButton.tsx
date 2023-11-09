@@ -49,7 +49,7 @@ export const CustomConnectButton = () => {
                 );
               }
               return (
-                <div className="flex gap-6">
+                <div className="flex gap-6 absolute top-0 right-0">
                   <button
                     onClick={openAccountModal}
                     type="button"
