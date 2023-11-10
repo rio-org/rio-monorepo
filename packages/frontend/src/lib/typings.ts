@@ -1,4 +1,5 @@
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
+import { StaticImageData } from 'next/image';
 import { Chain as WagmiChain } from 'wagmi';
 export type EthereumAddress = `0x${string}`;
 export type EthereumTransactionHash = `0x${string}`;
@@ -76,4 +77,25 @@ export interface NetworkStats {
   apr: number;
 }
 
-export type TokenSymbol = "ETH" | "reETH" | "stETH"; // todo: add more
+export type Asset = {
+  [key in TokenSymbol]: AssetDetails;
+};
+
+export interface AssetDetails {
+  name: string;
+  symbol: TokenSymbol;
+  logo: StaticImageData;
+  address: EthereumAddress;
+}
+
+export type TokenSymbol =
+  | 'ETH'
+  | 'reETH'
+  | 'stETH'
+  | 'rETH'
+  | 'cbETH'
+  | 'wstETH';
+
+export type AssetAddress = {
+  [key in TokenSymbol]: AddressType;
+};

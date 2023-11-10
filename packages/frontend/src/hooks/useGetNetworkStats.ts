@@ -9,27 +9,27 @@ export const useGetNetworkStats = () => {
 
   const contractConfig = {
     address: demoReadContractAddress as EthereumAddress,
-    abi: BuilderTokenAbi,
+    abi: BuilderTokenAbi
   };
 
   const { data, isLoading, isError } = useContractReads({
     contracts: [
       {
         ...contractConfig,
-        functionName: 'totalSupply',
+        functionName: 'totalSupply'
       },
       {
         ...contractConfig,
         functionName: 'getVotes',
-        args: ["0xCB43078C32423F5348Cab5885911C3B5faE217F9"], // ripe's address for demo purposes
+        args: ['0xCB43078C32423F5348Cab5885911C3B5faE217F9'] // ripe's address for demo purposes
       }
     ]
-  })
+  });
 
   useEffect(() => {
     setNetworkStats({
       tvl: Math.trunc(tvl),
-      apr: apr,
+      apr: apr
     });
   }, [data]);
 

@@ -1,4 +1,9 @@
-import { AddressType } from './typings';
+import { AddressType, Asset, AssetAddress } from './typings';
+import ethLogo from '../assets/eth-logo.png';
+import stETHLogo from '../assets/stETH-logo.png';
+import rETHLogo from '../assets/rETH-logo.png';
+import wstETHLogo from '../assets/wstETH-logo.png';
+import cbETHLogo from '../assets/cbETH-logo.png';
 
 export const NULL_ADDRESS =
   '0x0000000000000000000000000000000000000000' as AddressType;
@@ -23,6 +28,56 @@ export const appNavItems = [
     slug: '/rewards'
   }
 ];
+
+export const ASSET_ADDRESS: AssetAddress = {
+  ETH: '0x00000',
+  stETH: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+  rETH: '0xae78736cd615f374d3085123a210448e74fc6393',
+  cbETH: '0xbe9895146f7af43049ca1c1ae358b0541ea49704',
+  wstETH: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+  reETH: '0x00000'
+};
+
+export const ASSETS: Asset = {
+  ETH: {
+    name: 'Ether',
+    symbol: 'ETH',
+    logo: ethLogo,
+    address: '0x00000' // todo
+  },
+  stETH: {
+    name: 'Lido Staked Ether',
+    symbol: 'stETH',
+    logo: stETHLogo,
+    address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84'
+  },
+  rETH: {
+    name: 'Rocketpool ETH',
+    symbol: 'rETH',
+    logo: rETHLogo,
+    address: '0xae78736cd615f374d3085123a210448e74fc6393'
+  },
+  cbETH: {
+    name: 'Coinbase Wrapped Staked ETH',
+    symbol: 'cbETH',
+    logo: cbETHLogo,
+    address: '0xbe9895146f7af43049ca1c1ae358b0541ea49704'
+  },
+  wstETH: {
+    name: 'Wrapped Staked ETH',
+    symbol: 'wstETH',
+    logo: wstETHLogo,
+    address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0'
+  },
+  reETH: {
+    name: 'reETH',
+    symbol: 'reETH',
+    logo: rETHLogo,
+    address: '0x00000' // todo
+  }
+};
+
+// export const ASSETS = Object.keys(ASSET_ADDRESS) as TokenSymbol[];
 
 // prettier-ignore
 // Demo Subgraph URLs
