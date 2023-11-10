@@ -8,7 +8,7 @@ library Memory {
     /// @notice Thrown when there is an attempt to access an out of bounds array element.
     error BYTES_ARRAY_OUT_OF_BOUNDS();
 
-    /// @dev Allocates a memory byte array of `len` bytes without zeroing it out.
+    /// @notice Allocates a memory byte array of `len` bytes without zeroing it out.
     /// @param len The length of the byte array to allocate.
     function unsafeAllocateBytes(uint256 len) internal pure returns (bytes memory result) {
         assembly {
@@ -20,7 +20,7 @@ library Memory {
         }
     }
 
-    /// @dev Performs a memory copy of `len` bytes from position `src` to position `dst`.
+    /// @notice Performs a memory copy of `len` bytes from position `src` to position `dst`.
     /// @param src The source memory position.
     /// @param dst The destination memory position.
     /// @param len The number of bytes to copy.
@@ -44,7 +44,7 @@ library Memory {
         }
     }
 
-    /// @dev Copies `len` bytes from `src`, starting at position `srcStart`, into `dst`, starting at position `dstStart` into `dst`.
+    /// @notice Copies `len` bytes from `src`, starting at position `srcStart`, into `dst`, starting at position `dstStart` into `dst`.
     /// @param src The source bytes array.
     /// @param dst The destination bytes array.
     /// @param srcStart The starting position in `src`.
@@ -64,7 +64,7 @@ library Memory {
         memcpy(srcStartPos, dstStartPos, len);
     }
 
-    /// @dev Copies bytes from `src` to `dst`, starting at position `dstStart` into `dst`.
+    /// @notice Copies bytes from `src` to `dst`, starting at position `dstStart` into `dst`.
     /// @param src The source bytes array.
     /// @param dst The destination bytes array.
     /// @param dstStart The starting position in `dst`.

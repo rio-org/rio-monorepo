@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
-import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable {
-    using SafeERC20 for IOpenZeppelinERC20;
+    using SafeERC20 for IERC20;
     using Array for *;
 
     /// @notice The primary delegation contract for EigenLayer.
@@ -21,29 +20,20 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     /// @notice The Balancer vault contract.
     IVault public immutable vault;
 
-    /// @notice The LRT Balancer pool ID.
-    bytes32 public poolId;
-
     /// @notice The LRT asset manager.
     address public assetManager;
 
     /// @notice Current token withdrawal epochs. Incoming withdrawals are included
     /// in the current epoch, which will be queued and incremented by the asset manager.
-    mapping(IERC20 token => uint40 epoch) public currentEpochs;
+    mapping(address token => uint256 epoch) internal currentEpochs;
 
     /// @notice The amount of tokens owed to users in a given epoch, as well as the state
     /// of the epoch's withdrawals.
-    mapping(IERC20 token => mapping(uint40 epoch => EpochWithdrawals withdrawals)) public epochWithdrawals;
+    mapping(address token => mapping(uint256 epoch => EpochWithdrawals withdrawals)) internal epochWithdrawals;
 
     /// @notice Require that the caller is the LRT's asset manager.
     modifier onlyAssetManager() {
         if (msg.sender != assetManager) revert ONLY_ASSET_MANAGER();
-        _;
-    }
-
-    /// @notice Require that the caller is the pool (LRT).
-    modifier onlyPool() {
-        if (msg.sender != _getPoolAddress(poolId)) revert ONLY_ASSET_MANAGER();
         _;
     }
 
@@ -57,62 +47,68 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     // forgefmt: disable-next-item
     /// @notice Initializes the withdrawal queue.
     /// @param initialOwner The initial owner of the contract.
-    /// @param _poolId The LRT Balancer pool ID.
     /// @param _assetManager The LRT asset manager.
-    function initialize(address initialOwner, bytes32 _poolId, address _assetManager) external initializer {
+    function initialize(address initialOwner, address _assetManager) external initializer {
         __UUPSUpgradeable_init();
         _transferOwnership(initialOwner);
 
-        poolId = _poolId;
         assetManager = _assetManager;
+    }
+
+    /// @notice Retrieve the current withdrawal epoch for a given token.
+    /// @param token The token for which to retrieve the current epoch.
+    function getCurrentEpoch(address token) external view returns (uint256) {
+        return currentEpochs[token];
     }
 
     /// @notice Get the amount of `token` owed to withdrawers in the current `epoch`.
     /// @param token The withdrawal token.
-    function getAmountOwedInCurrentEpoch(IERC20 token) external view returns (uint256 amountOwed) {
+    function getAmountOwedInCurrentEpoch(address token) external view returns (uint256 amountOwed) {
         amountOwed = epochWithdrawals[token][currentEpochs[token]].owed;
     }
 
+    /// @notice Retrieve the owed cash and completion status for a given token and epoch.
+    /// @param token The token for which to retrieve the information.
+    /// @param epoch The epoch for which to retrieve the information.
+    function getEpochWithdrawals(address token, uint256 epoch) external view returns (uint248 owed, bool completed, bytes32 aggregateRoot) {
+        EpochWithdrawals storage withdrawals = epochWithdrawals[token][epoch];
+        return (withdrawals.owed, withdrawals.completed, withdrawals.aggregateRoot);
+    }
+
+    /// @notice Retrieve a user's withdrawal information for a given token and epoch.
+    /// @param token The token for which to retrieve the user's withdrawal information.
+    /// @param epoch The epoch for which to retrieve the user's withdrawal information.
+    /// @param user The address of the user to retrieve the withdrawal information for.
+    function getUserWithdrawal(address token, uint256 epoch, address user) external view returns (UserWithdrawal memory) {
+        return epochWithdrawals[token][epoch].users[user];
+    }
+
     // forgefmt: disable-next-item
-    /// @notice Queues token withdrawals from `sender` if there is a cash deficit in the pool
-    /// and returns the amount of cash that can be paid out immediately.
-    /// @param sender The address of the user exiting the pool.
+    /// @notice Queues token withdrawals for `withdrawer`.
+    /// @param withdrawer The address requesting the exit.
     /// @param tokens The tokens to withdraw.
-    /// @param amountsOut The total token amounts attempting to be withdrawn.
-    function queueWithdrawals(address sender, IERC20[] memory tokens, uint256[] calldata amountsOut) external onlyPool returns (uint256[] memory cashAmountsOut) {
+    function queueWithdrawals(address withdrawer, address[] memory tokens, uint256[] calldata amountsOut) external /* onlyRestakingToken */ {
+        uint208 amountOut;
         uint256 length = tokens.length;
-        cashAmountsOut = new uint256[](length);
-
-        uint256 cash;
-        uint256 amountOut;
-        uint208 deficit;
-        IERC20 token;
         for (uint256 i = 0; i < length; ++i) {
-            amountOut = amountsOut[i];
+            amountOut = uint208(amountsOut[i]);
             if (amountOut == 0) continue;
+            
+            address token = tokens[i];
+            uint256 currentEpoch = currentEpochs[token];
 
-            token = tokens[i];
-            (cash,,,) = vault.getPoolTokenInfo(poolId, token);
-            if (cash >= amountOut) continue;
+            EpochWithdrawals storage withdrawals = epochWithdrawals[token][currentEpoch];
+            withdrawals.users[withdrawer].owed += amountOut;
+            withdrawals.owed += amountOut;
 
-            uint40 _currentEpoch = currentEpochs[token];
-
-            // The pool's buffer is short cash for the withdrawal. Record the amount owed and how much cash can be paid out.
-            cashAmountsOut[i] = cash;
-            deficit = uint208(amountOut - cash);
-
-            EpochWithdrawals storage withdrawals = epochWithdrawals[token][_currentEpoch];
-            withdrawals.users[sender].owed += deficit;
-            withdrawals.owed += deficit;
-
-            emit WithdrawalQueued(_currentEpoch, token, sender, deficit);
+            emit WithdrawalQueued(currentEpoch, token, withdrawer, amountOut);
         }
     }
 
     /// @notice Completes withdrawals from the pool's cash for the current epoch.
     /// @param token The token to complete withdrawals for.
-    function completeWithdrawalsFromPoolForCurrentEpoch(IERC20 token) external onlyAssetManager {
-        uint40 _currentEpoch = currentEpochs[token];
+    function completeWithdrawalsFromPoolForCurrentEpoch(address token) external onlyAssetManager {
+        uint256 _currentEpoch = currentEpochs[token];
 
         EpochWithdrawals storage withdrawals = epochWithdrawals[token][_currentEpoch];
         if (withdrawals.owed == 0) revert NO_WITHDRAWALS_IN_EPOCH();
@@ -129,8 +125,8 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     /// @notice Records queued EigenLayer withdrawals for the current epoch.
     /// @param token The token to queue withdrawals for.
     /// @param aggregateRoot The aggregate root of the queued withdrawals.
-    function recordQueuedEigenLayerWithdrawalsForCurrentEpoch(IERC20 token, bytes32 aggregateRoot) external onlyAssetManager {
-        uint40 _currentEpoch = currentEpochs[token];
+    function recordQueuedEigenLayerWithdrawalsForCurrentEpoch(address token, bytes32 aggregateRoot) external onlyAssetManager {
+        uint256 _currentEpoch = currentEpochs[token];
 
         EpochWithdrawals storage withdrawals = epochWithdrawals[token][_currentEpoch];
         if (withdrawals.aggregateRoot != bytes32(0)) revert WITHDRAWALS_ALREADY_QUEUED_FOR_EPOCH();
@@ -146,8 +142,8 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     /// @param queuedWithdrawals The queued withdrawals.
     /// @param middlewareTimesIndexes The middleware times indexes for the queued withdrawals.
     function completeEigenLayerWithdrawalsForEpoch(
-        uint40 epoch,
-        IERC20 token,
+        uint256 epoch,
+        address token,
         IDelegationManager.Withdrawal[] calldata queuedWithdrawals,
         uint256[] calldata middlewareTimesIndexes
     ) external {
@@ -161,7 +157,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
         withdrawals.completed = true;
 
-        IOpenZeppelinERC20[] memory tokens = IOpenZeppelinERC20(address(token)).toArray();
+        IERC20[] memory tokens = IERC20(token).toArray();
         bytes32[] memory roots = new bytes32[](queuedWithdrawalCount);
 
         IDelegationManager.Withdrawal memory queuedWithdrawal;
@@ -193,7 +189,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
         store.claimed = true;
 
-        IOpenZeppelinERC20(address(request.token)).safeTransfer(caller, withdrawal.owed);
+        IERC20(request.token).safeTransfer(caller, withdrawal.owed);
         emit WithdrawalClaimed(request.epoch, request.token, caller, withdrawal.owed);
     }
 
@@ -208,14 +204,6 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
                 ++i;
             }
         }
-    }
-
-    /// @dev Returns the address of a Pool's contract.
-    /// @param _poolId The ID of the pool.
-    function _getPoolAddress(bytes32 _poolId) internal pure returns (address) {
-        // 12 byte logical shift left to remove the nonce and specialization setting. We don't need to mask,
-        // since the logical shift already sets the upper bits to zero.
-        return address(uint160(uint256(_poolId) >> (12 * 8)));
     }
 
     /// @dev Returns the keccak256 hash of `withdrawal`.

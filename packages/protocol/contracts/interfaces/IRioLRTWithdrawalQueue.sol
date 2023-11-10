@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
-
 interface IRioLRTWithdrawalQueue {
     /// @notice How much cash is owed to a user in a given epoch,
     /// as well as whether or not the user has claimed the withdrawal.
@@ -22,8 +20,8 @@ interface IRioLRTWithdrawalQueue {
 
     /// @notice A withdrawal request made by a user.
     struct WithdrawalRequest {
-        uint40 epoch;
-        IERC20 token;
+        uint256 epoch;
+        address token;
     }
 
     /// @notice Thrown when the caller is not the LRT asset manager.
@@ -61,44 +59,63 @@ interface IRioLRTWithdrawalQueue {
     /// @param token The withdrawal token.
     /// @param amount The sum of all withdrawals in the epoch.
     /// @param aggregateRoot The aggregate root of the withdrawals.
-    event WithdrawalsQueuedForEpoch(uint40 indexed epoch, IERC20 indexed token, uint256 amount, bytes32 aggregateRoot);
+    event WithdrawalsQueuedForEpoch(uint256 indexed epoch, address indexed token, uint256 amount, bytes32 aggregateRoot);
 
     /// @notice Emitted when withdrawals are completed for an epoch.
     /// @param epoch The withdrawal epoch.
     /// @param token The withdrawal token.
     /// @param amount The sum of all withdrawals in the epoch.
-    event WithdrawalsCompletedForEpoch(uint40 indexed epoch, IERC20 indexed token, uint256 amount);
+    event WithdrawalsCompletedForEpoch(uint256 indexed epoch, address indexed token, uint256 amount);
 
     /// @notice Emitted when a withdrawal is queued.
     /// @param epoch The withdrawal epoch.
     /// @param token The withdrawal token.
     /// @param user The user who queued the withdrawal.
     /// @param amount The withdrawal amount.
-    event WithdrawalQueued(uint40 indexed epoch, IERC20 indexed token, address indexed user, uint256 amount);
+    event WithdrawalQueued(uint256 indexed epoch, address indexed token, address indexed user, uint256 amount);
 
     /// @notice Emitted when a queued withdrawal is claimed.
     /// @param epoch The withdrawal epoch.
     /// @param token The withdrawal token.
     /// @param user The user who claimed the withdrawal.
     /// @param amount The withdrawal amount.
-    event WithdrawalClaimed(uint40 indexed epoch, IERC20 indexed token, address indexed user, uint256 amount);
+    event WithdrawalClaimed(uint256 indexed epoch, address indexed token, address indexed user, uint256 amount);
 
     /// @notice Initializes the withdrawal queue.
     /// @param initialOwner The initial owner of the contract.
-    /// @param poolId The LRT Balancer pool ID.
     /// @param assetManager The LRT asset manager.
-    function initialize(address initialOwner, bytes32 poolId, address assetManager) external;
+    function initialize(address initialOwner, address assetManager) external;
+
+    /// @notice Retrieve the current withdrawal epoch for a given token.
+    /// @param token The token for which to retrieve the current epoch.
+    function getCurrentEpoch(address token) external view returns (uint256);
+
+    /// @notice Retrieve the owed cash and completion status for a given token and epoch.
+    /// @param token The token for which to retrieve the information.
+    /// @param epoch The epoch for which to retrieve the information.
+    function getEpochWithdrawals(address token, uint256 epoch) external view returns (uint248 owed, bool completed, bytes32 aggregateRoot);
+
+    /// @notice Retrieve a user's withdrawal information for a given token and epoch.
+    /// @param token The token for which to retrieve the user's withdrawal information.
+    /// @param epoch The epoch for which to retrieve the user's withdrawal information.
+    /// @param user The address of the user to retrieve the withdrawal information for.
+    function getUserWithdrawal(address token, uint256 epoch, address user) external view returns (UserWithdrawal memory);
 
     /// @notice Get the amount of `token` owed to withdrawers in the current `epoch`.
     /// @param token The withdrawal token.
-    function getAmountOwedInCurrentEpoch(IERC20 token) external view returns (uint256 amountOwed);
+    function getAmountOwedInCurrentEpoch(address token) external view returns (uint256 amountOwed);
+
+    /// @notice Queues token withdrawals for `withdrawer`.
+    /// @param withdrawer The address requesting the exit.
+    /// @param tokens The tokens to withdraw.
+    function queueWithdrawals(address withdrawer, address[] memory tokens, uint256[] calldata amountsOut) external;
 
     /// @notice Records queued EigenLayer withdrawals for the current epoch.
     /// @param token The token to queue withdrawals for.
     /// @param aggregateRoot The aggregate root of the queued withdrawals.
-    function recordQueuedEigenLayerWithdrawalsForCurrentEpoch(IERC20 token, bytes32 aggregateRoot) external;
+    function recordQueuedEigenLayerWithdrawalsForCurrentEpoch(address token, bytes32 aggregateRoot) external;
 
     /// @notice Completes withdrawals from the pool's cash for the current epoch.
     /// @param token The token to complete withdrawals for.
-    function completeWithdrawalsFromPoolForCurrentEpoch(IERC20 token) external;
+    function completeWithdrawalsFromPoolForCurrentEpoch(address token) external;
 }

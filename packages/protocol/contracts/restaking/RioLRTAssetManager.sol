@@ -172,7 +172,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgr
         (uint256 cash, uint256 aum) = getPoolBalances(token);
 
         // Process outstanding withdrawals before rebalancing, if any.
-        uint256 owed = withdrawalQueue.getAmountOwedInCurrentEpoch(IERC20(token));
+        uint256 owed = withdrawalQueue.getAmountOwedInCurrentEpoch(token);
         if (owed != 0) {
             (cash, aum) = _processWithdrawalsForToken(token, cash, aum, owed);
         }
@@ -230,7 +230,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgr
             vault.managePoolBalance(ops);
 
             withdrawalQueue.recordQueuedEigenLayerWithdrawalsForCurrentEpoch(
-                IERC20(token), _queueWithdrawalFromEigenLayer(configs[token].strategy, token, aum, owed)
+                token, _queueWithdrawalFromEigenLayer(configs[token].strategy, token, aum, owed)
             );
             return (cash, aum - owed);
         }
@@ -247,13 +247,13 @@ contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgr
 
         // There was enough cash to cover all withdrawals in the current epoch. Mark it as completed.
         if (withdrawable == owed) {
-            withdrawalQueue.completeWithdrawalsFromPoolForCurrentEpoch(IERC20(token));
+            withdrawalQueue.completeWithdrawalsFromPoolForCurrentEpoch(token);
             return (cash - withdrawable, aum);
         }
 
         // There is a cash deficit. Queue the remaining amount.
         withdrawalQueue.recordQueuedEigenLayerWithdrawalsForCurrentEpoch(
-            IERC20(token), _queueWithdrawalFromEigenLayer(configs[token].strategy, token, aum, deficit)
+            token, _queueWithdrawalFromEigenLayer(configs[token].strategy, token, aum, deficit)
         );
         return (cash - withdrawable, aum - deficit);
     }

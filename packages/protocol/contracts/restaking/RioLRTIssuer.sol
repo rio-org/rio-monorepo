@@ -16,10 +16,12 @@ import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol'
 import {IRioLRTController} from 'contracts/interfaces/IRioLRTController.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
+import {Balancer} from 'contracts/utils/Balancer.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
+    using Balancer for bytes32;
     using Array for *;
 
     /// @notice The maximum swap fee percentage.
@@ -110,32 +112,37 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         // Deploy the liquid restaking token (LRT).
         d.token = address(new ERC1967Proxy(tokenImpl, ''));
 
-        // Use the LRT address to precompute the remaining addresses.
-        bytes32 salt = bytes32(uint256(uint160(d.token)) << 96);
+        // Deploy the remaining contracts using the LRT address as the salt.
+        {
+            bytes32 salt = bytes32(uint256(uint160(d.token)) << 96);
 
-        // Deploy the remaining contracts.
-        d.assetManager = address(new ERC1967Proxy{ salt: salt }(assetManagerImpl, ''));
-        d.controller = address(new ERC1967Proxy{ salt: salt }(controllerImpl, ''));
-        d.rewardDistributor = address(new ERC1967Proxy{ salt: salt }(rewardDistributorImpl, ''));
-        d.operatorRegistry = address(new ERC1967Proxy{ salt: salt }(operatorRegistryImpl, ''));
-        d.withdrawalQueue = address(new ERC1967Proxy{ salt: salt }(withdrawalQueueImpl, ''));
+            d.assetManager = address(new ERC1967Proxy{ salt: salt }(assetManagerImpl, ''));
+            d.controller = address(new ERC1967Proxy{ salt: salt }(controllerImpl, ''));
+            d.rewardDistributor = address(new ERC1967Proxy{ salt: salt }(rewardDistributorImpl, ''));
+            d.operatorRegistry = address(new ERC1967Proxy{ salt: salt }(operatorRegistryImpl, ''));
+            d.withdrawalQueue = address(new ERC1967Proxy{ salt: salt }(withdrawalQueueImpl, ''));
+        }
 
         // Deploy the underlying pool.
         bytes32 poolId = _deployUnderlyingPool(name, symbol, config, d);
+        address caller = msg.sender;
 
         // Initialize all supporting contracts.
-        address caller = msg.sender;
-        IRioLRTAssetManager(d.assetManager).initialize(caller, poolId, d.controller, d.operatorRegistry, d.withdrawalQueue);
-        IRioLRTController(d.controller).initialize(caller, _getPoolAddress(poolId), d.assetManager, config.securityCouncil, address(d.token).toArray());
-        IRioLRTRewardDistributor(d.rewardDistributor).initialize(caller, _getPoolAddress(poolId), caller, address(0));
-        IRioLRTOperatorRegistry(d.operatorRegistry).initialize(caller, poolId, d.controller, d.rewardDistributor, d.assetManager);
-        IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(caller, poolId, d.assetManager);
+        {
+            address pool = poolId.toPoolAddress();
+
+            IRioLRTAssetManager(d.assetManager).initialize(caller, poolId, d.controller, d.operatorRegistry, d.withdrawalQueue);
+            IRioLRTController(d.controller).initialize(caller, pool, d.assetManager, config.securityCouncil, address(d.token).toArray());
+            IRioLRTRewardDistributor(d.rewardDistributor).initialize(caller, pool, caller, address(0));
+            IRioLRTOperatorRegistry(d.operatorRegistry).initialize(caller, poolId, d.controller, d.rewardDistributor, d.assetManager);
+            IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(caller, d.assetManager);
+        }
 
         // Pull underlying tokens into the LRT and initialize the pool.
         for (uint256 i = 0; i < config.amountsIn.length; ++i) {
             IERC20(config.tokens[i]).safeTransferFrom(caller, d.token, config.amountsIn[i]);
         }
-        IRioLRT(d.token).initialize(caller, name, symbol, poolId, IRioLRT.InitializeParams({
+        IRioLRT(d.token).initialize(caller, name, symbol, poolId, d.assetManager, d.withdrawalQueue, IRioLRT.InitializeParams({
             tokensIn: config.tokens,
             amountsIn: config.amountsIn
         }));
@@ -189,14 +196,6 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         assembly {
             assets := tokens
         }
-    }
-
-    /// @dev Returns the address of a Pool's contract.
-    /// @param _poolId The ID of the pool.
-    function _getPoolAddress(bytes32 _poolId) internal pure returns (address) {
-        // 12 byte logical shift left to remove the nonce and specialization setting. We don't need to mask,
-        // since the logical shift already sets the upper bits to zero.
-        return address(uint160(uint256(_poolId) >> (12 * 8)));
     }
 
     /// @dev Allows the owner to upgrade the LRT issuer implementation.

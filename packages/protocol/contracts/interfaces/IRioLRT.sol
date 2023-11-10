@@ -73,6 +73,9 @@ interface IRioLRT {
     /// @notice Thrown when the provided input does not match the expected length.
     error INPUT_LENGTH_MISMATCH();
 
+    /// @notice Thrown when the output token amount is below the minimum.
+    error EXIT_BELOW_MIN();
+
     /// @notice Thrown when the provided token is not in the pool.
     error INVALID_TOKEN();
 
@@ -85,8 +88,10 @@ interface IRioLRT {
     /// @param name The name of the token.
     /// @param symbol The symbol of the token.
     /// @param poolId The LRT Balancer pool ID.
+    /// @param assetManager The contract in charge of managing the LRT's assets.
+    /// @param withdrawalQueue The contract used to queue and process withdrawals.
     /// @param params The parameters required to initialize the pool.
-    function initialize(address initialOwner, string calldata name, string calldata symbol, bytes32 poolId, InitializeParams calldata params) external returns (uint256);
+    function initialize(address initialOwner, string calldata name, string calldata symbol, bytes32 poolId, address assetManager, address withdrawalQueue, InitializeParams calldata params) external returns (uint256);
 
     /// @notice Joins the pool with the exact amounts of the provided tokens,
     /// and mints an estimated but unknown (computed at run time) amount of LRT.
@@ -104,4 +109,16 @@ interface IRioLRT {
     /// @param params The parameters required to join with all input tokens and
     /// an exact output amount.
     function joinAllTokensExactOut(JoinAllTokensExactOutParams calldata params) external returns (uint256 amountOut);
+
+    /// @notice Queues an exit to an estimated but unknown (computed at run time)
+    /// amount of a single token, and burns an exact amount of LRT.
+    /// @param params The parameters required to exit to a single output token
+    /// with an exact amount of LRT.
+    function queueExitTokenExactIn(QueueExitTokenExactInParams calldata params) external returns (uint256 amountIn);
+
+    /// @notice Queues an exit to an estimated but unknown (computed at run time)
+    /// amount of each token, and burns an exact amount of LRT.
+    /// @param params The parameters required to exit to all output tokens
+    /// with an exact amount of LRT.
+    function queueExitAllTokensExactIn(QueueExitAllTokensExactInParams calldata params) external returns (uint256 amountIn);
 }

@@ -42,7 +42,7 @@ library Array {
         array[0] = address(element);
     }
 
-    /// @dev Returns the passed array prepended with `value`.
+    /// @notice Returns the passed array prepended with `value`.
     /// @param array The array to prepend to.
     /// @param value The value to prepend.
     function prepend(address[] memory array, address value) internal pure returns (address[] memory newArray) {
@@ -53,7 +53,7 @@ library Array {
         }
     }
 
-    /// @dev Returns the passed array prepended with `value`.
+    /// @notice Returns the passed array prepended with `value`.
     /// @param array The array to prepend to.
     /// @param value The value to prepend.
     function prepend(uint256[] memory array, uint256 value) internal pure returns (uint256[] memory newArray) {
