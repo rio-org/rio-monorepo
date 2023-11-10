@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { ReactNode } from 'react';
 import { APP_TITLE } from '../../config';
-import RestakeNav from './Nav/RestakeNav';
+import AppNav from './Nav/AppNav';
 import { CustomConnectButton } from './Nav/CustomConnectButton';
 
 type LayoutProps = {
@@ -18,7 +18,7 @@ export default function Layout({ children }: LayoutProps) {
       <main className="bg-white p-[12px] h-full">
         <div className="bg-[#EFEFEF] p-8 rounded-[12px] h-full">
           <div className="container-fluid w-full mx-auto relative">
-            <RestakeNav />
+            <AppNav />
             <CustomConnectButton />
           </div>
           <div className="container-fluid w-full h-full mx-auto px-4 md:px-10 py-4">

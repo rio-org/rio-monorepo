@@ -14,21 +14,6 @@ export const testBuilderDaoCollectionAddress =
 export const UINT_64_MAX = BigInt('18446744073709551615');
 export const UINT_32_MAX = BigInt('4294967295');
 
-export const appNavItems = [
-  {
-    label: 'Restake',
-    slug: '/'
-  },
-  {
-    label: 'Withdraw',
-    slug: '/withdraw'
-  },
-  {
-    label: 'Rewards',
-    slug: '/rewards'
-  }
-];
-
 export const ASSET_ADDRESS: AssetAddress = {
   ETH: '0x00000',
   stETH: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',

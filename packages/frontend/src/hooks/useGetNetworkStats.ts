@@ -33,7 +33,7 @@ export const useGetNetworkStats = () => {
     });
   }, [data]);
 
-  console.log(data, isLoading, isError);
+  console.log('dummy network stats data', data, isLoading, isError);
 
   return {
     networkStats,

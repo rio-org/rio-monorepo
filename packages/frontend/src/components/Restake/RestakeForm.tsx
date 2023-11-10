@@ -19,11 +19,9 @@ const RestakeForm = () => {
         ? undefined
         : ASSETS[activeTokenSymbol].address
   });
-  console.log(ASSETS[activeTokenSymbol].address);
   const isValidAmount = amount > 0 && amount <= accountTokenBalance;
   useEffect(() => {
     if (data) {
-      console.log('data', data);
       setAccountTokenBalance(+data?.formatted);
       setActiveTokenSymbol(data?.symbol as TokenSymbol);
     }

@@ -2,20 +2,21 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React from 'react';
-import { appNavItems } from '../../lib/constants';
 import { Tabs, TabsHeader, Tab } from '@material-tailwind/react';
 import cx from 'classnames';
+import { APP_NAV_ITEMS } from '../../../config';
 
-const RestakeNav = () => {
+const AppNav = () => {
   const router = useRouter();
-  const activeTab = appNavItems.find((item) => item.slug === router.pathname)
-    ?.slug;
+  const baseUrlSegment = router.pathname.split('/')[1];
+  const activeTab = APP_NAV_ITEMS.find((item) => baseUrlSegment.includes(item.slug))
+    ?.slug || APP_NAV_ITEMS[0].slug;
 
   return (
     <div className="flex w-full text-center content-center justify-center">
       <Tabs value={activeTab}>
         <TabsHeader className="rounded-[16px] bg-black bg-opacity-5 p-[2px]">
-          {appNavItems.map(({ label, slug }) => (
+          {APP_NAV_ITEMS.map(({ label, slug }) => (
             <Link href={slug} key={slug} passHref>
               <Tab
                 value={slug}
@@ -36,4 +37,4 @@ const RestakeNav = () => {
   );
 };
 
-export default RestakeNav;
+export default AppNav;
