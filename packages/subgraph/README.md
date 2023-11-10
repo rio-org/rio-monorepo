@@ -1,8 +1,8 @@
 <h1 align="center">
-  @rionetwork/sdk
+  @rionetwork/subgraph
 </h1>
 <p align="center">
-  Utilities that simplify interaction with the Rio Network protocol
+  A subgraph that indexes Rio Network events
 </p>
 <p align="center">
   <a href="https://rio.network/">

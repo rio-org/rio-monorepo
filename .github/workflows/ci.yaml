@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Setup PNPM
         uses: pnpm/action-setup@v2
@@ -33,6 +35,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
         run: pnpm install
@@ -49,6 +54,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Setup PNPM
         uses: pnpm/action-setup@v2
@@ -60,6 +67,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
         run: pnpm install
@@ -76,6 +86,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Setup PNPM
         uses: pnpm/action-setup@v2
@@ -87,6 +99,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
         run: pnpm install

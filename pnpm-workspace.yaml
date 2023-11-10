@@ -1,2 +1,3 @@
 packages:
   - 'packages/*'
+  - '!packages/subgraph' # Skip until there are mappings to compile.

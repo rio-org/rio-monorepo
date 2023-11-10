@@ -1,6 +1,14 @@
-# @rionetwork/frontend
-
-A Next.js frontend that interacts with the Rio Network protocol
+<h1 align="center">
+  @rionetwork/frontend
+</h1>
+<p align="center">
+  A Next.js frontend that interacts with the Rio Network protocol
+</p>
+<p align="center">
+  <a href="https://rio.network/">
+    <img src="https://img.shields.io/badge/website-rio.network-blue">
+  </a>
+</p>
 
 ## Getting Started
 
