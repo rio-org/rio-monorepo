@@ -34,6 +34,7 @@ const AssetSelector = ({ activeTokenSymbol, setActiveTokenSymbol }: Props) => {
             return (
               <AssetItem
                 asset={asset}
+                key={asset.symbol}
                 isActiveToken={asset.symbol === activeTokenSymbol}
                 setActiveTokenSymbol={setActiveTokenSymbol}
                 setIsListOpen={setIsListOpen}

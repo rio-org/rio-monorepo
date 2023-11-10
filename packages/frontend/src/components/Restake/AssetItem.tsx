@@ -4,6 +4,8 @@ import { useAccount, useBalance } from 'wagmi';
 import Image from 'next/image';
 import Skeleton from 'react-loading-skeleton';
 import { IconCheck } from '../Icons/IconCheck';
+import InlineErrorMessage from '../Small/InlineErrorMessage';
+import cx from 'classnames';
 
 type Props = {
   asset: AssetDetails;
@@ -20,7 +22,7 @@ const AssetItem = ({
 }: Props) => {
   const [hasMounted, setHasMounted] = useState(false);
   const { address } = useAccount();
-  const { data } = useBalance({
+  const { data, isLoading, isError } = useBalance({
     address: address,
     token: asset.symbol === 'ETH' ? undefined : asset.address
   });
@@ -39,7 +41,12 @@ const AssetItem = ({
       onClick={() => {
         handleClick(asset.symbol);
       }}
-      className="flex flex-row gap-2 w-full py-2 px-4 rounded-xl bg-transparent hover:bg-[var(--color-element-wrapper-bg)] transition-colors duration-200 items-center"
+      disabled={isError}
+      className={cx(
+        "flex flex-row gap-2 w-full py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center",
+        !isError && 'hover:bg-[var(--color-element-wrapper-bg)]',
+        isError && 'opacity-40'
+      )}
     >
       <Image
         src={asset.logo}
@@ -53,10 +60,16 @@ const AssetItem = ({
           <p className="opacity-50 text-[14px]">{asset.symbol}</p>
         </div>
         <p className="flex gap-2 items-center justify-center content-center">
-          {hasMounted && data ? (
+          {hasMounted && data && (
             <>{(+data?.formatted).toFixed(2)}</>
-          ) : (
+          )}
+          {isLoading && (
             <Skeleton width={60} />
+          )}
+          {isError && (
+            <InlineErrorMessage>
+              Error loading balance
+            </InlineErrorMessage>
           )}
           {isActiveToken && <IconCheck />}
         </p>
