@@ -2,7 +2,7 @@ import React from 'react';
 import { TokenSymbol } from '../../lib/typings';
 import { ASSETS } from '../../lib/constants';
 import Image from 'next/image';
-import AssetItem from './AssetItem';
+import DepositAssetItem from '../Assets/DepositAssetItem';
 
 type Props = {
   activeTokenSymbol: TokenSymbol;
@@ -29,10 +29,10 @@ const AssetSelector = ({ activeTokenSymbol, setActiveTokenSymbol }: Props) => {
       {isListOpen && (
         <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
           {Object.values(ASSETS).map((asset) => {
-            // don't display reETH in the asset selector
-            if (asset.symbol === 'reETH') return null;
+            // don't display reETH or ＊ETH in the asset selector
+            if (asset.symbol === 'reETH' || asset.symbol === '＊ETH') return null;
             return (
-              <AssetItem
+              <DepositAssetItem
                 asset={asset}
                 key={asset.symbol}
                 isActiveToken={asset.symbol === activeTokenSymbol}

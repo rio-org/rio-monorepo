@@ -85,7 +85,7 @@ export interface AssetDetails {
   name: string;
   symbol: TokenSymbol;
   logo: StaticImageData;
-  address: EthereumAddress;
+  address: EthereumAddress | null;
 }
 
 export type TokenSymbol =
@@ -94,8 +94,9 @@ export type TokenSymbol =
   | 'stETH'
   | 'rETH'
   | 'cbETH'
-  | 'wstETH';
+  | 'wstETH'
+  | '＊ETH';
 
 export type AssetAddress = {
-  [key in TokenSymbol]: AddressType;
+  [key in TokenSymbol]: AddressType | null;
 };

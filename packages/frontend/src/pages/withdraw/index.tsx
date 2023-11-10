@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
 import WithdrawTabs from '../../components/Withdraw/WithdrawTabs';
+import WithdrawField from '../../components/Withdraw/WithdrawField';
+import WithdrawAssetSelector from '../../components/Withdraw/WithdrawAssetSelector';
+import { TokenSymbol } from '../../lib/typings';
 
 const Withdraw: NextPage = () => {
+  const [activeTokenSymbol, setActiveTokenSymbol] = useState<TokenSymbol>('ETH');
   return (
     <WithdrawWrapper>
       <div>
@@ -14,7 +18,19 @@ const Withdraw: NextPage = () => {
               <WithdrawTabs />
             </div>
           </div>
-          <div className="bg-white rounded-xl p-6 w-full m-[2px]">
+          <div className="bg-white rounded-xl p-6 w-full m-[2px] flex flex-col gap-4">
+            <WithdrawField
+              amount={0}
+              accountTokenBalance={0}
+              activeTokenSymbol={"ETH"}
+              setAmount={() => { }}
+              setActiveTokenSymbol={() => { }}
+            />
+
+            <WithdrawAssetSelector
+              activeTokenSymbol={activeTokenSymbol}
+              setActiveTokenSymbol={setActiveTokenSymbol}
+            />
 
           </div>
         </div>
