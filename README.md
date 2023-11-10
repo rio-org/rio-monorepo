@@ -2,12 +2,19 @@
 
 <br />
 <div align="center">
+  <p align="center">
+    <a href="https://rio.network/" target="blank">
+      <img src="https://i.imgur.com/b1uw4z4.png" width="200" alt="Rio Logo" />
+    </a>
+  </p>
   <h1>Rio Network</h1>
   <p>A network for issuing LRTs</p>
 
 <a href="./packages/protocol">Protocol</a>
 &nbsp;&nbsp;&nbsp;
 <a href="./packages/sdk">SDK</a></a>
+&nbsp;&nbsp;&nbsp;
+<a href="./packages/frontend">Frontend</a></a>
 
 </div>
 <br />
