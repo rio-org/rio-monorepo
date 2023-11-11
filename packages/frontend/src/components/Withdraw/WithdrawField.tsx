@@ -8,15 +8,13 @@ type Props = {
   accountTokenBalance: number;
   activeTokenSymbol: TokenSymbol;
   setAmount: (amount: number) => void;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
 };
 
 const WithdrawField = ({
   amount,
   accountTokenBalance,
   activeTokenSymbol,
-  setAmount,
-  setActiveTokenSymbol
+  setAmount
 }: Props) => {
   const [hasMounted, setHasMounted] = useState(false);
   const [usdAmount, setUsdAmount] = useState(0);

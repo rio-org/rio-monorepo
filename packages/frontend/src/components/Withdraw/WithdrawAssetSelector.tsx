@@ -13,12 +13,6 @@ type Props = {
 
 const WithdrawAssetSelector = ({ activeTokenSymbol, setActiveTokenSymbol }: Props) => {
   const [isListOpen, setIsListOpen] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
   return (
     <div className='relative'>
       <div>
@@ -31,7 +25,6 @@ const WithdrawAssetSelector = ({ activeTokenSymbol, setActiveTokenSymbol }: Prop
             isListOpen && 'border-gray-300',
           )}
           id="asset"
-          placeholder="0.00"
           onClick={() => setIsListOpen(!isListOpen)}
         >
           <AssetItemContent
@@ -46,7 +39,9 @@ const WithdrawAssetSelector = ({ activeTokenSymbol, setActiveTokenSymbol }: Prop
       </div>
 
       {isListOpen && (
-        <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
+        <div
+          className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit"
+        >
           {Object.values(ASSETS).map((asset) => {
             // don't display reETH in the asset selector
             if (asset.symbol === 'reETH') return null;

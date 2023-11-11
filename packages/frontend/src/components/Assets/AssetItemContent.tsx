@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Skeleton from 'react-loading-skeleton'
 import { IconCheck } from '../Icons/IconCheck'
-import InlineErrorMessage from '../Small/InlineErrorMessage'
+import InlineErrorMessage from '../Shared/InlineErrorMessage'
 import Image from 'next/image'
 import { AssetDetails } from '../../lib/typings'
 import BestRateLabel from './BestRateLabel'

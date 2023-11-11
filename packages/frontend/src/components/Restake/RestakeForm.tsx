@@ -1,23 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import StakeField from './StakeField';
 import { useAccount, useBalance } from 'wagmi';
-import cx from 'classnames';
 import { Alert, Spinner } from '@material-tailwind/react';
-import { TokenSymbol } from '../../lib/typings';
+import { EthereumAddress, TokenSymbol } from '../../lib/typings';
 import { ASSETS } from '../../lib/constants';
+import HR from '../Shared/HR';
+import DepositButton from './DepositButton';
 
 const RestakeForm = () => {
   const [amount, setAmount] = useState(0);
   const [accountTokenBalance, setAccountTokenBalance] = useState(0);
-  const [activeTokenSymbol, setActiveTokenSymbol] =
-    useState<TokenSymbol>('ETH');
+  const [activeTokenSymbol, setActiveTokenSymbol] = useState<TokenSymbol>('ETH');
   const { address } = useAccount();
   const { data, isError, isLoading } = useBalance({
     address: address,
-    token:
-      activeTokenSymbol === 'ETH'
-        ? undefined
-        : ASSETS[activeTokenSymbol].address
+    token: ASSETS[activeTokenSymbol].address ? ASSETS[activeTokenSymbol].address as EthereumAddress : undefined,
   });
   const isValidAmount = amount > 0 && amount <= accountTokenBalance;
   useEffect(() => {
@@ -58,26 +55,12 @@ const RestakeForm = () => {
           <strong>10%</strong>
         </div>
       </div>
-      <hr className="my-2 border-t border-black border-opacity-50 border-dotted bg-transparent " />
+      <HR />
       <div className="flex justify-between text-[14px]">
         <span className="text-black opacity-50">Minimum received</span>
         <strong>XX reETH</strong>
       </div>
-      <button
-        className={cx(
-          'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
-          !isValidAmount && 'bg-opacity-20',
-          isValidAmount && 'hover:bg-[var(--color-dark-gray)]'
-        )}
-        disabled={!isValidAmount}
-        onClick={() => {
-          console.log('restake');
-        }}
-      >
-        <span className={cx(!isValidAmount && 'opacity-20 text-black')}>
-          {isValidAmount ? 'Restake' : 'Enter an amount'}
-        </span>
-      </button>
+      <DepositButton isValidAmount={isValidAmount} />
     </>
   );
 };

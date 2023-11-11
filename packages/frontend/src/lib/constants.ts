@@ -27,7 +27,7 @@ export const ASSET_ADDRESS: AssetAddress = {
 
 export const ASSETS: Asset = {
   '＊ETH': {
-    name: 'stETH, cbETH, rETH, ETH',
+    name: 'stETH, cbETH, rETH, wstETH, ETH',
     symbol: '＊ETH',
     logo: allEthLogo,
     address: null
@@ -69,8 +69,6 @@ export const ASSETS: Asset = {
     address: '0x00000' // todo
   }
 };
-
-// export const ASSETS = Object.keys(ASSET_ADDRESS) as TokenSymbol[];
 
 // prettier-ignore
 // Demo Subgraph URLs
