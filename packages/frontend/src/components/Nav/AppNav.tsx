@@ -9,8 +9,9 @@ import { APP_NAV_ITEMS } from '../../../config';
 const AppNav = () => {
   const router = useRouter();
   const baseUrlSegment = router.pathname.split('/')[1];
-  const activeTab = APP_NAV_ITEMS.find((item) => baseUrlSegment.includes(item.slug))
-    ?.slug || APP_NAV_ITEMS[0].slug;
+  const activeTab =
+    APP_NAV_ITEMS.find((item) => baseUrlSegment.includes(item.slug))?.slug ||
+    APP_NAV_ITEMS[0].slug;
 
   return (
     <div className="flex w-full text-center content-center justify-center">

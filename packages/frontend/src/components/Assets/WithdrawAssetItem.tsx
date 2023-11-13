@@ -21,7 +21,9 @@ const WithdrawAssetItem = ({
 }: Props) => {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [reETHConversionAmount, setReETHConversionAmount] = useState<number | null>(null);
+  const [reETHConversionAmount, setReETHConversionAmount] = useState<
+    number | null
+  >(null);
   const handleClick = (symbol: TokenSymbol) => {
     setActiveTokenSymbol(symbol);
     setIsListOpen(false);
@@ -29,27 +31,36 @@ const WithdrawAssetItem = ({
 
   const fetchDummyData = async () => {
     //  wait 1 second before setting isError to true
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000)).catch((err) => {
+      console.log(err);
+    });
     setReETHConversionAmount(1.05);
     setIsLoading(false);
     setIsError(false);
-  }
+  };
 
   useEffect(() => {
     setIsLoading(true);
-    fetchDummyData();
+
+    async () => {
+      await fetchDummyData();
+    };
   }, []);
 
-  const amount = <>{
-    reETHConversionAmount ?
-      <>
-        <strong className='text-[14px]'>
-          1 reETH = {reETHConversionAmount} ＊ETH
-        </strong>
-        <span className='text-[14px] opacity-50'>($1,828.51)</span>
-      </> :
-      <Skeleton inline width={100} />
-  }</>;
+  const amount = (
+    <>
+      {!isLoading && reETHConversionAmount ? (
+        <>
+          <strong className="text-[14px]">
+            1 reETH = {reETHConversionAmount} ＊ETH
+          </strong>
+          <span className="text-[14px] opacity-50">($1,828.51)</span>
+        </>
+      ) : (
+        <Skeleton inline width={100} />
+      )}
+    </>
+  );
 
   return (
     <button
@@ -58,7 +69,7 @@ const WithdrawAssetItem = ({
       }}
       disabled={isError}
       className={cx(
-        "flex flex-row gap-2 w-full py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center",
+        'flex flex-row gap-2 w-full py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
         !isError && 'hover:bg-[var(--color-element-wrapper-bg)]',
         isError && 'opacity-40'
       )}

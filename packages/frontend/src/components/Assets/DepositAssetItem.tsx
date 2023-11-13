@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { TokenSymbol, AssetDetails } from '../../lib/typings';
 import cx from 'classnames';
 import AssetItemContent from './AssetItemContent';
@@ -34,12 +34,18 @@ const DepositAssetItem = ({
       }}
       disabled={isError}
       className={cx(
-        "flex flex-row gap-2 w-full py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center",
+        'flex flex-row gap-2 w-full py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
         !isError && 'hover:bg-[var(--color-element-wrapper-bg)]',
         isError && 'opacity-40'
       )}
     >
-      <AssetItemContent asset={asset} isActiveToken={isActiveToken} isLoading={isLoading} isError={isError} amount={amount} />
+      <AssetItemContent
+        asset={asset}
+        isActiveToken={isActiveToken}
+        isLoading={isLoading}
+        isError={isError}
+        amount={amount}
+      />
     </button>
   );
 };

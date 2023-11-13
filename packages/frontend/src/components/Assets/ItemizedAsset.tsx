@@ -1,20 +1,26 @@
-import React, { useEffect, useState } from 'react'
-import Skeleton from 'react-loading-skeleton'
-import { IconCheck } from '../Icons/IconCheck'
-import InlineErrorMessage from '../Shared/InlineErrorMessage'
-import Image from 'next/image'
-import { AssetDetails } from '../../lib/typings'
+import React from 'react';
+import Skeleton from 'react-loading-skeleton';
+import { IconCheck } from '../Icons/IconCheck';
+import InlineErrorMessage from '../Shared/InlineErrorMessage';
+import Image from 'next/image';
+import { AssetDetails } from '../../lib/typings';
+import SymbolPill from '../Shared/SymbolPill';
 
 type Props = {
   asset: AssetDetails;
   isActiveToken: boolean;
   isLoading: boolean;
   isError: boolean;
-  isBestRate?: boolean;
   amount: string;
-}
+};
 
-const ItemizedAsset = ({ asset, isActiveToken, isLoading, isError, isBestRate, amount }: Props) => {
+const ItemizedAsset = ({
+  asset,
+  isActiveToken,
+  isLoading,
+  isError,
+  amount
+}: Props) => {
   return (
     <div className="flex flex-row justify-between items-center w-full text-left">
       <div className="flex flex-row items-center gap-[6px]">
@@ -28,21 +34,15 @@ const ItemizedAsset = ({ asset, isActiveToken, isLoading, isError, isBestRate, a
       </div>
       <p className="flex gap-2 items-center justify-center content-center">
         {amount}
-        <span className='bg-[var(--color-element-wrapper-bg)] rounded-[4px] px-2 py-1 text-[12px] min-w-[60px] text-center block'>
-          {asset.symbol}
-        </span>
-        {isLoading && (
-          <Skeleton width={60} />
-        )}
+        <SymbolPill symbol={asset.symbol} />
+        {isLoading && <Skeleton width={60} />}
         {isError && (
-          <InlineErrorMessage>
-            Error loading balance
-          </InlineErrorMessage>
+          <InlineErrorMessage>Error loading balance</InlineErrorMessage>
         )}
         {isActiveToken && <IconCheck />}
       </p>
     </div>
-  )
-}
+  );
+};
 
-export default ItemizedAsset
+export default ItemizedAsset;

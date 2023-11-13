@@ -17,12 +17,9 @@ const WithdrawField = ({
   setAmount
 }: Props) => {
   const [hasMounted, setHasMounted] = useState(false);
-  const [usdAmount, setUsdAmount] = useState(0);
-
   const handleValueChange = (value: number) => {
     if (!value) value = 0;
     setAmount(value);
-    setUsdAmount(value);
   };
 
   useEffect(() => {
@@ -31,18 +28,17 @@ const WithdrawField = ({
 
   return (
     <div>
-      <div className='flex flex-row justify-between gap-4'>
+      <div className="flex flex-row justify-between gap-4">
         <label htmlFor="amount" className="mb-1 font-medium">
           Amount
         </label>
         {hasMounted &&
-          accountTokenBalance !== undefined &&
-          activeTokenSymbol ? (
+        accountTokenBalance !== undefined &&
+        activeTokenSymbol ? (
           <>
             <span className="opacity-50 text-[12px] -tracking-tight">
               Balance: {accountTokenBalance.toFixed(2)} reETH
             </span>{' '}
-
           </>
         ) : (
           <Skeleton width={50} />

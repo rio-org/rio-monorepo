@@ -100,3 +100,11 @@ export type TokenSymbol =
 export type AssetAddress = {
   [key in TokenSymbol]: AddressType | null;
 };
+
+export interface TransactionEvent {
+  date: string;
+  status: TransactionStatus;
+  symbol: TokenSymbol;
+}
+
+export type TransactionStatus = 'Pending' | 'Available' | 'Claimed';

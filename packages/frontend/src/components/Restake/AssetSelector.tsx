@@ -30,7 +30,8 @@ const AssetSelector = ({ activeTokenSymbol, setActiveTokenSymbol }: Props) => {
         <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
           {Object.values(ASSETS).map((asset) => {
             // don't display reETH or ＊ETH in the asset selector
-            if (asset.symbol === 'reETH' || asset.symbol === '＊ETH') return null;
+            if (asset.symbol === 'reETH' || asset.symbol === '＊ETH')
+              return null;
             return (
               <DepositAssetItem
                 asset={asset}

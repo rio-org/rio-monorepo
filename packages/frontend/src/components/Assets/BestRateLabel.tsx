@@ -1,15 +1,11 @@
-import React from 'react'
+import React from 'react';
 
-type Props = {}
-
-const BestRateLabel = (props: Props) => {
+const BestRateLabel = () => {
   return (
-    <span
-      className='bg-[var(--color-blue)] text-[13px] text-white rounded-[4px] py-[4px] px-[6px] ml-2'
-    >
+    <span className="bg-[var(--color-blue)] text-[13px] text-white rounded-[4px] py-[4px] px-[6px] ml-2">
       Best rate
     </span>
-  )
-}
+  );
+};
 
-export default BestRateLabel
+export default BestRateLabel;

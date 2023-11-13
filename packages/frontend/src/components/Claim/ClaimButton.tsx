@@ -3,7 +3,7 @@ import cx from 'classnames';
 
 type Props = {
   isValid: boolean;
-}
+};
 
 const ClaimButton = ({ isValid }: Props) => {
   return (
@@ -22,7 +22,7 @@ const ClaimButton = ({ isValid }: Props) => {
         {isValid ? 'Claim' : 'Nothing available to claim'}
       </span>
     </button>
-  )
-}
+  );
+};
 
-export default ClaimButton
+export default ClaimButton;

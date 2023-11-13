@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react'
-import Skeleton from 'react-loading-skeleton'
-import { IconCheck } from '../Icons/IconCheck'
-import InlineErrorMessage from '../Shared/InlineErrorMessage'
-import Image from 'next/image'
-import { AssetDetails } from '../../lib/typings'
-import BestRateLabel from './BestRateLabel'
+import React, { useEffect, useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
+import { IconCheck } from '../Icons/IconCheck';
+import InlineErrorMessage from '../Shared/InlineErrorMessage';
+import Image from 'next/image';
+import { AssetDetails } from '../../lib/typings';
+import BestRateLabel from './BestRateLabel';
 
 type Props = {
   asset: AssetDetails;
@@ -13,9 +13,16 @@ type Props = {
   isError: boolean;
   isBestRate?: boolean;
   amount: React.ReactNode;
-}
+};
 
-const AssetItemContent = ({ asset, isActiveToken, isLoading, isError, isBestRate, amount }: Props) => {
+const AssetItemContent = ({
+  asset,
+  isActiveToken,
+  isLoading,
+  isError,
+  isBestRate,
+  amount
+}: Props) => {
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -40,19 +47,15 @@ const AssetItemContent = ({ asset, isActiveToken, isLoading, isError, isBestRate
         </div>
         <p className="flex gap-2 items-center justify-center content-center">
           {hasMounted && amount}
-          {isLoading && (
-            <Skeleton width={60} />
-          )}
+          {isLoading && <Skeleton width={60} />}
           {isError && (
-            <InlineErrorMessage>
-              Error loading balance
-            </InlineErrorMessage>
+            <InlineErrorMessage>Error loading balance</InlineErrorMessage>
           )}
           {isActiveToken && <IconCheck />}
         </p>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default AssetItemContent
+export default AssetItemContent;

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import type { NextPage } from 'next';
-import { TokenSymbol } from '../../lib/typings';
 import { useAccount, useBalance } from 'wagmi';
 import { Spinner, Alert } from '@material-tailwind/react';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
@@ -8,19 +7,15 @@ import WithdrawTabs from '../../components/Withdraw/WithdrawTabs';
 import WithdrawForm from '../../components/Withdraw/WithdrawForm';
 
 const Withdraw: NextPage = () => {
-  const [activeTokenSymbol, setActiveTokenSymbol] = useState<TokenSymbol>('＊ETH');
-  const [accountTokenBalance, setAccountTokenBalance] = useState(0);
-  const [amount, setAmount] = useState(0);
   const { address } = useAccount();
   const { data, isError, isLoading } = useBalance({
-    address: address,
+    address: address
     // TODO: use reETH address. currently using ETH address for testing
   });
 
-  const isValidAmount = amount > 0 && amount <= accountTokenBalance;
   useEffect(() => {
     if (data) {
-      setAccountTokenBalance(+data?.formatted);
+      console.log(data);
     }
   }, [data]);
 
@@ -47,7 +42,7 @@ const Withdraw: NextPage = () => {
           </div>
         </div>
       </div>
-    </WithdrawWrapper >
+    </WithdrawWrapper>
   );
 };
 

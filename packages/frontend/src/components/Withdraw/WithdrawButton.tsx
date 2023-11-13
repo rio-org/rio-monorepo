@@ -3,7 +3,7 @@ import cx from 'classnames';
 
 type Props = {
   isValid: boolean;
-}
+};
 
 const WithdrawButton = ({ isValid }: Props) => {
   return (
@@ -22,7 +22,7 @@ const WithdrawButton = ({ isValid }: Props) => {
         {isValid ? 'Request withdraw' : 'Enter an amount'}
       </span>
     </button>
-  )
-}
+  );
+};
 
-export default WithdrawButton
+export default WithdrawButton;

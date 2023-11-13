@@ -3,7 +3,7 @@ import cx from 'classnames';
 
 type Props = {
   isValidAmount: boolean;
-}
+};
 
 const DepositButton = ({ isValidAmount }: Props) => {
   return (
@@ -22,7 +22,7 @@ const DepositButton = ({ isValidAmount }: Props) => {
         {isValidAmount ? 'Restake' : 'Enter an amount'}
       </span>
     </button>
-  )
-}
+  );
+};
 
-export default DepositButton
+export default DepositButton;

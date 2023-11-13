@@ -57,8 +57,8 @@ const StakeField = ({
           <span className="opacity-50">${usdAmount}</span>
           <div>
             {hasMounted &&
-              accountTokenBalance !== undefined &&
-              activeTokenSymbol ? (
+            accountTokenBalance !== undefined &&
+            activeTokenSymbol ? (
               <>
                 <span className="opacity-50">
                   Balance: {accountTokenBalance.toFixed(2)} {activeTokenSymbol}

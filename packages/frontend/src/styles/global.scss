@@ -40,6 +40,15 @@ body,
 :root {
   --color-blue: #0000e1;
   --color-light-blue: #4d4dff;
+  --color-blue-bg: rgba(0, 0, 225, 0.1);
+  --color-blue-bg-hover: rgba(0, 0, 225, 0.25);
   --color-dark-gray: #262626;
+  --color-gray-hover: rgba(0, 0, 0, 0.02);
   --color-element-wrapper-bg: #e6e6e6;
+  --color-yellow: rgba(186, 145, 0, 1);
+  --color-yellow-bg-hover: rgba(186, 145, 0, 0.25);
+  --color-yellow-bg: rgba(186, 145, 0, 0.1);
+  --color-green: rgba(68, 148, 100, 1);
+  --color-green-bg: rgba(68, 148, 100, 0.1);
+  --color-green-bg-hover: rgba(68, 148, 100, 0.25);
 }

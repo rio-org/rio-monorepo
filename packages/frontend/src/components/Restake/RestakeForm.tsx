@@ -10,11 +10,14 @@ import DepositButton from './DepositButton';
 const RestakeForm = () => {
   const [amount, setAmount] = useState(0);
   const [accountTokenBalance, setAccountTokenBalance] = useState(0);
-  const [activeTokenSymbol, setActiveTokenSymbol] = useState<TokenSymbol>('ETH');
+  const [activeTokenSymbol, setActiveTokenSymbol] =
+    useState<TokenSymbol>('ETH');
   const { address } = useAccount();
   const { data, isError, isLoading } = useBalance({
     address: address,
-    token: ASSETS[activeTokenSymbol].address ? ASSETS[activeTokenSymbol].address as EthereumAddress : undefined,
+    token: ASSETS[activeTokenSymbol].address
+      ? (ASSETS[activeTokenSymbol].address as EthereumAddress)
+      : undefined
   });
   const isValidAmount = amount > 0 && amount <= accountTokenBalance;
   useEffect(() => {
