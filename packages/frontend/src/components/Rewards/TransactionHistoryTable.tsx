@@ -2,13 +2,14 @@ import React from 'react';
 import { txHistoryData, txHistoryTableHeader } from '../../../placeholder';
 import cx from 'classnames';
 import TableRow from './TableRow';
+import IconLineArrow from '../Icons/IconLineArrow';
 
 const TransactionHistoryTable = () => {
   const pageCount = 10;
   const pages = Array.from(Array(pageCount).keys());
   const [page, setPage] = React.useState(0);
-  const prevLabel = '<- Previous';
-  const nextLabel = 'Next ->';
+  const prevLabel = 'Previous';
+  const nextLabel = 'Next';
   const handlePageNum = (pageNum: number) => {
     if (pageNum < 0 || pageNum >= pageCount) return;
     setPage(pageNum);
@@ -34,7 +35,7 @@ const TransactionHistoryTable = () => {
                 <th
                   key={head}
                   className={cx(
-                    'text-[12px] font-normal p-4 opacity-50',
+                    'text-[12px] font-normal px-4 py-2 opacity-50',
                     i < 2 ? 'text-left' : 'text-right'
                   )}
                 >
@@ -57,19 +58,19 @@ const TransactionHistoryTable = () => {
         </table>
         <div className="bg-white w-full flex items-center justify-between border-t border-blue-gray-50 p-4 rounded-b-xl">
           <button
-            className="text-[12px] whitespace-nowrap opacity-50 py-1 px-2 rounded-lg hover:bg-[var(--color-element-wrapper-bg)] transition-colors"
+            className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-[var(--color-element-wrapper-bg)] transition-colors flex flex-row gap-1 items-center group"
             onClick={() => handlePreviousPage()}
           >
-            {prevLabel}
+            <IconLineArrow direction="left" /> <span className='opacity-50 group-hover:opacity-100'>{prevLabel}</span>
           </button>
           <div className="flex items-center justify-center gap-1 w-full">
             {pages.map((i) => (
               <button
                 key={i}
                 className={cx(
-                  'text-[12px] py-1 px-2 rounded-lg hover:bg-[var(--color-element-wrapper-bg)] transition-colors',
+                  'text-[12px] py-1 px-2 rounded-lg opacity-50 hover:bg-[var(--color-element-wrapper-bg)] transition-colors',
                   i === page
-                    ? 'bg-[var(--color-element-wrapper-bg)]'
+                    ? 'bg-[var(--color-element-wrapper-bg)] opacity-100'
                     : 'bg-white'
                 )}
                 onClick={() => handlePageNum(i)}
@@ -79,10 +80,10 @@ const TransactionHistoryTable = () => {
             ))}
           </div>
           <button
-            className="text-[12px] whitespace-nowrap opacity-50 py-1 px-2 rounded-lg hover:bg-[var(--color-element-wrapper-bg)] transition-colors"
+            className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-[var(--color-element-wrapper-bg)] transition-colors flex flex-row gap-1 items-center group"
             onClick={() => handleNextPage()}
           >
-            {nextLabel}
+            <span className='opacity-50 group-hover:opacity-100'>{nextLabel}</span> <IconLineArrow direction="right" />
           </button>
         </div>
       </div>

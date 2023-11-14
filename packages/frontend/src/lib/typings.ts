@@ -107,7 +107,7 @@ export interface WithdrawEvent {
   symbol: TokenSymbol;
 }
 
-export type TransactionStatus = 'Pending' | 'Available' | 'Claimed';
+export type TransactionStatus = 'Pending' | 'Available' | 'Claimed' | 'None';
 
 export interface TransactionEvent {
   date: string;

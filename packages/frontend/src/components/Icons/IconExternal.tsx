@@ -12,12 +12,14 @@ const IconExternal = ({ transactionStatus }: Props) => {
   const colorGreenBg = 'rgba(68, 148, 100, 0.1)';
   const colorBlue = 'rgba(0, 0, 255, 1)';
   const colorBlueBg = 'rgba(0, 0, 255, 0.1)';
+  const colorBlack = 'rgba(0, 0, 0, 1)';
   const iconColor = (transactionStatus: TransactionStatus) => {
     if (transactionStatus === 'Pending')
       return `${colorYellow} ${colorYellowBg}`;
     if (transactionStatus === 'Available')
       return `${colorGreen} ${colorGreenBg}`;
     if (transactionStatus === 'Claimed') return `${colorBlue} ${colorBlueBg}`;
+    return colorBlack;
   };
 
   return (
