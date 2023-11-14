@@ -4,7 +4,7 @@ export const theme = {
       base: {
         indicator: {
           borderRadius: 'rounded-xl'
-        },
+        }
       }
     }
   },
@@ -12,13 +12,25 @@ export const theme = {
     styles: {
       base: {
         menu: {
-          p: "p-2",
-          borderRadius: "rounded-xl",
+          p: 'p-1',
+          borderRadius: 'rounded-xl'
         },
         item: {
           initial: {
-            borderRadius: "rounded-lg",
-          },
+            borderRadius: 'rounded-lg'
+          }
+        }
+      }
+    }
+  },
+  navbar: {
+    styles: {
+      base: {
+        navbar: {
+          initial: {
+            py: 'py-0',
+            px: 'px-0'
+          }
         }
       }
     }

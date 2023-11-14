@@ -13,8 +13,13 @@ type Props = {
 const TableRow = ({ event, isFirst }: Props) => {
   const chainId = 1;
   return (
-    <tr className='group bg-white divide-gray-100'>
-      <td className={cx('p-4 pl-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors', isFirst && 'rounded-tl-xl')}>
+    <tr className="group bg-white divide-gray-100">
+      <td
+        className={cx(
+          'p-4 pl-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
+          isFirst && 'rounded-tl-xl'
+        )}
+      >
         <TableLabel>
           <a
             href={linkToTxOnBlockExplorer('0x000', chainId)}
@@ -24,9 +29,7 @@ const TableRow = ({ event, isFirst }: Props) => {
               `px-[8px] py-[4px] whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200 leading-none`
             )}
           >
-            <span className='pt-1'>
-              {event.date}
-            </span>
+            <span className="pt-1">{event.date}</span>
             <IconExternal transactionStatus="None" />
           </a>
         </TableLabel>
@@ -53,7 +56,12 @@ const TableRow = ({ event, isFirst }: Props) => {
           </TableLabel>
         </div>
       </td>
-      <td className={cx('p-4 pr-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors', isFirst && 'rounded-tr-xl')}>
+      <td
+        className={cx(
+          'p-4 pr-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
+          isFirst && 'rounded-tr-xl'
+        )}
+      >
         <TableLabel textDirection="right">{event.balance} reETH</TableLabel>
         <TableLabel isSecondary={true} textDirection="right">
           $

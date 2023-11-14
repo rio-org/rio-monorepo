@@ -10,7 +10,7 @@ const RestakeWrapper = ({ children, isWide }: Props) => {
   return (
     <div className="h-full flex items-center justify-center">
       <div className={`w-full ${maxWidthClass}`}>{children}</div>
-    </div >
+    </div>
   );
 };
 

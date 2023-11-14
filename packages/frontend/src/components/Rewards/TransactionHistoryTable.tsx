@@ -46,13 +46,7 @@ const TransactionHistoryTable = () => {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {txHistoryData.map((event, i) => {
-              return (
-                <TableRow
-                  key={i}
-                  event={event}
-                  isFirst={i === 0}
-                />
-              );
+              return <TableRow key={i} event={event} isFirst={i === 0} />;
             })}
           </tbody>
         </table>
@@ -61,7 +55,10 @@ const TransactionHistoryTable = () => {
             className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-[var(--color-element-wrapper-bg)] transition-colors flex flex-row gap-1 items-center group"
             onClick={() => handlePreviousPage()}
           >
-            <IconLineArrow direction="left" /> <span className='opacity-50 group-hover:opacity-100'>{prevLabel}</span>
+            <IconLineArrow direction="left" />{' '}
+            <span className="opacity-50 group-hover:opacity-100">
+              {prevLabel}
+            </span>
           </button>
           <div className="flex items-center justify-center gap-1 w-full">
             {pages.map((i) => (
@@ -83,7 +80,10 @@ const TransactionHistoryTable = () => {
             className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-[var(--color-element-wrapper-bg)] transition-colors flex flex-row gap-1 items-center group"
             onClick={() => handleNextPage()}
           >
-            <span className='opacity-50 group-hover:opacity-100'>{nextLabel}</span> <IconLineArrow direction="right" />
+            <span className="opacity-50 group-hover:opacity-100">
+              {nextLabel}
+            </span>{' '}
+            <IconLineArrow direction="right" />
           </button>
         </div>
       </div>

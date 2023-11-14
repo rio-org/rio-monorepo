@@ -2,7 +2,6 @@ import Head from 'next/head';
 import { ReactNode } from 'react';
 import { APP_TITLE } from '../../config';
 import AppNav from './Nav/AppNav';
-import { CustomConnectButton } from './Nav/CustomConnectButton';
 
 type LayoutProps = {
   children: ReactNode;
@@ -19,7 +18,6 @@ export default function Layout({ children }: LayoutProps) {
         <div className="bg-[#EFEFEF] p-8 rounded-[12px] h-full">
           <div className="container-fluid w-full mx-auto relative">
             <AppNav />
-            <CustomConnectButton />
           </div>
           <div className="container-fluid w-full h-full mx-auto px-4 md:px-10 py-4">
             {children}
