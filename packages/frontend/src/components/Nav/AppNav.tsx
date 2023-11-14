@@ -24,11 +24,15 @@ import { CustomConnectButton } from './CustomConnectButton';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
 import IconLineArrow from '../Icons/IconLineArrow';
 
-type Props = {
-  activeTab: string;
-};
 
-const NavList = ({ activeTab }: Props) => {
+const NavList = ({ activeTab }: {
+  activeTab: string;
+}) => {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const handleMenuClick = () => {
+    setIsMenuOpen(!isMenuOpen);
+  }
+
   return (
     <>
       {APP_NAV_ITEMS.map(({ label, slug }) => (
@@ -45,20 +49,27 @@ const NavList = ({ activeTab }: Props) => {
         </Link>
       ))}
       <div>
-        <Menu placement="bottom-start">
+        <Menu placement="bottom-start" open={isMenuOpen} handler={() => {
+          handleMenuClick();
+        }}>
           <MenuHandler>
-            <div className="py-2 px-4 hover:cursor-pointer opacity-40 hover:opacity-80">
-              <Image src={dots} alt="Rio" width={16} height={16} />
+            <div className={cx(
+              "group py-4 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-[var(--color-element-wrapper-bg)]",
+              isMenuOpen ? 'bg-[var(--color-element-wrapper-bg)]' : ''
+            )}>
+              <Image
+                className={cx('opacity-40 group-hover:opacity-80', isMenuOpen ? 'opacity-80' : '')}
+                src={dots} alt="" width={16} height={16} />
             </div>
           </MenuHandler>
           <MenuList>
             <div>
-              {APP_SECONDARY_NAV_ITEMS.map(({ label, url, icon }) => (
+              {APP_SECONDARY_NAV_ITEMS.map(({ label, url, icon }, index) => (
                 <MenuItem>
                   <Link
                     href={url}
-                    key={url}
-                    className="py-1 px-0 font-medium hover:text-black flex flex-row gap-2 items-center text-black font-medium"
+                    key={index}
+                    className="py-1 px-0 hover:text-black flex flex-row gap-2 items-center text-black font-medium"
                   >
                     <Image src={icon} width={16} height={16} alt={label} />
                     {label}
@@ -67,25 +78,25 @@ const NavList = ({ activeTab }: Props) => {
               ))}
             </div>
             <hr className="mx-2 my-2 border-t border-black border-opacity-10 bg-transparent " />
-            <div className="mb-5">
-              {APP_TERTIARY_NAV_ITEMS.map(({ label, url }) => (
-                <MenuItem>
+            <div className="mb-4">
+              {APP_TERTIARY_NAV_ITEMS.map(({ label, url }, index) => (
+                <MenuItem className='group'>
                   <Link
                     href={url}
-                    key={url}
-                    className="py-0 px-0 text-black flex flex-row gap-1 items-center opacity-50 hover:opacity-100 text-[12px] font-medium"
+                    key={index}
+                    className="py-0 px-0 text-black flex flex-row gap-1 items-center opacity-50 group-hover:opacity-100 text-[12px] font-medium"
                   >
                     {label} <IconLineArrow direction="external" />
                   </Link>
                 </MenuItem>
               ))}
             </div>
-            <div className="flex flex-row gap-2 ml-2 mb-4">
-              {APP_SOCIAL_NAV_ITEMS.map(({ url, icon }) => (
+            <div className="flex flex-row gap-1 ml-2 mb-2">
+              {APP_SOCIAL_NAV_ITEMS.map(({ url, icon }, index) => (
                 <Link
                   href={url}
-                  key={url}
-                  className="py-0 px-1 font-medium opacity-40 hover:opacity-100"
+                  key={index}
+                  className="p-2 aspect-square rounded-full font-medium opacity-40 hover:opacity-100 hover:bg-blue-gray-50 hover:bg-opacity-80 focus:bg-blue-gray-50 focus:bg-opacity-80 active:bg-blue-gray-50 active:bg-opacity-80"
                 >
                   <Image src={icon} width={16} height={16} alt={''} />
                 </Link>
@@ -93,7 +104,7 @@ const NavList = ({ activeTab }: Props) => {
             </div>
           </MenuList>
         </Menu>
-      </div>
+      </div >
     </>
   );
 };
@@ -121,7 +132,7 @@ const AppNav = () => {
 
   return (
     <Navbar
-      className="mx-auto max-w-screen-xl px-6 py-3"
+      className="mx-auto max-w-screen-xl"
       variant="filled"
       color="transparent"
     >
