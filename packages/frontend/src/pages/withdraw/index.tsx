@@ -30,7 +30,7 @@ const Withdraw: NextPage = () => {
   return (
     <WithdrawWrapper>
       <div>
-        <h1 className="text-2xl mb-2">Withdraw</h1>
+        <h1 className="text-2xl mb-2 font-medium">Withdraw</h1>
         <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-2xl p-[2px]">
           <div className="flex justify-between gap-8 w-full px-5 pt-5 pb-3">
             <div className="flex gap-2 justify-center items-center">

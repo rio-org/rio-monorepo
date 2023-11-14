@@ -25,7 +25,7 @@ const TransactionHistoryTable = () => {
 
   return (
     <div>
-      <h1 className="text-2xl mb-5">Transaction History</h1>
+      <h1 className="text-2xl mb-5 font-medium">Transaction History</h1>
       <div className="bg-[var(--color-element-wrapper-bg)] p-[2px] rounded-t-2xl rounded-b-xl">
         <table className="w-full min-w-max table-auto text-left">
           <thead>
@@ -50,7 +50,6 @@ const TransactionHistoryTable = () => {
                   key={i}
                   event={event}
                   isFirst={i === 0}
-                  isLast={i === txHistoryData.length - 1}
                 />
               );
             })}

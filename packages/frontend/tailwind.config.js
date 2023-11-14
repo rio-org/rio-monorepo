@@ -7,7 +7,14 @@ module.exports = withMT({
     './src/components/**/*.{js,ts,jsx,tsx,mdx}'
   ],
   theme: {
-    extend: {}
+    extend: {},
+    fontFamily: {
+      'sans': ['NB International Pro', 'ui-sans-serif', 'system-ui']
+      // 'serif': ['ui-serif', 'Georgia', ...],
+      // 'mono': ['ui-monospace', 'SFMono-Regular', ...],
+      // 'display': ['Oswald', ...],
+      // 'body': ['"Open Sans"', ...],
+    }
   },
   plugins: []
 });

@@ -15,7 +15,7 @@ export default function Layout({ children }: LayoutProps) {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
         <title>{APP_TITLE}</title>
       </Head>
-      <main className="bg-white p-[12px] h-full">
+      <main className="bg-white p-[12px] h-full font-sans">
         <div className="bg-[#EFEFEF] p-8 rounded-[12px] h-full">
           <div className="container-fluid w-full mx-auto relative">
             <AppNav />

@@ -6,7 +6,6 @@ import cx from 'classnames';
 type Props = {
   event: TransactionEvent;
   isFirst?: boolean;
-  isLast?: boolean;
 };
 
 const TableRow = ({ event, isFirst }: Props) => {
