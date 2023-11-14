@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import StakeField from './StakeField';
 import { useAccount, useBalance } from 'wagmi';
 import { Alert, Spinner } from '@material-tailwind/react';
-import { EthereumAddress, TokenSymbol } from '../../lib/typings';
+import { TokenSymbol } from '../../lib/typings';
 import { ASSETS } from '../../lib/constants';
 import HR from '../Shared/HR';
 import DepositButton from './DepositButton';
@@ -13,11 +13,10 @@ const RestakeForm = () => {
   const [activeTokenSymbol, setActiveTokenSymbol] =
     useState<TokenSymbol>('ETH');
   const { address } = useAccount();
+  const activeAsset = ASSETS[activeTokenSymbol];
   const { data, isError, isLoading } = useBalance({
     address: address,
-    token: ASSETS[activeTokenSymbol].address
-      ? (ASSETS[activeTokenSymbol].address as EthereumAddress)
-      : undefined
+    token: activeAsset.address ? activeAsset.address : undefined
   });
   const isValidAmount = amount > 0 && amount <= accountTokenBalance;
   useEffect(() => {

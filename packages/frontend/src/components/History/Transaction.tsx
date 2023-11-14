@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { TransactionEvent } from '../../lib/typings';
-import TransactionStatus from '../Shared/TransactionStatus';
+import { WithdrawEvent } from '../../lib/typings';
+import TransactionStatusLabel from '../Shared/TransactionStatusLabel';
 import SymbolPill from '../Shared/SymbolPill';
 import { AnimatePresence, motion } from 'framer-motion';
 import { buildAssetList } from '../../lib/utilities';
@@ -8,7 +8,7 @@ import ItemizedAsset from '../Assets/ItemizedAsset';
 import IconSelectArrow from '../Icons/IconSelectArrow';
 
 type Props = {
-  transaction: TransactionEvent;
+  transaction: WithdrawEvent;
 };
 
 const Transaction = ({ transaction }: Props) => {
@@ -26,7 +26,7 @@ const Transaction = ({ transaction }: Props) => {
             {transaction.date}
           </td>
           <td className="flex flex-row flex-1">
-            <TransactionStatus transaction={transaction} />
+            <TransactionStatusLabel transaction={transaction} />
           </td>
           <td className="px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
             <div className="flex items-center gap-0">

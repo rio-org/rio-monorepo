@@ -1,5 +1,5 @@
 import React from 'react';
-import { TransactionEvent, TransactionStatus } from '../../lib/typings';
+import { WithdrawEvent } from '../../lib/typings';
 import cx from 'classnames';
 import IconExternal from '../Icons/IconExternal';
 import { IconClock } from '../Icons/IconClock';
@@ -9,10 +9,10 @@ import updateLocale from 'dayjs/plugin/updateLocale';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
 
 type Props = {
-  transaction: TransactionEvent;
+  transaction: WithdrawEvent;
 };
 
-const TransactionStatus = ({ transaction }: Props) => {
+const TransactionStatusLabel = ({ transaction }: Props) => {
   const chainId = 1;
   const thresholds = [
     { l: 's', r: 1 },
@@ -84,4 +84,4 @@ const TransactionStatus = ({ transaction }: Props) => {
   );
 };
 
-export default TransactionStatus;
+export default TransactionStatusLabel;

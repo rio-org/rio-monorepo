@@ -101,10 +101,19 @@ export type AssetAddress = {
   [key in TokenSymbol]: AddressType | null;
 };
 
-export interface TransactionEvent {
+export interface WithdrawEvent {
   date: string;
   status: TransactionStatus;
   symbol: TokenSymbol;
 }
 
 export type TransactionStatus = 'Pending' | 'Available' | 'Claimed';
+
+export interface TransactionEvent {
+  date: string;
+  txId: string;
+  type: string;
+  historicalReEthPrice: number;
+  amountReEth: number;
+  balance: number;
+}
