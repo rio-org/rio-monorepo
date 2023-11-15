@@ -16,8 +16,8 @@ const Transaction = ({ transaction }: Props) => {
   const assets = buildAssetList(transaction.symbol);
 
   return (
-    <div className="border-b border-b-gray-200">
-      <tr className="flex w-full">
+    <>
+      <tr className="flex w-full border-b border-b-gray-200">
         <button
           className="w-full py-4 hover:bg-[var(--color-gray-hover)] transition-colors flex flex-row justify-between items-center"
           onClick={() => setIsOpen(!isOpen)}
@@ -66,7 +66,7 @@ const Transaction = ({ transaction }: Props) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 };
 

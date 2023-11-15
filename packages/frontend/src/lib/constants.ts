@@ -84,3 +84,18 @@ export const PUBLIC_SUBGRAPH_URL = {
   7777777: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-zora-testnet/stable/gn',
   999: 'https://api.thegraph.com/subgraphs/name/neokry/nouns-builder-mainnet'
 };
+
+export const TX_BUTTON_VARIANTS = {
+  initial: {
+    opacity: 0,
+    y: 20
+  },
+  animate: {
+    opacity: 1,
+    y: 0
+  },
+  exit: {
+    opacity: 0,
+    y: 20
+  }
+};

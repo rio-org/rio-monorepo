@@ -25,7 +25,7 @@ const WithdrawAssetSelector = ({
         <button
           className={cx(
             'flex flex-row gap-4 items-center w-full text-left bg-black bg-opacity-5 text-black px-[20px] py-4 rounded-xl border border-transparent hover:border-gray-300',
-            isListOpen && 'border-gray-300'
+            isListOpen && 'border-gray-400 hover:border-gray-400'
           )}
           id="asset"
           onClick={() => setIsListOpen(!isListOpen)}

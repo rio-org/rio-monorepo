@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TokenSymbol } from '../../lib/typings';
-// import AssetSelector from './AssetSelector';
 import Skeleton from 'react-loading-skeleton';
+import cx from 'classnames';
 
 type Props = {
   amount: number;
@@ -17,11 +17,18 @@ const WithdrawField = ({
   setAmount
 }: Props) => {
   const [hasMounted, setHasMounted] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const handleValueChange = (value: number) => {
     if (!value) value = 0;
     setAmount(value);
   };
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const focusInput = () => {
+    if (!inputRef.current) return;
+    inputRef.current.focus();
+    setIsFocused(true);
+  };
   useEffect(() => {
     setHasMounted(true);
   }, []);
@@ -44,16 +51,32 @@ const WithdrawField = ({
           <Skeleton width={50} />
         )}
       </div>
-      <div className="bg-black bg-opacity-5 text-black px-[20px] py-4 rounded-xl">
+      <div
+        className={cx(
+          'bg-black bg-opacity-5 text-black px-[20px] py-4 rounded-xl hover:border-gray-300 border border-transparent',
+          isFocused && 'border-gray-400 hover:border-gray-400'
+        )}
+        onClick={() => {
+          focusInput();
+        }}
+      >
         <div className="relative flex flex-row gap-4 items-center">
           <input
-            className="text-[22px] bg-transparent w-full"
+            className="text-[22px] bg-transparent w-full focus:outline-none"
             id="amount"
             type="number"
-            value={amount}
+            value={amount ? amount : ''}
             placeholder="0.00"
             onChange={(e) => {
               handleValueChange(parseInt(e.target.value as string));
+            }}
+            autoFocus
+            ref={inputRef}
+            onFocus={() => {
+              setIsFocused(true);
+            }}
+            onBlur={() => {
+              setIsFocused(false);
             }}
           />
           <button

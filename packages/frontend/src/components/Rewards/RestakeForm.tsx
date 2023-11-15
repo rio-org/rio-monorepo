@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import StakeField from './StakeField';
+import StakeField from '../Restake/StakeField';
 import { useAccount, useBalance } from 'wagmi';
 import { Alert, Spinner } from '@material-tailwind/react';
 import { TokenSymbol } from '../../lib/typings';
 import { ASSETS } from '../../lib/constants';
 import HR from '../Shared/HR';
-import DepositButton from './DepositButton';
+import DepositButton from '../Restake/DepositButton';
 
 const RestakeForm = () => {
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState<number | null>(null);
   const [accountTokenBalance, setAccountTokenBalance] = useState(0);
   const [activeTokenSymbol, setActiveTokenSymbol] =
     useState<TokenSymbol>('ETH');
@@ -18,13 +18,17 @@ const RestakeForm = () => {
     address: address,
     token: activeAsset.address ? activeAsset.address : undefined
   });
-  const isValidAmount = amount > 0 && amount <= accountTokenBalance;
+  const isValidAmount = amount && amount > 0 && amount <= accountTokenBalance;
   useEffect(() => {
     if (data) {
       setAccountTokenBalance(+data?.formatted);
       setActiveTokenSymbol(data?.symbol as TokenSymbol);
     }
   }, [data]);
+
+  useEffect(() => {
+    setAmount(null);
+  }, [accountTokenBalance]);
 
   if (isError) return <Alert color="red">Error loading account balance.</Alert>;
   if (isLoading)
@@ -62,7 +66,7 @@ const RestakeForm = () => {
         <span className="text-black opacity-50">Minimum received</span>
         <strong>XX reETH</strong>
       </div>
-      <DepositButton isValidAmount={isValidAmount} />
+      <DepositButton isValidAmount={isValidAmount ? true : false} />
     </>
   );
 };

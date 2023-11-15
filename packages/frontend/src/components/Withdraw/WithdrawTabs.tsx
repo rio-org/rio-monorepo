@@ -18,6 +18,7 @@ const WithdrawTabs = () => {
         <Link
           href={`/${baseUrlSegment}/${slug}`}
           key={slug}
+          scroll={false}
           passHref
           className={cx(
             'font-medium hover:text-black px-2 ',

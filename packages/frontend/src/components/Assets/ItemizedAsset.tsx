@@ -32,7 +32,7 @@ const ItemizedAsset = ({
         />
         <p className="opacity-50 text-[14px]">{asset.name}</p>
       </div>
-      <p className="flex gap-2 items-center justify-center content-center">
+      <p className="flex gap-2 items-center justify-center content-center text-[14px]">
         {amount}
         <SymbolPill symbol={asset.symbol} />
         {isLoading && <Skeleton width={60} />}

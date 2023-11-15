@@ -24,51 +24,63 @@ import { CustomConnectButton } from './CustomConnectButton';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
 import IconLineArrow from '../Icons/IconLineArrow';
 
-
-const NavList = ({ activeTab }: {
-  activeTab: string;
-}) => {
+const NavList = ({ activeTab }: { activeTab: string }) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const handleMenuClick = () => {
     setIsMenuOpen(!isMenuOpen);
-  }
-
+  };
+  const slugUrl = (slug: string) => {
+    if (slug === '/') return '/';
+    return `/${slug}`;
+  };
   return (
     <>
-      {APP_NAV_ITEMS.map(({ label, slug }) => (
+      {APP_NAV_ITEMS.map(({ label, slug }, index) => (
         <Link
-          href={slug}
-          key={slug}
+          href={slugUrl(slug)}
+          key={label + index}
+          scroll={false}
           className={cx(
-            'py-2 px-4 font-medium hover:text-black',
-            activeTab === slug ? '' : 'text-gray-500'
+            'py-2 px-4 font-medium  rounded-xl hover:text-black hover:bg-[var(--color-element-wrapper-bg)]',
+            activeTab === slug ? 'text-black' : 'text-gray-500'
           )}
-          passHref
         >
           {label}
         </Link>
       ))}
       <div>
-        <Menu placement="bottom-start" open={isMenuOpen} handler={() => {
-          handleMenuClick();
-        }}>
+        <Menu
+          placement="bottom-start"
+          open={isMenuOpen}
+          handler={() => {
+            handleMenuClick();
+          }}
+        >
           <MenuHandler>
-            <div className={cx(
-              "group py-4 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-[var(--color-element-wrapper-bg)]",
-              isMenuOpen ? 'bg-[var(--color-element-wrapper-bg)]' : ''
-            )}>
+            <div
+              className={cx(
+                'group py-3 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-[var(--color-element-wrapper-bg)]',
+                isMenuOpen ? 'bg-[var(--color-element-wrapper-bg)]' : ''
+              )}
+            >
               <Image
-                className={cx('opacity-40 group-hover:opacity-80', isMenuOpen ? 'opacity-80' : '')}
-                src={dots} alt="" width={16} height={16} />
+                className={cx(
+                  'opacity-40 group-hover:opacity-80',
+                  isMenuOpen ? 'opacity-80' : ''
+                )}
+                src={dots}
+                alt=""
+                width={16}
+                height={16}
+              />
             </div>
           </MenuHandler>
           <MenuList>
             <div>
               {APP_SECONDARY_NAV_ITEMS.map(({ label, url, icon }, index) => (
-                <MenuItem>
+                <MenuItem key={label + index}>
                   <Link
                     href={url}
-                    key={index}
                     className="py-1 px-0 hover:text-black flex flex-row gap-2 items-center text-black font-medium"
                   >
                     <Image src={icon} width={16} height={16} alt={label} />
@@ -80,10 +92,9 @@ const NavList = ({ activeTab }: {
             <hr className="mx-2 my-2 border-t border-black border-opacity-10 bg-transparent " />
             <div className="mb-4">
               {APP_TERTIARY_NAV_ITEMS.map(({ label, url }, index) => (
-                <MenuItem className='group'>
+                <MenuItem className="group" key={label + index}>
                   <Link
                     href={url}
-                    key={index}
                     className="py-0 px-0 text-black flex flex-row gap-1 items-center opacity-50 group-hover:opacity-100 text-[12px] font-medium"
                   >
                     {label} <IconLineArrow direction="external" />
@@ -95,7 +106,7 @@ const NavList = ({ activeTab }: {
               {APP_SOCIAL_NAV_ITEMS.map(({ url, icon }, index) => (
                 <Link
                   href={url}
-                  key={index}
+                  key={url + index}
                   className="p-2 aspect-square rounded-full font-medium opacity-40 hover:opacity-100 hover:bg-blue-gray-50 hover:bg-opacity-80 focus:bg-blue-gray-50 focus:bg-opacity-80 active:bg-blue-gray-50 active:bg-opacity-80"
                 >
                   <Image src={icon} width={16} height={16} alt={''} />
@@ -104,7 +115,7 @@ const NavList = ({ activeTab }: {
             </div>
           </MenuList>
         </Menu>
-      </div >
+      </div>
     </>
   );
 };
