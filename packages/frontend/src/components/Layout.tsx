@@ -1,14 +1,8 @@
 import Head from 'next/head';
-import {
-  ReactNode,
-  useEffect,
-  // useLayoutEffect,
-  useRef,
-  useState
-} from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { APP_NAV_ITEMS, APP_TITLE } from '../../config';
 import AppNav from './Nav/AppNav';
-// import useWindowSize from '../hooks/useWindowSize';
+import useWindowSize from '../hooks/useWindowSize';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 
@@ -18,11 +12,10 @@ type LayoutProps = {
 
 export default function Layout({ children }: LayoutProps) {
   const ref = useRef<HTMLDivElement>(null);
-  // const windowSize = useWindowSize();
-  const [
-    appCanvasHeight
-    // setappCanvasHeight
-  ] = useState(0);
+  const hasWindow = typeof window !== 'undefined';
+  const win = hasWindow ? (window as Window) : undefined;
+  const windowSize = useWindowSize(win);
+  const [appCanvasHeight, setappCanvasHeight] = useState(0);
   const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0); // APP_NAV_ITEMS[0
   const [transitionDirection, setTransitionDirection] = useState<number>(50);
   const router = useRouter();
@@ -44,11 +37,11 @@ export default function Layout({ children }: LayoutProps) {
     );
   }, [router]);
 
-  // useLayoutEffect(() => {
-  //   if (ref.current && ref.current.offsetHeight && windowSize.height > 0) {
-  //     setappCanvasHeight(windowSize.height - ref.current.offsetHeight - 48);
-  //   }
-  // }, [windowSize, ref]);
+  useLayoutEffect(() => {
+    if (ref.current && ref.current.offsetHeight && windowSize.height > 0) {
+      setappCanvasHeight(windowSize.height - ref.current.offsetHeight - 48);
+    }
+  }, [windowSize, ref]);
 
   return (
     <>

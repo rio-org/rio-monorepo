@@ -1,34 +1,39 @@
-// import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-function useWindowSize() {
+function useWindowSize(win?: Window) {
   // Initialize state with undefined width/height so server and client renders match
   // Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
-  // const [windowSize, setWindowSize] = useState({
-  //   width: 0,
-  //   height: 0
-  // });
+  const [windowSize, setWindowSize] = useState({
+    width: 0,
+    height: 0
+  });
 
-  // useEffect(() => {
-  //   // only execute all the code below in client side
-  //   // Handler to call on window resize
-  //   function handleResize() {
-  //     // Set window width/height to state
-  //     setWindowSize({
-  //       width: window.innerWidth,
-  //       height: window.innerHeight
-  //     });
-  //   }
+  function handleResize() {
+    // Set window width/height to state
+    setWindowSize({
+      width: win?.innerWidth ?? 0,
+      height: win?.innerHeight ?? 0
+    });
+  }
 
-  //   // Add event listener
-  //   window.addEventListener('resize', handleResize);
+  useEffect(() => {
+    if (win !== undefined) {
+      // only execute all the code below in client side
+      // Handler to call on window resize
 
-  //   // Call handler right away so state gets updated with initial window size
-  //   handleResize();
+      // Add event listener
+      win?.addEventListener('resize', handleResize);
 
-  //   // Remove event listener on cleanup
-  //   return () => window.removeEventListener('resize', handleResize);
-  // }, []); // Empty array ensures that effect is only run on mount
-  return 'windowSize';
+      // Call handler right away so state gets updated with initial window size
+      handleResize();
+
+      // Remove event listener on cleanup
+      win?.removeEventListener('resize', handleResize);
+      // return () => win?.removeEventListener('resize', handleResize);
+      // return removeListener;
+    }
+  }, [win]); // Empty array ensures that effect is only run on mount
+  return windowSize;
 }
 
 export default useWindowSize;
