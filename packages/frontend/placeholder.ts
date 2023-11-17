@@ -6,6 +6,7 @@ export const exchangeRate = 1.02;
 export const demoReadContractAddress =
   '0xdf9b7d26c8fc806b1ae6273684556761ff02d422';
 export const ethInUSD = 1938.52;
+export const reEthInUSD = 1942.52;
 export const historyData: WithdrawEvent[] = [
   {
     date: 'August 12, 2023',

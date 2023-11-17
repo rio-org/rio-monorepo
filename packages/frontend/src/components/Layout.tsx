@@ -5,6 +5,7 @@ import AppNav from './Nav/AppNav';
 import useWindowSize from '../hooks/useWindowSize';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
+import ReETHConversion from './Shared/reETHConversion';
 
 type LayoutProps = {
   children: ReactNode;
@@ -50,7 +51,7 @@ export default function Layout({ children }: LayoutProps) {
         <title>{APP_TITLE}</title>
       </Head>
       <main className="bg-white p-[12px] h-full font-sans">
-        <div className="bg-[#EFEFEF] px-4 py-2 rounded-[12px] min-h-full bg-fixed">
+        <div className="bg-[#EFEFEF] px-4 py-2 rounded-[12px] min-h-full bg-fixed relative">
           <div
             ref={ref}
             className="container-fluid w-full mx-auto relative mb-4"
@@ -91,6 +92,9 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </motion.div>
           </AnimatePresence>
+          <div className='sticky bottom-3 left-3'>
+            <ReETHConversion />
+          </div>
         </div>
       </main>
     </>

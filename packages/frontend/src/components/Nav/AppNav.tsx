@@ -95,7 +95,7 @@ const NavList = ({ activeTab }: { activeTab: string }) => {
                 <MenuItem className="group" key={label + index}>
                   <Link
                     href={url}
-                    className="py-0 px-0 text-black flex flex-row gap-1 items-center opacity-50 group-hover:opacity-100 text-[12px] font-medium"
+                    className="py-0 px-0 text-black flex flex-row gap-1 items-center opacity-50 group-hover:opacity-100 text-[14px] font-medium"
                   >
                     {label} <IconLineArrow direction="external" />
                   </Link>
