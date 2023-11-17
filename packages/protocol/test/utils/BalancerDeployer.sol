@@ -98,7 +98,7 @@ abstract contract BalancerDeployer is Test {
     /// @param creationCode The contract creation code.
     /// @param args The contract constructor arguments.
     /// @param where The address to deploy the contract to.
-    function _deployTo(bytes memory creationCode, bytes memory args, address where) internal {
+    function _deployTo(bytes memory creationCode, bytes memory args, address where) internal virtual {
         vm.etch(where, abi.encodePacked(creationCode, args));
         (bool success, bytes memory runtimeBytecode) = where.call('');
         require(success, 'StdCheats deployCodeTo(string,bytes,uint256,address): Failed to create runtime bytecode.');

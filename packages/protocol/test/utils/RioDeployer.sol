@@ -2,6 +2,7 @@
 pragma solidity 0.8.21;
 
 import {BalancerDeployer} from 'test/utils/BalancerDeployer.sol';
+import {EigenLayerDeployer} from 'test/utils/EigenLayerDeployer.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import {RioLRTOperatorRegistry} from 'contracts/restaking/RioLRTOperatorRegistry.sol';
@@ -13,9 +14,8 @@ import {RioLRTOperator} from 'contracts/restaking/RioLRTOperator.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {RioLRTIssuer} from 'contracts/restaking/RioLRTIssuer.sol';
 import {RioLRT} from 'contracts/restaking/RioLRT.sol';
-import {MockERC20} from 'test/utils/MockERC20.sol';
 
-abstract contract RioDeployer is BalancerDeployer {
+abstract contract RioDeployer is BalancerDeployer, EigenLayerDeployer {
     address public constant SECURITY_COUNCIL = address(0xC0);
     uint256 public constant MIN_SWAP_FEE = 1e12; // 0.0001%
 
@@ -23,6 +23,7 @@ abstract contract RioDeployer is BalancerDeployer {
 
     function deployRio() public {
         deployBalancer();
+        deployEigenLayer();
 
         address issuerImpl = address(
             new RioLRTIssuer(
@@ -34,9 +35,17 @@ abstract contract RioDeployer is BalancerDeployer {
                 address (new RioLRTRewardDistributor(address(0), address(0))),
                 address (new RioLRTOperatorRegistry(
                     VAULT_ADDRESS,
-                    address(new RioLRTOperator(address(0), address(0), address(0), address(0), address(0)))
+                    address(
+                        new RioLRTOperator(
+                            STRATEGY_MANAGER_ADDRESS,
+                            EIGEN_POD_MANAGER_ADDRESS,
+                            DELEGATION_MANAGER_ADDRESS,
+                            SLASHER_ADDRESS,
+                            address(0)
+                        )
+                    )
                 )),
-                address (new RioLRTWithdrawalQueue(address(0), address(0)))
+                address (new RioLRTWithdrawalQueue(DELEGATION_MANAGER_ADDRESS, VAULT_ADDRESS))
             )
         );
         issuer = RioLRTIssuer(
@@ -45,12 +54,9 @@ abstract contract RioDeployer is BalancerDeployer {
     }
 
     function issueRestakedETH() public returns (IRioLRTIssuer.LRTDeployment memory d, address[] memory tokens) {
-        address tokenA = address(new MockERC20('Token A', 'A'));
-        address tokenB = address(new MockERC20('Token B', 'B'));
-
         tokens = new address[](2);
-        tokens[0] = tokenA < tokenB ? tokenA : tokenB;
-        tokens[1] = tokenA < tokenB ? tokenB : tokenA;
+        tokens[0] = address(stETH < rETH ? stETH : rETH);
+        tokens[1] = address(stETH < rETH ? rETH : stETH);
 
         uint256[] memory amountsIn = new uint256[](2);
         amountsIn[0] = 30e18;
@@ -77,5 +83,13 @@ abstract contract RioDeployer is BalancerDeployer {
                 securityCouncil: SECURITY_COUNCIL
             })
         );
+    }
+
+    /// @dev Deploys a contract to the specified address.
+    /// @param creationCode The contract creation code.
+    /// @param args The contract constructor arguments.
+    /// @param where The address to deploy the contract to.
+    function _deployTo(bytes memory creationCode, bytes memory args, address where) internal override(BalancerDeployer, EigenLayerDeployer) {
+        super._deployTo(creationCode, args, where);
     }
 }
