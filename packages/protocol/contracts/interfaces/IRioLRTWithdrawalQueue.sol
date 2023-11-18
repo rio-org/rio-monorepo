@@ -59,7 +59,9 @@ interface IRioLRTWithdrawalQueue {
     /// @param token The withdrawal token.
     /// @param amount The sum of all withdrawals in the epoch.
     /// @param aggregateRoot The aggregate root of the withdrawals.
-    event WithdrawalsQueuedForEpoch(uint256 indexed epoch, address indexed token, uint256 amount, bytes32 aggregateRoot);
+    event WithdrawalsQueuedForEpoch(
+        uint256 indexed epoch, address indexed token, uint256 amount, bytes32 aggregateRoot
+    );
 
     /// @notice Emitted when withdrawals are completed for an epoch.
     /// @param epoch The withdrawal epoch.
@@ -93,13 +95,19 @@ interface IRioLRTWithdrawalQueue {
     /// @notice Retrieve the owed cash and completion status for a given token and epoch.
     /// @param token The token for which to retrieve the information.
     /// @param epoch The epoch for which to retrieve the information.
-    function getEpochWithdrawals(address token, uint256 epoch) external view returns (uint248 owed, bool completed, bytes32 aggregateRoot);
+    function getEpochWithdrawals(address token, uint256 epoch)
+        external
+        view
+        returns (uint248 owed, bool completed, bytes32 aggregateRoot);
 
     /// @notice Retrieve a user's withdrawal information for a given token and epoch.
     /// @param token The token for which to retrieve the user's withdrawal information.
     /// @param epoch The epoch for which to retrieve the user's withdrawal information.
     /// @param user The address of the user to retrieve the withdrawal information for.
-    function getUserWithdrawal(address token, uint256 epoch, address user) external view returns (UserWithdrawal memory);
+    function getUserWithdrawal(address token, uint256 epoch, address user)
+        external
+        view
+        returns (UserWithdrawal memory);
 
     /// @notice Get the amount of `token` owed to withdrawers in the current `epoch`.
     /// @param token The withdrawal token.

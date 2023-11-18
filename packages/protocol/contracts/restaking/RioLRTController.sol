@@ -2,20 +2,19 @@
 pragma solidity 0.8.21;
 
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
-import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {IBasePoolAuthentication} from 'contracts/interfaces/balancer/IBasePoolAuthentication.sol';
-import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
 import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
 import {IRioLRTController} from 'contracts/interfaces/IRioLRTController.sol';
+import {IManagedPool} from 'contracts/interfaces/balancer/IManagedPool.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
+import {IVault} from 'contracts/interfaces/balancer/IVault.sol';
 
 contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradeable {
-    using SafeERC20 for IOpenZeppelinERC20;
+    using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
 
     /// @notice The minimum weight change duration.
@@ -27,8 +26,8 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
     /// @notice The maximum AUM fee percentage.
     uint256 public constant MAX_AUM_FEE_PERCENTAGE = 10e16; // 10%
 
-    /// @notice The pool (LRT) that's controlled by this contract.
-    IManagedPoolSettings public pool;
+    /// @notice The pool that's controlled by this contract.
+    IManagedPool public pool;
 
     /// @notice The contract in charge of managing the LRT's assets.
     IRioLRTAssetManager public assetManager;
@@ -51,7 +50,7 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
     // forgefmt: disable-next-item
     /// @notice Initializes the controller.
     /// @param initialOwner The initial owner of the contract.
-    /// @param _pool The pool (LRT) that's controlled by this contract.
+    /// @param _pool The pool that's controlled by this contract.
     /// @param _assetManager The contract in charge of managing the LRT's assets.
     /// @param _securityCouncil The address of the DAO-managed security council.
     /// @param allowedLPs The addresses of the LPs that are allowed to join the pool.
@@ -61,7 +60,7 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
         __UUPSUpgradeable_init();
         _transferOwnership(initialOwner);
 
-        pool = IManagedPoolSettings(_pool);
+        pool = IManagedPool(_pool);
         assetManager = IRioLRTAssetManager(_assetManager);
         securityCouncil = _securityCouncil;
 
@@ -95,16 +94,16 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
         uint256 normalizedWeight,
         uint64 targetAUMPercentage
     ) external onlyOwner {
-        if (address(strategy.underlyingToken()) != address(token)) revert INVALID_STRATEGY_FOR_TOKEN();
+        if (strategy.underlyingToken() != token) revert INVALID_STRATEGY_FOR_TOKEN();
 
-        address _manager = address(assetManager);
+        address manager = address(assetManager);
         uint256 supply = pool.getActualSupply();
         uint256 mintAmount = (supply * normalizedWeight) / (FixedPointMathLib.WAD - normalizedWeight);
 
-        IOpenZeppelinERC20(address(token)).safeTransferFrom(msg.sender, _manager, amount);
+        token.safeTransferFrom(msg.sender, manager, amount);
 
-        pool.addToken(token, _manager, normalizedWeight, mintAmount, owner());
-        IRioLRTAssetManager(_manager).addToken(
+        pool.addToken(token, manager, normalizedWeight, mintAmount, owner());
+        IRioLRTAssetManager(manager).addToken(
             token, amount, IRioLRTAssetManager.TokenConfig(0, targetAUMPercentage, strategy)
         );
     }

@@ -116,6 +116,7 @@ contract RioLRTIssuerTest is RioDeployer {
         assertEq(owedInEpoch, 4321906722946905952);
 
         uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[0]);
+        // forgefmt: disable-next-item
         IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
             tokens[0], currentEpoch, address(this)
         );
@@ -138,6 +139,7 @@ contract RioLRTIssuerTest is RioDeployer {
         expectedAmountOwed[0] = 8207205224257497180;
         expectedAmountOwed[1] = 19423719030742743326;
 
+        // forgefmt: disable-next-item
         for (uint256 i = 0; i < tokens.length; ++i) {
             uint256 owedInEpoch = withdrawalQueue.getAmountOwedInCurrentEpoch(tokens[i]);
             assertEq(owedInEpoch, expectedAmountOwed[i]);

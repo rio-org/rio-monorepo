@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
-import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
 interface IRioLRTAssetManager {

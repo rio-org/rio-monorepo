@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
-import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
 /// @title Array utility functions
@@ -25,13 +24,6 @@ library Array {
     /// @param element The element to convert.
     function toArray(IERC20 element) internal pure returns (IERC20[] memory array) {
         array = new IERC20[](1);
-        array[0] = element;
-    }
-
-    /// @notice Convert an `IOpenZeppelinERC20` element to an `IOpenZeppelinERC20` array.
-    /// @param element The element to convert.
-    function toArray(IOpenZeppelinERC20 element) internal pure returns (IOpenZeppelinERC20[] memory array) {
-        array = new IOpenZeppelinERC20[](1);
         array[0] = element;
     }
 

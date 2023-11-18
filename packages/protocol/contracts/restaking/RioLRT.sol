@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
-import {IBalancerQueries} from '@balancer-v2/contracts/interfaces/contracts/standalone-utils/IBalancerQueries.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ERC20PermitUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
-import {IAsset} from '@balancer-v2/contracts/interfaces/contracts/vault/IAsset.sol';
+import {IBalancerQueries} from 'contracts/interfaces/balancer/IBalancerQueries.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
+import {IVault} from 'contracts/interfaces/balancer/IVault.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 import {Balancer} from 'contracts/utils/Balancer.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
-    using SafeERC20 for IOpenZeppelinERC20;
+    using SafeERC20 for IERC20;
     using Balancer for bytes32;
     using Array for *;
 
@@ -95,18 +93,16 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         maxAmountsIn[tokenIndex] = params.maxAmountIn;
 
         // Join the underlying pool.
-        bytes memory userData = abi.encode(
-            JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT, params.amountOut, tokenIndex - 1
-        );
+        bytes memory userData = abi.encode(JoinKind.TOKEN_IN_FOR_EXACT_BPT_OUT, params.amountOut, tokenIndex - 1);
         amountOut = _join(_asAddressArray(tokens), maxAmountsIn, userData);
 
         // Mint LRT to the user.
         _mint(msg.sender, amountOut);
 
         // Refund any remaining tokens.
-        uint256 remainingTokens = IOpenZeppelinERC20(params.tokenIn).balanceOf(address(this));
+        uint256 remainingTokens = IERC20(params.tokenIn).balanceOf(address(this));
         if (remainingTokens > 0) {
-            IOpenZeppelinERC20(params.tokenIn).safeTransfer(msg.sender, remainingTokens);
+            IERC20(params.tokenIn).safeTransfer(msg.sender, remainingTokens);
         }
     }
 
@@ -126,9 +122,9 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         _mint(msg.sender, amountOut);
 
         // Refund any remaining tokens.
-        IOpenZeppelinERC20 token;
+        IERC20 token;
         for (uint256 i = 0; i < params.tokensIn.length; i++) {
-            token = IOpenZeppelinERC20(params.tokensIn[i]);
+            token = IERC20(params.tokensIn[i]);
             uint256 remainingTokens = token.balanceOf(address(this));
             if (remainingTokens > 0) {
                 token.safeTransfer(msg.sender, remainingTokens);
@@ -151,16 +147,15 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         minAmountsOut[tokenIndex] = params.minAmountOut;
 
         // Simulate exit from the underlying pool and queue the withdrawal(s).
-        bytes memory userData = abi.encode(
-            ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT, params.amountIn, tokenIndex - 1
-        );
+        bytes memory userData = abi.encode(ExitKind.EXACT_BPT_IN_FOR_ONE_TOKEN_OUT, params.amountIn, tokenIndex - 1);
         uint256[] memory amountsOut;
         address[] memory tokensOut = _asAddressArray(tokens);
         (amountIn, amountsOut) = _queryExit(tokensOut, minAmountsOut, userData);
 
-        withdrawalQueue.queueWithdrawals(msg.sender, tokensOut, amountsOut);   
+        withdrawalQueue.queueWithdrawals(msg.sender, tokensOut, amountsOut);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Queues an exit to an estimated but unknown (computed at run time)
     /// amount of each token, and burns an exact amount of LRT.
     /// @param params The parameters required to exit to all output tokens
@@ -179,6 +174,7 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         withdrawalQueue.queueWithdrawals(msg.sender, tokensOut, amountsOut);
     }
 
+    // forgefmt: disable-next-item
     /// @notice Queues an exit to an exact amount of each token, and burns an estimated but
     /// unknown (computed at run time) amount of LRT.
     /// @param params The parameters required to exit to an exact amount of all output tokens
@@ -205,7 +201,7 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         uint256 balanceBefore = _getBPTBalance(pool);
 
         IVault.JoinPoolRequest memory request = IVault.JoinPoolRequest({
-            assets: _asIAssetArray(assets),
+            assets: assets,
             maxAmountsIn: maxAmountsIn,
             fromInternalBalance: false,
             userData: userData
@@ -225,7 +221,7 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
         returns (uint256 amountIn, uint256[] memory amountsOut)
     {
         IVault.ExitPoolRequest memory request = IVault.ExitPoolRequest({
-            assets: _asIAssetArray(assets),
+            assets: assets,
             minAmountsOut: minAmountsOut,
             toInternalBalance: false,
             userData: userData
@@ -242,7 +238,7 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
     function _initialize(InitializeParams calldata params, address recipient) internal returns (uint256 amountOut) {
         // Allow the vault to spend the provided tokens.
         for (uint256 i = 0; i < params.tokensIn.length; ++i) {
-            IOpenZeppelinERC20(params.tokensIn[i]).safeApprove(address(vault), type(uint256).max);
+            IERC20(params.tokensIn[i]).safeApprove(address(vault), type(uint256).max);
         }
 
         bytes memory userData = abi.encode(JoinKind.INIT, params.amountsIn);
@@ -270,13 +266,13 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
     /// @param amount The amount of the token to pull.
     function _pullToken(address token, uint256 amount) internal {
         if (amount == 0) return;
-        IOpenZeppelinERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
     }
 
     /// @dev Returns the BPT balance of this contract for the given pool.
     /// @param pool The pool to check.
     function _getBPTBalance(address pool) internal view returns (uint256) {
-        return IOpenZeppelinERC20(pool).balanceOf(address(this));
+        return IERC20(pool).balanceOf(address(this));
     }
 
     /// @dev Returns the index of the given token in the given array. This function expects
@@ -291,14 +287,6 @@ contract RioLRT is IRioLRT, ERC20PermitUpgradeable, OwnableUpgradeable, UUPSUpgr
             }
         }
         revert INVALID_TOKEN();
-    }
-
-    /// @dev Converts an array of addresses to an array of IAssets.
-    /// @param tokens The array of addresses to convert.
-    function _asIAssetArray(address[] memory tokens) internal pure returns (IAsset[] memory assets) {
-        assembly {
-            assets := tokens
-        }
     }
 
     /// @dev Converts an array of IERC20 tokens to an array of addresses.

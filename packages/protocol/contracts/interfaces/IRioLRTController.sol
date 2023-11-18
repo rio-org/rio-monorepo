@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
-import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
+import {IManagedPool} from 'contracts/interfaces/balancer/IManagedPool.sol';
 
 interface IRioLRTController {
     /// @notice Thrown when the contract has already been initialized
@@ -36,14 +35,14 @@ interface IRioLRTController {
     // forgefmt: disable-next-item
     /// @notice Initializes the controller.
     /// @param initialOwner The initial owner of the contract.
-    /// @param pool The pool (LRT) that's controlled by this contract.
+    /// @param pool The pool that's controlled by this contract.
     /// @param assetManager The contract in charge of managing the LRT's assets.
     /// @param securityCouncil The address of the DAO-managed security council.
     /// @param allowedLPs The addresses of the LPs that are allowed to join the pool.
     function initialize(address initialOwner, address pool, address assetManager, address securityCouncil, address[] calldata allowedLPs) external;
 
-    /// @notice The pool (LRT) that's controlled by this contract.
-    function pool() external view returns (IManagedPoolSettings);
+    /// @notice The pool that's controlled by this contract.
+    function pool() external view returns (IManagedPool);
 
     /// @notice The security daemon's wallet, which is controlled by the security council and owner.
     /// The security daemon is responsible for removal of duplicate or invalid validator keys.

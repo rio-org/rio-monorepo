@@ -120,5 +120,7 @@ interface IRioLRT {
     /// amount of each token, and burns an exact amount of LRT.
     /// @param params The parameters required to exit to all output tokens
     /// with an exact amount of LRT.
-    function queueExitAllTokensExactIn(QueueExitAllTokensExactInParams calldata params) external returns (uint256 amountIn);
+    function queueExitAllTokensExactIn(QueueExitAllTokensExactInParams calldata params)
+        external
+        returns (uint256 amountIn);
 }

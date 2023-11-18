@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
+import {IManagedPool} from 'contracts/interfaces/balancer/IManagedPool.sol';
 
 interface IManagedPoolFactory {
     function create(
-        IManagedPoolSettings.ManagedPoolParams memory params,
-        IManagedPoolSettings.ManagedPoolSettingsParams memory settingsParams,
+        IManagedPool.ManagedPoolParams memory params,
+        IManagedPool.ManagedPoolSettingsParams memory settingsParams,
         address owner,
         bytes32 salt
     ) external returns (address pool);

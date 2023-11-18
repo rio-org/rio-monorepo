@@ -3,21 +3,20 @@ pragma solidity 0.8.21;
 
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
-import {IWETH} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/misc/IWETH.sol';
-import {IERC20} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/openzeppelin/IERC20.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
-import {IERC20 as IOpenZeppelinERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
+import {IVault} from 'contracts/interfaces/balancer/IVault.sol';
+import {IWETH} from 'contracts/interfaces/misc/IWETH.sol';
 
 contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgradeable {
-    using SafeERC20 for IOpenZeppelinERC20;
+    using SafeERC20 for IERC20;
     using FixedPointMathLib for uint256;
 
     /// @dev The per-validator deposit amount.
@@ -96,7 +95,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgr
         configs[address(token)] = config;
 
         if (token.allowance(address(this), address(vault)) < amount) {
-            IOpenZeppelinERC20(address(token)).safeApprove(address(vault), type(uint256).max);
+            token.safeApprove(address(vault), type(uint256).max);
         }
 
         IVault.PoolBalanceOp[] memory ops = new IVault.PoolBalanceOp[](2);
@@ -123,7 +122,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgr
         ops[1] = IVault.PoolBalanceOp(IVault.PoolBalanceOpKind.UPDATE, poolId, token, 0);
 
         vault.managePoolBalance(ops);
-        IOpenZeppelinERC20(address(token)).safeTransfer(recipient, amount);
+        token.safeTransfer(recipient, amount);
 
         emit TokenRemoved(token, amount, recipient);
     }
@@ -151,7 +150,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgr
     function receiveReward(address token, uint256 amount) external {
         bytes32 _poolId = poolId;
 
-        IOpenZeppelinERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
 
         // Inform the vault of the new 'managed' tokens and move them into the pool's cash balance.
         IVault.PoolBalanceOp[] memory ops = new IVault.PoolBalanceOp[](2);
@@ -163,7 +162,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgr
         emit RewardReceived(IERC20(token), amount);
     }
 
-    /// @notice Rebalances `token` in the pool (LRT) by processing outstanding withdrawals,
+    /// @notice Rebalances `token` in the pool by processing outstanding withdrawals,
     /// depositing or withdrawing funds from EigenLayer, and updating the pool's cash and managed balances.
     /// @param token The token to rebalance.
     function rebalance(address token) external onlyAfterRebalanceDelay(token) {
@@ -243,7 +242,7 @@ contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgr
         vault.managePoolBalance(ops);
 
         // Transfer the funds that were withdrawn from the vault to the withdrawal queue.
-        IOpenZeppelinERC20(token).safeTransfer(address(withdrawalQueue), withdrawable);
+        IERC20(token).safeTransfer(address(withdrawalQueue), withdrawable);
 
         // There was enough cash to cover all withdrawals in the current epoch. Mark it as completed.
         if (withdrawable == owed) {
@@ -284,8 +283,8 @@ contract RioLRTAssetManager is IRioLRTAssetManager, OwnableUpgradeable, UUPSUpgr
             operator = allocations[i].operator;
             allocation = allocations[i].allocation;
 
-            IOpenZeppelinERC20(token).safeTransfer(operator, allocation);
-            shares += IRioLRTOperator(operator).stakeERC20(strategy, IOpenZeppelinERC20(token), allocation);
+            IERC20(token).safeTransfer(operator, allocation);
+            shares += IRioLRTOperator(operator).stakeERC20(strategy, IERC20(token), allocation);
 
             unchecked {
                 ++i;

@@ -6,15 +6,15 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
-import {IWETH} from '@balancer-v2/contracts/interfaces/contracts/solidity-utils/misc/IWETH.sol';
-import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
 import {IRioLRTRewardDistributor} from 'contracts/interfaces/IRioLRTRewardDistributor.sol';
 import {IManagedPoolFactory} from 'contracts/interfaces/balancer/IManagedPoolFactory.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
 import {IRioLRTController} from 'contracts/interfaces/IRioLRTController.sol';
+import {IManagedPool} from 'contracts/interfaces/balancer/IManagedPool.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
+import {IWETH} from 'contracts/interfaces/misc/IWETH.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 import {Balancer} from 'contracts/utils/Balancer.sol';
 import {Array} from 'contracts/utils/Array.sol';
@@ -170,24 +170,24 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         }
 
         address pool = factory.create(
-            IManagedPoolSettings.ManagedPoolParams({
+            IManagedPool.ManagedPoolParams({
                 name: string.concat(name, ' Underlying BPT'),
                 symbol: string.concat(symbol, '_UBPT'),
                 assetManagers: assetManagers
             }),
-            IManagedPoolSettings.ManagedPoolSettingsParams({
+            IManagedPool.ManagedPoolSettingsParams({
                 mustAllowlistLPs: true,
                 tokens: _asIERC20Array(config.tokens),
                 normalizedWeights: config.normalizedWeights,
                 swapFeePercentage: config.swapFeePercentage,
                 swapEnabledOnStart: config.swapEnabledOnStart,
                 managementAumFeePercentage: config.managementAumFeePercentage,
-                aumFeeId: uint256(IManagedPoolSettings.ProtocolFeeType.AUM)
+                aumFeeId: uint256(IManagedPool.ProtocolFeeType.AUM)
             }),
             deployment.controller,
             blockhash(block.number - 1)
         );
-        poolId = IManagedPoolSettings(pool).getPoolId();
+        poolId = IManagedPool(pool).getPoolId();
     }
 
     /// @dev Converts an array of addresses to an array of IERC20s.

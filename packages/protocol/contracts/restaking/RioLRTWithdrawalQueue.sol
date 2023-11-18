@@ -3,11 +3,11 @@ pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IVault} from '@balancer-v2/contracts/interfaces/contracts/vault/IVault.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
+import {IVault} from 'contracts/interfaces/balancer/IVault.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable {
@@ -70,7 +70,11 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     /// @notice Retrieve the owed cash and completion status for a given token and epoch.
     /// @param token The token for which to retrieve the information.
     /// @param epoch The epoch for which to retrieve the information.
-    function getEpochWithdrawals(address token, uint256 epoch) external view returns (uint248 owed, bool completed, bytes32 aggregateRoot) {
+    function getEpochWithdrawals(address token, uint256 epoch)
+        external
+        view
+        returns (uint248 owed, bool completed, bytes32 aggregateRoot)
+    {
         EpochWithdrawals storage withdrawals = epochWithdrawals[token][epoch];
         return (withdrawals.owed, withdrawals.completed, withdrawals.aggregateRoot);
     }
@@ -79,7 +83,11 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     /// @param token The token for which to retrieve the user's withdrawal information.
     /// @param epoch The epoch for which to retrieve the user's withdrawal information.
     /// @param user The address of the user to retrieve the withdrawal information for.
-    function getUserWithdrawal(address token, uint256 epoch, address user) external view returns (UserWithdrawal memory) {
+    function getUserWithdrawal(address token, uint256 epoch, address user)
+        external
+        view
+        returns (UserWithdrawal memory)
+    {
         return epochWithdrawals[token][epoch].users[user];
     }
 

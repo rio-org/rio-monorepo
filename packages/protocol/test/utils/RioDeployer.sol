@@ -89,7 +89,10 @@ abstract contract RioDeployer is BalancerDeployer, EigenLayerDeployer {
     /// @param creationCode The contract creation code.
     /// @param args The contract constructor arguments.
     /// @param where The address to deploy the contract to.
-    function _deployTo(bytes memory creationCode, bytes memory args, address where) internal override(BalancerDeployer, EigenLayerDeployer) {
+    function _deployTo(bytes memory creationCode, bytes memory args, address where)
+        internal
+        override(BalancerDeployer, EigenLayerDeployer)
+    {
         super._deployTo(creationCode, args, where);
     }
 }
