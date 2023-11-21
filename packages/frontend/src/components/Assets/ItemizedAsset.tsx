@@ -23,14 +23,16 @@ const ItemizedAsset = ({
 }: Props) => {
   return (
     <div className="flex flex-row justify-between items-center w-full text-left">
-      <div className="flex flex-row items-center gap-[6px]">
+      <div className="flex flex-row items-center gap-[6px] w-full">
         <Image
           src={asset.logo}
           alt={`${asset.name} logo`}
           width={20}
           height={20}
         />
-        <p className="opacity-50 text-[14px]">{asset.name}</p>
+        <p className="opacity-50 text-[14px] w-[70%] lg:w-full truncate">
+          {asset.name}
+        </p>
       </div>
       <p className="flex gap-2 items-center justify-center content-center text-[14px]">
         {amount}

@@ -6,6 +6,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { buildAssetList } from '../../lib/utilities';
 import ItemizedAsset from '../Assets/ItemizedAsset';
 import IconSelectArrow from '../Icons/IconSelectArrow';
+import { useMediaQuery } from 'react-responsive';
+import { DESKTOP_MQ } from '../../lib/constants';
 
 type Props = {
   transaction: WithdrawEvent;
@@ -14,6 +16,9 @@ type Props = {
 const Transaction = ({ transaction }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const assets = buildAssetList(transaction.symbol);
+  const isDesktopOrLaptop = useMediaQuery({
+    query: DESKTOP_MQ
+  });
 
   return (
     <>
@@ -22,14 +27,19 @@ const Transaction = ({ transaction }: Props) => {
           className="w-full py-4 hover:bg-[var(--color-gray-hover)] transition-colors flex flex-row justify-between items-center"
           onClick={() => setIsOpen(!isOpen)}
         >
-          <td className="px-6 whitespace-nowrap text-sm font-medium text-gray-900">
-            {transaction.date}
+          <td className="flex flex-col items-start px-4 lg:px-6 whitespace-nowrap text-sm font-medium text-gray-900">
+            <span className="mb-1 lg:mb-0">{transaction.date}</span>
+            {!isDesktopOrLaptop && (
+              <TransactionStatusLabel transaction={transaction} />
+            )}
           </td>
-          <td className="flex flex-row flex-1">
-            <TransactionStatusLabel transaction={transaction} />
-          </td>
-          <td className="px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
-            <div className="flex items-center gap-0">
+          {isDesktopOrLaptop && (
+            <td className="flex flex-row flex-1">
+              <TransactionStatusLabel transaction={transaction} />
+            </td>
+          )}
+          <td className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
+            <div className="flex items-center gap-0 font-medium">
               <span className="mr-2">12.83</span>
               <SymbolPill symbol="＊ETH" />
             </div>
@@ -47,10 +57,10 @@ const Transaction = ({ transaction }: Props) => {
             transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
           >
             {/* inner padding to prevent jump when wrapper is removed */}
-            <div className="mt-2 mb-4 flex flex-col w-full gap-2 ">
+            <div className="mt-2 mb-4 flex flex-col gap-2 ">
               {assets.map((asset) => {
                 return (
-                  <div className="pl-6 pr-12">
+                  <div className="px-4 lg:pl-6 lg:pr-12">
                     <ItemizedAsset
                       key={asset.symbol}
                       asset={asset}

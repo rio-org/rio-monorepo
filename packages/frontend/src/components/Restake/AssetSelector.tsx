@@ -1,25 +1,50 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TokenSymbol } from '../../lib/typings';
-import { ASSETS } from '../../lib/constants';
+import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
 import Image from 'next/image';
-import DepositAssetItem from '../Assets/DepositAssetItem';
 import IconSelectArrow from '../Icons/IconSelectArrow';
 import cx from 'classnames';
+import { Drawer } from '@material-tailwind/react';
+import { useMediaQuery } from 'react-responsive';
+import AssetList from './AssetList';
 
 type Props = {
   activeTokenSymbol: TokenSymbol;
   setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  setIsFocused: (isFocused: boolean) => void;
+  unFocusInput: () => void;
 };
 
-const AssetSelector = ({ activeTokenSymbol, setActiveTokenSymbol }: Props) => {
-  const [isListOpen, setIsListOpen] = React.useState(false);
+const AssetSelector = ({
+  activeTokenSymbol,
+  setActiveTokenSymbol,
+  unFocusInput
+}: Props) => {
+  const [isListOpen, setIsListOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const isDesktopOrLaptop = useMediaQuery({
+    query: DESKTOP_MQ
+  });
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const handleClick = () => {
+    if (!isDesktopOrLaptop && !isListOpen) {
+      unFocusInput();
+      setIsListOpen(true);
+    } else {
+      setIsListOpen(!isListOpen);
+    }
+  };
 
   return (
     <>
       <button
-        onClick={() => setIsListOpen(!isListOpen)}
+        onClick={() => handleClick()}
         className={cx(
-          'flex flex-row gap-1 justify-center items-center py-1 pl-1 pr-3 rounded-full bg-[var(--color-element-wrapper-bg-light)] duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors',
+          'flex flex-row gap-1 justify-center items-center py-1 pl-1 pr-2 rounded-full bg-[var(--color-element-wrapper-bg-light)] duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors',
           isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
         )}
       >
@@ -34,23 +59,29 @@ const AssetSelector = ({ activeTokenSymbol, setActiveTokenSymbol }: Props) => {
           <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />
         </div>
       </button>
-      {isListOpen && (
+      {isDesktopOrLaptop && isListOpen && (
         <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
-          {Object.values(ASSETS).map((asset, i) => {
-            // don't display reETH or ＊ETH in the asset selector
-            if (asset.symbol === 'reETH' || asset.symbol === '＊ETH')
-              return null;
-            return (
-              <DepositAssetItem
-                asset={asset}
-                key={i}
-                isActiveToken={asset.symbol === activeTokenSymbol}
-                setActiveTokenSymbol={setActiveTokenSymbol}
-                setIsListOpen={setIsListOpen}
-              />
-            );
-          })}
+          <AssetList
+            activeTokenSymbol={activeTokenSymbol}
+            setActiveTokenSymbol={setActiveTokenSymbol}
+            setIsListOpen={setIsListOpen}
+          />
         </div>
+      )}
+      {isMounted && !isDesktopOrLaptop && isListOpen && (
+        <Drawer
+          placement="bottom"
+          size={330}
+          open={isListOpen}
+          onClose={() => setIsListOpen(false)}
+          className="p-4"
+        >
+          <AssetList
+            activeTokenSymbol={activeTokenSymbol}
+            setActiveTokenSymbol={setActiveTokenSymbol}
+            setIsListOpen={setIsListOpen}
+          />
+        </Drawer>
       )}
     </>
   );

@@ -15,9 +15,9 @@ const WithdrawItemized = ({ activeTokenSymbol }: Props) => {
       <div className="flex flex-col gap-2">
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Exchange rate</span>
-          <strong>
+          <strong className="text-right">
             1.00 reETH = 1.02 {activeTokenSymbol}{' '}
-            <span className="font-normal">($1,789.28)</span>
+            <span className="font-normal text-right">($1,789.28)</span>
           </strong>
         </div>
         <div className="flex justify-between text-[14px]">

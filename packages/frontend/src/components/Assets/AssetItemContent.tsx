@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { IconCheck } from '../Icons/IconCheck';
 import InlineErrorMessage from '../Shared/InlineErrorMessage';
@@ -23,12 +23,6 @@ const AssetItemContent = ({
   isBestRate,
   amount
 }: Props) => {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
   return (
     <>
       <Image
@@ -46,7 +40,7 @@ const AssetItemContent = ({
           <p className="opacity-50 text-[14px]">{asset.name}</p>
         </div>
         <p className="flex gap-2 items-center justify-center content-center">
-          {hasMounted && amount}
+          {amount}
           {isLoading && <Skeleton width={60} />}
           {isError && (
             <InlineErrorMessage>Error loading balance</InlineErrorMessage>

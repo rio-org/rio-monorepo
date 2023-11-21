@@ -13,7 +13,7 @@ const WithdrawTabs = () => {
     WITHDRAW_NAV_ITEMS[0].slug;
 
   return (
-    <div className="flex w-full text-center content-center justify-center gap-2">
+    <div className="flex w-full text-center content-center lg:justify-center gap-4">
       {WITHDRAW_NAV_ITEMS.map(({ label, slug }) => (
         <Link
           href={`/${baseUrlSegment}/${slug}`}
@@ -21,7 +21,7 @@ const WithdrawTabs = () => {
           scroll={false}
           passHref
           className={cx(
-            'font-medium hover:text-black px-2 ',
+            'font-medium hover:text-black ',
             activeTab === slug ? '' : 'text-gray-500 font-bold'
           )}
         >
