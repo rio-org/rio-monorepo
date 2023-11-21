@@ -10,10 +10,6 @@ module.exports = withMT({
     extend: {},
     fontFamily: {
       sans: ['NB International Pro', 'ui-sans-serif', 'system-ui']
-      // 'serif': ['ui-serif', 'Georgia', ...],
-      // 'mono': ['ui-monospace', 'SFMono-Regular', ...],
-      // 'display': ['Oswald', ...],
-      // 'body': ['"Open Sans"', ...],
     }
   },
   plugins: []

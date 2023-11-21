@@ -17,7 +17,9 @@ const History: NextPage = () => {
 
   return (
     <WithdrawWrapper noPadding>
-      <h2 className="px-6 pt-6 pb-1 text-[14px]">Withdraw history</h2>
+      <h2 className="px-4 lg:px-6 pt-4 lg:pt-6 lg:pb-1 text-[14px]">
+        Withdraw history
+      </h2>
       <div className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200">
         {isMounted ? (
           <table className="min-w-full">
@@ -26,7 +28,6 @@ const History: NextPage = () => {
                 historyData.map((item, index) => (
                   <Transaction key={index} transaction={item} />
                 ))}
-
               {!historyData.length && (
                 <div className="border-b border-b-gray-200">
                   <tr className="flex w-full py-4 hover:bg-[var(--color-gray-hover)] transition-colors text-center">

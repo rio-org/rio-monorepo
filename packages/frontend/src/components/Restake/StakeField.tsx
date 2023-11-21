@@ -4,6 +4,8 @@ import AssetSelector from './AssetSelector';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
 import { ethInUSD } from '../../../placeholder';
+import { useMediaQuery } from 'react-responsive';
+import { DESKTOP_MQ } from '../../lib/constants';
 
 type Props = {
   amount: number | null;
@@ -20,20 +22,20 @@ const StakeField = ({
   setAmount,
   setActiveTokenSymbol
 }: Props) => {
-  const [hasMounted, setHasMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [usdAmount, setUsdAmount] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
   const handleValueChange = (value: number) => {
     if (!value) value = 0;
     setAmount(value);
-    console.log('ethInUSD', ethInUSD);
-    console.log('value', value);
-    setUsdAmount(value * ethInUSD);
   };
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const isDesktopOrLaptop = useMediaQuery({
+    query: DESKTOP_MQ
+  });
 
   useEffect(() => {
-    setHasMounted(true);
+    setIsMounted(true);
   }, []);
 
   const focusInput = () => {
@@ -42,11 +44,21 @@ const StakeField = ({
     setIsFocused(true);
   };
 
+  const unFocusInput = () => {
+    if (!inputRef.current) return;
+    setIsFocused(false);
+    inputRef.current.blur();
+  };
+
+  useEffect(() => {
+    setUsdAmount(amount ? amount * ethInUSD : 0);
+  }, [amount]);
+
   return (
     <div
       className="hover:cursor-text"
       onClick={() => {
-        focusInput();
+        isDesktopOrLaptop && focusInput();
       }}
     >
       <label htmlFor="amount" className="mb-1 font-medium">
@@ -54,11 +66,17 @@ const StakeField = ({
       </label>
       <div
         className={cx(
-          'bg-black bg-opacity-5 text-black px-[20px] py-4 rounded-xl border border-transparent hover:border-gray-300',
+          'bg-black bg-opacity-5 text-black px-4 lg:px-[20px] py-4 rounded-xl border border-transparent hover:border-gray-300',
           isFocused && 'border-gray-400 hover:border-gray-400'
         )}
       >
-        <div className="relative flex flex-row gap-4">
+        <div
+          className="flex flex-row gap-4"
+          style={{
+            // required to allow mobile asset selector to act as a drawer
+            position: isMounted && isDesktopOrLaptop ? 'relative' : 'inherit'
+          }}
+        >
           <input
             className="text-[22px] bg-transparent w-full focus:outline-none flex-1"
             id="amount"
@@ -80,12 +98,14 @@ const StakeField = ({
           <AssetSelector
             activeTokenSymbol={activeTokenSymbol}
             setActiveTokenSymbol={setActiveTokenSymbol}
+            setIsFocused={setIsFocused}
+            unFocusInput={unFocusInput}
           />
         </div>
         <div className="text-sm flex justify-between w-full mt-1">
           <span className="opacity-50">${usdAmount}</span>
           <div>
-            {hasMounted &&
+            {isMounted &&
             accountTokenBalance !== undefined &&
             activeTokenSymbol ? (
               <>

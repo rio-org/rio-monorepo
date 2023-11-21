@@ -50,15 +50,17 @@ const RestakeForm = () => {
       <div className="flex flex-col gap-2 mt-4">
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Exchange rate</span>
-          <strong>1.00 reETH = 1.02 ETH ($1,789.28)</strong>
+          <strong className="text-right">
+            1.00 reETH = 1.02 ETH ($1,789.28)
+          </strong>
         </div>
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Price impact</span>
-          <strong>0%</strong>
+          <strong className="text-right">0%</strong>
         </div>
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Reward fee</span>
-          <strong>10%</strong>
+          <strong className="text-right">10%</strong>
         </div>
       </div>
       <HR />

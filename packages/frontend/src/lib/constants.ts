@@ -99,3 +99,5 @@ export const TX_BUTTON_VARIANTS = {
     y: 20
   }
 };
+
+export const DESKTOP_MQ = '(min-width: 960px)';
