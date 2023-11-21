@@ -1,29 +1,39 @@
 import Head from 'next/head';
-import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { APP_NAV_ITEMS, APP_TITLE } from '../../config';
 import AppNav from './Nav/AppNav';
 import useWindowSize from '../hooks/useWindowSize';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
-import ReETHConversion from './Shared/reETHConversion';
+import ReETHConversion from './Shared/ReETHConversion';
+import MobileNav from './Nav/MobileNav';
+import { useMediaQuery } from 'react-responsive';
+import { DESKTOP_MQ } from '../lib/constants';
 
 type LayoutProps = {
   children: ReactNode;
 };
 
 export default function Layout({ children }: LayoutProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const hasWindow = typeof window !== 'undefined';
-  const win = hasWindow ? (window as Window) : undefined;
-  const windowSize = useWindowSize(win);
+  const [isMounted, setIsMounted] = useState(false);
   const [appCanvasHeight, setappCanvasHeight] = useState(0);
   const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0); // APP_NAV_ITEMS[0
   const [transitionDirection, setTransitionDirection] = useState<number>(50);
+  const appNavRef = useRef<HTMLDivElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
+  const conversionButtonRef = useRef<HTMLDivElement>(null);
+  const hasWindow = typeof window !== 'undefined';
+  const win = hasWindow ? (window as Window) : undefined;
+  const windowSize = useWindowSize(win);
   const router = useRouter();
   const baseUrlSegment = router.pathname.split('/')[1];
   const nextSlugIndex = (slug: string) => {
     return APP_NAV_ITEMS.findIndex((item) => item.slug === slug) + 1;
   };
+
+  const isDesktopOrLaptop = useMediaQuery({
+    query: DESKTOP_MQ
+  });
 
   useEffect(() => {
     if (nextSlugIndex(baseUrlSegment) > currentSlugIndex) {
@@ -38,11 +48,40 @@ export default function Layout({ children }: LayoutProps) {
     );
   }, [router]);
 
-  useLayoutEffect(() => {
-    if (ref.current && ref.current.offsetHeight && windowSize.height > 0) {
-      setappCanvasHeight(windowSize.height - ref.current.offsetHeight - 48);
+  useEffect(() => {
+    const appPadding = 40; // outer and inner wrapper paddings
+    if (
+      isMounted &&
+      !isDesktopOrLaptop &&
+      appNavRef.current &&
+      mobileNavRef.current &&
+      appNavRef.current.offsetHeight &&
+      windowSize.height > 0
+    ) {
+      setappCanvasHeight(
+        windowSize.height -
+        appNavRef.current.offsetHeight -
+        appPadding -
+        mobileNavRef.current.offsetHeight
+      );
+    } else if (
+      isMounted &&
+      appNavRef.current &&
+      conversionButtonRef.current &&
+      windowSize.height > 0
+    ) {
+      setappCanvasHeight(
+        windowSize.height -
+        appNavRef.current.offsetHeight -
+        conversionButtonRef.current.offsetHeight -
+        appPadding
+      );
     }
-  }, [windowSize, ref]);
+  }, [windowSize, appNavRef, mobileNavRef, isDesktopOrLaptop, isMounted]);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <>
@@ -50,20 +89,20 @@ export default function Layout({ children }: LayoutProps) {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
         <title>{APP_TITLE}</title>
       </Head>
-      <main className="bg-white p-[12px] h-full font-sans">
-        <div className="bg-[#EFEFEF] px-4 py-2 rounded-[12px] min-h-full bg-fixed relative">
+      <main className="bg-[var(--color-app-bg)] lg:bg-white lg:p-[12px] min-h-full font-sans">
+        <div className="bg-[var(--color-app-bg)] p-4 lg:px-4 lg:py-2 rounded-[12px] bg-fixed relative min-h-full">
           <div
-            ref={ref}
-            className="container-fluid w-full mx-auto relative mb-4"
+            ref={appNavRef}
+            className="container-fluid w-full mx-auto pt-2 pb-6 lg:pb-4"
           >
             <AppNav />
           </div>
           <AnimatePresence mode={'wait'}>
             <motion.div
               key={baseUrlSegment}
-              initial="initialState"
-              animate="animateState"
-              exit="exitState"
+              initial={isDesktopOrLaptop && 'initialState'}
+              animate={isDesktopOrLaptop && 'animateState'}
+              exit={'exitState'}
               transition={{
                 type: 'spring',
                 duration: 0.1
@@ -84,18 +123,28 @@ export default function Layout({ children }: LayoutProps) {
               }}
             >
               <div
-                className="container-fluid w-full mx-auto px-4 pb-8 md:px-10 flex items-center"
-                // todo: mobile considerations
-                style={{ minHeight: appCanvasHeight }}
+                className="container-fluid w-full mx-auto lg:px-4 pb-8 flex items-center"
+                style={{
+                  minHeight:
+                    isMounted && isDesktopOrLaptop ? appCanvasHeight : '100',
+                  paddingBottom:
+                    isMounted && isDesktopOrLaptop
+                      ? '0px'
+                      : +(mobileNavRef.current?.offsetHeight || 0) + 30 + 'px'
+                }}
               >
                 {children}
               </div>
             </motion.div>
           </AnimatePresence>
-          <div className='sticky bottom-3 left-3'>
+          <div
+            ref={conversionButtonRef}
+            className="sticky bottom-4 left-0 pb-1 hidden lg:block"
+          >
             <ReETHConversion />
           </div>
         </div>
+        {isMounted && !isDesktopOrLaptop && <MobileNav />}
       </main>
     </>
   );
