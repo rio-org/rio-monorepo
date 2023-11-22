@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import cx from 'classnames';
 import { Spinner } from '@material-tailwind/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
+import { useAccount } from 'wagmi';
 
 type Props = {
   isValid: boolean;
@@ -13,6 +14,7 @@ const ClaimButton = ({ isValid }: Props) => {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const { address } = useAccount();
   const fetchDummyData = async () => {
     setIsLoading(true);
     //  wait 1 second before setting isError to true
@@ -30,12 +32,6 @@ const ClaimButton = ({ isValid }: Props) => {
     }
   };
 
-  useEffect(() => {
-    async () => {
-      await fetchDummyData();
-    };
-  }, []);
-
   return (
     <div className="mt-4">
       <AnimatePresence>
@@ -48,20 +44,25 @@ const ClaimButton = ({ isValid }: Props) => {
             )}
             disabled={!isValid || isLoading}
             onClick={() => {
-              async () => {
-                await fetchDummyData();
-              };
+              fetchDummyData().catch(() => {
+                setIsError(true);
+              });
             }}
             variants={TX_BUTTON_VARIANTS}
             key={'claim'}
           >
-            {isLoading && (
+            {!address && (
+              <span className="opacity-20 text-black">
+                Nothing available to claim
+              </span>
+            )}
+            {address && isLoading && (
               <div className="w-full text-center flex items-center justify-center gap-2">
                 <Spinner width={16} />
                 <span className="opacity-40">Claiming</span>
               </div>
             )}
-            {!isLoading && !isError && (
+            {address && !isLoading && !isError && (
               <span className={cx(!isValid && 'opacity-20 text-black')}>
                 {isValid ? 'Claim' : 'Nothing available to claim'}
               </span>

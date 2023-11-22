@@ -1,18 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import Alert from '../Shared/Alert';
 import { Spinner } from '@material-tailwind/react';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
+import { useAccount } from 'wagmi';
 
 type Props = {
   isValidAmount: boolean;
+  isEmpty: boolean;
 };
 
-const DepositButton = ({ isValidAmount }: Props) => {
+const DepositButton = ({ isValidAmount, isEmpty }: Props) => {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const { address } = useAccount();
+
   const fetchDummyData = async () => {
     setIsLoading(true);
     //  wait 1 second before setting isError to true
@@ -30,12 +34,6 @@ const DepositButton = ({ isValidAmount }: Props) => {
     }
   };
 
-  useEffect(() => {
-    async () => {
-      await fetchDummyData();
-    };
-  }, []);
-
   return (
     <AnimatePresence>
       {!isSuccess && !isError && (
@@ -47,19 +45,24 @@ const DepositButton = ({ isValidAmount }: Props) => {
           )}
           disabled={!isValidAmount || isLoading}
           onClick={() => {
-            async () => {
-              await fetchDummyData();
-            };
+            fetchDummyData().catch(() => {
+              setIsError(true);
+            });
           }}
           variants={TX_BUTTON_VARIANTS}
           key={'restake'}
         >
-          {!isLoading && !isError && (
+          {!address && (
+            <span className="opacity-20 text-black">Connect to claim</span>
+          )}
+          {address && !isLoading && !isError && (
             <span className={cx(!isValidAmount && 'opacity-20 text-black')}>
-              {isValidAmount ? 'Restake' : 'Enter an amount'}
+              {isValidAmount && 'Restake'}
+              {isEmpty && 'Enter an amount'}
+              {!isValidAmount && !isEmpty && 'Invalid amount'}
             </span>
           )}
-          {isLoading && (
+          {address && isLoading && (
             <div className="w-full text-center flex items-center justify-center gap-2">
               <Spinner width={16} />
               <span className="opacity-40">Restaking</span>

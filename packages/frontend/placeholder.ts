@@ -41,6 +41,23 @@ export const statsData = [
     denominator: '%'
   }
 ];
+export const emptyStatsData = [
+  {
+    label: 'Rewards',
+    value: '0.00',
+    denominator: 'reETH'
+  },
+  {
+    label: 'Restaking points',
+    value: '0',
+    denominator: ''
+  },
+  {
+    label: 'Average APR',
+    value: '0',
+    denominator: '%'
+  }
+];
 
 export const txHistoryTableHeader = [
   'Date',

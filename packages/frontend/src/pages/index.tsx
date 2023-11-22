@@ -2,7 +2,7 @@ import type { NextPage } from 'next';
 import RestakeWrapper from '../components/Restake/RestakeWrapper';
 import { useGetNetworkStats } from '../hooks/useGetNetworkStats';
 import Skeleton from 'react-loading-skeleton';
-import RestakeForm from '../components/Rewards/RestakeForm';
+import RestakeForm from '../components/Restake/RestakeForm';
 import { useState, useEffect } from 'react';
 
 const Home: NextPage = () => {

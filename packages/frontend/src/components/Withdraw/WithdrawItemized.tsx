@@ -8,9 +8,10 @@ import { motion } from 'framer-motion';
 
 type Props = {
   activeTokenSymbol: TokenSymbol;
+  amount: number;
 };
 
-const WithdrawItemized = ({ activeTokenSymbol }: Props) => {
+const WithdrawItemized = ({ activeTokenSymbol, amount }: Props) => {
   const [isExpanded, setIsExpanded] = React.useState(true);
   const assets = buildAssetList(activeTokenSymbol);
   return (
@@ -53,7 +54,7 @@ const WithdrawItemized = ({ activeTokenSymbol }: Props) => {
                 isActiveToken={false}
                 isLoading={false}
                 isError={false}
-                amount={'0.00'}
+                amount={amount / 5}
               />
             );
           })}
@@ -63,7 +64,7 @@ const WithdrawItemized = ({ activeTokenSymbol }: Props) => {
       <div className="flex justify-between text-[14px] mt-4">
         <strong>Total received</strong>
         <strong className="flex flex-row gap-2 items-center">
-          0.00
+          {amount.toFixed(2)}
           <span className="bg-[var(--color-element-wrapper-bg)] rounded-[4px] px-2 py-1 text-[12px] min-w-[60px] text-center block">
             {activeTokenSymbol}
           </span>

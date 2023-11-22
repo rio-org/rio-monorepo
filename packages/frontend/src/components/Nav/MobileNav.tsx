@@ -28,16 +28,16 @@ const MobileNav = () => {
 
   return (
     <>
-      <div className="fixed bottom-0 lg:hidden bg-[var(--color-app-bg)] px-3 py-5 w-full justify-around items-center border-t border-t-[var(--color-element-wrapper-bg)]">
-        <Tabs value={activeTab} className="p-2">
-          <TabsHeader className="justify-around p-0">
+      <div className="fixed bottom-0 lg:hidden bg-[var(--color-app-bg)] px-3 py-4 w-full justify-around items-center border-t border-t-[var(--color-element-wrapper-bg)]">
+        <Tabs value={activeTab} className="p-2 duration-100">
+          <TabsHeader className="justify-around p-0 duration-100">
             {APP_NAV_ITEMS.map(({ label, slug }, index) => (
               <Link
                 href={slugUrl(slug)}
                 key={label + index}
                 scroll={false}
                 className={cx(
-                  'font-medium  rounded-xl hover:text-black hover:bg-[var(--color-element-wrapper-bg)]',
+                  'font-medium  rounded-full hover:text-black hover:bg-[var(--color-element-wrapper-bg)]',
                   activeTab === slug ? 'text-black' : 'text-gray-500'
                 )}
               >
@@ -45,7 +45,7 @@ const MobileNav = () => {
                   key={label + index}
                   value={slug}
                   className={cx(
-                    'py-2 px-4 font-medium  rounded-xl hover:text-black hover:bg-[var(--color-element-wrapper-bg)]',
+                    'py-2 px-4 font-medium  hover:text-black hover:bg-[var(--color-element-wrapper-bg)] rounded-full',
                     activeTab === slug ? 'text-black' : 'text-gray-500'
                   )}
                 >

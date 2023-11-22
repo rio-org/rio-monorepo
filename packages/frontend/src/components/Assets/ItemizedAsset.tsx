@@ -11,7 +11,7 @@ type Props = {
   isActiveToken: boolean;
   isLoading: boolean;
   isError: boolean;
-  amount: string;
+  amount: number;
 };
 
 const ItemizedAsset = ({
@@ -35,7 +35,7 @@ const ItemizedAsset = ({
         </p>
       </div>
       <p className="flex gap-2 items-center justify-center content-center text-[14px]">
-        {amount}
+        {amount > 0 ? amount.toFixed(2) : '0.00'}
         <SymbolPill symbol={asset.symbol} />
         {isLoading && <Skeleton width={60} />}
         {isError && (
