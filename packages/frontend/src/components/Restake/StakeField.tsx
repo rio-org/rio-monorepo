@@ -25,9 +25,11 @@ const StakeField = ({
   const [isMounted, setIsMounted] = useState(false);
   const [usdAmount, setUsdAmount] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
-  const handleValueChange = (value: number) => {
-    if (!value) value = 0;
-    setAmount(value);
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = +Number(e.target.value as string);
+    if (val >= 0) {
+      setAmount(+val.toFixed(2));
+    }
   };
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isDesktopOrLaptop = useMediaQuery({
@@ -88,7 +90,8 @@ const StakeField = ({
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
-              handleValueChange(+Number(e.target.value as string).toFixed(2));
+              // handleValueChange(+Number(e.target.value as string).toFixed(2));
+              handleValueChange(e);
             }}
             onFocus={() => {
               setIsFocused(true);

@@ -18,9 +18,11 @@ const WithdrawField = ({
 }: Props) => {
   const [hasMounted, setHasMounted] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const handleValueChange = (value: number) => {
-    if (!value) value = 0;
-    setAmount(value);
+  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = +Number(e.target.value as string);
+    if (val >= 0) {
+      setAmount(+val.toFixed(2));
+    }
   };
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -68,7 +70,7 @@ const WithdrawField = ({
             value={amount ? amount : ''}
             placeholder="0.00"
             onChange={(e) => {
-              handleValueChange(parseInt(e.target.value as string));
+              handleValueChange(e);
             }}
             autoFocus
             ref={inputRef}
