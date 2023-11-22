@@ -9,6 +9,7 @@ import ReETHConversion from './Shared/ReETHConversion';
 import MobileNav from './Nav/MobileNav';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../lib/constants';
+import cx from 'classnames';
 
 type LayoutProps = {
   children: ReactNode;
@@ -115,46 +116,51 @@ export default function Layout({ children }: LayoutProps) {
           >
             <AppNav />
           </div>
-          <AnimatePresence mode={'wait'}>
-            <motion.div
-              key={baseUrlSegment}
-              initial={isDesktopOrLaptop && 'initialState'}
-              animate={isDesktopOrLaptop && 'animateState'}
-              exit={'exitState'}
-              transition={{
-                type: 'spring',
-                duration: 0.1
-              }}
-              variants={{
-                initialState: {
-                  opacity: 0,
-                  x: transitionDirection
-                },
-                animateState: {
-                  opacity: 1,
-                  x: 0
-                },
-                exitState: {
-                  opacity: 0,
-                  x: transitionDirection
-                }
-              }}
-            >
-              <div
-                className="container-fluid w-full mx-auto lg:px-4 pb-8 flex items-center"
-                style={{
-                  minHeight:
-                    isMounted && isDesktopOrLaptop ? appCanvasHeight : '100%',
-                  paddingBottom:
-                    isMounted && isDesktopOrLaptop
-                      ? '0px'
-                      : (mobileNavRef.current?.offsetHeight || 80) + 'px'
+          <div className={cx('min-h-[80vh]')}>
+            <AnimatePresence mode={'wait'}>
+              <motion.div
+                key={baseUrlSegment}
+                initial={false}
+                animate={isDesktopOrLaptop && 'animateState'}
+                exit={'exitState'}
+                transition={{
+                  type: 'spring',
+                  duration: 0.1
+                }}
+                variants={{
+                  initialState: {
+                    opacity: 0,
+                    x: transitionDirection
+                  },
+                  animateState: {
+                    opacity: 1,
+                    x: 0
+                  },
+                  exitState: {
+                    opacity: 0,
+                    x: transitionDirection
+                  }
                 }}
               >
-                {children}
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                <motion.div
+                  className="container-fluid w-full mx-auto lg:px-4 pb-8 flex items-center"
+                  style={{
+                    minHeight:
+                      isMounted && isDesktopOrLaptop ? appCanvasHeight : '100%',
+                    paddingBottom:
+                      isMounted && isDesktopOrLaptop
+                        ? '0px'
+                        : (mobileNavRef.current?.offsetHeight || 80) + 'px'
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={isMounted && { opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  {children}
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
           <div
             ref={conversionButtonRef}
             className="sticky bottom-4 left-0 pb-1 hidden lg:block"
@@ -162,12 +168,9 @@ export default function Layout({ children }: LayoutProps) {
             <ReETHConversion />
           </div>
         </div>
-        {/* {isMounted && !isDesktopOrLaptop && ( */}
         <div ref={mobileNavRef}>
           <MobileNav />
         </div>
-
-        {/* )} */}
       </main>
     </>
   );

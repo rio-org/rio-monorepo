@@ -83,7 +83,7 @@ const StakeField = ({
             type="number"
             value={amount ? amount : ''}
             placeholder="0.00"
-            autoFocus
+            autoFocus={isDesktopOrLaptop}
             min={0}
             step="0.1"
             ref={inputRef}

@@ -6,7 +6,7 @@ import RestakeForm from '../components/Restake/RestakeForm';
 import { useState, useEffect } from 'react';
 
 const Home: NextPage = () => {
-  const [hasMounted, setHasMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const { networkStats } = useGetNetworkStats();
   const tvl = networkStats?.tvl ? (
     networkStats.tvl.toLocaleString() + ' ETH'
@@ -16,7 +16,7 @@ const Home: NextPage = () => {
   const apr = networkStats?.apr ? networkStats?.apr + '%' : <Skeleton />;
 
   useEffect(() => {
-    setHasMounted(true);
+    setIsMounted(true);
   }, []);
 
   return (
@@ -25,7 +25,7 @@ const Home: NextPage = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between gap-2 lg:gap-8 w-full px-4 lg:px-5 pt-3 lg:pt-5 pb-3">
           <h1 className="text-2xl font-medium">Restake</h1>
           <div className="flex gap-2 lg:justify-center items-center">
-            {hasMounted && (
+            {isMounted && (
               <>
                 <span className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4 flex gap-1">
                   TVL: {tvl}
@@ -38,7 +38,7 @@ const Home: NextPage = () => {
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 lg:p-6 w-full m-[2px]">
-          <RestakeForm />
+          {isMounted && <RestakeForm />}
         </div>
       </div>
     </RestakeWrapper>
