@@ -115,8 +115,11 @@ export const CustomConnectButton = () => {
                         <div className="flex flex-col text-right items-end px-2 py-1 hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer">
                           {account?.displayName}
                           <span className="text-sm opacity-50 hidden lg:block">
-                            {account?.displayBalance
-                              ? `${account?.displayBalance}`
+                            {account?.balanceFormatted
+                              ? `${
+                                  Math.trunc(+account.balanceFormatted * 1000) /
+                                  1000
+                                } reETH`
                               : ''}
                           </span>
                         </div>
@@ -150,8 +153,11 @@ export const CustomConnectButton = () => {
                         <div className="flex flex-row justify-between mb-2 text-black">
                           {account?.displayName}
                           <span className="text-sm opacity-50 -tracking-tighter">
-                            {account?.displayBalance
-                              ? `${account?.displayBalance}`
+                            {account?.balanceFormatted
+                              ? `${
+                                  Math.trunc(+account.balanceFormatted * 1000) /
+                                  1000
+                                } reETH`
                               : ''}
                           </span>
                         </div>

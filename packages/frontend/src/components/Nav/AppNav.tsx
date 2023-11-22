@@ -57,7 +57,7 @@ const AppNav = () => {
       >
         <div className="flex items-center justify-between text-blue-gray-900">
           <div className="flex flex-row gap-4 items-center">
-            <Link href="/">
+            <Link href={slugUrl('/')}>
               <Image
                 src={logo}
                 alt="Rio"

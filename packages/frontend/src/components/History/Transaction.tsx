@@ -40,7 +40,7 @@ const Transaction = ({ transaction }: Props) => {
           )}
           <td className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
             <div className="flex items-center gap-0 font-medium">
-              <span className="mr-2">12.83</span>
+              <span className="mr-2">{transaction.amount}</span>
               <SymbolPill symbol="＊ETH" />
             </div>
             <IconSelectArrow direction={isOpen ? 'up' : 'down'} />
@@ -67,7 +67,7 @@ const Transaction = ({ transaction }: Props) => {
                       isActiveToken={false}
                       isLoading={false}
                       isError={false}
-                      amount={0.00}
+                      amount={transaction.amount / 5}
                     />
                   </div>
                 );

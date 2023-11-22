@@ -20,6 +20,7 @@ const WithdrawForm = () => {
 
   const isValidAmount = amount > 0 && amount <= accountTokenBalance;
   useEffect(() => {
+    console.log(data);
     if (data) {
       setAccountTokenBalance(+data?.formatted);
     }

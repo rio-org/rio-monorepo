@@ -105,6 +105,7 @@ export interface WithdrawEvent {
   date: string;
   status: TransactionStatus;
   symbol: TokenSymbol;
+  amount: number;
 }
 
 export type TransactionStatus = 'Pending' | 'Available' | 'Claimed' | 'None';

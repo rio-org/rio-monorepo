@@ -44,7 +44,7 @@ const WithdrawField = ({
         activeTokenSymbol ? (
           <>
             <span className="opacity-50 text-[12px] -tracking-tight">
-              Balance: {accountTokenBalance.toFixed(2)} reETH
+              Balance: {Math.trunc(accountTokenBalance * 1000) / 1000} reETH
             </span>{' '}
           </>
         ) : (

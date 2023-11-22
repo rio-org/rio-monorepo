@@ -11,17 +11,20 @@ export const historyData: WithdrawEvent[] = [
   {
     date: 'August 12, 2023',
     status: 'Pending',
-    symbol: '＊ETH'
+    symbol: '＊ETH',
+    amount: 11.28
   },
   {
-    date: 'August 12, 2023',
+    date: 'August 7, 2023',
     status: 'Available',
-    symbol: '＊ETH'
+    symbol: '＊ETH',
+    amount: 7.77
   },
   {
-    date: 'August 12, 2023',
+    date: 'August 1, 2023',
     status: 'Claimed',
-    symbol: '＊ETH'
+    symbol: '＊ETH',
+    amount: 3.25
   }
 ];
 export const statsData = [
