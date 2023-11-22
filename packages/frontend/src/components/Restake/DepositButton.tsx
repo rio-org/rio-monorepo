@@ -53,7 +53,7 @@ const DepositButton = ({ isValidAmount, isEmpty }: Props) => {
           key={'restake'}
         >
           {!address && (
-            <span className="opacity-20 text-black">Connect to claim</span>
+            <span className="opacity-20 text-black">Connect to restake</span>
           )}
           {address && !isLoading && !isError && (
             <span className={cx(!isValidAmount && 'opacity-20 text-black')}>
