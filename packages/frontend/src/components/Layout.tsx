@@ -116,7 +116,7 @@ export default function Layout({ children }: LayoutProps) {
           >
             <AppNav />
           </div>
-          <div className={cx('min-h-[80vh]')}>
+          <div className={cx('lg:min-h-[80vh]')}>
             <AnimatePresence mode={'wait'}>
               <motion.div
                 key={baseUrlSegment}
@@ -150,7 +150,7 @@ export default function Layout({ children }: LayoutProps) {
                     paddingBottom:
                       isMounted && isDesktopOrLaptop
                         ? '0px'
-                        : (mobileNavRef.current?.offsetHeight || 80) + 'px'
+                        : (mobileNavRef.current?.offsetHeight || 100) + 'px'
                   }}
                   initial={{ opacity: 0 }}
                   animate={isMounted && { opacity: 1 }}
