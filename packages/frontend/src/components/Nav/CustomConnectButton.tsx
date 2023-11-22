@@ -42,8 +42,7 @@ export const CustomConnectButton = () => {
         const [isDisconnected, setIsDisconnected] = useState(false);
         const ready = mounted && authenticationStatus !== 'loading';
         const { disconnect } = useDisconnect({
-          onSuccess(data) {
-            console.log('disconnect success', data);
+          onSuccess() {
             setIsDisconnected(true);
             setIsLoading(false);
             setOpenNav(false);

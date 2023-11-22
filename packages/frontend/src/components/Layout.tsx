@@ -17,6 +17,7 @@ type LayoutProps = {
 export default function Layout({ children }: LayoutProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [appCanvasHeight, setappCanvasHeight] = useState(0);
+  const [appCanvasPB, setAppCanvasPB] = useState<number>(0);
   const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0); // APP_NAV_ITEMS[0
   const [transitionDirection, setTransitionDirection] = useState<number>(50);
   const appNavRef = useRef<HTMLDivElement>(null);
@@ -64,6 +65,7 @@ export default function Layout({ children }: LayoutProps) {
         appPadding -
         mobileNavRef.current.offsetHeight
       );
+      setAppCanvasPB(mobileNavRef.current.offsetHeight);
     } else if (
       isMounted &&
       appNavRef.current &&
@@ -126,11 +128,11 @@ export default function Layout({ children }: LayoutProps) {
                 className="container-fluid w-full mx-auto lg:px-4 pb-8 flex items-center"
                 style={{
                   minHeight:
-                    isMounted && isDesktopOrLaptop ? appCanvasHeight : '100',
+                    isMounted && isDesktopOrLaptop ? appCanvasHeight : '100%',
                   paddingBottom:
                     isMounted && isDesktopOrLaptop
                       ? '0px'
-                      : +(mobileNavRef.current?.offsetHeight || 0) + 30 + 'px'
+                      : appCanvasPB + (mobileNavRef.current?.offsetHeight || 80) + 30 + 'px'
                 }}
               >
                 {children}
@@ -144,7 +146,12 @@ export default function Layout({ children }: LayoutProps) {
             <ReETHConversion />
           </div>
         </div>
-        {isMounted && !isDesktopOrLaptop && <MobileNav />}
+        {/* {isMounted && !isDesktopOrLaptop && ( */}
+        <div ref={mobileNavRef}>
+          <MobileNav />
+        </div>
+
+        {/* )} */}
       </main>
     </>
   );

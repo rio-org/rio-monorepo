@@ -15,6 +15,7 @@ const slugUrl = (slug: string) => {
 };
 
 const MobileNav = () => {
+  const [isSecondaryMenuOpen, setIsSecondaryMenuOpen] = React.useState(false);
   const router = useRouter();
   const baseUrlSegment = router.pathname.split('/')[1];
   const activeTab =
@@ -24,7 +25,6 @@ const MobileNav = () => {
     query: DESKTOP_MQ
   });
   const drawerContentRef = useRef<HTMLDivElement>(null);
-  const [isSecondaryMenuOpen, setIsSecondaryMenuOpen] = React.useState(false);
 
   return (
     <>

@@ -5,6 +5,8 @@ import AssetItemContent from './AssetItemContent';
 import Skeleton from 'react-loading-skeleton';
 import { reEthInUSD } from '../../../placeholder';
 import { useFetchDummyData } from '../../hooks/useFetchDummyData';
+import { useMediaQuery } from 'react-responsive';
+import { DESKTOP_MQ } from '../../lib/constants';
 type Props = {
   asset: AssetDetails;
   isActiveToken: boolean;
@@ -44,6 +46,10 @@ const WithdrawAssetItem = ({
     </>
   );
 
+  const isDesktopOrLaptop = useMediaQuery({
+    query: DESKTOP_MQ
+  });
+
   return (
     <button
       onClick={() => {
@@ -51,9 +57,10 @@ const WithdrawAssetItem = ({
       }}
       disabled={isError}
       className={cx(
-        'flex flex-row gap-2 w-full py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
+        'flex flex-row gap-2 w-full py-3 lg:py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
         !isError && 'hover:bg-[var(--color-element-wrapper-bg)]',
-        isError && 'opacity-40'
+        isError && 'opacity-40',
+        isDesktopOrLaptop ? 'gap-2' : 'gap-4'
       )}
     >
       <AssetItemContent

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TokenSymbol } from '../../lib/typings';
 import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
 import AssetItemContent from '../Assets/AssetItemContent';
@@ -51,10 +51,12 @@ const WithdrawAssetSelector = ({
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
-
+  const drawerContentRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  console.log('drawerContentRef.current?.offsetHeight', drawerContentRef?.current?.offsetHeight);
 
   return (
     <>
@@ -65,7 +67,7 @@ const WithdrawAssetSelector = ({
           </label>
           <button
             className={cx(
-              'flex flex-row gap-4 items-center w-full text-left bg-black bg-opacity-5 text-black px-[20px] py-4 rounded-xl border border-transparent hover:border-gray-300',
+              'flex flex-row gap-4 lg:gap-4 items-center w-full text-left bg-black bg-opacity-5 text-black p-4 lg:px-[20px] lg:py-4 rounded-xl border border-transparent hover:border-gray-300',
               isListOpen && 'border-gray-400 hover:border-gray-400'
             )}
             id="asset"
@@ -76,6 +78,8 @@ const WithdrawAssetSelector = ({
               isActiveToken={false}
               isLoading={false}
               isError={false}
+              isSelectorDisplay={true}
+              isBestRate={ASSETS[activeTokenSymbol].symbol === '＊ETH' ? true : false}
               amount={<></>}
             />
             <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />
@@ -91,19 +95,23 @@ const WithdrawAssetSelector = ({
           </div>
         )}
       </div>
+
       {isMounted && !isDesktopOrLaptop && (
         <Drawer
           placement="bottom"
-          size={440}
+          size={470}
+          // size={drawerContentRef.current?.offsetHeight} // todo
           open={isListOpen}
           onClose={() => setIsListOpen(false)}
-          className="p-4"
+          className="rounded-t-2xl p-4"
         >
-          <List
-            setIsListOpen={setIsListOpen}
-            activeTokenSymbol={activeTokenSymbol}
-            setActiveTokenSymbol={setActiveTokenSymbol}
-          />
+          <div ref={drawerContentRef}>
+            <List
+              setIsListOpen={setIsListOpen}
+              activeTokenSymbol={activeTokenSymbol}
+              setActiveTokenSymbol={setActiveTokenSymbol}
+            />
+          </div>
         </Drawer>
       )}
     </>

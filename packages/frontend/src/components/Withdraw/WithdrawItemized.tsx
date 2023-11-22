@@ -3,12 +3,15 @@ import HR from '../Shared/HR';
 import ItemizedAsset from '../Assets/ItemizedAsset';
 import { TokenSymbol } from '../../lib/typings';
 import { buildAssetList } from '../../lib/utilities';
+import IconSelectArrow from '../Icons/IconSelectArrow';
+import { motion } from 'framer-motion';
 
 type Props = {
   activeTokenSymbol: TokenSymbol;
 };
 
 const WithdrawItemized = ({ activeTokenSymbol }: Props) => {
+  const [isExpanded, setIsExpanded] = React.useState(true);
   const assets = buildAssetList(activeTokenSymbol);
   return (
     <div>
@@ -26,23 +29,36 @@ const WithdrawItemized = ({ activeTokenSymbol }: Props) => {
         </div>
       </div>
       <HR />
-      <div className="flex justify-between text-[14px]">
+      <div
+        className="flex justify-between items-center text-[14px]"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <span className="text-black opacity-50">You will receive</span>
+        <span className='lg:hidden'>
+          <IconSelectArrow direction={isExpanded ? 'up' : 'down'} />
+        </span>
       </div>
-      <div className="flex flex-col gap-3 mt-2 mb-4">
-        {assets.map((asset) => {
-          return (
-            <ItemizedAsset
-              key={asset.symbol}
-              asset={asset}
-              isActiveToken={false}
-              isLoading={false}
-              isError={false}
-              amount={'0.00'}
-            />
-          );
-        })}
-      </div>
+      <motion.div
+        initial={{ height: 0 }}
+        animate={{ height: isExpanded ? 'auto' : 0 }}
+        transition={{ duration: 0.2 }}
+        className="overflow-hidden"
+      >
+        <div className='flex flex-col gap-3 mt-2 mb-4'>
+          {assets.map((asset) => {
+            return (
+              <ItemizedAsset
+                key={asset.symbol}
+                asset={asset}
+                isActiveToken={false}
+                isLoading={false}
+                isError={false}
+                amount={'0.00'}
+              />
+            );
+          })}
+        </div>
+      </motion.div>
       <HR />
       <div className="flex justify-between text-[14px] mt-4">
         <strong>Total received</strong>

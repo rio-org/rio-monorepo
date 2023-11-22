@@ -74,7 +74,7 @@ const AssetSelector = ({
           size={330}
           open={isListOpen}
           onClose={() => setIsListOpen(false)}
-          className="p-4"
+          className="rounded-t-2xl p-4"
         >
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
