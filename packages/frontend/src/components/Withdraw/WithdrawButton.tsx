@@ -7,9 +7,10 @@ import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 
 type Props = {
   isValid: boolean;
+  clearForm: () => void;
 };
 
-const WithdrawButton = ({ isValid }: Props) => {
+const WithdrawButton = ({ isValid, clearForm }: Props) => {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -25,6 +26,7 @@ const WithdrawButton = ({ isValid }: Props) => {
     const random = Math.random();
     if (random > 0.5) {
       setIsSuccess(true);
+      clearForm();
     } else {
       setIsError(true);
     }
@@ -47,9 +49,9 @@ const WithdrawButton = ({ isValid }: Props) => {
           )}
           disabled={!isValid || isLoading}
           onClick={() => {
-            async () => {
-              await fetchDummyData();
-            };
+            fetchDummyData().catch(() => {
+              setIsError(true);
+            });
           }}
           variants={TX_BUTTON_VARIANTS}
           key={'withdraw'}

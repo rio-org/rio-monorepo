@@ -17,10 +17,12 @@ const WithdrawForm = () => {
     address: address
     // TODO: use reETH address. currently using ETH address for testing
   });
-
   const isValidAmount = amount > 0 && amount <= accountTokenBalance;
+  const clearForm = () => {
+    setAmount(0);
+    setActiveTokenSymbol('＊ETH');
+  };
   useEffect(() => {
-    console.log(data);
     if (data) {
       setAccountTokenBalance(+data?.formatted);
     }
@@ -47,7 +49,7 @@ const WithdrawForm = () => {
         setActiveTokenSymbol={setActiveTokenSymbol}
       />
       <WithdrawItemized amount={amount} activeTokenSymbol={activeTokenSymbol} />
-      <WithdrawButton isValid={isValidAmount} />
+      <WithdrawButton isValid={isValidAmount} clearForm={clearForm} />
     </>
   );
 };
