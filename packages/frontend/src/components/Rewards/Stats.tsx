@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { statsData } from '../../../placeholder';
+import { statsData, emptyStatsData } from '../../../placeholder';
 import Stat from './Stat';
 import { motion } from 'framer-motion';
 import IconSelectArrow from '../Icons/IconSelectArrow';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { useAccount } from 'wagmi';
 
 const Stats = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const { address } = useAccount();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
@@ -38,14 +40,23 @@ const Stats = () => {
         transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
       >
         <div className="flex flex-col lg:flex-row gap-2 mb-6">
-          {statsData.map((stat, index) => (
-            <Stat
-              key={index}
-              label={stat.label}
-              value={stat.value}
-              denominator={stat.denominator}
-            />
-          ))}
+          {address
+            ? statsData.map((stat, index) => (
+                <Stat
+                  key={index}
+                  label={stat.label}
+                  value={stat.value}
+                  denominator={stat.denominator}
+                />
+              ))
+            : emptyStatsData.map((stat, index) => (
+                <Stat
+                  key={index}
+                  label={stat.label}
+                  value={stat.value}
+                  denominator={stat.denominator}
+                />
+              ))}
         </div>
       </motion.div>
     </>

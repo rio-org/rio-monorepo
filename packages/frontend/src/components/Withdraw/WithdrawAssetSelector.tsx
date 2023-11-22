@@ -56,11 +56,6 @@ const WithdrawAssetSelector = ({
     setIsMounted(true);
   }, []);
 
-  console.log(
-    'drawerContentRef.current?.offsetHeight',
-    drawerContentRef?.current?.offsetHeight
-  );
-
   return (
     <>
       <div className="relative">

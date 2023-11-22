@@ -67,7 +67,7 @@ const Transaction = ({ transaction }: Props) => {
                       isActiveToken={false}
                       isLoading={false}
                       isError={false}
-                      amount={'0.00'}
+                      amount={0.00}
                     />
                   </div>
                 );

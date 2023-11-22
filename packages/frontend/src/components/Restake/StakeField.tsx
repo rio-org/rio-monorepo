@@ -84,9 +84,11 @@ const StakeField = ({
             value={amount ? amount : ''}
             placeholder="0.00"
             autoFocus
+            min={0}
+            step="0.1"
             ref={inputRef}
             onChange={(e) => {
-              handleValueChange(parseInt(e.target.value as string));
+              handleValueChange(+Number(e.target.value as string).toFixed(2));
             }}
             onFocus={() => {
               setIsFocused(true);
@@ -103,7 +105,7 @@ const StakeField = ({
           />
         </div>
         <div className="text-sm flex justify-between w-full mt-1">
-          <span className="opacity-50">${usdAmount}</span>
+          <span className="opacity-50">${usdAmount.toFixed(2)}</span>
           <div>
             {isMounted &&
             accountTokenBalance !== undefined &&

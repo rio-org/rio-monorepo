@@ -26,7 +26,7 @@ export const CustomConnectButton = () => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
+  if (!isMounted) return null;
   return (
     <ConnectButton.Custom>
       {({
@@ -107,16 +107,16 @@ export const CustomConnectButton = () => {
                     type="button"
                     className="lg:hidden flex flex-col text-right items-end px-2 py-1 hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer"
                   >
-                    {isLoading ? <Spinner /> : account.displayName}
+                    {isLoading ? <Spinner /> : account?.displayName}
                   </button>
                   <div className="hidden lg:block">
                     <Menu placement="bottom-end">
                       <MenuHandler>
                         <div className="flex flex-col text-right items-end px-2 py-1 hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer">
-                          {account.displayName}
+                          {account?.displayName}
                           <span className="text-sm opacity-50 hidden lg:block">
-                            {account.displayBalance
-                              ? `${account.displayBalance}`
+                            {account?.displayBalance
+                              ? `${account?.displayBalance}`
                               : ''}
                           </span>
                         </div>
@@ -148,10 +148,10 @@ export const CustomConnectButton = () => {
                         className="p-4 pb-6 flex flex-col gap-2"
                       >
                         <div className="flex flex-row justify-between mb-2 text-black">
-                          {account.displayName}
+                          {account?.displayName}
                           <span className="text-sm opacity-50 -tracking-tighter">
-                            {account.displayBalance
-                              ? `${account.displayBalance}`
+                            {account?.displayBalance
+                              ? `${account?.displayBalance}`
                               : ''}
                           </span>
                         </div>

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import StakeField from '../Restake/StakeField';
+import StakeField from './StakeField';
 import { useAccount, useBalance } from 'wagmi';
 import { Alert, Spinner } from '@material-tailwind/react';
 import { TokenSymbol } from '../../lib/typings';
 import { ASSETS } from '../../lib/constants';
 import HR from '../Shared/HR';
-import DepositButton from '../Restake/DepositButton';
+import DepositButton from './DepositButton';
+import { ethInUSD } from '../../../placeholder';
 
 const RestakeForm = () => {
   const [amount, setAmount] = useState<number | null>(null);
@@ -14,11 +15,20 @@ const RestakeForm = () => {
     useState<TokenSymbol>('ETH');
   const { address } = useAccount();
   const activeAsset = ASSETS[activeTokenSymbol];
+  const rethToEth = 1.02;
   const { data, isError, isLoading } = useBalance({
     address: address,
     token: activeAsset.address ? activeAsset.address : undefined
   });
   const isValidAmount = amount && amount > 0 && amount <= accountTokenBalance;
+  const isEmpty = !amount;
+
+  const resetForm = () => {
+    setAmount(null);
+    setAccountTokenBalance(0);
+    setActiveTokenSymbol('ETH');
+  };
+
   useEffect(() => {
     if (data) {
       setAccountTokenBalance(+data?.formatted);
@@ -29,6 +39,10 @@ const RestakeForm = () => {
   useEffect(() => {
     setAmount(null);
   }, [accountTokenBalance]);
+
+  useEffect(() => {
+    !address && resetForm();
+  }, [address]);
 
   if (isError) return <Alert color="red">Error loading account balance.</Alert>;
   if (isLoading)
@@ -51,7 +65,7 @@ const RestakeForm = () => {
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Exchange rate</span>
           <strong className="text-right">
-            1.00 reETH = 1.02 ETH ($1,789.28)
+            1.00 reETH = {rethToEth} ETH (${ethInUSD})
           </strong>
         </div>
         <div className="flex justify-between text-[14px]">
@@ -66,9 +80,12 @@ const RestakeForm = () => {
       <HR />
       <div className="flex justify-between text-[14px]">
         <span className="text-black opacity-50">Minimum received</span>
-        <strong>XX reETH</strong>
+        <strong>{amount ? (amount * rethToEth).toFixed(2) : 0} reETH</strong>
       </div>
-      <DepositButton isValidAmount={isValidAmount ? true : false} />
+      <DepositButton
+        isValidAmount={isValidAmount ? true : false}
+        isEmpty={isEmpty ? true : false}
+      />
     </>
   );
 };

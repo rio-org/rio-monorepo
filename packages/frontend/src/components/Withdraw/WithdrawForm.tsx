@@ -45,7 +45,7 @@ const WithdrawForm = () => {
         activeTokenSymbol={activeTokenSymbol}
         setActiveTokenSymbol={setActiveTokenSymbol}
       />
-      <WithdrawItemized activeTokenSymbol={activeTokenSymbol} />
+      <WithdrawItemized amount={amount} activeTokenSymbol={activeTokenSymbol} />
       <WithdrawButton isValid={isValidAmount} />
     </>
   );
