@@ -56,7 +56,10 @@ const WithdrawAssetSelector = ({
     setIsMounted(true);
   }, []);
 
-  console.log('drawerContentRef.current?.offsetHeight', drawerContentRef?.current?.offsetHeight);
+  console.log(
+    'drawerContentRef.current?.offsetHeight',
+    drawerContentRef?.current?.offsetHeight
+  );
 
   return (
     <>
@@ -79,7 +82,9 @@ const WithdrawAssetSelector = ({
               isLoading={false}
               isError={false}
               isSelectorDisplay={true}
-              isBestRate={ASSETS[activeTokenSymbol].symbol === '＊ETH' ? true : false}
+              isBestRate={
+                ASSETS[activeTokenSymbol].symbol === '＊ETH' ? true : false
+              }
               amount={<></>}
             />
             <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />

@@ -49,7 +49,11 @@ const AssetItemContent = ({
           <div>
             <h3 className="font-medium">
               {asset.symbol}
-              {isBestRate && <span className='ml-2'><BestRateLabel /></span>}
+              {isBestRate && (
+                <span className="ml-2">
+                  <BestRateLabel />
+                </span>
+              )}
             </h3>
             <p className="opacity-50 text-[14px]">{asset.name}</p>
           </div>
@@ -67,10 +71,8 @@ const AssetItemContent = ({
           <div>
             {isBestRate && <BestRateLabel />}
             <h3 className="font-medium">
-              {asset.symbol}{" "}
-              <span className="opacity-50 text-[14px]">
-                {asset.name}
-              </span>
+              {asset.symbol}{' '}
+              <span className="opacity-50 text-[14px]">{asset.name}</span>
             </h3>
             <p className="flex gap-2">
               {amount}

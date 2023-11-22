@@ -34,7 +34,7 @@ const WithdrawItemized = ({ activeTokenSymbol }: Props) => {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <span className="text-black opacity-50">You will receive</span>
-        <span className='lg:hidden'>
+        <span className="lg:hidden">
           <IconSelectArrow direction={isExpanded ? 'up' : 'down'} />
         </span>
       </div>
@@ -44,7 +44,7 @@ const WithdrawItemized = ({ activeTokenSymbol }: Props) => {
         transition={{ duration: 0.2 }}
         className="overflow-hidden"
       >
-        <div className='flex flex-col gap-3 mt-2 mb-4'>
+        <div className="flex flex-col gap-3 mt-2 mb-4">
           {assets.map((asset) => {
             return (
               <ItemizedAsset

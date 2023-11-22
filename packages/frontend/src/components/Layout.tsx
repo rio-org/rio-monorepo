@@ -17,7 +17,6 @@ type LayoutProps = {
 export default function Layout({ children }: LayoutProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [appCanvasHeight, setappCanvasHeight] = useState(0);
-  const [appCanvasPB, setAppCanvasPB] = useState<number>(0);
   const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0); // APP_NAV_ITEMS[0
   const [transitionDirection, setTransitionDirection] = useState<number>(50);
   const appNavRef = useRef<HTMLDivElement>(null);
@@ -61,11 +60,10 @@ export default function Layout({ children }: LayoutProps) {
     ) {
       setappCanvasHeight(
         windowSize.height -
-        appNavRef.current.offsetHeight -
-        appPadding -
-        mobileNavRef.current.offsetHeight
+          appNavRef.current.offsetHeight -
+          appPadding -
+          mobileNavRef.current.offsetHeight
       );
-      setAppCanvasPB(mobileNavRef.current.offsetHeight);
     } else if (
       isMounted &&
       appNavRef.current &&
@@ -74,9 +72,9 @@ export default function Layout({ children }: LayoutProps) {
     ) {
       setappCanvasHeight(
         windowSize.height -
-        appNavRef.current.offsetHeight -
-        conversionButtonRef.current.offsetHeight -
-        appPadding
+          appNavRef.current.offsetHeight -
+          conversionButtonRef.current.offsetHeight -
+          appPadding
       );
     }
   }, [windowSize, appNavRef, mobileNavRef, isDesktopOrLaptop, isMounted]);
@@ -132,7 +130,7 @@ export default function Layout({ children }: LayoutProps) {
                   paddingBottom:
                     isMounted && isDesktopOrLaptop
                       ? '0px'
-                      : appCanvasPB + (mobileNavRef.current?.offsetHeight || 80) + 30 + 'px'
+                      : (mobileNavRef.current?.offsetHeight || 80) + 'px'
                 }}
               >
                 {children}
