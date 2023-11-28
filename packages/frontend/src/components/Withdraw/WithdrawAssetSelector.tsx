@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TokenSymbol } from '../../lib/typings';
+import { AssetDetails, TokenSymbol } from '../../lib/typings';
 import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
 import AssetItemContent from '../Assets/AssetItemContent';
 import WithdrawAssetItem from '../Assets/WithdrawAssetItem';
@@ -9,22 +9,26 @@ import { useMediaQuery } from 'react-responsive';
 import { Drawer } from '@material-tailwind/react';
 
 type Props = {
+  assetsList: AssetDetails[];
   activeTokenSymbol: TokenSymbol;
   setActiveTokenSymbol: (symbol: TokenSymbol) => void;
 };
 
 const List = ({
+  assetsList,
   setIsListOpen,
   activeTokenSymbol,
   setActiveTokenSymbol
 }: {
+  assetsList: AssetDetails[];
   setIsListOpen: (isListOpen: boolean) => void;
   activeTokenSymbol: TokenSymbol;
   setActiveTokenSymbol: (symbol: TokenSymbol) => void;
 }) => {
   return (
     <>
-      {Object.values(ASSETS).map((asset) => {
+      {/* {Object.values(ASSETS).map((asset) => { */}
+      {assetsList.map((asset) => {
         // don't display reETH in the asset selector
         if (asset.symbol === 'reETH') return null;
         return (
@@ -43,6 +47,7 @@ const List = ({
 };
 
 const WithdrawAssetSelector = ({
+  assetsList,
   activeTokenSymbol,
   setActiveTokenSymbol
 }: Props) => {
@@ -52,6 +57,7 @@ const WithdrawAssetSelector = ({
     query: DESKTOP_MQ
   });
   const drawerContentRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -88,6 +94,7 @@ const WithdrawAssetSelector = ({
         {isDesktopOrLaptop && isListOpen && (
           <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
             <List
+              assetsList={assetsList}
               setIsListOpen={setIsListOpen}
               activeTokenSymbol={activeTokenSymbol}
               setActiveTokenSymbol={setActiveTokenSymbol}
@@ -107,6 +114,7 @@ const WithdrawAssetSelector = ({
         >
           <div ref={drawerContentRef}>
             <List
+              assetsList={assetsList}
               setIsListOpen={setIsListOpen}
               activeTokenSymbol={activeTokenSymbol}
               setActiveTokenSymbol={setActiveTokenSymbol}

@@ -1,22 +1,23 @@
 import React from 'react';
-import { ASSETS } from '../../lib/constants';
 import DepositAssetItem from '../Assets/DepositAssetItem';
-import { TokenSymbol } from '../../lib/typings';
+import { AssetDetails, TokenSymbol } from '../../lib/typings';
 
 type Props = {
   activeTokenSymbol: TokenSymbol;
+  assets: AssetDetails[];
   setActiveTokenSymbol: (symbol: TokenSymbol) => void;
   setIsListOpen: (isOpen: boolean) => void;
 };
 
 const AssetList = ({
   activeTokenSymbol,
+  assets,
   setActiveTokenSymbol,
   setIsListOpen
 }: Props) => {
   return (
     <>
-      {Object.values(ASSETS).map((asset, i) => {
+      {assets.map((asset, i) => {
         // don't display reETH or ＊ETH in the asset selector
         if (asset.symbol === 'reETH' || asset.symbol === '＊ETH') return null;
         return (

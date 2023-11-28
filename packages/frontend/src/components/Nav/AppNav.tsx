@@ -23,16 +23,13 @@ const NavList = ({ activeTab }: { activeTab: string }) => {
   return (
     <>
       <motion.nav
-        className='lg:flex flex-row gap-1 items-center w-full'
+        className="lg:flex flex-row gap-1 items-center w-full"
         initial="initial"
         animate="loaded"
         variants={mainNavVariants}
       >
         {APP_NAV_ITEMS.map(({ label, slug }, index) => (
-          <motion.div
-            key={label + index}
-            variants={mainNavChildrenVariants}
-          >
+          <motion.div key={label + index} variants={mainNavChildrenVariants}>
             <Link
               href={slugUrl(slug)}
               key={label + index}
@@ -52,7 +49,6 @@ const NavList = ({ activeTab }: { activeTab: string }) => {
         />
         <CustomConnectButton />
       </motion.nav>
-
     </>
   );
 };
@@ -92,7 +88,7 @@ const AppNav = () => {
                 alt="Rio"
                 width={logoDimensions}
                 height={logoDimensions}
-                className='w-full h-full'
+                className="w-full h-full"
               />
             </Link>
             <div className="hidden lg:flex flex-row gap-1 items-center w-full">
@@ -102,9 +98,7 @@ const AppNav = () => {
                 </AnimatePresence>
               )}
             </div>
-            {isMounted && !isDesktopOrLaptop && (
-              <CustomConnectButton />
-            )}
+            {isMounted && !isDesktopOrLaptop && <CustomConnectButton />}
           </div>
         </div>
 

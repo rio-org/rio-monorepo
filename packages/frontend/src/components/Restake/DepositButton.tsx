@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import Alert from '../Shared/Alert';
-import { Spinner } from '@material-tailwind/react';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { useAccount } from 'wagmi';
 
@@ -15,6 +14,7 @@ const DepositButton = ({ isValidAmount, isEmpty }: Props) => {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [buttonText, setButtonText] = useState('Enter an amount');
   const { address } = useAccount();
 
   const fetchDummyData = async () => {
@@ -34,6 +34,21 @@ const DepositButton = ({ isValidAmount, isEmpty }: Props) => {
     }
   };
 
+  useEffect(() => {
+    if (isValidAmount) {
+      setButtonText('Restake');
+    }
+    if (isEmpty) {
+      setButtonText('Enter an amount');
+    }
+    if (!isValidAmount && !isEmpty) {
+      setButtonText('Invalid amount');
+    }
+    if (!address) {
+      setButtonText('Connect to restake');
+    }
+  }, [isSuccess, isError, isValidAmount, isEmpty]);
+
   return (
     <AnimatePresence>
       {!isSuccess && !isError && (
@@ -52,21 +67,14 @@ const DepositButton = ({ isValidAmount, isEmpty }: Props) => {
           variants={TX_BUTTON_VARIANTS}
           key={'restake'}
         >
-          {!address && (
-            <span className="opacity-20 text-black">Connect to restake</span>
-          )}
-          {address && !isLoading && !isError && (
-            <span className={cx(!isValidAmount && 'opacity-20 text-black')}>
-              {isValidAmount && 'Restake'}
-              {isEmpty && 'Enter an amount'}
-              {!isValidAmount && !isEmpty && 'Invalid amount'}
+          {!isLoading && !isError && (
+            <span
+              className={cx(
+                (!isValidAmount || !address) && 'opacity-20 text-black'
+              )}
+            >
+              {buttonText}
             </span>
-          )}
-          {address && isLoading && (
-            <div className="w-full text-center flex items-center justify-center gap-2">
-              <Spinner width={16} />
-              <span className="opacity-40">Restaking</span>
-            </div>
           )}
         </motion.button>
       )}

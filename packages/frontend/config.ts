@@ -4,11 +4,12 @@ import iconTwitter from './src/assets/icon-twitter.svg';
 import iconTelegram from './src/assets/icon-telegram.svg';
 import iconGithub from './src/assets/icon-github.svg';
 import iconMail from './src/assets/icon-mail.svg';
+import { CHAIN_ID_NUMBER } from './src/lib/typings';
 
 export const APP_TITLE = 'Rio Network';
 export const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID
-  ? parseInt(process.env.NEXT_PUBLIC_CHAIN_ID)
-  : 1;
+  ? (parseInt(process.env.NEXT_PUBLIC_CHAIN_ID) as CHAIN_ID_NUMBER)
+  : (0 as CHAIN_ID_NUMBER);
 
 export const APP_NAV_ITEMS = [
   {

@@ -1,25 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import StakeField from './StakeField';
 import { useAccount, useBalance } from 'wagmi';
-import { Alert, Spinner } from '@material-tailwind/react';
-import { TokenSymbol } from '../../lib/typings';
-import { ASSETS } from '../../lib/constants';
+import { Spinner } from '@material-tailwind/react';
+import { AssetDetails, TokenSymbol } from '../../lib/typings';
 import HR from '../Shared/HR';
 import DepositButton from './DepositButton';
 import { ethInUSD } from '../../../placeholder';
 
-const RestakeForm = () => {
+const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [amount, setAmount] = useState<number | null>(null);
   const [accountTokenBalance, setAccountTokenBalance] = useState(0);
   const [activeTokenSymbol, setActiveTokenSymbol] =
     useState<TokenSymbol>('ETH');
   const { address } = useAccount();
-  const activeAsset = ASSETS[activeTokenSymbol];
+  // const activeAsset = ASSETS[activeTokenSymbol];
+  const activeAsset = assets[0];
   const rethToEth = 1.02;
   const { data, isError, isLoading } = useBalance({
     address: address,
     token: activeAsset.address ? activeAsset.address : undefined
   });
+  console.log('isError', isError);
   const isValidAmount = amount && amount > 0 && amount <= accountTokenBalance;
   const isEmpty = !amount;
 
@@ -44,7 +45,7 @@ const RestakeForm = () => {
     !address && resetForm();
   }, [address]);
 
-  if (isError) return <Alert color="red">Error loading account balance.</Alert>;
+  // if (isError) return <Alert color="red">Error loading account balance.</Alert>;
   if (isLoading)
     return (
       <div className="w-full text-center min-h-[100px] flex items-center justify-center">
@@ -60,6 +61,7 @@ const RestakeForm = () => {
         activeTokenSymbol={activeTokenSymbol}
         setAmount={setAmount}
         setActiveTokenSymbol={setActiveTokenSymbol}
+        assets={assets}
       />
       <div className="flex flex-col gap-2 mt-4">
         <div className="flex justify-between text-[14px]">

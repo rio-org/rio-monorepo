@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import IconLineArrow from '../Icons/IconLineArrow';
 import IconExpand from '../Icons/IconExpand';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { CHAIN_ID } from '../../../config';
 
 type Props = {
   event: TransactionEvent;
@@ -18,12 +19,11 @@ type Props = {
 type ScreenSizeRowProps = {
   event: TransactionEvent;
   isOpen: boolean;
-  chainId: number;
   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   isFirst?: boolean;
 };
 
-const DesktopRow = ({ event, isFirst, chainId }: ScreenSizeRowProps) => {
+const DesktopRow = ({ event, isFirst }: ScreenSizeRowProps) => {
   return (
     <tr className="group bg-white divide-gray-100">
       <td
@@ -34,7 +34,7 @@ const DesktopRow = ({ event, isFirst, chainId }: ScreenSizeRowProps) => {
       >
         <TableLabel>
           <a
-            href={linkToTxOnBlockExplorer('0x000', chainId)}
+            href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
             target="_blank"
             rel="noreferrer"
             className={cx(
@@ -90,8 +90,7 @@ const MobileRow = ({
   event,
   isOpen,
   setIsOpen,
-  isFirst,
-  chainId
+  isFirst
 }: ScreenSizeRowProps) => {
   return (
     <tr
@@ -104,7 +103,7 @@ const MobileRow = ({
         <span className="text-[12px] font-normal opacity-50 flex">Date</span>
         <TableLabel>
           <a
-            href={linkToTxOnBlockExplorer('0x000', chainId)}
+            href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
             target="_blank"
             rel="noreferrer"
             className={cx(
@@ -178,7 +177,6 @@ const MobileRow = ({
 const TableRow = ({ event, isFirst }: Props) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const chainId = 1;
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
@@ -193,7 +191,6 @@ const TableRow = ({ event, isFirst }: Props) => {
         event={event}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        chainId={chainId}
         isFirst={isFirst}
       />
     );
@@ -203,7 +200,6 @@ const TableRow = ({ event, isFirst }: Props) => {
       event={event}
       isOpen={isOpen}
       setIsOpen={setIsOpen}
-      chainId={chainId}
       isFirst={isFirst}
     />
   );

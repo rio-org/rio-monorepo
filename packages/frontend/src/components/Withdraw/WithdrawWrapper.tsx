@@ -10,7 +10,7 @@ type Props = {
 const WithdrawWrapper = ({ children, noPadding }: Props) => {
   return (
     <div
-      className="min-h-full w-full flex justify-center items-start lg:pt-[10vh]"
+      className="min-h-full w-full flex justify-center items-start"
       style={{
         minHeight: 'inherit'
       }}

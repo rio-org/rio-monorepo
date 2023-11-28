@@ -13,18 +13,31 @@ import {
   configureChains,
   WagmiConfig,
   mainnet,
-  sepolia
+  sepolia,
+  Chain
 } from 'wagmi';
 import { goerli } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { ThemeProvider } from '@material-tailwind/react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Layout from '../components/Layout';
-import { APP_TITLE } from '../../config';
+import { APP_TITLE, CHAIN_ID } from '../../config';
 import { theme } from '../lib/theme';
 
+const chooseChain = (chainId: number) => {
+  if (chainId === 1) {
+    return [mainnet] as Chain[];
+  } else if (chainId === 5) {
+    return [goerli] as Chain[];
+  } else if (chainId === 11155111) {
+    return [sepolia] as Chain[];
+  } else {
+    throw new Error('Invalid chain id');
+  }
+};
+
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [mainnet, goerli, sepolia],
+  chooseChain(CHAIN_ID),
   [publicProvider()]
 );
 

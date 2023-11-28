@@ -84,12 +84,26 @@ export type Asset = {
 export interface AssetDetails {
   name: string;
   symbol: TokenSymbol;
+  address: EthereumAddress;
   logo: StaticImageData;
+}
+
+export interface AssetSubgraphResponse {
+  name: string;
+  symbol: TokenSymbol;
   address: EthereumAddress | null;
+}
+
+export interface AssetPrice {
+  address: EthereumAddress;
+  symbol: TokenSymbol;
+  latestUSDPrice: number;
+  latestUSDPriceTimestamp: number;
 }
 
 export type TokenSymbol =
   | 'ETH'
+  | 'WETH'
   | 'reETH'
   | 'stETH'
   | 'rETH'

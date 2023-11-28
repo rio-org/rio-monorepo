@@ -2,17 +2,16 @@ import React from 'react';
 import { useEnsName } from 'wagmi';
 import { linkToAddressOnBlockExplorer, trunc } from '../lib/utilities';
 import { EthereumAddress } from '../lib/typings';
+import { CHAIN_ID } from '../../config';
 
 type Props = {
   address: EthereumAddress;
-  chainId: number;
   noLink?: boolean;
 };
 
-const ENSname = ({ address, chainId, noLink }: Props) => {
+const ENSname = ({ address, noLink }: Props) => {
   const { data: ensName } = useEnsName({
-    address: address,
-    chainId: chainId
+    address: address
   });
 
   if (noLink) {
@@ -21,7 +20,7 @@ const ENSname = ({ address, chainId, noLink }: Props) => {
 
   return (
     <a
-      href={linkToAddressOnBlockExplorer(address, chainId)}
+      href={linkToAddressOnBlockExplorer(address, CHAIN_ID)}
       target="_blank"
       rel="noreferrer"
     >

@@ -4,6 +4,7 @@ import { linkToTxOnBlockExplorer } from '../../lib/utilities';
 import IconExternal from '../Icons/IconExternal';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import cx from 'classnames';
+import { CHAIN_ID } from '../../../config';
 
 type Props = {
   isSuccess: boolean;
@@ -13,7 +14,6 @@ type Props = {
 };
 
 const Alert = ({ isSuccess, isError, setIsSuccess, setIsError }: Props) => {
-  const chainId = 1;
   return (
     <>
       {isSuccess && (
@@ -25,7 +25,7 @@ const Alert = ({ isSuccess, isError, setIsSuccess, setIsError }: Props) => {
         >
           <span className="font-medium">Success</span>
           <a
-            href={linkToTxOnBlockExplorer('0x000', chainId)}
+            href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
             target="_blank"
             rel="noreferrer"
             className={cx(

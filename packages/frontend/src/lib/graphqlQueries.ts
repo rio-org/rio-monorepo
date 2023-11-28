@@ -15,3 +15,35 @@ export const getProposalsByDao = (
     }
   }`;
 };
+
+export const getAssetList = () => {
+  return gql`
+    query getAssetList {
+      liquidRestakingTokens {
+        id
+        address
+        name
+        symbol
+      }
+      tokens {
+        id
+        address
+        name
+        symbol
+      }
+    }
+  `;
+};
+
+export const getLatestAssetUSDPrice = (tokenAddress: EthereumAddress) => {
+  return gql`
+    query getLatestAssetUSDPrice {
+      token(id: "${tokenAddress}") {
+        address
+        symbol
+        latestUSDPrice
+        latestUSDPriceTimestamp
+      }
+    }
+  `;
+};

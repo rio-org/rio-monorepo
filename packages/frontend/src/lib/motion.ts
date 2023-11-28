@@ -6,11 +6,10 @@ export const mainNavVariants = {
     transition: {
       staggerChildren: 0.05,
       staggerDirection: 1,
-      delayChildren: 0.1,
+      delayChildren: 0.1
     }
   }
 };
-
 
 export const mainNavChildrenVariants = {
   initial: {
@@ -18,7 +17,7 @@ export const mainNavChildrenVariants = {
     opacity: 0,
     transition: {
       y: { stiffness: 1000, velocity: -100 },
-      type: 'spring',
+      type: 'spring'
     }
   },
   loaded: {
@@ -26,7 +25,7 @@ export const mainNavChildrenVariants = {
     opacity: 1,
     transition: {
       y: { stiffness: 1000 },
-      type: 'spring',
+      type: 'spring'
     }
   }
 };
@@ -41,7 +40,7 @@ export const mainNavConnectVariants = {
   loaded: {
     opacity: 1,
     transition: {
-      delay: 0.5,
+      delay: 0.5
     }
   }
 };

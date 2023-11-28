@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TokenSymbol } from '../../lib/typings';
+import { AssetDetails, TokenSymbol } from '../../lib/typings';
 import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
 import Image from 'next/image';
 import IconSelectArrow from '../Icons/IconSelectArrow';
@@ -10,6 +10,7 @@ import AssetList from './AssetList';
 
 type Props = {
   activeTokenSymbol: TokenSymbol;
+  assets: AssetDetails[];
   setActiveTokenSymbol: (symbol: TokenSymbol) => void;
   setIsFocused: (isFocused: boolean) => void;
   unFocusInput: () => void;
@@ -17,6 +18,7 @@ type Props = {
 
 const AssetSelector = ({
   activeTokenSymbol,
+  assets,
   setActiveTokenSymbol,
   unFocusInput
 }: Props) => {
@@ -63,6 +65,7 @@ const AssetSelector = ({
         <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
+            assets={assets}
             setActiveTokenSymbol={setActiveTokenSymbol}
             setIsListOpen={setIsListOpen}
           />
@@ -78,6 +81,7 @@ const AssetSelector = ({
         >
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
+            assets={assets}
             setActiveTokenSymbol={setActiveTokenSymbol}
             setIsListOpen={setIsListOpen}
           />

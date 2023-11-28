@@ -5,6 +5,7 @@ import rETHLogo from '../assets/rETH-logo.png';
 import wstETHLogo from '../assets/wstETH-logo.png';
 import cbETHLogo from '../assets/cbETH-logo.png';
 import allEthLogo from '../assets/all-eth-logo.png';
+import { zeroAddress } from 'viem';
 
 export const NULL_ADDRESS =
   '0x0000000000000000000000000000000000000000' as AddressType;
@@ -17,6 +18,7 @@ export const UINT_32_MAX = BigInt('4294967295');
 
 export const ASSET_ADDRESS: AssetAddress = {
   ETH: '0x00000',
+  WETH: '0x00000',
   stETH: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
   rETH: '0xae78736cd615f374d3085123a210448e74fc6393',
   cbETH: '0xbe9895146f7af43049ca1c1ae358b0541ea49704',
@@ -25,18 +27,35 @@ export const ASSET_ADDRESS: AssetAddress = {
   '＊ETH': null
 };
 
+export const ASSET_LOGOS = {
+  '＊ETH': allEthLogo,
+  ETH: ethLogo,
+  WETH: ethLogo,
+  stETH: stETHLogo,
+  rETH: rETHLogo,
+  cbETH: cbETHLogo,
+  wstETH: wstETHLogo,
+  reETH: rETHLogo
+};
+
 export const ASSETS: Asset = {
   '＊ETH': {
     name: 'stETH, cbETH, rETH, wstETH, ETH',
     symbol: '＊ETH',
     logo: allEthLogo,
-    address: null
+    address: zeroAddress
   },
   ETH: {
     name: 'Ether',
     symbol: 'ETH',
     logo: ethLogo,
-    address: null
+    address: zeroAddress
+  },
+  WETH: {
+    name: 'Wrapped Ether',
+    symbol: 'WETH',
+    logo: ethLogo,
+    address: zeroAddress
   },
   stETH: {
     name: 'Lido Staked Ether',
@@ -66,23 +85,23 @@ export const ASSETS: Asset = {
     name: 'reETH',
     symbol: 'reETH',
     logo: rETHLogo,
-    address: '0x00000' // todo
+    address: '0x00000' // todo,
   }
 };
 
 // prettier-ignore
 // Demo Subgraph URLs
 export const PUBLIC_SUBGRAPH_URL = {
-  1: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-ethereum-mainnet/stable/gn',
-  5: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-goerli-testnet/stable/gn',
-  11155111: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-goerli-testnet/stable/gn',
-  10: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-optimism-mainnet/stable/gn',
-  420: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-optimism-testnet/stable/gn',
-  8453: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-base-mainnet/stable/gn',
-  84531: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-base-testnet/stable/gn',
-  31337: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-zora-mainnet/stable/gn',
-  7777777: 'https://api.goldsky.com/api/public/project_clkk1ucdyf6ak38svcatie9tf/subgraphs/nouns-builder-zora-testnet/stable/gn',
-  999: 'https://api.thegraph.com/subgraphs/name/neokry/nouns-builder-mainnet'
+  1: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-mainnet',
+  5: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-goerli',
+  11155111: '',
+  10: '',
+  420: '',
+  8453: '',
+  84531: '',
+  31337: '',
+  7777777: '',
+  999: ''
 };
 
 export const TX_BUTTON_VARIANTS = {

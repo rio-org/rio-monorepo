@@ -3,10 +3,10 @@ import { TokenSymbol, AssetDetails } from '../../lib/typings';
 import cx from 'classnames';
 import AssetItemContent from './AssetItemContent';
 import Skeleton from 'react-loading-skeleton';
-import { reEthInUSD } from '../../../placeholder';
-import { useFetchDummyData } from '../../hooks/useFetchDummyData';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { useGetLatestAssetPrice } from '../../hooks/useGetLatestAssetPrice';
+import { CHAIN_ID } from '../../../config';
 type Props = {
   asset: AssetDetails;
   isActiveToken: boolean;
@@ -22,23 +22,26 @@ const WithdrawAssetItem = ({
   setActiveTokenSymbol,
   setIsListOpen
 }: Props) => {
+  const { data, isLoading, isError } = useGetLatestAssetPrice(
+    asset.address,
+    CHAIN_ID
+  );
   const handleClick = (symbol: TokenSymbol) => {
     setActiveTokenSymbol(symbol);
     setIsListOpen(false);
   };
-  const {
-    isLoading,
-    isError,
-    data: reETHConversionAmount
-  } = useFetchDummyData();
+
+  const reETHConversionAmount = 1.02; // temp todo
   const amount = (
     <>
-      {!isLoading && reETHConversionAmount ? (
+      {!isLoading && data && reETHConversionAmount ? (
         <>
           <strong className="text-[14px]">
-            1 reETH = {reETHConversionAmount} ＊ETH
+            1 reETH = {reETHConversionAmount}＊ETH
           </strong>
-          <span className="text-[14px] opacity-50">(${reEthInUSD})</span>
+          <span className="text-[14px] opacity-50">
+            (${data.latestUSDPrice * reETHConversionAmount})
+          </span>
         </>
       ) : (
         <Skeleton inline width={100} />
@@ -55,7 +58,7 @@ const WithdrawAssetItem = ({
       onClick={() => {
         handleClick(asset.symbol);
       }}
-      disabled={isError}
+      disabled={isError ? true : false}
       className={cx(
         'flex flex-row gap-2 w-full py-3 lg:py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
         !isError && 'hover:bg-[var(--color-element-wrapper-bg)]',
@@ -67,7 +70,7 @@ const WithdrawAssetItem = ({
         asset={asset}
         isActiveToken={isActiveToken}
         isLoading={isLoading}
-        isError={isError}
+        isError={isError ? true : false}
         isBestRate={isBestRate}
         amount={amount}
       />

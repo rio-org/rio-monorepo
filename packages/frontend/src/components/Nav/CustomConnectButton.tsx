@@ -70,7 +70,7 @@ export const CustomConnectButton = () => {
                 opacity: 0,
                 pointerEvents: 'none',
                 userSelect: 'none'
-              },
+              }
             })}
             className="lg:ml-auto"
             variants={mainNavConnectVariants}
@@ -121,9 +121,10 @@ export const CustomConnectButton = () => {
                           {account?.displayName}
                           <span className="text-sm opacity-50 hidden lg:block">
                             {account?.balanceFormatted
-                              ? `${Math.trunc(+account.balanceFormatted * 1000) /
-                              1000
-                              } reETH`
+                              ? `${
+                                  Math.trunc(+account.balanceFormatted * 1000) /
+                                  1000
+                                } reETH`
                               : ''}
                           </span>
                         </div>
@@ -158,9 +159,10 @@ export const CustomConnectButton = () => {
                           {account?.displayName}
                           <span className="text-sm opacity-50 -tracking-tighter">
                             {account?.balanceFormatted
-                              ? `${Math.trunc(+account.balanceFormatted * 1000) /
-                              1000
-                              } reETH`
+                              ? `${
+                                  Math.trunc(+account.balanceFormatted * 1000) /
+                                  1000
+                                } reETH`
                               : ''}
                           </span>
                         </div>

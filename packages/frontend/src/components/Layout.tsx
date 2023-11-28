@@ -76,10 +76,13 @@ export default function Layout({ children }: LayoutProps) {
       </Head>
       <main
         className={cx(
-          "bg-[var(--color-app-bg)] lg:bg-white lg:p-[12px] lg:flex w-full min-h-full font-sans",
-        )}>
-        <div className={cx("bg-[var(--color-app-bg)] p-4 lg:px-4 lg:py-2 rounded-[12px] relative w-full lg:flex lg:flex-col lg:justify-center",
+          'bg-[var(--color-app-bg)] lg:bg-white lg:p-[12px] lg:flex w-full min-h-full font-sans'
         )}
+      >
+        <div
+          className={cx(
+            'bg-[var(--color-app-bg)] p-4 lg:px-4 lg:py-2 rounded-[12px] relative w-full lg:flex lg:flex-col lg:justify-center'
+          )}
         >
           <div
             ref={appNavRef}
@@ -87,21 +90,20 @@ export default function Layout({ children }: LayoutProps) {
           >
             <AppNav />
           </div>
-          <div className={cx(
-            'flex flex-col justify-start items-start w-full'
-          )}
+          <div
+            className={cx('flex flex-col justify-start items-start w-full')}
             ref={contentRef}
           >
             <AnimatePresence mode={'wait'} initial={false}>
               <motion.div
-                className='w-full'
+                className="w-full"
                 key={baseUrlSegment}
                 initial={'initialState'}
                 animate={'animateState'}
                 exit={'exitState'}
                 transition={{
                   type: 'spring',
-                  duration: 0.1,
+                  duration: 0.1
                 }}
                 variants={{
                   initialState: {
@@ -120,7 +122,7 @@ export default function Layout({ children }: LayoutProps) {
               >
                 <motion.div
                   className={cx(
-                    "container-fluid mx-auto lg:px-4 pb-8 flex items-center",
+                    'container-fluid mx-auto lg:px-4 pb-8 flex items-center'
                   )}
                   style={{
                     paddingBottom:
@@ -150,18 +152,17 @@ export default function Layout({ children }: LayoutProps) {
                 delay: 0.5
               }}
               className={cx(
-                "sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto"
+                'sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto'
               )}
             >
               <ReETHConversion />
             </motion.div>
           )}
-
         </div>
         <div ref={mobileNavRef}>
           <MobileNav />
         </div>
-      </main >
+      </main>
     </>
   );
 }

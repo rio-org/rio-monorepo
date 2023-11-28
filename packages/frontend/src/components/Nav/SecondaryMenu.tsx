@@ -32,9 +32,7 @@ const SecondaryMenu = ({
 
   return (
     <>
-      <motion.div
-        key={'secondaryMenu'}
-        variants={mainNavChildrenVariants}>
+      <motion.div key={'secondaryMenu'} variants={mainNavChildrenVariants}>
         {isMounted && isDesktopOrLaptop ? (
           <Menu
             placement="bottom-start"

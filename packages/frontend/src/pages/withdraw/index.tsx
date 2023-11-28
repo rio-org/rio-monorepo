@@ -4,11 +4,25 @@ import { useAccount, useBalance } from 'wagmi';
 import { Spinner, Alert } from '@material-tailwind/react';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
 import WithdrawForm from '../../components/Withdraw/WithdrawForm';
+import { useGetAssetsList } from '../../hooks/useGetAssetsList';
+import { CHAIN_ID } from '../../../config';
+import { AssetDetails } from '../../lib/typings';
+import { NULL_ADDRESS } from '../../lib/constants';
 
-const Withdraw: NextPage = () => {
+type Props = {
+  assetsList: AssetDetails[];
+};
+
+const Withdraw: NextPage<Props> = ({ assetsList }) => {
   const { address } = useAccount();
+  const reEthAddress =
+    assetsList.find((asset) => asset.symbol === 'reETH')?.address ||
+    NULL_ADDRESS;
   const { data, isError, isLoading } = useBalance({
-    address: address
+    address: address,
+    token: reEthAddress,
+    enabled: !!reEthAddress,
+    chainId: CHAIN_ID
     // TODO: use reETH address. currently using ETH address for testing
   });
 
@@ -28,9 +42,20 @@ const Withdraw: NextPage = () => {
 
   return (
     <WithdrawWrapper>
-      <WithdrawForm />
+      <WithdrawForm assetsList={assetsList} />
     </WithdrawWrapper>
   );
 };
 
 export default Withdraw;
+
+export async function getStaticProps() {
+  const chainId = CHAIN_ID;
+  const assetsList = await useGetAssetsList(chainId);
+
+  return {
+    props: {
+      assetsList
+    }
+  };
+}

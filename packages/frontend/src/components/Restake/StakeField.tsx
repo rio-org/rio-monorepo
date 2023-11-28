@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TokenSymbol } from '../../lib/typings';
+import { AssetDetails, TokenSymbol } from '../../lib/typings';
 import AssetSelector from './AssetSelector';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
@@ -11,6 +11,7 @@ type Props = {
   amount: number | null;
   accountTokenBalance: number;
   activeTokenSymbol: TokenSymbol;
+  assets: AssetDetails[];
   setAmount: (amount: number) => void;
   setActiveTokenSymbol: (symbol: TokenSymbol) => void;
 };
@@ -19,6 +20,7 @@ const StakeField = ({
   amount,
   accountTokenBalance,
   activeTokenSymbol,
+  assets,
   setAmount,
   setActiveTokenSymbol
 }: Props) => {
@@ -90,7 +92,6 @@ const StakeField = ({
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
-              // handleValueChange(+Number(e.target.value as string).toFixed(2));
               handleValueChange(e);
             }}
             onFocus={() => {
@@ -105,10 +106,13 @@ const StakeField = ({
             setActiveTokenSymbol={setActiveTokenSymbol}
             setIsFocused={setIsFocused}
             unFocusInput={unFocusInput}
+            assets={assets}
           />
         </div>
         <div className="text-sm flex justify-between w-full mt-1">
-          <span className="opacity-50">${usdAmount.toFixed(2)}</span>
+          <span className="opacity-50">
+            ${usdAmount.toFixed(2).toLocaleString()}
+          </span>
           <div>
             {isMounted &&
             accountTokenBalance !== undefined &&
