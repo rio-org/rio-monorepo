@@ -140,24 +140,22 @@ export default function Layout({ children }: LayoutProps) {
               </motion.div>
             </AnimatePresence>
           </div>
-          {currentSlugIndex !== 2 && (
-            <motion.div
-              ref={conversionButtonRef}
-              key={'conversionButton'}
-              initial={{ opacity: 0 }}
-              animate={isMounted && { opacity: 1 }}
-              transition={{
-                type: 'spring',
-                duration: 0.1,
-                delay: 0.5
-              }}
-              className={cx(
-                'sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto'
-              )}
-            >
-              <ReETHConversion />
-            </motion.div>
-          )}
+          <motion.div
+            ref={conversionButtonRef}
+            key={'conversionButton'}
+            initial={{ opacity: 0 }}
+            animate={isMounted && { opacity: 1 }}
+            transition={{
+              type: 'spring',
+              duration: 0.1,
+              delay: 0.5
+            }}
+            className={cx(
+              'sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto'
+            )}
+          >
+            <ReETHConversion />
+          </motion.div>
         </div>
         <div ref={mobileNavRef}>
           <MobileNav />
