@@ -5,10 +5,12 @@ import IconExternal from '../Icons/IconExternal';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import cx from 'classnames';
 import { CHAIN_ID } from '../../../config';
+import { Hash } from 'viem';
 
 type Props = {
   isSuccess: boolean;
   isError: boolean;
+  // transactionHash: Hash | null;
   setIsSuccess: (isSuccess: boolean) => void;
   setIsError: (isError: boolean) => void;
 };
@@ -24,19 +26,6 @@ const Alert = ({ isSuccess, isError, setIsSuccess, setIsError }: Props) => {
           key={'success'}
         >
           <span className="font-medium">Success</span>
-          <a
-            href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
-            target="_blank"
-            rel="noreferrer"
-            className={cx(
-              `px-[8px] py-[4px] text-gray-500 font-normal whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200 leading-none`
-            )}
-          >
-            View transaction
-            <div className="opacity-50">
-              <IconExternal transactionStatus="None" />
-            </div>
-          </a>
         </motion.div>
       )}
       {isError && (

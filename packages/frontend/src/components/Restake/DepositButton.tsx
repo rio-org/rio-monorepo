@@ -4,35 +4,24 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { useAccount } from 'wagmi';
+import { Spinner } from '@material-tailwind/react';
+import { Hash } from 'viem';
 
 type Props = {
   isValidAmount: boolean;
   isEmpty: boolean;
+  isJoinLoading: boolean;
+  isJoinSuccess: boolean;
+  isJoinError: boolean;
+  transactionHash: Hash | null;
+  setIsJoinSuccess: (isSuccess: boolean) => void;
+  setIsJoinError: (isError: boolean) => void;
+  handleExecute: () => void;
 };
 
-const DepositButton = ({ isValidAmount, isEmpty }: Props) => {
-  const [isError, setIsError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+const DepositButton = ({ isValidAmount, isEmpty, isJoinLoading, isJoinSuccess, isJoinError, transactionHash, setIsJoinSuccess, setIsJoinError, handleExecute }: Props) => {
   const [buttonText, setButtonText] = useState('Enter an amount');
   const { address } = useAccount();
-
-  const fetchDummyData = async () => {
-    setIsLoading(true);
-    //  wait 1 second before setting isError to true
-    await new Promise((resolve) => setTimeout(resolve, 1000)).catch((err) => {
-      console.log(err);
-    });
-    setIsLoading(false);
-
-    // randomly set isSuccess to true or false
-    const random = Math.random();
-    if (random > 0.5) {
-      setIsSuccess(true);
-    } else {
-      setIsError(true);
-    }
-  };
 
   useEffect(() => {
     if (isValidAmount) {
@@ -47,27 +36,32 @@ const DepositButton = ({ isValidAmount, isEmpty }: Props) => {
     if (!address) {
       setButtonText('Connect to restake');
     }
-  }, [isSuccess, isError, isValidAmount, isEmpty]);
+  }, [isJoinSuccess, isJoinError, isValidAmount, isEmpty]);
 
   return (
     <AnimatePresence>
-      {!isSuccess && !isError && (
+      {!isJoinSuccess && !isJoinError && (
         <motion.button
           className={cx(
             'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
             !isValidAmount && 'bg-opacity-20',
-            isValidAmount && !isLoading && 'hover:bg-[var(--color-dark-gray)]'
+            isValidAmount && !isJoinLoading && 'hover:bg-[var(--color-dark-gray)]'
           )}
-          disabled={!isValidAmount || isLoading}
+          disabled={!isValidAmount || isJoinLoading}
           onClick={() => {
-            fetchDummyData().catch(() => {
-              setIsError(true);
-            });
+            handleExecute();
           }}
           variants={TX_BUTTON_VARIANTS}
           key={'restake'}
         >
-          {!isLoading && !isError && (
+          {isJoinLoading && (
+            <span className="flex items-center justify-center">
+              <span className="w-4 h-4 mb-2">
+                <Spinner />
+              </span>
+            </span>
+          )}
+          {!isJoinLoading && !isJoinError && (
             <span
               className={cx(
                 (!isValidAmount || !address) && 'opacity-20 text-black'
@@ -80,10 +74,10 @@ const DepositButton = ({ isValidAmount, isEmpty }: Props) => {
       )}
       <div className="mt-4">
         <Alert
-          isSuccess={isSuccess}
-          isError={isError}
-          setIsSuccess={setIsSuccess}
-          setIsError={setIsError}
+          isSuccess={isJoinSuccess}
+          isError={isJoinError}
+          setIsSuccess={setIsJoinSuccess}
+          setIsError={setIsJoinError}
         />
       </div>
     </AnimatePresence>
