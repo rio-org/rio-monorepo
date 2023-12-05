@@ -19,6 +19,8 @@ import {
 } from 'wagmi';
 import { goerli } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import { alchemyProvider } from 'wagmi/providers/alchemy';
+import { infuraProvider } from 'wagmi/providers/infura';
 import { ThemeProvider } from '@material-tailwind/react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Layout from '../components/Layout';
@@ -39,7 +41,11 @@ const chooseChain = (chainId: number) => {
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   chooseChain(CHAIN_ID),
-  [publicProvider()]
+  [
+    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID || '' }),
+    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
+    publicProvider()
+  ]
 );
 
 const appInfo = {

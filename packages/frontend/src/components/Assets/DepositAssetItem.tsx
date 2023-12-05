@@ -1,5 +1,5 @@
 import React from 'react';
-import { TokenSymbol, AssetDetails } from '../../lib/typings';
+import { AssetDetails } from '../../lib/typings';
 import cx from 'classnames';
 import AssetItemContent from './AssetItemContent';
 import { useAccount, useBalance } from 'wagmi';
@@ -7,30 +7,34 @@ import { useAccount, useBalance } from 'wagmi';
 type Props = {
   asset: AssetDetails;
   isActiveToken: boolean;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  setActiveToken: (asset: AssetDetails) => void;
   setIsListOpen: (isOpen: boolean) => void;
 };
 
 const DepositAssetItem = ({
   asset,
   isActiveToken,
-  setActiveTokenSymbol,
+  setActiveToken,
   setIsListOpen
 }: Props) => {
   const { address } = useAccount();
   const { data, isLoading, isError } = useBalance({
     address: address,
-    token: asset.address === null ? undefined : asset.address
+    token: asset.address
+      ? asset.symbol === 'ETH'
+        ? undefined
+        : asset.address
+      : undefined
   });
   const amount = data && <>{(+data?.formatted).toFixed(2)}</>;
-  const handleClick = (symbol: TokenSymbol) => {
-    setActiveTokenSymbol(symbol);
+  const handleClick = (asset: AssetDetails) => {
+    setActiveToken(asset);
     setIsListOpen(false);
   };
   return (
     <button
       onClick={() => {
-        handleClick(asset.symbol);
+        handleClick(asset);
       }}
       disabled={isError}
       className={cx(

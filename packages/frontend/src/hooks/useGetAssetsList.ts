@@ -19,7 +19,8 @@ const parseAssetList = (data: AssetSubgraphResponse[]): AssetDetails[] => {
       name: asset.name,
       symbol: asset.symbol,
       address: asset.address || zeroAddress,
-      logo: ASSET_LOGOS[asset.symbol]
+      logo: ASSET_LOGOS[asset.symbol],
+      decimals: asset.decimals
     };
     return assetDetails;
   });

@@ -11,7 +11,7 @@ import AssetList from './AssetList';
 type Props = {
   activeTokenSymbol: TokenSymbol;
   assets: AssetDetails[];
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  setActiveToken: (asset: AssetDetails) => void;
   setIsFocused: (isFocused: boolean) => void;
   unFocusInput: () => void;
 };
@@ -19,7 +19,7 @@ type Props = {
 const AssetSelector = ({
   activeTokenSymbol,
   assets,
-  setActiveTokenSymbol,
+  setActiveToken,
   unFocusInput
 }: Props) => {
   const [isListOpen, setIsListOpen] = useState(false);
@@ -66,7 +66,7 @@ const AssetSelector = ({
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
             assets={assets}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />
         </div>
@@ -82,7 +82,7 @@ const AssetSelector = ({
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
             assets={assets}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />
         </Drawer>

@@ -102,3 +102,8 @@ export const buildAssetList = (activeTokenSymbol: TokenSymbol) => {
 
   return assets;
 };
+
+export const truncDec = (num: number, digits: number = 3) => {
+  const decimalPlaces = 10 ** digits;
+  return Math.trunc(num * decimalPlaces) / decimalPlaces;
+};

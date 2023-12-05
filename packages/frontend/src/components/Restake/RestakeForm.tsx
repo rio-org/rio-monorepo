@@ -2,43 +2,46 @@ import React, { useEffect, useState } from 'react';
 import StakeField from './StakeField';
 import { useAccount, useBalance } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
-import { AssetDetails, TokenSymbol } from '../../lib/typings';
+import { AssetDetails } from '../../lib/typings';
 import HR from '../Shared/HR';
 import DepositButton from './DepositButton';
 import { ethInUSD } from '../../../placeholder';
-import {
-  InputTokenWithWrap,
-  useLiquidRestakingToken
-} from '@rionetwork/sdk-react';
+import { useLiquidRestakingToken } from '@rionetwork/sdk-react';
 import { ASSET_ADDRESS } from '../../lib/constants';
+import { truncDec } from '../../lib/utilities';
+import { formatUnits, parseUnits } from 'viem';
 
 const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [amount, setAmount] = useState<number | null>(null);
+  const [amount, setAmount] = useState<bigint | null>(null);
   const [accountTokenBalance, setAccountTokenBalance] = useState(0);
-  const [activeTokenSymbol, setActiveTokenSymbol] =
-    useState<TokenSymbol>('ETH');
+  const [activeToken, setActiveToken] = useState<AssetDetails>(assets[0]);
   const { address } = useAccount();
-  const activeAsset = assets[0];
   const rethToEth = 1.02;
   const { data, isError, isLoading } = useBalance({
     address: address,
-    token: activeAsset.address ? activeAsset.address : undefined
+    token: activeToken.address
+      ? activeToken.symbol === 'ETH'
+        ? undefined
+        : activeToken.address
+      : undefined
   });
   console.log('isError', isError);
-  const isValidAmount = amount && amount > 0 && amount <= accountTokenBalance;
+  const isValidAmount =
+    amount &&
+    amount > BigInt(0) &&
+    amount <= parseUnits(accountTokenBalance.toString(), activeToken.decimals);
   const isEmpty = !amount;
 
   const resetForm = () => {
     setAmount(null);
     setAccountTokenBalance(0);
-    setActiveTokenSymbol('ETH');
+    setActiveToken(assets[0]);
   };
 
   useEffect(() => {
     if (data) {
       setAccountTokenBalance(+data?.formatted);
-      setActiveTokenSymbol(data?.symbol as TokenSymbol);
     }
   }, [data]);
 
@@ -54,28 +57,24 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
     setIsMounted(true);
   }, []);
 
-  const [tokensIn, setTokensIn] = useState<InputTokenWithWrap[]>();
   const rethAddress = ASSET_ADDRESS['reETH'] as string;
   const restakingToken = useLiquidRestakingToken(rethAddress);
-  const query = restakingToken
-    ?.queryJoinTokensExactIn({
-      tokensIn: [
-        {
-          address: ASSET_ADDRESS['WETH'] as string,
-          amount: BigInt(amount || 0)
-        }
-      ],
-      slippage: 50
-    })
-    .then((res) => {
-      setTokensIn(res.tokensIn);
-      console.log('response', res);
+  const query = restakingToken?.queryJoinTokensExactIn({
+    tokensIn: [
+      {
+        address: ASSET_ADDRESS[activeToken.symbol] as string,
+        amount: amount || BigInt(0)
+      }
+    ],
+    slippage: 50
+  });
+  query
+    ?.then((res) => {
+      console.log('res', res);
     })
     .catch((err) => {
-      console.log('query err', err);
+      console.log('err', err);
     });
-  console.log('tokensIn', tokensIn);
-  console.log('restakingToken?.queryJoinTokensExactIn', query);
 
   return (
     <>
@@ -91,10 +90,10 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
         <>
           <StakeField
             amount={amount}
+            activeToken={activeToken}
             accountTokenBalance={accountTokenBalance}
-            activeTokenSymbol={activeTokenSymbol}
             setAmount={setAmount}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            setActiveToken={setActiveToken}
             assets={assets}
           />
           <div className="flex flex-col gap-2 mt-4">
@@ -117,7 +116,13 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
           <div className="flex justify-between text-[14px]">
             <span className="text-black opacity-50">Minimum received</span>
             <strong>
-              {amount ? (amount * rethToEth).toFixed(2) : 0} reETH
+              {amount
+                ? truncDec(
+                    +formatUnits(amount, activeToken.decimals) * rethToEth,
+                    2
+                  )
+                : 0}{' '}
+              reETH
             </strong>
           </div>
           <DepositButton

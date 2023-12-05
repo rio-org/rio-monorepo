@@ -6,8 +6,8 @@ import WithdrawAssetSelector from './WithdrawAssetSelector';
 import WithdrawButton from './WithdrawButton';
 import WithdrawField from './WithdrawField';
 import WithdrawItemized from './WithdrawItemized';
-import { useLiquidRestakingToken } from '@rionetwork/sdk-react';
-import { ASSET_ADDRESS } from '../../lib/constants';
+// import { useLiquidRestakingToken } from '@rionetwork/sdk-react';
+// import { ASSET_ADDRESS } from '../../lib/constants';
 
 const WithdrawForm = ({ assetsList }: { assetsList: AssetDetails[] }) => {
   const [activeTokenSymbol, setActiveTokenSymbol] =
@@ -19,12 +19,12 @@ const WithdrawForm = ({ assetsList }: { assetsList: AssetDetails[] }) => {
     address: address
     // TODO: use reETH address. currently using ETH address for testing
   });
-  const rethAddress = ASSET_ADDRESS['reETH'] as string;
-  const restakingToken = useLiquidRestakingToken(rethAddress);
-  console.log(
-    'restakingToken?.allowanceTarget',
-    restakingToken?.allowanceTarget
-  );
+  // const rethAddress = ASSET_ADDRESS['reETH'] as string;
+  // const restakingToken = useLiquidRestakingToken(rethAddress);
+  // console.log(
+  //   'restakingToken?.allowanceTarget',
+  //   restakingToken?.allowanceTarget
+  // );
   const isValidAmount = amount > 0 && amount <= accountTokenBalance;
   const clearForm = () => {
     setAmount(0);

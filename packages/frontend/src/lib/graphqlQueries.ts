@@ -30,6 +30,7 @@ export const getAssetList = () => {
         address
         name
         symbol
+        decimals
       }
     }
   `;

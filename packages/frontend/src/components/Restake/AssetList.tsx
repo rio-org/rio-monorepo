@@ -5,14 +5,14 @@ import { AssetDetails, TokenSymbol } from '../../lib/typings';
 type Props = {
   activeTokenSymbol: TokenSymbol;
   assets: AssetDetails[];
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  setActiveToken: (asset: AssetDetails) => void;
   setIsListOpen: (isOpen: boolean) => void;
 };
 
 const AssetList = ({
   activeTokenSymbol,
   assets,
-  setActiveTokenSymbol,
+  setActiveToken,
   setIsListOpen
 }: Props) => {
   return (
@@ -25,7 +25,7 @@ const AssetList = ({
             asset={asset}
             key={i}
             isActiveToken={asset.symbol === activeTokenSymbol}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />
         );

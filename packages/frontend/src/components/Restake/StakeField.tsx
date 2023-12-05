@@ -1,28 +1,30 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AssetDetails, TokenSymbol } from '../../lib/typings';
+import { AssetDetails } from '../../lib/typings';
 import AssetSelector from './AssetSelector';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
 import { ethInUSD } from '../../../placeholder';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { truncDec } from '../../lib/utilities';
+import { formatUnits, parseUnits } from 'viem';
 
 type Props = {
-  amount: number | null;
+  activeToken: AssetDetails;
+  amount: bigint | null;
   accountTokenBalance: number;
-  activeTokenSymbol: TokenSymbol;
   assets: AssetDetails[];
-  setAmount: (amount: number) => void;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  setAmount: (amount: bigint) => void;
+  setActiveToken: (asset: AssetDetails) => void;
 };
 
 const StakeField = ({
   amount,
+  activeToken,
   accountTokenBalance,
-  activeTokenSymbol,
   assets,
   setAmount,
-  setActiveTokenSymbol
+  setActiveToken
 }: Props) => {
   const [isMounted, setIsMounted] = useState(false);
   const [usdAmount, setUsdAmount] = useState(0);
@@ -30,7 +32,7 @@ const StakeField = ({
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = +Number(e.target.value as string);
     if (val >= 0) {
-      setAmount(+val.toFixed(2));
+      setAmount(parseUnits(val.toString(), activeToken.decimals));
     }
   };
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -55,7 +57,9 @@ const StakeField = ({
   };
 
   useEffect(() => {
-    setUsdAmount(amount ? amount * ethInUSD : 0);
+    setUsdAmount(
+      amount ? +formatUnits(amount, activeToken.decimals) * ethInUSD : 0
+    );
   }, [amount]);
 
   return (
@@ -85,7 +89,7 @@ const StakeField = ({
             className="text-[22px] bg-transparent w-full focus:outline-none flex-1"
             id="amount"
             type="number"
-            value={amount ? amount : ''}
+            value={amount ? formatUnits(amount, activeToken.decimals) : ''}
             placeholder="0.00"
             autoFocus={isDesktopOrLaptop}
             min={0}
@@ -102,8 +106,8 @@ const StakeField = ({
             }}
           />
           <AssetSelector
-            activeTokenSymbol={activeTokenSymbol}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            activeTokenSymbol={activeToken.symbol}
+            setActiveToken={setActiveToken}
             setIsFocused={setIsFocused}
             unFocusInput={unFocusInput}
             assets={assets}
@@ -116,15 +120,20 @@ const StakeField = ({
           <div>
             {isMounted &&
             accountTokenBalance !== undefined &&
-            activeTokenSymbol ? (
+            activeToken.symbol ? (
               <>
                 <span className="opacity-50">
-                  Balance: {accountTokenBalance.toFixed(2)} {activeTokenSymbol}
+                  Balance: {truncDec(accountTokenBalance)} {activeToken.symbol}
                 </span>{' '}
                 <button
                   className="text-[color:var(--color-blue)] font-medium underline ml-2 hover:[color:var(--color-light-blue)]"
                   onClick={() => {
-                    setAmount(accountTokenBalance);
+                    setAmount(
+                      parseUnits(
+                        accountTokenBalance.toString(),
+                        activeToken.decimals
+                      )
+                    );
                   }}
                 >
                   Max

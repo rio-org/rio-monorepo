@@ -16,9 +16,10 @@ export const testBuilderDaoCollectionAddress =
   '0xf67eb5caee7125aebd0c0490d6d8c059af63b149' as AddressType;
 export const UINT_64_MAX = BigInt('18446744073709551615');
 export const UINT_32_MAX = BigInt('4294967295');
+export const DISPLAYED_DECIMALS = 3;
 
 const GOERLI_ASSET_ADDRESS: AssetAddress = {
-  ETH: '0x00000',
+  ETH: '0x0000000000000000000000000000000000000000',
   WETH: '0xdfcea9088c8a88a76ff74892c1457c17dfeef9c1',
   stETH: '0x1643e812ae58766192cf7d2cf9567df2c37e9b7f',
   rETH: '0xae78736cd615f374d3085123a210448e74fc6393',
@@ -30,7 +31,7 @@ const GOERLI_ASSET_ADDRESS: AssetAddress = {
 
 // TODO:
 const MAINNET_ASSET_ADDRESS: AssetAddress = {
-  ETH: '0x00000',
+  ETH: '0x0000000000000000000000000000000000000000',
   WETH: '0x00000',
   stETH: '0x00000',
   rETH: '0x00000',
@@ -59,49 +60,57 @@ export const ASSETS: Asset = {
     name: 'stETH, cbETH, rETH, wstETH, ETH',
     symbol: '＊ETH',
     logo: allEthLogo,
-    address: zeroAddress
+    address: zeroAddress,
+    decimals: 18
   },
   ETH: {
     name: 'Ether',
     symbol: 'ETH',
     logo: ethLogo,
-    address: zeroAddress
+    address: zeroAddress,
+    decimals: 18
   },
   WETH: {
     name: 'Wrapped Ether',
     symbol: 'WETH',
     logo: ethLogo,
-    address: zeroAddress
+    address: zeroAddress,
+    decimals: 18
   },
   stETH: {
     name: 'Lido Staked Ether',
     symbol: 'stETH',
     logo: stETHLogo,
-    address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84'
+    address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+    decimals: 18
   },
   rETH: {
     name: 'Rocketpool ETH',
     symbol: 'rETH',
     logo: rETHLogo,
-    address: '0xae78736cd615f374d3085123a210448e74fc6393'
+    address: '0xae78736cd615f374d3085123a210448e74fc6393',
+    decimals: 18
   },
   cbETH: {
     name: 'Coinbase Wrapped Staked ETH',
     symbol: 'cbETH',
     logo: cbETHLogo,
-    address: '0xbe9895146f7af43049ca1c1ae358b0541ea49704'
+    address: '0xbe9895146f7af43049ca1c1ae358b0541ea49704',
+    decimals: 18
   },
   wstETH: {
     name: 'Wrapped Staked ETH',
     symbol: 'wstETH',
     logo: wstETHLogo,
-    address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0'
+    address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
+    decimals: 18
   },
   reETH: {
     name: 'reETH',
     symbol: 'reETH',
     logo: rETHLogo,
-    address: '0x00000' // todo,
+    address: '0x00000', // todo,
+    decimals: 18
   }
 };
 

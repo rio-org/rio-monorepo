@@ -86,12 +86,14 @@ export interface AssetDetails {
   symbol: TokenSymbol;
   address: EthereumAddress;
   logo: StaticImageData;
+  decimals: number;
 }
 
 export interface AssetSubgraphResponse {
   name: string;
   symbol: TokenSymbol;
   address: EthereumAddress | null;
+  decimals: number;
 }
 
 export interface AssetPrice {
