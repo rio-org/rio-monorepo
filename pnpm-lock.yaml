@@ -90,8 +90,8 @@ importers:
         specifier: 0.1.0-alpha.1
         version: 0.1.0-alpha.1(graphql@16.8.1)(typescript@5.2.2)
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.2
-        version: 0.1.0-alpha.2(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.4
+        version: 0.1.0-alpha.4(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
@@ -1632,8 +1632,8 @@ packages:
       - '@types/react'
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.2(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
-    resolution: {integrity: sha512-9Fh2L6s7eVRdlgoezC1Ocg4ZAFcS3yXnrVGX3xXpPAPXzs+mdhIQDBQpkqc7wJtbe9dAuPVfKL3DbWbAF1KnVg==}
+  /@rionetwork/sdk-react@0.1.0-alpha.4(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
+    resolution: {integrity: sha512-OHBsgZcV8/dcahduzL418ZDvpxZ6wad0nRkZLJSvKkg3Af7CsIkl07Yj9qTXGQ3BjA9c6ZvZjL0piMflHSJ4Lw==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     peerDependencies:
       react: '>=16.13.1'

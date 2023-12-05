@@ -2,6 +2,7 @@ import '../styles/global.scss';
 import 'react-loading-skeleton/dist/skeleton.css';
 import '@rainbow-me/rainbowkit/styles.css';
 import type { AppProps } from 'next/app';
+import { RioNetworkProvider } from '@rionetwork/sdk-react';
 import {
   RainbowKitProvider,
   getDefaultWallets,
@@ -75,12 +76,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider appInfo={appInfo} chains={chains}>
-        <ThemeProvider value={theme}>
-          <CssBaseline />
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </ThemeProvider>
+        <RioNetworkProvider chainId={CHAIN_ID}>
+          <ThemeProvider value={theme}>
+            <CssBaseline />
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </ThemeProvider>
+        </RioNetworkProvider>
       </RainbowKitProvider>
     </WagmiConfig>
   );
