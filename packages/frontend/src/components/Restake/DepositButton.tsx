@@ -3,9 +3,8 @@ import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
-import { useAccount } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
-import { Hash } from 'viem';
+import { EthereumAddress } from '../../lib/typings';
 
 type Props = {
   isValidAmount: boolean;
@@ -13,16 +12,26 @@ type Props = {
   isJoinLoading: boolean;
   isJoinSuccess: boolean;
   isJoinError: boolean;
-  transactionHash: Hash | null;
+  joinTxHash?: `0x${string}`;
+  accountAddress?: EthereumAddress;
   setIsJoinSuccess: (isSuccess: boolean) => void;
   setIsJoinError: (isError: boolean) => void;
   handleExecute: () => void;
 };
 
-const DepositButton = ({ isValidAmount, isEmpty, isJoinLoading, isJoinSuccess, isJoinError, transactionHash, setIsJoinSuccess, setIsJoinError, handleExecute }: Props) => {
+const DepositButton = ({
+  isValidAmount,
+  isEmpty,
+  isJoinLoading,
+  isJoinSuccess,
+  isJoinError,
+  accountAddress,
+  joinTxHash,
+  setIsJoinSuccess,
+  setIsJoinError,
+  handleExecute
+}: Props) => {
   const [buttonText, setButtonText] = useState('Enter an amount');
-  const { address } = useAccount();
-
   useEffect(() => {
     if (isValidAmount) {
       setButtonText('Restake');
@@ -33,26 +42,47 @@ const DepositButton = ({ isValidAmount, isEmpty, isJoinLoading, isJoinSuccess, i
     if (!isValidAmount && !isEmpty) {
       setButtonText('Invalid amount');
     }
-    if (!address) {
+    if (!accountAddress) {
       setButtonText('Connect to restake');
     }
-  }, [isJoinSuccess, isJoinError, isValidAmount, isEmpty]);
+  }, [isJoinSuccess, isJoinError, isValidAmount, isEmpty, accountAddress]);
 
   return (
     <AnimatePresence>
-      {!isJoinSuccess && !isJoinError && (
+      {(isJoinError || isJoinSuccess) && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.1 }}
+        >
+          <div className="mt-4">
+            <Alert
+              isSuccess={isJoinSuccess}
+              isError={isJoinError}
+              joinTxHash={joinTxHash}
+              setIsSuccess={setIsJoinSuccess}
+              setIsError={setIsJoinError}
+            />
+          </div>
+        </motion.div>
+      )}
+
+      {(!isJoinError || !isJoinSuccess) && (
         <motion.button
           className={cx(
             'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
             !isValidAmount && 'bg-opacity-20',
-            isValidAmount && !isJoinLoading && 'hover:bg-[var(--color-dark-gray)]'
+            isValidAmount &&
+              !isJoinLoading &&
+              'hover:bg-[var(--color-dark-gray)]'
           )}
           disabled={!isValidAmount || isJoinLoading}
           onClick={() => {
             handleExecute();
           }}
           variants={TX_BUTTON_VARIANTS}
-          key={'restake'}
+          key={'restakeContent'}
         >
           {isJoinLoading && (
             <span className="flex items-center justify-center">
@@ -61,10 +91,10 @@ const DepositButton = ({ isValidAmount, isEmpty, isJoinLoading, isJoinSuccess, i
               </span>
             </span>
           )}
-          {!isJoinLoading && !isJoinError && (
+          {!isJoinLoading && (
             <span
               className={cx(
-                (!isValidAmount || !address) && 'opacity-20 text-black'
+                (!isValidAmount || !accountAddress) && 'opacity-20 text-black'
               )}
             >
               {buttonText}
@@ -72,14 +102,6 @@ const DepositButton = ({ isValidAmount, isEmpty, isJoinLoading, isJoinSuccess, i
           )}
         </motion.button>
       )}
-      <div className="mt-4">
-        <Alert
-          isSuccess={isJoinSuccess}
-          isError={isJoinError}
-          setIsSuccess={setIsJoinSuccess}
-          setIsError={setIsJoinError}
-        />
-      </div>
     </AnimatePresence>
   );
 };

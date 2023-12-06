@@ -27,7 +27,6 @@ export const CustomConnectButton = () => {
   });
   const drawerContentRef = useRef<HTMLDivElement>(null);
 
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -54,7 +53,7 @@ export const CustomConnectButton = () => {
           }
         });
 
-        const { data: reEthBalance, isError: isBalanceError, isLoading: isBalanceLoading } = useBalance({
+        const { data: reEthBalance } = useBalance({
           address: account?.address as EthereumAddress,
           token: REETH_ADDRESS
         });
@@ -128,7 +127,14 @@ export const CustomConnectButton = () => {
                         <div className="flex flex-col py-1 px-2 text-right items-end hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer text-[14px]">
                           {account?.displayName}
                           <span className="text-sm opacity-50 hidden lg:block">
-                            {(reEthBalance ? truncDec(+formatUnits(reEthBalance.value, reEthBalance.decimals)) : 0) + `reETH`}
+                            {(reEthBalance
+                              ? truncDec(
+                                  +formatUnits(
+                                    reEthBalance.value,
+                                    reEthBalance.decimals
+                                  )
+                                )
+                              : 0) + `reETH`}
                             {/* {account?.balanceFormatted
                               ? `${Math.trunc(+account.balanceFormatted * 1000) /
                               1000

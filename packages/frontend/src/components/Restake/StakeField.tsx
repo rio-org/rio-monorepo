@@ -12,8 +12,9 @@ import { formatUnits, parseUnits } from 'viem';
 type Props = {
   activeToken: AssetDetails;
   amount: bigint | null;
-  accountTokenBalance: number;
+  accountTokenBalance: bigint;
   assets: AssetDetails[];
+  isDisabled: boolean;
   setAmount: (amount: bigint) => void;
   setActiveToken: (asset: AssetDetails) => void;
 };
@@ -23,6 +24,7 @@ const StakeField = ({
   activeToken,
   accountTokenBalance,
   assets,
+  isDisabled,
   setAmount,
   setActiveToken
 }: Props) => {
@@ -107,10 +109,11 @@ const StakeField = ({
           />
           <AssetSelector
             activeTokenSymbol={activeToken.symbol}
+            assets={assets}
+            isDisabled={isDisabled}
             setActiveToken={setActiveToken}
             setIsFocused={setIsFocused}
             unFocusInput={unFocusInput}
-            assets={assets}
           />
         </div>
         <div className="text-sm flex justify-between w-full mt-1">
@@ -123,17 +126,16 @@ const StakeField = ({
             activeToken.symbol ? (
               <>
                 <span className="opacity-50">
-                  Balance: {truncDec(accountTokenBalance)} {activeToken.symbol}
+                  Balance:{' '}
+                  {truncDec(
+                    +formatUnits(accountTokenBalance, activeToken.decimals)
+                  )}{' '}
+                  {activeToken.symbol}
                 </span>{' '}
                 <button
                   className="text-[color:var(--color-blue)] font-medium underline ml-2 hover:[color:var(--color-light-blue)]"
                   onClick={() => {
-                    setAmount(
-                      parseUnits(
-                        accountTokenBalance.toString(),
-                        activeToken.decimals
-                      )
-                    );
+                    setAmount(accountTokenBalance);
                   }}
                 >
                   Max

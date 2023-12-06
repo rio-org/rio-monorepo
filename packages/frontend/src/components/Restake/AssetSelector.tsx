@@ -11,6 +11,7 @@ import AssetList from './AssetList';
 type Props = {
   activeTokenSymbol: TokenSymbol;
   assets: AssetDetails[];
+  isDisabled?: boolean;
   setActiveToken: (asset: AssetDetails) => void;
   setIsFocused: (isFocused: boolean) => void;
   unFocusInput: () => void;
@@ -19,6 +20,7 @@ type Props = {
 const AssetSelector = ({
   activeTokenSymbol,
   assets,
+  isDisabled,
   setActiveToken,
   unFocusInput
 }: Props) => {
@@ -44,11 +46,12 @@ const AssetSelector = ({
   return (
     <>
       <button
-        onClick={() => handleClick()}
+        onClick={() => !isDisabled && handleClick()}
         className={cx(
           'flex flex-row gap-1 justify-center items-center py-1 pl-1 pr-2 rounded-full bg-[var(--color-element-wrapper-bg-light)] duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors',
           isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
         )}
+        disabled={isDisabled}
       >
         <Image
           src={ASSETS[activeTokenSymbol].logo}

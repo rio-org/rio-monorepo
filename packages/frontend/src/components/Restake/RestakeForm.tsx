@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import StakeField from './StakeField';
-import { useAccount, useBalance } from 'wagmi';
-import { Spinner } from '@material-tailwind/react';
-import { AssetDetails } from '../../lib/typings';
+import { erc20ABI, useAccount, useBalance, useContractRead } from 'wagmi';
+import { Alert, Spinner } from '@material-tailwind/react';
+import { AssetDetails, EthereumAddress } from '../../lib/typings';
 import HR from '../Shared/HR';
 import DepositButton from './DepositButton';
 import { ethInUSD } from '../../../placeholder';
-import { InputTokenWithWrap, JoinTokensExactInParams, LiquidRestakingTokenClient, useLiquidRestakingToken } from '@rionetwork/sdk-react';
+import {
+  InputTokenWithWrap,
+  JoinTokensExactInParams,
+  LiquidRestakingTokenClient,
+  useLiquidRestakingToken
+} from '@rionetwork/sdk-react';
 import { ASSET_ADDRESS } from '../../lib/constants';
-import { linkToTxOnBlockExplorer, truncDec } from '../../lib/utilities';
-import { Hash, formatUnits, parseUnits } from 'viem';
-import { AnimatePresence, motion } from 'framer-motion';
-import IconExternal from '../Icons/IconExternal';
-import { CHAIN_ID } from '../../../config';
+import { truncDec } from '../../lib/utilities';
+import { Hash, formatUnits, zeroAddress } from 'viem';
+import ApproveButtons from '../Shared/ApproveButtons';
 
-const queryTokens = async (restakingToken: LiquidRestakingTokenClient | null, activeToken: AssetDetails, amount: bigint | null) => {
+const queryTokens = async (
+  restakingToken: LiquidRestakingTokenClient | null,
+  activeToken: AssetDetails,
+  amount: bigint | null
+) => {
   const query = await restakingToken?.queryJoinTokensExactIn({
     tokensIn: [
       {
@@ -26,23 +33,24 @@ const queryTokens = async (restakingToken: LiquidRestakingTokenClient | null, ac
   });
   console.log('query', query);
   return query;
-  // query
-  //   ?.then((res: any) => {
-  //     // setTokensIn(res.tokensIn);
-  //     // setMinAmountOut(res.minAmountOut);
-  //     console.log('res', res);
-  //     // handleTokenQuery(res);
-  //   })
-  //   .catch((err: any) => {
-  //     console.log('err', err);
-  //   });
-}
+};
 
 const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [amount, setAmount] = useState<bigint | null>(null);
-  const [accountTokenBalance, setAccountTokenBalance] = useState(0);
+  const [accountTokenBalance, setAccountTokenBalance] = useState(BigInt(0));
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets[0]);
+  const [isJoinError, setIsJoinError] = useState(false);
+  const [isJoinLoading, setIsJoinLoading] = useState(false);
+  const [isJoinSuccess, setIsJoinSuccess] = useState(false);
+  const [joinTxHash, setJoinTxHash] = useState<Hash>();
+  const [allowanceTarget, setAllowanceTarget] = useState<EthereumAddress>();
+  const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
+  const [tokensIn, setTokensIn] = useState<InputTokenWithWrap[]>([]);
+  const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
+  const [isAllowed, setIsAllowed] = useState(false);
+  const rethAddress = ASSET_ADDRESS['reETH'] as string;
+  const restakingToken = useLiquidRestakingToken(rethAddress);
   const { address } = useAccount();
   const rethToEth = 1.02;
   const { data, isError, isLoading } = useBalance({
@@ -55,20 +63,21 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
   });
   console.log('isError', isError);
   const isValidAmount =
-    amount &&
-    amount > BigInt(0) &&
-    amount <= parseUnits(accountTokenBalance.toString(), activeToken.decimals);
+    amount && amount > BigInt(0) && amount <= accountTokenBalance
+      ? true
+      : false;
   const isEmpty = !amount;
 
   const resetForm = () => {
     setAmount(null);
-    setAccountTokenBalance(0);
-    setActiveToken(assets[0]);
+    setIsJoinSuccess(false);
+    setIsJoinError(false);
+    setIsJoinLoading(false);
   };
 
   useEffect(() => {
     if (data) {
-      setAccountTokenBalance(+data?.formatted);
+      setAccountTokenBalance(data?.value);
     }
   }, [data]);
 
@@ -78,81 +87,106 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
 
   useEffect(() => {
     !address && resetForm();
+    !address && setActiveToken(assets[0]);
   }, [address]);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const rethAddress = ASSET_ADDRESS['reETH'] as string;
-  const restakingToken = useLiquidRestakingToken(rethAddress);
-  const [tokensIn, setTokensIn] = useState<InputTokenWithWrap[]>([]);
-  const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
+  const { data: allowance, refetch } = useContractRead({
+    address: activeToken.address,
+    abi: erc20ABI,
+    functionName: 'allowance',
+    args: [address || zeroAddress, allowanceTarget || zeroAddress],
+    enabled:
+      address && allowanceTarget && activeToken.symbol !== 'ETH' ? true : false
+  });
+
+  const handleRefetch = () => {
+    refetch().catch((err) => {
+      console.log('Error refetching allowance', err);
+    });
+  };
+
+  useEffect(() => {
+    resetForm(); // reset form when switching tokens
+    if (!restakingToken || activeToken.symbol === 'ETH') {
+      setAllowanceTarget(undefined);
+      return;
+    }
+    if (restakingToken) {
+      setAllowanceTarget(restakingToken.allowanceTarget as EthereumAddress);
+    }
+  }, [restakingToken, activeToken]);
+
+  useEffect(() => {
+    if (activeToken.symbol === 'ETH') {
+      setIsAllowed(true);
+      return;
+    }
+    if (amount && (allowance || BigInt(0)) >= amount) {
+      setIsAllowed(true);
+      setAllowanceNote(null);
+    } else {
+      if (allowance && allowance > BigInt(0)) {
+        setAllowanceNote('Increase your allowance to restake this amount');
+      }
+      setIsAllowed(false);
+    }
+    if (!amount) {
+      setIsAllowed((allowance || BigInt(0)) > BigInt(0));
+      setAllowanceNote(null);
+    }
+  }, [allowance, amount]);
 
   useEffect(() => {
     if (restakingToken) {
-      queryTokens(restakingToken, activeToken, amount).then((res) => {
-        handleTokenQuery(res);
-      });
+      queryTokens(restakingToken, activeToken, amount)
+        .then((res) => {
+          handleTokenQuery(res);
+        })
+        .catch((err) => {
+          console.log('err', err);
+        });
     }
   }, [amount, activeToken]);
-
-  // const query = restakingToken?.queryJoinTokensExactIn({
-  //   tokensIn: [
-  //     {
-  //       address: ASSET_ADDRESS[activeToken.symbol] as string,
-  //       amount: amount || BigInt(0)
-  //     }
-  //   ],
-  //   slippage: 50
-  // });
-  // query
-  //   ?.then((res) => {
-  //     // setTokensIn(res.tokensIn);
-  //     // setMinAmountOut(res.minAmountOut);
-  //     console.log('res', res);
-  //     // handleTokenQuery(res);
-  //   })
-  //   .catch((err) => {
-  //     console.log('err', err);
-  //   });
 
   const handleTokenQuery = (res?: JoinTokensExactInParams) => {
     if (!res) return;
     setTokensIn(res.tokensIn);
     setMinAmountOut(res.minAmountOut);
-  }
+  };
 
-  const [isJoinError, setIsJoinError] = useState(false);
-  const [isJoinLoading, setIsJoinLoading] = useState(false);
-  const [isJoinSuccess, setIsJoinSuccess] = useState(false);
-  const [joinTxHash, setJoinTxHash] = useState<Hash | null>(null);
-  const handleExecute = async () => {
+  const handleJoin = async () => {
+    await restakingToken
+      ?.joinTokensExactIn({
+        tokensIn: tokensIn,
+        minAmountOut: minAmountOut
+      })
+      .then((res) => {
+        console.log('success', res);
+        setIsJoinSuccess(true);
+        setIsJoinLoading(false);
+        setJoinTxHash(res);
+        return res;
+      })
+      .catch((err) => {
+        console.log('err', err);
+        setIsJoinError(true);
+        setIsJoinLoading(false);
+      });
+  };
+
+  const handleExecute = () => {
     setIsJoinLoading(true);
     setIsJoinError(false);
     setIsJoinSuccess(false);
-    setJoinTxHash(null);
-    console.log('tokensIn', tokensIn);
-    console.log('minAmountOut', minAmountOut);
-    // returns transaction hash if successful
-    const join = await restakingToken?.joinTokensExactIn({
-      tokensIn: tokensIn,
-      minAmountOut: minAmountOut
-    }).then((res) => {
-      console.log('success', res);
-      setIsJoinSuccess(true);
-      setIsJoinLoading(false);
-      setJoinTxHash(res);
-      return res;
-    }
-    ).catch((err) => {
-      console.log('err', err);
-      setIsJoinError(true);
-      setIsJoinLoading(false);
+    setJoinTxHash(undefined);
+    handleJoin().catch((e) => {
+      console.error(e);
     });
-    console.log('join', join);
-
-  }
+  };
 
   return (
     <>
@@ -161,18 +195,19 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
           <Spinner />
         </div>
       )}
-      {/* {isMounted && isError && (
+      {isMounted && isError && (
         <Alert color="red">Error loading account balance.</Alert>
-      )} */}
+      )}
       {isMounted && !isLoading && (
         <>
           <StakeField
             amount={amount}
             activeToken={activeToken}
             accountTokenBalance={accountTokenBalance}
+            isDisabled={isJoinLoading}
+            assets={assets}
             setAmount={setAmount}
             setActiveToken={setActiveToken}
-            assets={assets}
           />
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex justify-between text-[14px]">
@@ -196,54 +231,42 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
             <strong>
               {amount
                 ? truncDec(
-                  +formatUnits(amount, activeToken.decimals) * rethToEth,
-                  2
-                )
+                    +formatUnits(amount, activeToken.decimals) * rethToEth,
+                    2
+                  )
                 : 0}{' '}
               reETH
             </strong>
           </div>
-          <DepositButton
-            isValidAmount={isValidAmount ? true : false}
-            isEmpty={isEmpty ? true : false}
-            isJoinLoading={isJoinLoading}
-            isJoinSuccess={isJoinSuccess}
-            isJoinError={isJoinError}
-            transactionHash={joinTxHash}
-            setIsJoinSuccess={setIsJoinSuccess}
-            setIsJoinError={setIsJoinError}
-            handleExecute={handleExecute}
-          />
-          <AnimatePresence>
-            {isJoinSuccess && joinTxHash && (
-              <motion.div
-                className="mt-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <div >
-                  <a
-                    href={linkToTxOnBlockExplorer(joinTxHash, CHAIN_ID)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className='flex flex-row justify-center text-center px-[8px] py-[2px] text-gray-500 font-normal whitespace-nowrap text-sm items-center rounded-full w-full gap-2 h-fit transition-colors duration-200 leading-none'
-
-                  >
-                    View transaction
-                    <div className="opacity-50">
-                      <IconExternal transactionStatus="None" />
-                    </div>
-
-                  </a>
-
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {isAllowed && address && (
+            <DepositButton
+              isValidAmount={isValidAmount ? true : false}
+              isEmpty={isEmpty ? true : false}
+              isJoinLoading={isJoinLoading}
+              isJoinSuccess={isJoinSuccess}
+              isJoinError={isJoinError}
+              accountAddress={address}
+              joinTxHash={joinTxHash}
+              setIsJoinSuccess={setIsJoinSuccess}
+              setIsJoinError={setIsJoinError}
+              handleExecute={handleExecute}
+            />
+          )}
+          {!isAllowed && address && (
+            <ApproveButtons
+              allowanceTarget={allowanceTarget}
+              accountAddress={address}
+              isValidAmount={isValidAmount}
+              amount={amount || BigInt(0)}
+              token={activeToken}
+              refetchAllowance={handleRefetch}
+            />
+          )}
+          <p className="text-sm text-center px-2 mt-2 text-gray-500 font-normal">
+            {allowanceNote}
+          </p>
         </>
-      )
-      }
+      )}
     </>
   );
 };

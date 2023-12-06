@@ -42,7 +42,7 @@ const chooseChain = (chainId: number) => {
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   chooseChain(CHAIN_ID),
   [
-    // alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID || '' }),
+    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID || '' }),
     infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
     publicProvider()
   ]
