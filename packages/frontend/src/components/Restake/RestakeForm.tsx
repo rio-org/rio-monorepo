@@ -129,7 +129,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
       setIsAllowed(true);
       setAllowanceNote(null);
     } else {
-      if (allowance && allowance > BigInt(0)) {
+      if (isValidAmount && allowance && allowance > BigInt(0)) {
         setAllowanceNote('Increase your allowance to restake this amount');
       }
       setIsAllowed(false);
