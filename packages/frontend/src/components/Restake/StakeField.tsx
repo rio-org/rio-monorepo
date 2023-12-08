@@ -91,7 +91,6 @@ const StakeField = ({
             className="text-[22px] bg-transparent w-full focus:outline-none flex-1"
             id="amount"
             type="number"
-            value={amount ? formatUnits(amount, activeToken.decimals) : ''}
             placeholder="0.00"
             autoFocus={isDesktopOrLaptop}
             min={0}
