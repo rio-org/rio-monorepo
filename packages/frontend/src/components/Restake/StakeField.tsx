@@ -15,7 +15,7 @@ type Props = {
   accountTokenBalance: bigint;
   assets: AssetDetails[];
   isDisabled: boolean;
-  setAmount: (amount: bigint) => void;
+  setAmount: (amount: bigint | null) => void;
   setActiveToken: (asset: AssetDetails) => void;
 };
 
@@ -32,6 +32,10 @@ const StakeField = ({
   const [usdAmount, setUsdAmount] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value === '') {
+      setAmount(null);
+      return;
+    }
     const val = +Number(e.target.value as string);
     if (val >= 0) {
       setAmount(parseUnits(val.toString(), activeToken.decimals));
@@ -95,7 +99,7 @@ const StakeField = ({
             autoFocus={isDesktopOrLaptop}
             min={0}
             value={
-              amount ? truncDec(+formatUnits(amount, activeToken.decimals)) : ''
+              amount !== null ? formatUnits(amount, activeToken.decimals) : ''
             }
             step="0.1"
             ref={inputRef}
@@ -124,8 +128,8 @@ const StakeField = ({
           </span>
           <div>
             {isMounted &&
-            accountTokenBalance !== undefined &&
-            activeToken.symbol ? (
+              accountTokenBalance !== undefined &&
+              activeToken.symbol ? (
               <>
                 <span className="opacity-50">
                   Balance:{' '}
