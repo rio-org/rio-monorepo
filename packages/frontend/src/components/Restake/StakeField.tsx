@@ -32,13 +32,31 @@ const StakeField = ({
   const [usdAmount, setUsdAmount] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const parsedAmount = parseUnits(e.target.value, activeToken.decimals);
     if (e.target.value === '') {
       setAmount(null);
       return;
     }
-    const val = +Number(e.target.value as string);
-    if (val >= 0) {
-      setAmount(parseUnits(val.toString(), activeToken.decimals));
+    setAmount(parsedAmount);
+  };
+  const handleMaxBalance = (balanceAmount: bigint) => {
+    setAmount(balanceAmount);
+  };
+
+  const parseAmount = (amount: bigint | null) => {
+    if (amount === null) return '';
+    const isSafe = (+formatUnits(amount, activeToken.decimals))
+      .toString()
+      .includes('e')
+      ? false
+      : true;
+    if (isSafe) {
+      return truncDec(
+        +formatUnits(amount, activeToken.decimals),
+        activeToken.decimals
+      );
+    } else {
+      return formatUnits(amount, activeToken.decimals);
     }
   };
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -98,9 +116,7 @@ const StakeField = ({
             placeholder="0.00"
             autoFocus={isDesktopOrLaptop}
             min={0}
-            value={
-              amount !== null ? formatUnits(amount, activeToken.decimals) : ''
-            }
+            value={parseAmount(amount)}
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
@@ -128,8 +144,8 @@ const StakeField = ({
           </span>
           <div>
             {isMounted &&
-              accountTokenBalance !== undefined &&
-              activeToken.symbol ? (
+            accountTokenBalance !== undefined &&
+            activeToken.symbol ? (
               <>
                 <span className="opacity-50">
                   Balance:{' '}
@@ -141,7 +157,7 @@ const StakeField = ({
                 <button
                   className="text-[color:var(--color-blue)] font-medium underline ml-2 hover:[color:var(--color-light-blue)]"
                   onClick={() => {
-                    setAmount(accountTokenBalance);
+                    handleMaxBalance(accountTokenBalance);
                   }}
                 >
                   Max
