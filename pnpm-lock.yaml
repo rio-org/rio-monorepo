@@ -90,8 +90,8 @@ importers:
         specifier: 0.1.0-alpha.1
         version: 0.1.0-alpha.1(graphql@16.8.1)(typescript@5.2.2)
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.4
-        version: 0.1.0-alpha.4(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.5
+        version: 0.1.0-alpha.5(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
@@ -1632,14 +1632,14 @@ packages:
       - '@types/react'
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.4(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
-    resolution: {integrity: sha512-OHBsgZcV8/dcahduzL418ZDvpxZ6wad0nRkZLJSvKkg3Af7CsIkl07Yj9qTXGQ3BjA9c6ZvZjL0piMflHSJ4Lw==}
+  /@rionetwork/sdk-react@0.1.0-alpha.5(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
+    resolution: {integrity: sha512-lCEVkriIrrE8+DMOYbKLuT83ZrrcJ0w8RXokTTn/WIJttj7yC40x1Bi2KqvoqOzk9iJhxCrZT1ZKVCxscHJeWg==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     peerDependencies:
       react: '>=16.13.1'
       wagmi: '>=1.2'
     dependencies:
-      '@rionetwork/sdk': 0.1.0-alpha.1(graphql@16.8.1)(typescript@5.2.2)
+      '@rionetwork/sdk': 0.1.0-alpha.2(graphql@16.8.1)(typescript@5.2.2)
       react: 18.2.0
       wagmi: 1.4.5(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
     transitivePeerDependencies:
@@ -1653,6 +1653,23 @@ packages:
 
   /@rionetwork/sdk@0.1.0-alpha.1(graphql@16.8.1)(typescript@5.2.2):
     resolution: {integrity: sha512-u86XJvjzOBYpNmoVARMiE9oqw/G39c5rO4EJAy4fMjB87Y6rSxmr/XoRoYppzE6GFx2gkDFt6rcH3WdtQBfMAw==}
+    engines: {node: '>=16', pnpm: '>=7.5.1'}
+    dependencies:
+      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
+      abitype: 0.10.3(typescript@5.2.2)
+      graphql-request: 6.1.0(graphql@16.8.1)
+      viem: 1.18.8(typescript@5.2.2)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - graphql
+      - typescript
+      - utf-8-validate
+      - zod
+    dev: false
+
+  /@rionetwork/sdk@0.1.0-alpha.2(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-zxqjNNOjwRI2EUb/GgSDgpOHoHMjI4KWaBCahfHKAYzwmYnK1gJi2fWsrZRw8EJaVr8b36QEmBGBuHqNwbOK6w==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
