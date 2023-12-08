@@ -94,6 +94,9 @@ const StakeField = ({
             placeholder="0.00"
             autoFocus={isDesktopOrLaptop}
             min={0}
+            value={
+              amount ? truncDec(+formatUnits(amount, activeToken.decimals)) : ''
+            }
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
