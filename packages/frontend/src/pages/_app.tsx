@@ -82,7 +82,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider appInfo={appInfo} chains={chains}>
-        <RioNetworkProvider chainId={CHAIN_ID}>
+        <RioNetworkProvider>
           <ThemeProvider value={theme}>
             <CssBaseline />
             <Layout>
