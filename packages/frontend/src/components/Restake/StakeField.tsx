@@ -31,9 +31,9 @@ const StakeField = ({
   const [isMounted, setIsMounted] = useState(false);
   const [usdAmount, setUsdAmount] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
-  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const parsedAmount = parseUnits(e.target.value, activeToken.decimals);
-    if (e.target.value === '') {
+  const handleValueChange = (value: string) => {
+    const parsedAmount = parseUnits(value, activeToken.decimals);
+    if (value === '') {
       setAmount(null);
       return;
     }
@@ -120,7 +120,7 @@ const StakeField = ({
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
-              handleValueChange(e);
+              handleValueChange(e.target.value as string);
             }}
             onFocus={() => {
               setIsFocused(true);
