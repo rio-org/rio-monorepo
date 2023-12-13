@@ -7,7 +7,7 @@ import HR from '../Shared/HR';
 import DepositButton from './DepositButton';
 import { ethInUSD } from '../../../placeholder';
 import {
-  InputTokenWithWrap,
+  InputTokenExactInWithWrap,
   JoinTokensExactInParams,
   LiquidRestakingTokenClient,
   useLiquidRestakingToken
@@ -46,7 +46,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [joinTxHash, setJoinTxHash] = useState<Hash>();
   const [allowanceTarget, setAllowanceTarget] = useState<EthereumAddress>();
   const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
-  const [tokensIn, setTokensIn] = useState<InputTokenWithWrap[]>([]);
+  const [tokensIn, setTokensIn] = useState<InputTokenExactInWithWrap[]>([]);
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(false);
   const rethAddress = ASSET_ADDRESS['reETH'] as string;
@@ -231,9 +231,9 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
             <strong>
               {amount
                 ? truncDec(
-                    +formatUnits(amount, activeToken.decimals) * rethToEth,
-                    2
-                  )
+                  +formatUnits(amount, activeToken.decimals) * rethToEth,
+                  2
+                )
                 : 0}{' '}
               reETH
             </strong>
