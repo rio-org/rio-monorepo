@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
@@ -6,7 +6,7 @@ import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { EthereumAddress } from '../../lib/typings';
 import { Hash } from 'viem';
-import { useNetwork, useSwitchNetwork, useWaitForTransaction } from 'wagmi';
+import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { CHAIN_ID } from '../../../config';
 import { getChainName } from '../../lib/utilities';
 
@@ -23,12 +23,24 @@ type Props = {
   clearForm: () => void;
 };
 
-const WithdrawButton = ({ isValid, isExitLoading, isExitSuccess, isExitError, accountAddress, exitTxHash, handleExecute, setIsExitSuccess, setIsExitError, clearForm }: Props) => {
-  const { chain } = useNetwork()
-  const { error: isSwitchNetworkError, isLoading: isSwitchNetworkLoading, switchNetwork } = useSwitchNetwork();
+const WithdrawButton = ({
+  isValid,
+  isExitLoading,
+  isExitSuccess,
+  isExitError,
+  exitTxHash,
+  handleExecute,
+  setIsExitSuccess,
+  setIsExitError
+}: Props) => {
+  const { chain } = useNetwork();
+  const {
+    error: isSwitchNetworkError,
+    isLoading: isSwitchNetworkLoading,
+    switchNetwork
+  } = useSwitchNetwork();
   const wrongNetwork = chain?.id !== CHAIN_ID;
-  console.log(isSwitchNetworkError && 'error switching networks')
-
+  console.log(isSwitchNetworkError && 'error switching networks');
 
   return (
     <AnimatePresence>
@@ -59,7 +71,7 @@ const WithdrawButton = ({ isValid, isExitLoading, isExitSuccess, isExitError, ac
             isValid && 'hover:bg-[var(--color-dark-gray)]'
           )}
           onClick={() => {
-            switchNetwork?.(CHAIN_ID)
+            switchNetwork?.(CHAIN_ID);
           }}
           variants={TX_BUTTON_VARIANTS}
           key={'switchNetwork'}
@@ -83,7 +95,7 @@ const WithdrawButton = ({ isValid, isExitLoading, isExitSuccess, isExitError, ac
           )}
           disabled={!isValid || isExitLoading}
           onClick={() => {
-            handleExecute()
+            handleExecute();
           }}
           variants={TX_BUTTON_VARIANTS}
           key={'withdraw'}

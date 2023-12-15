@@ -109,18 +109,16 @@ export const truncDec = (num: number, digits: number = 3) => {
   return Math.trunc(num * decimalPlaces) / decimalPlaces;
 };
 
-export const parseBigIntFieldAmount = (amount: bigint | null, tokenDecimals: number) => {
+export const parseBigIntFieldAmount = (
+  amount: bigint | null,
+  tokenDecimals: number
+) => {
   if (amount === null) return '';
-  const isSafe = (+formatUnits(amount, tokenDecimals))
-    .toString()
-    .includes('e')
+  const isSafe = (+formatUnits(amount, tokenDecimals)).toString().includes('e')
     ? false
     : true;
   if (isSafe) {
-    return truncDec(
-      +formatUnits(amount, tokenDecimals),
-      tokenDecimals
-    );
+    return truncDec(+formatUnits(amount, tokenDecimals), tokenDecimals);
   } else {
     return formatUnits(amount, tokenDecimals);
   }

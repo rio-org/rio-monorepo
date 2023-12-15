@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import StakeField from './StakeField';
-import { erc20ABI, useAccount, useBalance, useContractRead, useWaitForTransaction } from 'wagmi';
+import {
+  erc20ABI,
+  useAccount,
+  useBalance,
+  useContractRead,
+  useWaitForTransaction
+} from 'wagmi';
 import { Alert, Spinner } from '@material-tailwind/react';
 import { AssetDetails, EthereumAddress } from '../../lib/typings';
 import HR from '../Shared/HR';
@@ -50,7 +56,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(false);
   const rethAddress = assets.find((asset) => asset.symbol === 'reETH')?.address;
-  const restakingToken = useLiquidRestakingToken(rethAddress || "");
+  const restakingToken = useLiquidRestakingToken(rethAddress || '');
   const { address } = useAccount();
   const rethToEth = 1.02;
   const { data, isError, isLoading } = useBalance({
@@ -158,21 +164,25 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
     setMinAmountOut(res.minAmountOut);
   };
 
-  const { data: txData, isError: isTxError, isLoading: isTxLoading } = useWaitForTransaction({
+  const {
+    data: txData,
+    isError: isTxError,
+    isLoading: isTxLoading
+  } = useWaitForTransaction({
     hash: joinTxHash,
     enabled: !!joinTxHash
-  })
+  });
 
   useEffect(() => {
     if (txData?.status === 'success') {
-      setIsJoinLoading(isTxLoading)
-      setIsJoinSuccess(true)
+      setIsJoinLoading(isTxLoading);
+      setIsJoinSuccess(true);
     }
     if (txData?.status === 'reverted') {
-      setIsJoinLoading(isTxLoading)
-      setIsJoinSuccess(isTxError)
+      setIsJoinLoading(isTxLoading);
+      setIsJoinSuccess(isTxError);
     }
-  }, [txData])
+  }, [txData]);
 
   const handleJoin = async () => {
     await restakingToken
@@ -247,9 +257,9 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
             <strong>
               {amount
                 ? truncDec(
-                  +formatUnits(amount, activeToken.decimals) * rethToEth,
-                  2
-                )
+                    +formatUnits(amount, activeToken.decimals) * rethToEth,
+                    2
+                  )
                 : 0}{' '}
               reETH
             </strong>

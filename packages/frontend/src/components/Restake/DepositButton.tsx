@@ -35,9 +35,9 @@ const DepositButton = ({
   handleExecute
 }: Props) => {
   const [buttonText, setButtonText] = useState('Enter an amount');
-  const { chain } = useNetwork()
+  const { chain } = useNetwork();
   const { error, isLoading, switchNetwork } = useSwitchNetwork();
-  console.log(error && 'error switching networks')
+  console.log(error && 'error switching networks');
   const wrongNetwork = chain?.id !== CHAIN_ID;
   useEffect(() => {
     if (isValidAmount) {
@@ -83,7 +83,7 @@ const DepositButton = ({
             isValidAmount && 'hover:bg-[var(--color-dark-gray)]'
           )}
           onClick={() => {
-            switchNetwork?.(CHAIN_ID)
+            switchNetwork?.(CHAIN_ID);
           }}
           variants={TX_BUTTON_VARIANTS}
           key={'switchNetwork'}
@@ -103,8 +103,8 @@ const DepositButton = ({
             'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
             !isValidAmount && 'bg-opacity-20',
             isValidAmount &&
-            !isJoinLoading &&
-            'hover:bg-[var(--color-dark-gray)]'
+              !isJoinLoading &&
+              'hover:bg-[var(--color-dark-gray)]'
           )}
           disabled={!isValidAmount || isJoinLoading}
           onClick={() => {

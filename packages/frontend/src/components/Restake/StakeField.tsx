@@ -128,8 +128,8 @@ const StakeField = ({
           </span>
           <div>
             {isMounted &&
-              accountTokenBalance !== undefined &&
-              activeToken.symbol ? (
+            accountTokenBalance !== undefined &&
+            activeToken.symbol ? (
               <>
                 <span className="opacity-50">
                   Balance:{' '}

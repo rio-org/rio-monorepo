@@ -1,18 +1,26 @@
 import { Alert, Spinner } from '@material-tailwind/react';
 import React, { useEffect, useState } from 'react';
-import { erc20ABI, useAccount, useBalance, useContractRead, useWaitForTransaction } from 'wagmi';
-import { AssetDetails, EthereumAddress, TokenSymbol } from '../../lib/typings';
+import {
+  erc20ABI,
+  useAccount,
+  useBalance,
+  useContractRead,
+  useWaitForTransaction
+} from 'wagmi';
+import { AssetDetails } from '../../lib/typings';
 import WithdrawAssetSelector from './WithdrawAssetSelector';
 import WithdrawButton from './WithdrawButton';
 import WithdrawField from './WithdrawField';
 import WithdrawItemized from './WithdrawItemized';
-import { useLiquidRestakingToken, LiquidRestakingTokenClient, JoinTokensExactInParams, InputTokenExactInWithWrap, ExitTokenExactInParams, OutputTokenMinOutWithUnwrap } from '@rionetwork/sdk-react';
-import { ASSET_ADDRESS, REETH_ADDRESS } from '../../lib/constants';
+import {
+  useLiquidRestakingToken,
+  LiquidRestakingTokenClient,
+  ExitTokenExactInParams,
+  OutputTokenMinOutWithUnwrap
+} from '@rionetwork/sdk-react';
+import { REETH_ADDRESS } from '../../lib/constants';
 import { Hash, zeroAddress } from 'viem';
-import { parseTransaction } from 'viem'
 import ApproveButtons from '../Shared/ApproveButtons';
-// import { useLiquidRestakingToken } from '@rionetwork/sdk-react';
-// import { ASSET_ADDRESS } from '../../lib/constants';
 
 const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -28,13 +36,13 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [isExitSuccess, setIsExitSuccess] = useState(false);
   const [exitTxHash, setExitTxHash] = useState<Hash>();
   const reETHToken = assets.find((asset) => asset.symbol === 'reETH');
-  const reETHAddress = assets.find((asset) => asset.symbol === 'reETH')?.address || REETH_ADDRESS;
+  const reETHAddress =
+    assets.find((asset) => asset.symbol === 'reETH')?.address || REETH_ADDRESS;
   const { address } = useAccount();
   const { data, isError, isLoading } = useBalance({
     address: address,
     token: reETHToken ? reETHToken.address : undefined
   });
-  console.log('accountReETHBalance', accountReETHBalance);
   const isValidAmount =
     amount && amount > BigInt(0) && amount <= accountReETHBalance
       ? true
@@ -51,7 +59,6 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
   }, [data]);
 
   const restakingToken = useLiquidRestakingToken(reETHToken?.address as string);
-  console.log('restakingToken', restakingToken);
   const queryTokens = async (
     restakingToken: LiquidRestakingTokenClient | null,
     activeToken: AssetDetails,
@@ -62,7 +69,6 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
       tokenOut: activeToken.address,
       slippage: 50
     });
-    console.log('query', query);
     return query;
   };
 
@@ -70,13 +76,17 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
     address: reETHAddress || undefined,
     abi: erc20ABI,
     functionName: 'allowance',
-    args: [(address || zeroAddress), reETHAddress],
+    args: [address || zeroAddress, reETHAddress]
   });
 
-  const { data: txData, isError: isTxError, isLoading: isTxLoading } = useWaitForTransaction({
+  const {
+    data: txData,
+    isError: isTxError,
+    isLoading: isTxLoading
+  } = useWaitForTransaction({
     hash: exitTxHash,
     enabled: !!exitTxHash
-  })
+  });
 
   const handleTokenQuery = (res?: ExitTokenExactInParams) => {
     if (!res) return;
@@ -87,7 +97,6 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
 
   useEffect(() => {
     if (restakingToken) {
@@ -125,28 +134,20 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
 
   useEffect(() => {
     if (txData?.status === 'success') {
-      setIsExitLoading(isTxLoading)
-      setIsExitSuccess(true)
-      amountIn && setAmountIn(BigInt(0))
-      tokenOut && setTokenOut(undefined)
-      setAmount(null)
-      // setExitTxHash(undefined)
+      setIsExitLoading(isTxLoading);
+      setIsExitSuccess(true);
+      amountIn && setAmountIn(BigInt(0));
+      tokenOut && setTokenOut(undefined);
+      setAmount(null);
     }
     if (txData?.status === 'reverted') {
-      setIsExitLoading(isTxLoading)
-      setIsExitError(isTxError)
-      amountIn && setAmountIn(BigInt(0))
-      tokenOut && setTokenOut(undefined)
-      // setExitTxHash(undefined)
+      setIsExitLoading(isTxLoading);
+      setIsExitError(isTxError);
     }
-  }, [txData])
+  }, [txData]);
 
   const handleExitRequest = async () => {
     if (!amount || !tokenOut || !restakingToken) return;
-    console.log('handleExitRequest')
-    console.log('amount', amount);
-    console.log('amountIn', amountIn);
-    console.log('tokenOut', tokenOut);
     await restakingToken
       ?.requestExitTokenExactIn({
         amountIn: amountIn,
@@ -210,7 +211,8 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
               setIsExitSuccess={setIsExitSuccess}
               setIsExitError={setIsExitError}
               handleExecute={handleExecute}
-              clearForm={clearForm} />
+              clearForm={clearForm}
+            />
           )}
           {!isAllowed && reETHToken && address && (
             <ApproveButtons
@@ -222,6 +224,9 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
               refetchAllowance={handleRefetch}
             />
           )}
+          <p className="text-sm text-center px-2 mt-2 text-gray-500 font-normal">
+            {allowanceNote}
+          </p>
         </>
       )}
     </>

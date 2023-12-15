@@ -24,10 +24,7 @@ const WithdrawField = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const handleValueChange = (value: string) => {
-    console.log('value', value);
-    console.log('reETHToken.decimals', reETHToken);
     const parsedAmount = parseUnits(value, 18);
-    console.log('parsedAmount', parsedAmount);
     if (value === '') {
       setAmount(null);
       return;
@@ -38,7 +35,6 @@ const WithdrawField = ({
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
-
 
   const focusInput = () => {
     if (!inputRef.current) return;
@@ -55,15 +51,10 @@ const WithdrawField = ({
         <label htmlFor="amount" className="mb-1 font-medium">
           Amount
         </label>
-        {hasMounted &&
-          accountReETHBalance !== undefined &&
-          reETHToken ? (
+        {hasMounted && accountReETHBalance !== undefined && reETHToken ? (
           <>
             <span className="opacity-50 text-[12px] -tracking-tight">
-              Balance: {truncDec(
-                +formatUnits(accountReETHBalance, 18)
-              )}{' '}
-              reETH
+              Balance: {truncDec(+formatUnits(accountReETHBalance, 18))} reETH
             </span>{' '}
           </>
         ) : (
@@ -88,7 +79,6 @@ const WithdrawField = ({
             autoFocus={isDesktopOrLaptop}
             min={0}
             value={parseBigIntFieldAmount(amount, 18)}
-            // value={amount ? formatUnits(amount, 18) : ''}
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
@@ -101,26 +91,6 @@ const WithdrawField = ({
               setIsFocused(false);
             }}
           />
-          {/* <input
-            className="text-[22px] bg-transparent w-full focus:outline-none"
-            id="amount"
-            type="number"
-            min={0}
-            value={parseBigIntFieldAmount(amount, reETHToken.decimals)}
-            placeholder="0.00"
-            step="0.1"
-            autoFocus
-            ref={inputRef}
-            onChange={(e) => {
-              handleValueChange(e.target.value as string);
-            }}
-            onFocus={() => {
-              setIsFocused(true);
-            }}
-            onBlur={() => {
-              setIsFocused(false);
-            }}
-          /> */}
           <button
             className="font-medium ml-2 px-3 py-2 bg-[var(--color-element-wrapper-bg)] rounded-xl hover:bg-black hover:bg-opacity-10 transition-colors duration-200"
             onClick={() => {

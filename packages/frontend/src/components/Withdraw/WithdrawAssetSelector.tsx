@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AssetDetails, TokenSymbol } from '../../lib/typings';
-import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
+import { AssetDetails } from '../../lib/typings';
+import { DESKTOP_MQ } from '../../lib/constants';
 import AssetItemContent from '../Assets/AssetItemContent';
 import WithdrawAssetItem from '../Assets/WithdrawAssetItem';
 import IconSelectArrow from '../Icons/IconSelectArrow';
@@ -27,7 +27,6 @@ const List = ({
 }) => {
   return (
     <>
-      {/* {Object.values(ASSETS).map((asset) => { */}
       {assetsList.map((asset) => {
         // don't display reETH in the asset selector
         if (asset.symbol === 'reETH') return null;
@@ -83,9 +82,7 @@ const WithdrawAssetSelector = ({
               isLoading={false}
               isError={false}
               isSelectorDisplay={true}
-              isBestRate={
-                activeToken.symbol === '＊ETH' ? true : false
-              }
+              isBestRate={activeToken.symbol === '＊ETH' ? true : false}
               amount={<></>}
             />
             <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />

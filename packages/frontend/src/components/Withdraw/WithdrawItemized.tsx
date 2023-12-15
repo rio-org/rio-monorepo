@@ -1,10 +1,6 @@
 import React from 'react';
 import HR from '../Shared/HR';
-import ItemizedAsset from '../Assets/ItemizedAsset';
 import { AssetDetails } from '../../lib/typings';
-import { buildAssetList } from '../../lib/utilities';
-import IconSelectArrow from '../Icons/IconSelectArrow';
-import { motion } from 'framer-motion';
 import { formatUnits } from 'viem';
 
 type Props = {
@@ -13,8 +9,8 @@ type Props = {
 };
 
 const WithdrawItemized = ({ amount, activeToken }: Props) => {
-  const [isExpanded, setIsExpanded] = React.useState(true);
-  const assets = buildAssetList(activeToken.symbol);
+  // const [isExpanded, setIsExpanded] = React.useState(true);
+  // const assets = buildAssetList(activeToken.symbol);
   const amountNum = amount ? +formatUnits(amount, activeToken.decimals) : 0;
   return (
     <div>
@@ -31,6 +27,7 @@ const WithdrawItemized = ({ amount, activeToken }: Props) => {
           <strong>Free</strong>
         </div>
       </div>
+      {/* removed distributed list until multiple-token withdrawals are active */}
       {/* <HR />
       <div
         className="flex justify-between items-center text-[14px]"

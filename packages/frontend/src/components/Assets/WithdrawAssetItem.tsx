@@ -1,5 +1,5 @@
 import React from 'react';
-import { TokenSymbol, AssetDetails } from '../../lib/typings';
+import { AssetDetails } from '../../lib/typings';
 import cx from 'classnames';
 import AssetItemContent from './AssetItemContent';
 import Skeleton from 'react-loading-skeleton';
@@ -7,6 +7,7 @@ import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { useGetLatestAssetPrice } from '../../hooks/useGetLatestAssetPrice';
 import { CHAIN_ID } from '../../../config';
+
 type Props = {
   token: AssetDetails;
   isActiveToken: boolean;
