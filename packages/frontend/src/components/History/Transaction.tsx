@@ -23,29 +23,31 @@ const Transaction = ({ transaction }: Props) => {
   return (
     <>
       <tr className="flex w-full border-b border-b-gray-200">
-        <button
-          className="w-full py-4 hover:bg-[var(--color-gray-hover)] transition-colors flex flex-row justify-between items-center"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <td className="flex flex-col items-start px-4 lg:px-6 whitespace-nowrap text-sm font-medium text-gray-900">
-            <span className="mb-1 lg:mb-0">{transaction.date}</span>
-            {!isDesktopOrLaptop && (
-              <TransactionStatusLabel transaction={transaction} />
-            )}
-          </td>
-          {isDesktopOrLaptop && (
-            <td className="flex flex-row flex-1">
-              <TransactionStatusLabel transaction={transaction} />
-            </td>
-          )}
-          <td className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
-            <div className="flex items-center gap-0 font-medium">
-              <span className="mr-2">{transaction.amount}</span>
-              <SymbolPill symbol="＊ETH" />
+        <td className="w-full flex flex-row justify-between items-center">
+          <button
+            className="w-full py-4 hover:bg-[var(--color-gray-hover)] transition-colors flex flex-row justify-between items-center"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <div className="flex flex-col items-start px-4 lg:px-6 whitespace-nowrap text-sm font-medium text-gray-900">
+              <span className="mb-1 lg:mb-0">{transaction.date}</span>
+              {!isDesktopOrLaptop && (
+                <TransactionStatusLabel transaction={transaction} />
+              )}
             </div>
-            <IconSelectArrow direction={isOpen ? 'up' : 'down'} />
-          </td>
-        </button>
+            {isDesktopOrLaptop && (
+              <div className="flex flex-row flex-1">
+                <TransactionStatusLabel transaction={transaction} />
+              </div>
+            )}
+            <div className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
+              <div className="flex items-center gap-0 font-medium">
+                <span className="mr-2">{transaction.amount}</span>
+                <SymbolPill symbol="＊ETH" />
+              </div>
+              <IconSelectArrow direction={isOpen ? 'up' : 'down'} />
+            </div>
+          </button>
+        </td>
       </tr>
       <AnimatePresence>
         {isOpen && (
