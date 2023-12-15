@@ -173,6 +173,8 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
     enabled: !!joinTxHash
   });
 
+  console.log('txData', txData);
+
   useEffect(() => {
     if (txData?.status === 'success') {
       setIsJoinLoading(isTxLoading);

@@ -1,12 +1,6 @@
 import { Alert, Spinner } from '@material-tailwind/react';
 import React, { useEffect, useState } from 'react';
-import {
-  erc20ABI,
-  useAccount,
-  useBalance,
-  useContractRead,
-  useWaitForTransaction
-} from 'wagmi';
+import { useAccount, useBalance, useWaitForTransaction } from 'wagmi';
 import { AssetDetails } from '../../lib/typings';
 import WithdrawAssetSelector from './WithdrawAssetSelector';
 import WithdrawButton from './WithdrawButton';
@@ -18,9 +12,7 @@ import {
   ExitTokenExactInParams,
   OutputTokenMinOutWithUnwrap
 } from '@rionetwork/sdk-react';
-import { REETH_ADDRESS } from '../../lib/constants';
-import { Hash, zeroAddress } from 'viem';
-import ApproveButtons from '../Shared/ApproveButtons';
+import { Hash } from 'viem';
 
 const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -29,15 +21,11 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [accountReETHBalance, setAccountReETHBalance] = useState(BigInt(0));
   const [tokenOut, setTokenOut] = useState<OutputTokenMinOutWithUnwrap>();
   const [amountIn, setAmountIn] = useState<string | bigint>(BigInt(0));
-  const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
-  const [isAllowed, setIsAllowed] = useState(false);
   const [isExitError, setIsExitError] = useState(false);
   const [isExitLoading, setIsExitLoading] = useState(false);
   const [isExitSuccess, setIsExitSuccess] = useState(false);
   const [exitTxHash, setExitTxHash] = useState<Hash>();
   const reETHToken = assets.find((asset) => asset.symbol === 'reETH');
-  const reETHAddress =
-    assets.find((asset) => asset.symbol === 'reETH')?.address || REETH_ADDRESS;
   const { address } = useAccount();
   const { data, isError, isLoading } = useBalance({
     address: address,
@@ -72,13 +60,6 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
     return query;
   };
 
-  const { data: allowance, refetch } = useContractRead({
-    address: reETHAddress || undefined,
-    abi: erc20ABI,
-    functionName: 'allowance',
-    args: [address || zeroAddress, reETHAddress]
-  });
-
   const {
     data: txData,
     isError: isTxError,
@@ -109,28 +90,6 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
         });
     }
   }, [amount, activeToken]);
-
-  useEffect(() => {
-    if (amount && (allowance || BigInt(0)) >= amount) {
-      setIsAllowed(true);
-      setAllowanceNote(null);
-    } else {
-      if (isValidAmount && allowance && allowance > BigInt(0)) {
-        setAllowanceNote('Increase your allowance to restake this amount');
-      }
-      setIsAllowed(false);
-    }
-    if (!amount) {
-      setIsAllowed((allowance || BigInt(0)) > BigInt(0));
-      setAllowanceNote(null);
-    }
-  }, [allowance, amount]);
-
-  const handleRefetch = () => {
-    refetch().catch((err) => {
-      console.log('Error refetching allowance', err);
-    });
-  };
 
   useEffect(() => {
     if (txData?.status === 'success') {
@@ -200,7 +159,7 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
             setActiveToken={setActiveToken}
           />
           <WithdrawItemized amount={amount} activeToken={activeToken} />
-          {isAllowed && address && (
+          {address && (
             <WithdrawButton
               isValid={isValidAmount}
               isExitLoading={isExitLoading}
@@ -214,19 +173,6 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
               clearForm={clearForm}
             />
           )}
-          {!isAllowed && reETHToken && address && (
-            <ApproveButtons
-              allowanceTarget={reETHToken.address}
-              accountAddress={address}
-              isValidAmount={isValidAmount}
-              amount={amount || BigInt(0)}
-              token={reETHToken}
-              refetchAllowance={handleRefetch}
-            />
-          )}
-          <p className="text-sm text-center px-2 mt-2 text-gray-500 font-normal">
-            {allowanceNote}
-          </p>
         </>
       )}
     </>

@@ -34,14 +34,9 @@ const WithdrawButton = ({
   setIsExitError
 }: Props) => {
   const { chain } = useNetwork();
-  const {
-    error: isSwitchNetworkError,
-    isLoading: isSwitchNetworkLoading,
-    switchNetwork
-  } = useSwitchNetwork();
+  const { isLoading: isSwitchNetworkLoading, switchNetwork } =
+    useSwitchNetwork();
   const wrongNetwork = chain?.id !== CHAIN_ID;
-  console.log(isSwitchNetworkError && 'error switching networks');
-
   return (
     <AnimatePresence>
       {(isExitError || isExitSuccess) && (
