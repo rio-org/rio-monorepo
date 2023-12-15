@@ -1,3 +1,4 @@
+import { formatUnits } from 'viem';
 import { ASSETS } from './constants';
 import { CHAIN_ID_NUMBER, EthereumAddress, TokenSymbol } from './typings';
 
@@ -106,4 +107,21 @@ export const buildAssetList = (activeTokenSymbol: TokenSymbol) => {
 export const truncDec = (num: number, digits: number = 3) => {
   const decimalPlaces = 10 ** digits;
   return Math.trunc(num * decimalPlaces) / decimalPlaces;
+};
+
+export const parseBigIntFieldAmount = (amount: bigint | null, tokenDecimals: number) => {
+  if (amount === null) return '';
+  const isSafe = (+formatUnits(amount, tokenDecimals))
+    .toString()
+    .includes('e')
+    ? false
+    : true;
+  if (isSafe) {
+    return truncDec(
+      +formatUnits(amount, tokenDecimals),
+      tokenDecimals
+    );
+  } else {
+    return formatUnits(amount, tokenDecimals);
+  }
 };

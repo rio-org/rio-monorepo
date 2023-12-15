@@ -10,20 +10,20 @@ import { Drawer } from '@material-tailwind/react';
 
 type Props = {
   assetsList: AssetDetails[];
-  activeTokenSymbol: TokenSymbol;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  activeToken: AssetDetails;
+  setActiveToken: (token: AssetDetails) => void;
 };
 
 const List = ({
   assetsList,
   setIsListOpen,
-  activeTokenSymbol,
-  setActiveTokenSymbol
+  activeToken,
+  setActiveToken
 }: {
   assetsList: AssetDetails[];
   setIsListOpen: (isListOpen: boolean) => void;
-  activeTokenSymbol: TokenSymbol;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  activeToken: AssetDetails;
+  setActiveToken: (token: AssetDetails) => void;
 }) => {
   return (
     <>
@@ -33,10 +33,10 @@ const List = ({
         if (asset.symbol === 'reETH') return null;
         return (
           <WithdrawAssetItem
-            asset={asset}
+            token={asset}
             key={asset.symbol}
-            isActiveToken={asset.symbol === activeTokenSymbol}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            isActiveToken={asset.symbol === activeToken.symbol}
+            setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
             isBestRate={asset.symbol === '＊ETH' ? true : false} // todo: make dynamic
           />
@@ -48,8 +48,8 @@ const List = ({
 
 const WithdrawAssetSelector = ({
   assetsList,
-  activeTokenSymbol,
-  setActiveTokenSymbol
+  activeToken,
+  setActiveToken
 }: Props) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isListOpen, setIsListOpen] = useState(false);
@@ -78,13 +78,13 @@ const WithdrawAssetSelector = ({
             onClick={() => setIsListOpen(!isListOpen)}
           >
             <AssetItemContent
-              asset={ASSETS[activeTokenSymbol]}
+              asset={activeToken}
               isActiveToken={false}
               isLoading={false}
               isError={false}
               isSelectorDisplay={true}
               isBestRate={
-                ASSETS[activeTokenSymbol].symbol === '＊ETH' ? true : false
+                activeToken.symbol === '＊ETH' ? true : false
               }
               amount={<></>}
             />
@@ -96,8 +96,8 @@ const WithdrawAssetSelector = ({
             <List
               assetsList={assetsList}
               setIsListOpen={setIsListOpen}
-              activeTokenSymbol={activeTokenSymbol}
-              setActiveTokenSymbol={setActiveTokenSymbol}
+              activeToken={activeToken}
+              setActiveToken={setActiveToken}
             />
           </div>
         )}
@@ -116,8 +116,8 @@ const WithdrawAssetSelector = ({
             <List
               assetsList={assetsList}
               setIsListOpen={setIsListOpen}
-              activeTokenSymbol={activeTokenSymbol}
-              setActiveTokenSymbol={setActiveTokenSymbol}
+              activeToken={activeToken}
+              setActiveToken={setActiveToken}
             />
           </div>
         </Drawer>

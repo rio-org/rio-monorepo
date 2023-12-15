@@ -42,7 +42,7 @@ const Withdraw: NextPage<Props> = ({ assetsList }) => {
 
   return (
     <WithdrawWrapper>
-      <WithdrawForm assetsList={assetsList} />
+      <WithdrawForm assets={assetsList} />
     </WithdrawWrapper>
   );
 };

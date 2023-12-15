@@ -1,30 +1,44 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TokenSymbol } from '../../lib/typings';
+import { AssetDetails } from '../../lib/typings';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
+import { parseBigIntFieldAmount, truncDec } from '../../lib/utilities';
+import { formatUnits, parseUnits } from 'viem';
+import { useMediaQuery } from 'react-responsive';
+import { DESKTOP_MQ } from '../../lib/constants';
 
 type Props = {
-  amount: number;
-  accountTokenBalance: number;
-  activeTokenSymbol: TokenSymbol;
-  setAmount: (amount: number) => void;
+  amount: bigint | null;
+  accountReETHBalance: bigint;
+  reETHToken: AssetDetails;
+  setAmount: (amount: bigint | null) => void;
 };
 
 const WithdrawField = ({
   amount,
-  accountTokenBalance,
-  activeTokenSymbol,
+  accountReETHBalance,
+  reETHToken,
   setAmount
 }: Props) => {
   const [hasMounted, setHasMounted] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = +Number(e.target.value as string);
-    if (val >= 0) {
-      setAmount(+val.toFixed(2));
+
+  const handleValueChange = (value: string) => {
+    console.log('value', value);
+    console.log('reETHToken.decimals', reETHToken);
+    const parsedAmount = parseUnits(value, 18);
+    console.log('parsedAmount', parsedAmount);
+    if (value === '') {
+      setAmount(null);
+      return;
     }
+    setAmount(parsedAmount);
   };
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const isDesktopOrLaptop = useMediaQuery({
+    query: DESKTOP_MQ
+  });
+
 
   const focusInput = () => {
     if (!inputRef.current) return;
@@ -42,11 +56,14 @@ const WithdrawField = ({
           Amount
         </label>
         {hasMounted &&
-        accountTokenBalance !== undefined &&
-        activeTokenSymbol ? (
+          accountReETHBalance !== undefined &&
+          reETHToken ? (
           <>
             <span className="opacity-50 text-[12px] -tracking-tight">
-              Balance: {Math.trunc(accountTokenBalance * 1000) / 1000} reETH
+              Balance: {truncDec(
+                +formatUnits(accountReETHBalance, 18)
+              )}{' '}
+              reETH
             </span>{' '}
           </>
         ) : (
@@ -64,16 +81,19 @@ const WithdrawField = ({
       >
         <div className="relative flex flex-row gap-4 items-center">
           <input
-            className="text-[22px] bg-transparent w-full focus:outline-none"
+            className="text-[22px] bg-transparent w-full focus:outline-none flex-1"
             id="amount"
             type="number"
-            value={amount ? amount : ''}
             placeholder="0.00"
-            onChange={(e) => {
-              handleValueChange(e);
-            }}
-            autoFocus
+            autoFocus={isDesktopOrLaptop}
+            min={0}
+            value={parseBigIntFieldAmount(amount, 18)}
+            // value={amount ? formatUnits(amount, 18) : ''}
+            step="0.1"
             ref={inputRef}
+            onChange={(e) => {
+              handleValueChange(e.target.value as string);
+            }}
             onFocus={() => {
               setIsFocused(true);
             }}
@@ -81,10 +101,30 @@ const WithdrawField = ({
               setIsFocused(false);
             }}
           />
+          {/* <input
+            className="text-[22px] bg-transparent w-full focus:outline-none"
+            id="amount"
+            type="number"
+            min={0}
+            value={parseBigIntFieldAmount(amount, reETHToken.decimals)}
+            placeholder="0.00"
+            step="0.1"
+            autoFocus
+            ref={inputRef}
+            onChange={(e) => {
+              handleValueChange(e.target.value as string);
+            }}
+            onFocus={() => {
+              setIsFocused(true);
+            }}
+            onBlur={() => {
+              setIsFocused(false);
+            }}
+          /> */}
           <button
             className="font-medium ml-2 px-3 py-2 bg-[var(--color-element-wrapper-bg)] rounded-xl hover:bg-black hover:bg-opacity-10 transition-colors duration-200"
             onClick={() => {
-              setAmount(accountTokenBalance);
+              setAmount(accountReETHBalance);
             }}
           >
             Max

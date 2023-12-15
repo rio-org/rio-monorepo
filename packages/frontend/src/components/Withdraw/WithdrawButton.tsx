@@ -4,77 +4,103 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
 import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
+import { EthereumAddress } from '../../lib/typings';
+import { Hash } from 'viem';
+import { useNetwork, useSwitchNetwork, useWaitForTransaction } from 'wagmi';
+import { CHAIN_ID } from '../../../config';
+import { getChainName } from '../../lib/utilities';
 
 type Props = {
   isValid: boolean;
+  isExitLoading: boolean;
+  isExitSuccess: boolean;
+  isExitError: boolean;
+  accountAddress: EthereumAddress;
+  exitTxHash?: Hash;
+  setIsExitSuccess: (isSuccess: boolean) => void;
+  setIsExitError: (isError: boolean) => void;
+  handleExecute: () => void;
   clearForm: () => void;
 };
 
-const WithdrawButton = ({ isValid, clearForm }: Props) => {
-  const [isError, setIsError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const fetchDummyData = async () => {
-    setIsLoading(true);
-    //  wait 1 second before setting isError to true
-    await new Promise((resolve) => setTimeout(resolve, 1000)).catch((err) => {
-      console.log(err);
-    });
-    setIsLoading(false);
+const WithdrawButton = ({ isValid, isExitLoading, isExitSuccess, isExitError, accountAddress, exitTxHash, handleExecute, setIsExitSuccess, setIsExitError, clearForm }: Props) => {
+  const { chain } = useNetwork()
+  const { error: isSwitchNetworkError, isLoading: isSwitchNetworkLoading, switchNetwork } = useSwitchNetwork();
+  const wrongNetwork = chain?.id !== CHAIN_ID;
+  console.log(isSwitchNetworkError && 'error switching networks')
 
-    // randomly set isSuccess to true or false
-    const random = Math.random();
-    if (random > 0.5) {
-      setIsSuccess(true);
-      clearForm();
-    } else {
-      setIsError(true);
-    }
-  };
-
-  useEffect(() => {
-    async () => {
-      await fetchDummyData();
-    };
-  }, []);
 
   return (
     <AnimatePresence>
-      {!isSuccess && !isError && (
+      {(isExitError || isExitSuccess) && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.1 }}
+        >
+          <div className="mt-4">
+            <Alert
+              isSuccess={isExitSuccess}
+              isError={isExitError}
+              joinTxHash={exitTxHash}
+              setIsSuccess={setIsExitSuccess}
+              setIsError={setIsExitError}
+            />
+          </div>
+        </motion.div>
+      )}
+
+      {wrongNetwork && (
         <motion.button
           className={cx(
             'rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
             !isValid && 'bg-opacity-20',
             isValid && 'hover:bg-[var(--color-dark-gray)]'
           )}
-          disabled={!isValid || isLoading}
           onClick={() => {
-            fetchDummyData().catch(() => {
-              setIsError(true);
-            });
+            switchNetwork?.(CHAIN_ID)
+          }}
+          variants={TX_BUTTON_VARIANTS}
+          key={'switchNetwork'}
+        >
+          {!isSwitchNetworkLoading && `Switch to ${getChainName(CHAIN_ID)}`}
+          {isSwitchNetworkLoading && (
+            <div className="w-full text-center flex items-center justify-center gap-2">
+              <Spinner width={16} />
+              <span className="opacity-40">Awaiting confirmation</span>
+            </div>
+          )}
+        </motion.button>
+      )}
+
+      {!wrongNetwork && (
+        <motion.button
+          className={cx(
+            'rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
+            !isValid && 'bg-opacity-20',
+            isValid && 'hover:bg-[var(--color-dark-gray)]'
+          )}
+          disabled={!isValid || isExitLoading}
+          onClick={() => {
+            handleExecute()
           }}
           variants={TX_BUTTON_VARIANTS}
           key={'withdraw'}
         >
-          {isLoading && (
+          {isExitLoading && (
             <div className="w-full text-center flex items-center justify-center gap-2">
               <Spinner width={16} />
               <span className="opacity-40">Submitting request</span>
             </div>
           )}
-          {!isLoading && !isError && (
+          {!isExitLoading && (
             <span className={cx(!isValid && 'opacity-20 text-black')}>
               {isValid ? 'Request withdraw' : 'Enter an amount'}
             </span>
           )}
         </motion.button>
       )}
-      <Alert
-        isSuccess={isSuccess}
-        isError={isError}
-        setIsSuccess={setIsSuccess}
-        setIsError={setIsError}
-      />
     </AnimatePresence>
   );
 };

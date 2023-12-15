@@ -6,7 +6,7 @@ import cx from 'classnames';
 import { ethInUSD } from '../../../placeholder';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
-import { truncDec } from '../../lib/utilities';
+import { parseBigIntFieldAmount, truncDec } from '../../lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
 
 type Props = {
@@ -43,22 +43,6 @@ const StakeField = ({
     setAmount(balanceAmount);
   };
 
-  const parseAmount = (amount: bigint | null) => {
-    if (amount === null) return '';
-    const isSafe = (+formatUnits(amount, activeToken.decimals))
-      .toString()
-      .includes('e')
-      ? false
-      : true;
-    if (isSafe) {
-      return truncDec(
-        +formatUnits(amount, activeToken.decimals),
-        activeToken.decimals
-      );
-    } else {
-      return formatUnits(amount, activeToken.decimals);
-    }
-  };
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
@@ -116,7 +100,7 @@ const StakeField = ({
             placeholder="0.00"
             autoFocus={isDesktopOrLaptop}
             min={0}
-            value={parseAmount(amount)}
+            value={parseBigIntFieldAmount(amount, activeToken.decimals)}
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
@@ -144,8 +128,8 @@ const StakeField = ({
           </span>
           <div>
             {isMounted &&
-            accountTokenBalance !== undefined &&
-            activeToken.symbol ? (
+              accountTokenBalance !== undefined &&
+              activeToken.symbol ? (
               <>
                 <span className="opacity-50">
                   Balance:{' '}

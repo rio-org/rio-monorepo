@@ -8,26 +8,26 @@ import { DESKTOP_MQ } from '../../lib/constants';
 import { useGetLatestAssetPrice } from '../../hooks/useGetLatestAssetPrice';
 import { CHAIN_ID } from '../../../config';
 type Props = {
-  asset: AssetDetails;
+  token: AssetDetails;
   isActiveToken: boolean;
   isBestRate: boolean;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  setActiveToken: (token: AssetDetails) => void;
   setIsListOpen: (isOpen: boolean) => void;
 };
 
 const WithdrawAssetItem = ({
-  asset,
+  token,
   isActiveToken,
   isBestRate,
-  setActiveTokenSymbol,
+  setActiveToken,
   setIsListOpen
 }: Props) => {
   const { data, isLoading, isError } = useGetLatestAssetPrice(
-    asset.address,
+    token.address,
     CHAIN_ID
   );
-  const handleClick = (symbol: TokenSymbol) => {
-    setActiveTokenSymbol(symbol);
+  const handleClick = (token: AssetDetails) => {
+    setActiveToken(token);
     setIsListOpen(false);
   };
 
@@ -56,7 +56,7 @@ const WithdrawAssetItem = ({
   return (
     <button
       onClick={() => {
-        handleClick(asset.symbol);
+        handleClick(token);
       }}
       disabled={isError ? true : false}
       className={cx(
@@ -67,7 +67,7 @@ const WithdrawAssetItem = ({
       )}
     >
       <AssetItemContent
-        asset={asset}
+        asset={token}
         isActiveToken={isActiveToken}
         isLoading={isLoading}
         isError={isError ? true : false}
