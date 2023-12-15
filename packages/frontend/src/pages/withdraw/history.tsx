@@ -6,11 +6,16 @@ import { historyData } from '../../../placeholder';
 import ClaimButton from '../../components/Claim/ClaimButton';
 import { motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
+import { useGetAccountWithdrawals } from '../../hooks/useGetAccountWithdrawals';
+import { EthereumAddress } from '../../lib/typings';
 
 const History: NextPage = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [hasClaimAvailable, setHasClaimAvailable] = useState(true);
   const { address } = useAccount();
+  const { data: userWithdrawals, isLoading, isError } = useGetAccountWithdrawals(address as EthereumAddress);
+  console.log('userWithdrawals', userWithdrawals);
+  console.log('userWithdrawals', isLoading, isError);
 
   useEffect(() => {
     setIsMounted(true);
@@ -36,7 +41,7 @@ const History: NextPage = () => {
         </h2>
       )}
 
-      {isMounted && address && historyData.length > 0 && (
+      {isMounted && address && userWithdrawals && userWithdrawals?.length > 0 && (
         <div className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200">
           <table className="min-w-full">
             <motion.tbody
@@ -44,7 +49,7 @@ const History: NextPage = () => {
               animate={{ height: 'auto' }}
               transition={{ duration: 0.2 }}
             >
-              {historyData.map((item, index) => (
+              {userWithdrawals?.map((item, index) => (
                 <Transaction key={index} transaction={item} />
               ))}
             </motion.tbody>

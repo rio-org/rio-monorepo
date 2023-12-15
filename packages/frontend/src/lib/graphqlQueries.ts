@@ -48,3 +48,26 @@ export const getLatestAssetUSDPrice = (tokenAddress: EthereumAddress) => {
     }
   `;
 };
+
+export const getUserExits = (address: EthereumAddress) => {
+  return gql`
+    query getUserExits {
+      exits(
+        first: 1000
+        where: {user:  "${address.toLowerCase()}"}) {
+          type
+          sharesOwed
+          id
+          amountIn
+          amountsOut
+          tx
+          valueUSD
+          tokensOut {
+            symbol
+            latestUSDPrice
+            latestUSDPriceTimestamp
+          }
+      }
+    }
+  `;
+};

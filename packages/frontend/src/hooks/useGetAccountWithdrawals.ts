@@ -1,0 +1,64 @@
+import {
+  ApolloClient,
+  ApolloError,
+  NormalizedCacheObject
+} from '@apollo/client';
+import { getUserExits } from '../lib/graphqlQueries';
+import {
+  EthereumAddress,
+  ExitSubgraphResponse,
+  TransactionStatus,
+  WithdrawEvent
+} from '../lib/typings';
+import subgraphClient from '../lib/subgraphClient';
+import { CHAIN_ID } from '../../config';
+import { useEffect, useState } from 'react';
+
+const parseExits = (data: ExitSubgraphResponse[]): WithdrawEvent[] => {
+  return data.map((event) => {
+    console.log('event', event);
+    return {
+      date: "tktk date",
+      status: "Claimed" as TransactionStatus, // TODO: "Claimed" hardcoded for now. need to adjust when request > claim > available process is supported
+      symbol: event.tokensOut[0].symbol,
+      amount: +event.amountsOut[0] // TODO: need to adjust when multiple tokens are supported
+    };
+  });
+};
+
+export const useGetAccountWithdrawals = (address: EthereumAddress) => {
+  const chainId = CHAIN_ID;
+  const client = subgraphClient(chainId);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState<ApolloError>();
+  const [data, setData] = useState<WithdrawEvent[]>();
+  const getData = async (client: ApolloClient<NormalizedCacheObject>) => {
+    const { data } = await client.query<{
+      exits: ExitSubgraphResponse[];
+    }>({
+      query: getUserExits(address)
+    });
+    return data;
+  };
+
+  useEffect(() => {
+    if (!chainId) return;
+    getData(client)
+      .then((data) => {
+        if (!data) return;
+        setIsLoading(false);
+        setData(parseExits(data.exits));
+      })
+      .catch((error: ApolloError) => {
+        if (!error) return;
+        setIsError(error);
+        setIsLoading(false);
+      });
+  }, [chainId]);
+
+  return {
+    data,
+    isLoading,
+    isError
+  };
+};

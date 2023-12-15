@@ -1,4 +1,5 @@
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
+import { ExitType, JoinType } from '@rionetwork/sdk-react';
 import { StaticImageData } from 'next/image';
 import { Chain as WagmiChain } from 'wagmi';
 export type EthereumAddress = `0x${string}`;
@@ -134,3 +135,45 @@ export interface TransactionEvent {
   amountReEth: number;
   balance: number;
 }
+
+export interface ExitSubgraphResponse {
+  id: string;
+  type: ExitType;
+  sender: EthereumAddress;
+  tokensOut: {
+    symbol: TokenSymbol,
+    latestUSDPrice: string,
+    latestUSDPriceTimestamp: string
+  }[];
+  amountsOut: string[];
+  sharesOwed: string[];
+  amountIn: string;
+  restakingToken: EthereumAddress;
+  tx: string;
+}
+
+export interface JoinSubgraphResponse {
+  id: string;
+  type: JoinType;
+  sender: EthereumAddress;
+  amountsIn: string[];
+  amountOut: string;
+  tx: string;
+  tokensIn: EthereumAddress[];
+  restakingToken: EthereumAddress;
+}
+
+
+// export type ExitType = "TOKEN_EXACT_IN" | "ALL_TOKENS_EXACT_IN" | "TOKENS_EXACT_OUT"
+
+// export type Exit = {
+//   amountIn: string;
+//   amountsOut: string[];
+//   sender: string;
+//   sharesOwed: string[];
+//   tx: EthereumTransactionHash;
+//   type: ExitType;
+//   user: {
+//     address: EthereumAddress;
+//   };
+// }
