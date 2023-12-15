@@ -68,10 +68,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
       : undefined
   });
   console.log('isError', isError);
-  const isValidAmount =
-    amount && amount > BigInt(0) && amount <= accountTokenBalance
-      ? true
-      : false;
+  const isValidAmount = !!amount && amount > BigInt(0) && amount <= accountTokenBalance;
   const isEmpty = !amount;
 
   const resetForm = () => {
@@ -266,8 +263,8 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
           </div>
           {isAllowed && address && (
             <DepositButton
-              isValidAmount={isValidAmount ? true : false}
-              isEmpty={isEmpty ? true : false}
+              isValidAmount={isValidAmount}
+              isEmpty={isEmpty}
               isJoinLoading={isJoinLoading}
               isJoinSuccess={isJoinSuccess}
               isJoinError={isJoinError}

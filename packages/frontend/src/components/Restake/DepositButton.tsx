@@ -47,7 +47,7 @@ const DepositButton = ({
       setButtonText('Enter an amount');
     }
     if (!isValidAmount && !isEmpty) {
-      setButtonText('Invalid amount');
+      setButtonText('Insufficient balance');
     }
     if (!accountAddress) {
       setButtonText('Connect to restake');
