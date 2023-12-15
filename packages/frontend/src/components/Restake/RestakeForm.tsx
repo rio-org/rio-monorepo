@@ -68,7 +68,8 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
       : undefined
   });
   console.log('isError', isError);
-  const isValidAmount = !!amount && amount > BigInt(0) && amount <= accountTokenBalance;
+  const isValidAmount =
+    !!amount && amount > BigInt(0) && amount <= accountTokenBalance;
   const isEmpty = !amount;
 
   const resetForm = () => {
