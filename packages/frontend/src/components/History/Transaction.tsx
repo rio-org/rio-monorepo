@@ -41,8 +41,8 @@ const Transaction = ({ transaction }: Props) => {
             )}
             <div className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
               <div className="flex items-center gap-0 font-medium">
-                <span className="mr-2">{transaction.amount}</span>
-                <SymbolPill symbol="＊ETH" />
+                <span className="mr-2">{transaction.amount.toFixed(2)}</span>
+                <SymbolPill symbol={transaction.symbol} />
               </div>
               <IconSelectArrow direction={isOpen ? 'up' : 'down'} />
             </div>

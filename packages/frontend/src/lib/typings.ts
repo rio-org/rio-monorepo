@@ -127,14 +127,14 @@ export interface WithdrawEvent {
 
 export type TransactionStatus = 'Pending' | 'Available' | 'Claimed' | 'None';
 
-export interface TransactionEvent {
-  date: string;
-  txId: string;
-  type: string;
-  historicalReEthPrice: number;
-  amountReEth: number;
-  balance: number;
-}
+// export interface TransactionEvent {
+//   date: string;
+//   txId: string;
+//   type: string;
+//   historicalReEthPrice: number;
+//   amountReEth: number;
+//   balance: number;
+// }
 
 export interface ExitSubgraphResponse {
   id: string;
@@ -150,17 +150,48 @@ export interface ExitSubgraphResponse {
   amountIn: string;
   restakingToken: EthereumAddress;
   tx: string;
+  timestamp: string;
 }
 
-export interface JoinSubgraphResponse {
-  id: string;
-  type: JoinType;
-  sender: EthereumAddress;
-  amountsIn: string[];
-  amountOut: string;
+export interface TransactionEventSubgraphResponse {
+  type: ExitType;
+  amountsOut: string[] | null;
+  amountOut: string | null;
+  amountIn: string;
+  valueUSD: string;
   tx: string;
-  tokensIn: EthereumAddress[];
-  restakingToken: EthereumAddress;
+  timestamp: string;
+  user: {
+    address: EthereumAddress;
+  };
+}
+
+
+
+// export interface JoinSubgraphResponse {
+//   id: string;
+//   type: JoinType;
+//   sender: EthereumAddress;
+//   amountsIn: string[];
+//   amountOut: string;
+//   tx: string;
+//   tokensIn: EthereumAddress[];
+//   restakingToken: EthereumAddress;
+//   timestamp: string;
+// }
+
+export type TransactionType = "Deposit" | "Withdrawal";
+
+export interface TransactionEvent {
+  date: string;
+  type: TransactionType;
+  // amountsIn: string[];
+  // amountOut: string;
+  tx: string;
+  // tokensIn: EthereumAddress[];
+  historicalReEthPrice: number;
+  amountReEth: number;
+  balance: number;
 }
 
 

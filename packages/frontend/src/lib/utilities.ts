@@ -1,6 +1,7 @@
 import { formatUnits } from 'viem';
 import { ASSETS } from './constants';
 import { CHAIN_ID_NUMBER, EthereumAddress, TokenSymbol } from './typings';
+import dayjs from 'dayjs';
 
 export const getChainName = (chainId: number) => {
   switch (chainId) {
@@ -123,3 +124,9 @@ export const parseBigIntFieldAmount = (
     return formatUnits(amount, tokenDecimals);
   }
 };
+
+export const dateFromTimestamp = (timestamp: number) => {
+  const date = new Date(timestamp * 1000);
+  const str = dayjs(date).format('MMMM D, YYYY');
+  return str;
+}

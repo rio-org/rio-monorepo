@@ -14,6 +14,7 @@ import { CHAIN_ID } from '../../../config';
 type Props = {
   event: TransactionEvent;
   isFirst?: boolean;
+  index: number;
 };
 
 type ScreenSizeRowProps = {
@@ -21,16 +22,28 @@ type ScreenSizeRowProps = {
   isOpen: boolean;
   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   isFirst?: boolean;
+  index: number;
 };
 
-const DesktopRow = ({ event, isFirst }: ScreenSizeRowProps) => {
+const animationDuration = 0.1;
+const animationDelay = 0.025;
+const exitDuration = 0.085;
+
+const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
   return (
-    <tr className="group bg-white divide-gray-100">
-      <td
+    <motion.tr
+      className="group bg-white divide-gray-100"
+    >
+      <motion.td
         className={cx(
           'p-4 pl-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
           isFirst && 'rounded-tl-xl'
         )}
+        key={`${index}-date`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{ duration: animationDuration, delay: index * animationDelay }}
       >
         <TableLabel>
           <a
@@ -45,17 +58,35 @@ const DesktopRow = ({ event, isFirst }: ScreenSizeRowProps) => {
             <IconExternal transactionStatus="None" />
           </a>
         </TableLabel>
-      </td>
-      <td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors">
+      </motion.td>
+      <motion.td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
+        key={`${index}-type`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{ duration: animationDuration, delay: index * animationDelay }}
+      >
         <TableLabel>{event.type}</TableLabel>
-      </td>
+      </motion.td>
 
-      <td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors">
+      <motion.td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
+        key={`${index}-price`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{ duration: animationDuration, delay: index * animationDelay }}
+      >
         <TableLabel textDirection="right">
           ${event.historicalReEthPrice.toLocaleString()}
         </TableLabel>
-      </td>
-      <td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors">
+      </motion.td>
+      <motion.td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
+        key={`${index}-amount`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{ duration: animationDuration, delay: index * animationDelay }}
+      >
         <div className="flex flex-col">
           <TableLabel textDirection="right">
             {event.amountReEth} reETH
@@ -67,12 +98,17 @@ const DesktopRow = ({ event, isFirst }: ScreenSizeRowProps) => {
             )).toLocaleString()}
           </TableLabel>
         </div>
-      </td>
-      <td
+      </motion.td>
+      <motion.td
         className={cx(
           'p-4 pr-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
           isFirst && 'rounded-tr-xl'
         )}
+        key={`${index}-balance`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{ duration: animationDuration, delay: index * animationDelay }}
       >
         <TableLabel textDirection="right">{event.balance} reETH</TableLabel>
         <TableLabel isSecondary={true} textDirection="right">
@@ -81,8 +117,8 @@ const DesktopRow = ({ event, isFirst }: ScreenSizeRowProps) => {
             2
           )).toLocaleString()}
         </TableLabel>
-      </td>
-    </tr>
+      </motion.td>
+    </motion.tr>
   );
 };
 
@@ -174,7 +210,7 @@ const MobileRow = ({
   );
 };
 
-const TableRow = ({ event, isFirst }: Props) => {
+const TableRow = ({ event, isFirst, index }: Props) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const isDesktopOrLaptop = useMediaQuery({
@@ -192,6 +228,7 @@ const TableRow = ({ event, isFirst }: Props) => {
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         isFirst={isFirst}
+        index={index}
       />
     );
   }
@@ -201,6 +238,7 @@ const TableRow = ({ event, isFirst }: Props) => {
       isOpen={isOpen}
       setIsOpen={setIsOpen}
       isFirst={isFirst}
+      index={index}
     />
   );
 };

@@ -71,3 +71,39 @@ export const getUserExits = (address: EthereumAddress) => {
     }
   `;
 };
+
+
+export const getUserTxHistory = (address: EthereumAddress) => {
+  return gql`
+    query getUserTxHistory {
+      joins(
+        first: 1000
+        where: {user: "${address.toLowerCase()}"}
+      ) {
+        amountOut
+        amountsIn
+        tx
+        timestamp
+        type
+        valueUSD
+        user {
+          address
+        }
+      }
+      exits(
+        first: 1000
+        where: {user: "${address.toLowerCase()}"}
+      ) {
+        
+        amountIn
+        tx
+        timestamp
+        type
+        valueUSD
+        user {
+          address
+        }
+      }
+    }
+  `;
+};

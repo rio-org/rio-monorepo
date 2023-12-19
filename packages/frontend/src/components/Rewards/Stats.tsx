@@ -40,23 +40,23 @@ const Stats = () => {
         transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
       >
         <div className="flex flex-col lg:flex-row gap-2 mb-6">
-          {address
+          {isMounted && address
             ? statsData.map((stat, index) => (
-                <Stat
-                  key={index}
-                  label={stat.label}
-                  value={stat.value}
-                  denominator={stat.denominator}
-                />
-              ))
+              <Stat
+                key={index}
+                label={stat.label}
+                value={stat.value}
+                denominator={stat.denominator}
+              />
+            ))
             : emptyStatsData.map((stat, index) => (
-                <Stat
-                  key={index}
-                  label={stat.label}
-                  value={stat.value}
-                  denominator={stat.denominator}
-                />
-              ))}
+              <Stat
+                key={index}
+                label={stat.label}
+                value={stat.value}
+                denominator={stat.denominator}
+              />
+            ))}
         </div>
       </motion.div>
     </>
