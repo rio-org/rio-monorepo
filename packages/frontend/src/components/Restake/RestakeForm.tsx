@@ -19,10 +19,10 @@ import {
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
 import { ASSET_ADDRESS } from '../../lib/constants';
-import { truncDec } from '../../lib/utilities';
+import { parsePriceImpact } from '../../lib/utilities';
 import { Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '../Shared/ApproveButtons';
-
+import bigDecimal from 'js-big-decimal';
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
   activeToken: AssetDetails,
@@ -55,6 +55,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [tokensIn, setTokensIn] = useState<InputTokenExactInWithWrap[]>([]);
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(false);
+  const [priceImpact, setPriceImpact] = useState<number | null>(null);
   const rethAddress = assets.find((asset) => asset.symbol === 'reETH')?.address;
   const restakingToken = useLiquidRestakingToken(rethAddress || '');
   const { address } = useAccount();
@@ -148,7 +149,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
     if (restakingToken) {
       queryTokens(restakingToken, activeToken, amount)
         .then((res) => {
-          handleTokenQuery(res);
+          amount && handleTokenQuery(amount, res);
         })
         .catch((err) => {
           console.log('err', err);
@@ -156,10 +157,13 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
     }
   }, [amount, activeToken]);
 
-  const handleTokenQuery = (res?: JoinTokensExactInParams) => {
+  const handleTokenQuery = (amount: bigint, res?: JoinTokensExactInParams) => {
     if (!res) return;
     setTokensIn(res.tokensIn);
     setMinAmountOut(res.minAmountOut);
+    if (res.minAmountOut && typeof res.minAmountOut === 'bigint') {
+      setPriceImpact(parsePriceImpact(amount, res.minAmountOut));
+    }
   };
 
   const {
@@ -170,8 +174,6 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
     hash: joinTxHash,
     enabled: !!joinTxHash
   });
-
-  console.log('txData', txData);
 
   useEffect(() => {
     if (txData?.status === 'success') {
@@ -244,7 +246,9 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
             </div>
             <div className="flex justify-between text-[14px]">
               <span className="text-black opacity-50">Price impact</span>
-              <strong className="text-right">0%</strong>
+              <strong className="text-right">
+                {priceImpact ? priceImpact : 0}%
+              </strong>
             </div>
             <div className="flex justify-between text-[14px]">
               <span className="text-black opacity-50">Reward fee</span>
@@ -255,10 +259,11 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
           <div className="flex justify-between text-[14px]">
             <span className="text-black opacity-50">Minimum received</span>
             <strong>
-              {amount
-                ? truncDec(
-                    +formatUnits(amount, activeToken.decimals) * rethToEth,
-                    2
+              {minAmountOut && typeof minAmountOut === 'bigint'
+                ? bigDecimal.round(
+                    formatUnits(minAmountOut, activeToken.decimals),
+                    2,
+                    bigDecimal.RoundingModes.DOWN
                   )
                 : 0}{' '}
               reETH

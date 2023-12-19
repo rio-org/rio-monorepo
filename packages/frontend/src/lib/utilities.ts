@@ -130,3 +130,11 @@ export const dateFromTimestamp = (timestamp: number) => {
   const str = dayjs(date).format('MMMM D, YYYY');
   return str;
 };
+
+export const parsePriceImpact = (
+  requestedAmount: bigint,
+  minAmount: bigint
+) => {
+  const perc = (Number(minAmount) / Number(requestedAmount)) * 100;
+  return truncDec(perc - 100, 2);
+};

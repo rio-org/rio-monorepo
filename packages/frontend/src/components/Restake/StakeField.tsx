@@ -6,8 +6,9 @@ import cx from 'classnames';
 import { ethInUSD } from '../../../placeholder';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
-import { parseBigIntFieldAmount, truncDec } from '../../lib/utilities';
+import { parseBigIntFieldAmount } from '../../lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
+import bigDecimal from 'js-big-decimal';
 
 type Props = {
   activeToken: AssetDetails;
@@ -133,9 +134,14 @@ const StakeField = ({
               <>
                 <span className="opacity-50">
                   Balance:{' '}
-                  {truncDec(
+                  {bigDecimal.round(
+                    formatUnits(accountTokenBalance, activeToken.decimals),
+                    2,
+                    bigDecimal.RoundingModes.DOWN
+                  )}
+                  {/* {truncDec(
                     +formatUnits(accountTokenBalance, activeToken.decimals)
-                  )}{' '}
+                  )} */}{' '}
                   {activeToken.symbol}
                 </span>{' '}
                 <button
