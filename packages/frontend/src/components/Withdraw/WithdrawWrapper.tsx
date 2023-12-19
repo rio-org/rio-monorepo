@@ -1,6 +1,7 @@
 import React from 'react';
 import WithdrawTabs from './WithdrawTabs';
 import cx from 'classnames';
+import { motion } from 'framer-motion';
 
 type Props = {
   children: React.ReactNode;
@@ -24,14 +25,15 @@ const WithdrawWrapper = ({ children, noPadding }: Props) => {
               <WithdrawTabs />
             </div>
           </div>
-          <div
+          <motion.div
             className={cx(
               'bg-white rounded-xl w-full m-[2px] flex flex-col gap-4',
               noPadding ? '' : ' p-4 lg:p-6'
             )}
+            // layoutId="page-content-box"
           >
             {children}
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

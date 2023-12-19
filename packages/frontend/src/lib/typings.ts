@@ -1,5 +1,5 @@
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
-import { ExitType, JoinType } from '@rionetwork/sdk-react';
+import { ExitType } from '@rionetwork/sdk-react';
 import { StaticImageData } from 'next/image';
 import { Chain as WagmiChain } from 'wagmi';
 export type EthereumAddress = `0x${string}`;
@@ -123,6 +123,7 @@ export interface WithdrawEvent {
   status: TransactionStatus;
   symbol: TokenSymbol;
   amount: number;
+  tx: string;
 }
 
 export type TransactionStatus = 'Pending' | 'Available' | 'Claimed' | 'None';
@@ -141,9 +142,9 @@ export interface ExitSubgraphResponse {
   type: ExitType;
   sender: EthereumAddress;
   tokensOut: {
-    symbol: TokenSymbol,
-    latestUSDPrice: string,
-    latestUSDPriceTimestamp: string
+    symbol: TokenSymbol;
+    latestUSDPrice: string;
+    latestUSDPriceTimestamp: string;
   }[];
   amountsOut: string[];
   sharesOwed: string[];
@@ -166,8 +167,6 @@ export interface TransactionEventSubgraphResponse {
   };
 }
 
-
-
 // export interface JoinSubgraphResponse {
 //   id: string;
 //   type: JoinType;
@@ -180,7 +179,7 @@ export interface TransactionEventSubgraphResponse {
 //   timestamp: string;
 // }
 
-export type TransactionType = "Deposit" | "Withdrawal";
+export type TransactionType = 'Deposit' | 'Withdrawal';
 
 export interface TransactionEvent {
   date: string;
@@ -193,7 +192,6 @@ export interface TransactionEvent {
   amountReEth: number;
   balance: number;
 }
-
 
 // export type ExitType = "TOKEN_EXACT_IN" | "ALL_TOKENS_EXACT_IN" | "TOKENS_EXACT_OUT"
 

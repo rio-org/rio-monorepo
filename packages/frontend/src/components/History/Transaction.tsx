@@ -11,18 +11,31 @@ import { DESKTOP_MQ } from '../../lib/constants';
 
 type Props = {
   transaction: WithdrawEvent;
+  index: number;
 };
 
-const Transaction = ({ transaction }: Props) => {
+const Transaction = ({ transaction, index }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const assets = buildAssetList(transaction.symbol);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
+  const animationDuration = 0.1;
+  const animationDelay = 0.025;
+  const exitDuration = 0.085;
 
   return (
     <>
-      <tr className="flex w-full border-b border-b-gray-200">
+      <motion.tr
+        className="flex w-full border-b border-b-gray-200"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{
+          duration: animationDuration,
+          delay: animationDelay * index
+        }}
+      >
         <td className="w-full flex flex-row justify-between items-center">
           <button
             className="w-full py-4 hover:bg-[var(--color-gray-hover)] transition-colors flex flex-row justify-between items-center"
@@ -48,7 +61,7 @@ const Transaction = ({ transaction }: Props) => {
             </div>
           </button>
         </td>
-      </tr>
+      </motion.tr>
       <AnimatePresence>
         {isOpen && (
           <motion.div

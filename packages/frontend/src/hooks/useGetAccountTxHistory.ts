@@ -8,7 +8,7 @@ import {
   EthereumAddress,
   TransactionEvent,
   TransactionEventSubgraphResponse,
-  TransactionType,
+  TransactionType
 } from '../lib/typings';
 import subgraphClient from '../lib/subgraphClient';
 import { CHAIN_ID } from '../../config';
@@ -23,42 +23,54 @@ const parseTxs = (data: {
     return {
       ...join,
       type: 'Deposit'
-    }
+    };
   });
   const exits = data.exits.map((exit) => {
     return {
       ...exit,
       type: 'Withdrawal'
-    }
+    };
   });
   const allTxs = [...joins, ...exits].sort((a, b) => {
-    return +a.timestamp - +b.timestamp
+    return +b.timestamp - +a.timestamp;
   });
 
   return allTxs.map((event) => {
-    console.log('event', event);
     return {
       date: dateFromTimestamp(+event.timestamp),
       tx: event.tx,
       type: event.type as TransactionType,
       historicalReEthPrice: +event.valueUSD,
-      amountReEth: event.type === 'Join' ? +event.amountIn : +((event.amountOut ? +event.amountOut : 0).toFixed(2)),
-      balance: 0,
+      amountReEth:
+        event.type === 'Join'
+          ? +event.amountIn
+          : +(event.amountOut ? +event.amountOut : 0).toFixed(2),
+      balance: 0
     };
   });
 };
 
-const parsePaginatedResults = (data: TransactionEvent[], skip: number, resultsPerPage: number) => {
+const parsePaginatedResults = (
+  data: TransactionEvent[],
+  skip: number,
+  resultsPerPage: number
+) => {
   return data.slice(skip, skip + resultsPerPage);
-}
+};
 
-export const useGetAccountTxHistory = (address: EthereumAddress, resultsPerPage: number, page: number) => {
+export const useGetAccountTxHistory = (
+  address: EthereumAddress,
+  resultsPerPage: number,
+  page: number
+) => {
   const chainId = CHAIN_ID;
   const client = subgraphClient(chainId);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState<ApolloError>();
   const [data, setData] = useState<TransactionEvent[]>();
-  const [paginatedResults, setPaginatedResults] = useState<TransactionEvent[]>([]);
+  const [paginatedResults, setPaginatedResults] = useState<TransactionEvent[]>(
+    []
+  );
   const [pageCount, setPageCount] = useState<number>(1);
   const [hasNextPage, setHasNextPage] = useState<boolean>(false);
   const skip = page * resultsPerPage;

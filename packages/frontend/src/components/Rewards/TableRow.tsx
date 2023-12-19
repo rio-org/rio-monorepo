@@ -31,9 +31,7 @@ const exitDuration = 0.085;
 
 const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
   return (
-    <motion.tr
-      className="group bg-white divide-gray-100"
-    >
+    <motion.tr className="group bg-white divide-gray-100">
       <motion.td
         className={cx(
           'p-4 pl-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
@@ -43,7 +41,10 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: exitDuration } }}
-        transition={{ duration: animationDuration, delay: index * animationDelay }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
       >
         <TableLabel>
           <a
@@ -59,33 +60,45 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
           </a>
         </TableLabel>
       </motion.td>
-      <motion.td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
+      <motion.td
+        className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
         key={`${index}-type`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: exitDuration } }}
-        transition={{ duration: animationDuration, delay: index * animationDelay }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
       >
         <TableLabel>{event.type}</TableLabel>
       </motion.td>
 
-      <motion.td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
+      <motion.td
+        className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
         key={`${index}-price`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: exitDuration } }}
-        transition={{ duration: animationDuration, delay: index * animationDelay }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
       >
         <TableLabel textDirection="right">
           ${event.historicalReEthPrice.toLocaleString()}
         </TableLabel>
       </motion.td>
-      <motion.td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
+      <motion.td
+        className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
         key={`${index}-amount`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: exitDuration } }}
-        transition={{ duration: animationDuration, delay: index * animationDelay }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
       >
         <div className="flex flex-col">
           <TableLabel textDirection="right">
@@ -108,7 +121,10 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: exitDuration } }}
-        transition={{ duration: animationDuration, delay: index * animationDelay }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
       >
         <TableLabel textDirection="right">{event.balance} reETH</TableLabel>
         <TableLabel isSecondary={true} textDirection="right">

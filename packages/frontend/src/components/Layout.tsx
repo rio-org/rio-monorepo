@@ -91,7 +91,9 @@ export default function Layout({ children }: LayoutProps) {
             <AppNav />
           </div>
           <div
-            className={cx('flex flex-col justify-start items-start w-full')}
+            className={cx(
+              'flex flex-col justify-start items-start w-full relative z-10'
+            )}
             ref={contentRef}
           >
             <AnimatePresence mode={'wait'} initial={false}>
@@ -151,7 +153,7 @@ export default function Layout({ children }: LayoutProps) {
               delay: 0.5
             }}
             className={cx(
-              'sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto'
+              'sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto z-0'
             )}
           >
             <ReETHConversion />

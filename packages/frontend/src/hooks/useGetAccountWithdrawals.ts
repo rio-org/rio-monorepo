@@ -13,15 +13,20 @@ import {
 import subgraphClient from '../lib/subgraphClient';
 import { CHAIN_ID } from '../../config';
 import { useEffect, useState } from 'react';
+import { dateFromTimestamp } from '../lib/utilities';
 
 const parseExits = (data: ExitSubgraphResponse[]): WithdrawEvent[] => {
-  return data.map((event) => {
+  const sorted = [...data].sort((a, b) => {
+    return +b.timestamp - +a.timestamp;
+  });
+  return sorted.map((event) => {
     console.log('event', event);
     return {
-      date: "tktk date",
-      status: "Claimed" as TransactionStatus, // TODO: "Claimed" hardcoded for now. need to adjust when request > claim > available process is supported
+      date: dateFromTimestamp(+event.timestamp),
+      status: 'Claimed' as TransactionStatus, // TODO: "Claimed" hardcoded for now. need to adjust when request > claim > available process is supported
       symbol: event.tokensOut[0].symbol,
-      amount: +event.amountsOut[0] // TODO: need to adjust when multiple tokens are supported
+      amount: +event.amountsOut[0], // TODO: need to adjust when multiple tokens are supported
+      tx: event.tx
     };
   });
 };

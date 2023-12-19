@@ -129,4 +129,4 @@ export const dateFromTimestamp = (timestamp: number) => {
   const date = new Date(timestamp * 1000);
   const str = dayjs(date).format('MMMM D, YYYY');
   return str;
-}
+};

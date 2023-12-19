@@ -62,6 +62,7 @@ export const getUserExits = (address: EthereumAddress) => {
           amountsOut
           tx
           valueUSD
+          timestamp
           tokensOut {
             symbol
             latestUSDPrice
@@ -71,7 +72,6 @@ export const getUserExits = (address: EthereumAddress) => {
     }
   `;
 };
-
 
 export const getUserTxHistory = (address: EthereumAddress) => {
   return gql`

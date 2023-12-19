@@ -19,7 +19,11 @@ const TransactionHistoryTable = () => {
     query: DESKTOP_MQ
   });
   const resultsPerPage = 10;
-  const txHistory = useGetAccountTxHistory(address as EthereumAddress, resultsPerPage, page);
+  const txHistory = useGetAccountTxHistory(
+    address as EthereumAddress,
+    resultsPerPage,
+    page
+  );
   const pages = Array.from(Array(txHistory.pageCount).keys());
 
   const handlePageNum = (pageNum: number) => {
@@ -43,7 +47,7 @@ const TransactionHistoryTable = () => {
   return (
     <div>
       <h1 className="text-2xl mb-5 font-medium">Transaction History</h1>
-      <AnimatePresence mode='wait'>
+      <AnimatePresence mode="wait">
         {(txHistory.isLoading || !isMounted) && (
           <motion.div
             className="bg-white w-full flex items-center justify-center border-t border-blue-gray-50 p-4 rounded-xl h-40"
@@ -59,14 +63,14 @@ const TransactionHistoryTable = () => {
       {isMounted && (
         <>
           {address ? (
-            <AnimatePresence mode='wait'>
+            <AnimatePresence mode="wait">
               <motion.div
                 className="bg-[var(--color-element-wrapper-bg)] p-[2px] rounded-t-2xl rounded-b-xl relative"
                 layout
                 key={page}
                 initial={false}
                 transition={{
-                  duration: 0.05,
+                  duration: 0.05
                 }}
                 layoutId="table-wrapper"
               >
@@ -78,9 +82,7 @@ const TransactionHistoryTable = () => {
                     )}
                   >
                     {isMounted && isDesktopOrLaptop && (
-                      <motion.thead
-                        layoutId='table-header'
-                      >
+                      <motion.thead layoutId="table-header">
                         <tr>
                           {txHistoryTableHeader.map((head, i) => (
                             <th
@@ -99,13 +101,20 @@ const TransactionHistoryTable = () => {
 
                     <motion.tbody
                       className="divide-y divide-[var(--color-element-wrapper-bg)]"
-                      layoutId='table-body'
+                      layoutId="table-body"
                       transition={{
-                        duration: 0.075,
+                        duration: 0.075
                       }}
                     >
                       {txHistory.data.map((event, i) => {
-                        return <TableRow key={i} event={event} isFirst={i === 0} index={i} />
+                        return (
+                          <TableRow
+                            key={i}
+                            event={event}
+                            isFirst={i === 0}
+                            index={i}
+                          />
+                        );
                       })}
                     </motion.tbody>
                   </table>
@@ -133,8 +142,7 @@ const TransactionHistoryTable = () => {
           )}
         </>
       )}
-
-    </div >
+    </div>
   );
 };
 
