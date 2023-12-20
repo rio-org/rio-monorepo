@@ -18,6 +18,11 @@
 &nbsp;&nbsp;&nbsp;
 <a href="./packages/frontend">Frontend</a>
 
+  <p align="center">
+    <a href="https://rio.network/">
+      <img src="https://img.shields.io/badge/website-rio.network-blue">
+    </a>
+  </p>
 </div>
 <br />
 

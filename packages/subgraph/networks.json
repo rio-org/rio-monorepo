@@ -1,3 +1,12 @@
 {
-  "goerli": {}
+  "goerli": {
+    "RioLRTIssuer": {
+      "address": "0x2A2fb9f94b92C957Df58dAD26f20fA51Cf45002C",
+      "startBlock": 10204427     
+    },
+    "TokenWrapperFactory": {
+      "address": "0x9751Ee0CE7D683BbAce6fCbf16c645Fa5874E29e",
+      "startBlock": 10204427
+    }
+  }
 }
