@@ -13,7 +13,7 @@ import {
 import subgraphClient from '../lib/subgraphClient';
 import { CHAIN_ID } from '../../config';
 import { useEffect, useState } from 'react';
-import { dateFromTimestamp } from '../lib/utilities';
+import { dateFromTimestamp, displayEthAmount } from '../lib/utilities';
 
 const parseTxs = (data: {
   joins: TransactionEventSubgraphResponse[];
@@ -36,16 +36,17 @@ const parseTxs = (data: {
   });
 
   return allTxs.map((event) => {
+    let amount = event.amountIn ? event.amountIn : '0';
+    if (event.type === 'Deposit') {
+      amount = event.amountsIn ? event.amountsIn[0] : '0';
+    }
     return {
       date: dateFromTimestamp(+event.timestamp),
       tx: event.tx,
       type: event.type as TransactionType,
-      historicalReEthPrice: +event.valueUSD,
-      amountReEth:
-        event.type === 'Join'
-          ? +event.amountIn
-          : +(event.amountOut ? +event.amountOut : 0).toFixed(2),
-      balance: 0
+      historicalReEthPrice: +event.valueUSD || 2200,
+      amountReEth: displayEthAmount(amount),
+      balance: displayEthAmount(event.userBalanceAfter)
     };
   });
 };

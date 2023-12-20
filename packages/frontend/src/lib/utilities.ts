@@ -2,6 +2,8 @@ import { formatUnits } from 'viem';
 import { ASSETS } from './constants';
 import { CHAIN_ID_NUMBER, EthereumAddress, TokenSymbol } from './typings';
 import dayjs from 'dayjs';
+import bigDecimal from 'js-big-decimal';
+import { CHAIN_ID } from '../../config';
 
 export const getChainName = (chainId: number) => {
   switch (chainId) {
@@ -137,4 +139,11 @@ export const parsePriceImpact = (
 ) => {
   const perc = (Number(minAmount) / Number(requestedAmount)) * 100;
   return truncDec(perc - 100, 2);
+};
+
+export const displayEthAmount = (amount: string) => {
+  const decimalPlaces = CHAIN_ID === 1 ? 2 : 5;
+  return parseFloat(
+    bigDecimal.round(amount, decimalPlaces, bigDecimal.RoundingModes.DOWN)
+  ).toFixed(decimalPlaces);
 };

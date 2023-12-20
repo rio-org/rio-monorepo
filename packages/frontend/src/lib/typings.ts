@@ -159,9 +159,11 @@ export interface TransactionEventSubgraphResponse {
   amountsOut: string[] | null;
   amountOut: string | null;
   amountIn: string;
+  amountsIn: string[] | null;
   valueUSD: string;
   tx: string;
   timestamp: string;
+  userBalanceAfter: string;
   user: {
     address: EthereumAddress;
   };
@@ -189,8 +191,8 @@ export interface TransactionEvent {
   tx: string;
   // tokensIn: EthereumAddress[];
   historicalReEthPrice: number;
-  amountReEth: number;
-  balance: number;
+  amountReEth: string;
+  balance: string;
 }
 
 // export type ExitType = "TOKEN_EXACT_IN" | "ALL_TOKENS_EXACT_IN" | "TOKENS_EXACT_OUT"

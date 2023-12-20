@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TransactionEvent } from '../../lib/typings';
+import { EthereumAddress, TransactionEvent } from '../../lib/typings';
 import TableLabel from './TableLabel';
 import cx from 'classnames';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
@@ -48,7 +48,10 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
       >
         <TableLabel>
           <a
-            href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
+            href={linkToTxOnBlockExplorer(
+              event.tx as EthereumAddress,
+              CHAIN_ID
+            )}
             target="_blank"
             rel="noreferrer"
             className={cx(
@@ -106,9 +109,9 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
           </TableLabel>
           <TableLabel isSecondary={true} textDirection="right">
             $
-            {(+(event.amountReEth * event.historicalReEthPrice).toFixed(
-              2
-            )).toLocaleString()}
+            {(+event.amountReEth * event.historicalReEthPrice)
+              .toFixed(2)
+              .toLocaleString()}
           </TableLabel>
         </div>
       </motion.td>
@@ -129,9 +132,9 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
         <TableLabel textDirection="right">{event.balance} reETH</TableLabel>
         <TableLabel isSecondary={true} textDirection="right">
           $
-          {(+(event.balance * event.historicalReEthPrice).toFixed(
-            2
-          )).toLocaleString()}
+          {(+event.balance * event.historicalReEthPrice)
+            .toFixed(2)
+            .toLocaleString()}
         </TableLabel>
       </motion.td>
     </motion.tr>

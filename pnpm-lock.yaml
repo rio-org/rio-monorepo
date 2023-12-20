@@ -87,8 +87,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@1.18.8)(wagmi@1.4.5)
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.8
-        version: 0.1.0-alpha.8(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.10
+        version: 0.1.0-alpha.10(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
@@ -1632,14 +1632,14 @@ packages:
       - '@types/react'
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.8(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
-    resolution: {integrity: sha512-V37URnBXV/uPtlalCg4MuBPmuO14Bc+tWxSAuw2tNQJSLbHMA00hfV0wJL0AVYhQzZ8OcJJpK1oALe9E70IJzA==}
+  /@rionetwork/sdk-react@0.1.0-alpha.10(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
+    resolution: {integrity: sha512-Ox2mYyok2P2yUSHkBvwCQlYMypl7PuNRz6ss3GeJyhl//w/wk4fTX573lPS1Yp4APmJMIxzgR1leJU3+f0A+sw==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     peerDependencies:
       react: '>=16.13.1'
       wagmi: '>=1.2'
     dependencies:
-      '@rionetwork/sdk': 0.1.0-alpha.6(graphql@16.8.1)(typescript@5.2.2)
+      '@rionetwork/sdk': 0.1.0-alpha.8(graphql@16.8.1)(typescript@5.2.2)
       react: 18.2.0
       wagmi: 1.4.5(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
     transitivePeerDependencies:
@@ -1651,8 +1651,8 @@ packages:
       - zod
     dev: false
 
-  /@rionetwork/sdk@0.1.0-alpha.6(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-KxNV0hPhsZkuCw9XgzWE9iVsyXIcnCScEK5DqaOQEyzPSnPpdyFAmY1vzQLg9ultiyp5Dn3l5cI5P8pvpx/mEA==}
+  /@rionetwork/sdk@0.1.0-alpha.8(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-Uuerzcm4u/dGlMGUcvjTYkUno08DK1BHr/JIwrtAvOEXFlTSkylctEyEcRd5rTnvdI7mawckbZ0NrSS3PulP8A==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)

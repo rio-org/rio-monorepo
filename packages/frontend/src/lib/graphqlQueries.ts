@@ -86,6 +86,7 @@ export const getUserTxHistory = (address: EthereumAddress) => {
         timestamp
         type
         valueUSD
+        userBalanceAfter
         user {
           address
         }
@@ -100,6 +101,7 @@ export const getUserTxHistory = (address: EthereumAddress) => {
         timestamp
         type
         valueUSD
+        userBalanceAfter
         user {
           address
         }
