@@ -152,6 +152,8 @@ export type Exit = {
   tx: Scalars['Bytes']['output'];
   type: ExitType;
   user: User;
+  userBalanceAfter: Scalars['BigDecimal']['output'];
+  userBalanceBefore: Scalars['BigDecimal']['output'];
   valueUSD?: Maybe<Scalars['BigDecimal']['output']>;
 };
 
@@ -281,6 +283,22 @@ export type Exit_Filter = {
   type_not?: InputMaybe<ExitType>;
   type_not_in?: InputMaybe<Array<ExitType>>;
   user?: InputMaybe<Scalars['String']['input']>;
+  userBalanceAfter?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  userBalanceAfter_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  userBalanceBefore?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  userBalanceBefore_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   user_?: InputMaybe<User_Filter>;
   user_contains?: InputMaybe<Scalars['String']['input']>;
   user_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -331,7 +349,10 @@ export enum Exit_OrderBy {
   Tx = 'tx',
   Type = 'type',
   User = 'user',
+  UserBalanceAfter = 'userBalanceAfter',
+  UserBalanceBefore = 'userBalanceBefore',
   UserAddress = 'user__address',
+  UserBalance = 'user__balance',
   UserId = 'user__id',
   ValueUsd = 'valueUSD'
 }
@@ -474,6 +495,8 @@ export type Join = {
   tx: Scalars['Bytes']['output'];
   type: JoinType;
   user: User;
+  userBalanceAfter: Scalars['BigDecimal']['output'];
+  userBalanceBefore: Scalars['BigDecimal']['output'];
   valueUSD?: Maybe<Scalars['BigDecimal']['output']>;
 };
 
@@ -591,6 +614,22 @@ export type Join_Filter = {
   type_not?: InputMaybe<JoinType>;
   type_not_in?: InputMaybe<Array<JoinType>>;
   user?: InputMaybe<Scalars['String']['input']>;
+  userBalanceAfter?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  userBalanceAfter_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceAfter_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  userBalanceBefore?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  userBalanceBefore_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  userBalanceBefore_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   user_?: InputMaybe<User_Filter>;
   user_contains?: InputMaybe<Scalars['String']['input']>;
   user_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -640,7 +679,10 @@ export enum Join_OrderBy {
   Tx = 'tx',
   Type = 'type',
   User = 'user',
+  UserBalanceAfter = 'userBalanceAfter',
+  UserBalanceBefore = 'userBalanceBefore',
   UserAddress = 'user__address',
+  UserBalance = 'user__balance',
   UserId = 'user__id',
   ValueUsd = 'valueUSD'
 }
@@ -1750,6 +1792,7 @@ export enum UnderlyingToken_OrderBy {
 export type User = {
   __typename?: 'User';
   address: Scalars['Bytes']['output'];
+  balance: Scalars['BigDecimal']['output'];
   exits?: Maybe<Array<Exit>>;
   id: Scalars['ID']['output'];
   joins?: Maybe<Array<Join>>;
@@ -1785,6 +1828,14 @@ export type User_Filter = {
   address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   and?: InputMaybe<Array<InputMaybe<User_Filter>>>;
+  balance?: InputMaybe<Scalars['BigDecimal']['input']>;
+  balance_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  balance_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  balance_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  balance_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  balance_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  balance_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  balance_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   exits_?: InputMaybe<Exit_Filter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
@@ -1800,6 +1851,7 @@ export type User_Filter = {
 
 export enum User_OrderBy {
   Address = 'address',
+  Balance = 'balance',
   Exits = 'exits',
   Id = 'id',
   Joins = 'joins'
@@ -1892,6 +1944,7 @@ export type JoinFieldsFragment = {
   sender: any;
   amountsIn: Array<any>;
   amountOut: any;
+  userBalanceAfter: any;
   timestamp: any;
   blockNumber: any;
   tx: any;
@@ -1907,6 +1960,7 @@ export type ExitFieldsFragment = {
   amountsOut: Array<any>;
   sharesOwed: Array<any>;
   amountIn: any;
+  userBalanceAfter: any;
   timestamp: any;
   blockNumber: any;
   tx: any;
@@ -2058,6 +2112,7 @@ export type ManyJoinsQuery = {
     sender: any;
     amountsIn: Array<any>;
     amountOut: any;
+    userBalanceAfter: any;
     timestamp: any;
     blockNumber: any;
     tx: any;
@@ -2084,6 +2139,7 @@ export type ManyExitsQuery = {
     amountsOut: Array<any>;
     sharesOwed: Array<any>;
     amountIn: any;
+    userBalanceAfter: any;
     timestamp: any;
     blockNumber: any;
     tx: any;
@@ -2325,6 +2381,7 @@ export const JoinFieldsFragmentDoc = {
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
@@ -2372,6 +2429,7 @@ export const ExitFieldsFragmentDoc = {
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
@@ -3263,6 +3321,7 @@ export const ManyJoinsDocument = {
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
@@ -3429,6 +3488,7 @@ export const ManyExitsDocument = {
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } }

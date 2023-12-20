@@ -19,6 +19,10 @@ contract RioLRTIssuerTest is RioDeployer {
         tokens[0] = tokenA < tokenB ? tokenA : tokenB;
         tokens[1] = tokenA < tokenB ? tokenB : tokenA;
 
+        address[] memory strategies = new address[](2);
+        strategies[0] = address(1);
+        strategies[1] = address(1);
+
         uint256[] memory amountsIn = new uint256[](2);
         amountsIn[0] = 100e18;
         amountsIn[1] = 101e18;
@@ -26,6 +30,10 @@ contract RioLRTIssuerTest is RioDeployer {
         uint256[] memory normalizedWeights = new uint256[](2);
         normalizedWeights[0] = 0.3e18;
         normalizedWeights[1] = 0.7e18;
+
+        uint64[] memory targetAUMPercentages = new uint64[](2);
+        targetAUMPercentages[0] = 0.95e18;
+        targetAUMPercentages[1] = 0.95e18;
 
         // Allow the issuer to pull the tokens.
         IERC20(tokens[0]).approve(address(issuer), amountsIn[0]);
@@ -36,8 +44,10 @@ contract RioLRTIssuerTest is RioDeployer {
             'reETH',
             IRioLRTIssuer.LRTConfig({
                 tokens: tokens,
+                strategies: strategies,
                 amountsIn: amountsIn,
                 normalizedWeights: normalizedWeights,
+                targetAUMPercentages: targetAUMPercentages,
                 swapFeePercentage: MIN_SWAP_FEE,
                 managementAumFeePercentage: 0,
                 swapEnabledOnStart: true,
@@ -46,7 +56,7 @@ contract RioLRTIssuerTest is RioDeployer {
         );
         assertNotEq(deployment.token, address(0));
         assertNotEq(deployment.assetManager, address(0));
-        assertNotEq(deployment.controller, address(0));
+        assertNotEq(deployment.gateway, address(0));
         assertNotEq(deployment.rewardDistributor, address(0));
         assertNotEq(deployment.operatorRegistry, address(0));
         assertNotEq(deployment.withdrawalQueue, address(0));

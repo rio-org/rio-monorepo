@@ -66,6 +66,7 @@ export const JoinFields = graphql(`
     restakingToken {
       id
     }
+    userBalanceAfter
     timestamp
     blockNumber
     tx
@@ -86,6 +87,7 @@ export const ExitFields = graphql(`
     restakingToken {
       id
     }
+    userBalanceAfter
     timestamp
     blockNumber
     tx

@@ -160,6 +160,7 @@ export class SubgraphClient {
         amountsIn,
         amountOut,
         restakingToken,
+        userBalanceAfter,
         timestamp,
         blockNumber,
         tx
@@ -171,6 +172,7 @@ export class SubgraphClient {
         amountsIn,
         amountOut,
         restakingToken: restakingToken.id,
+        userBalanceAfter,
         timestamp,
         blockNumber,
         tx
@@ -199,6 +201,7 @@ export class SubgraphClient {
         sharesOwed,
         amountIn,
         restakingToken,
+        userBalanceAfter,
         timestamp,
         blockNumber,
         tx
@@ -211,6 +214,7 @@ export class SubgraphClient {
         sharesOwed,
         amountIn,
         restakingToken: restakingToken.id,
+        userBalanceAfter,
         timestamp,
         blockNumber,
         tx

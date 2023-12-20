@@ -66,6 +66,7 @@ export interface Join {
   tx: string;
   tokensIn: Address[];
   restakingToken: Address;
+  userBalanceAfter: string;
 }
 
 export interface Exit {
@@ -77,6 +78,7 @@ export interface Exit {
   sharesOwed: string[];
   amountIn: string;
   restakingToken: Address;
+  userBalanceAfter: string;
   timestamp: string;
   blockNumber: string;
   tx: string;
