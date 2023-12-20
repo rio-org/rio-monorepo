@@ -1,66 +1,47 @@
-import React, { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
-import { useGetProposals } from '../hooks/useGetProposals';
-import { useNetwork } from 'wagmi';
-import { CHAIN_ID_NUMBER } from '../lib/typings';
-import OnchainDataExample from '../components/Examples/OnchainDataExample';
-import OnChainDataViemExample from '../components/Examples/OnChainDataViemExample';
+import RestakeWrapper from '../components/Restake/RestakeWrapper';
+import { useGetNetworkStats } from '../hooks/useGetNetworkStats';
 import Skeleton from 'react-loading-skeleton';
+import RestakeForm from '../components/Restake/RestakeForm';
+import { useState, useEffect } from 'react';
 
 const Home: NextPage = () => {
-  const testCollectionAddress = '0xdf9b7d26c8fc806b1ae6273684556761ff02d422'; // builder dao
-  const testTxHash =
-    '0x8fd7e9f06e2120c32f732c95fe3834d7848cd3344cd6c888a971fee1d2fdd138';
-  const [chainId, setChainId] = useState<CHAIN_ID_NUMBER>(1);
-  const { chain } = useNetwork();
-  const testPropCount = 10;
-  const testProposalsList = useGetProposals(testCollectionAddress, chainId, 10);
+  const [isMounted, setIsMounted] = useState(false);
+  const { networkStats } = useGetNetworkStats();
+  const tvl = networkStats?.tvl ? (
+    networkStats.tvl.toLocaleString() + ' ETH'
+  ) : (
+    <Skeleton width={40} />
+  );
+  const apr = networkStats?.apr ? networkStats?.apr + '%' : <Skeleton />;
 
   useEffect(() => {
-    if (chain) {
-      setChainId(chain.id as CHAIN_ID_NUMBER);
-    }
-  }, [chain]);
+    setIsMounted(true);
+  }, []);
 
   return (
-    <>
-      <h2 className="text-2xl">
-        <span>onchain data (wagmi)</span>
-      </h2>
-
-      <OnchainDataExample
-        collectionAddress={testCollectionAddress}
-        chainId={chainId}
-      />
-
-      <hr className="my-8" />
-
-      <h2 className="text-2xl mb-2">
-        sample onchain data fetching (via viem client)
-      </h2>
-
-      <OnChainDataViemExample txHash={testTxHash} chainId={chainId} />
-
-      <hr className="my-8" />
-
-      <h2 className="text-2xl mb-2">subgraph data</h2>
-
-      <ul>
-        {testProposalsList.isLoading &&
-          [...Array(testPropCount)].map((_, i) => (
-            <li className="mb-2 text-sm font-bold" key={i}>
-              <Skeleton />
-            </li>
-          ))}
-        {testProposalsList.data?.map((proposal, i) => {
-          return (
-            <li className="mb-2 text-sm font-bold" key={i}>
-              {proposal.title}
-            </li>
-          );
-        })}
-      </ul>
-    </>
+    <RestakeWrapper>
+      <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-2xl p-[2px]">
+        <div className="flex flex-col lg:flex-row lg:justify-between gap-2 lg:gap-8 w-full px-4 lg:px-5 pt-3 lg:pt-5 pb-3">
+          <h1 className="text-2xl font-medium">Restake</h1>
+          <div className="flex gap-2 lg:justify-center items-center">
+            {isMounted && (
+              <>
+                <span className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4 flex gap-1">
+                  TVL: {tvl}
+                </span>
+                <span className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4">
+                  {apr}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-4 lg:p-6 w-full m-[2px]">
+          {isMounted && <RestakeForm />}
+        </div>
+      </div>
+    </RestakeWrapper>
   );
 };
 

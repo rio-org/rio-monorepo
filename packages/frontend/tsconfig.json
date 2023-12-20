@@ -8,11 +8,6 @@
     "isolatedModules": true,
     "declaration": false
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "src/pages/[daos]/[chain]/[daoId]"
-  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

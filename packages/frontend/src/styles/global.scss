@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('./fonts.css');
 
 * {
   margin: 0;
@@ -11,7 +12,7 @@
 body {
   margin: 0;
   font-family:
-    SFRounded,
+    'NB International Pro' SFRounded,
     ui-rounded,
     'SF Pro Rounded',
     -apple-system,
@@ -28,4 +29,33 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: #000;
   color: azure;
+}
+
+html,
+body,
+#__next,
+#__next > div {
+  height: 100%;
+}
+
+:root {
+  --color-app-bg: #efefef;
+  --color-blue: #0000e1;
+  --color-light-blue: #4d4dff;
+  --color-blue-bg: rgba(0, 0, 225, 0.1);
+  --color-blue-bg-hover: rgba(0, 0, 225, 0.25);
+  --color-dark-gray: #262626;
+  --color-black-25: rgba(0, 0, 0, 0.25);
+  --color-black-50: rgba(0, 0, 0, 0.5);
+  --color-gray-stroke: #bfbfbf;
+  --color-gray-hover: rgba(0, 0, 0, 0.02);
+  --color-element-wrapper-bg-light: rgba(0, 0, 0, 0.06);
+  --color-element-wrapper-bg-light-hover: rgba(0, 0, 0, 0.12);
+  --color-element-wrapper-bg: #e6e6e6;
+  --color-yellow: rgba(186, 145, 0, 1);
+  --color-yellow-bg-hover: rgba(186, 145, 0, 0.25);
+  --color-yellow-bg: rgba(186, 145, 0, 0.1);
+  --color-green: rgba(68, 148, 100, 1);
+  --color-green-bg: rgba(68, 148, 100, 0.1);
+  --color-green-bg-hover: rgba(68, 148, 100, 0.25);
 }

@@ -1,11 +1,16 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+const withMT = require('@material-tailwind/react/utils/withMT');
+
+module.exports = withMT({
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}'
   ],
   theme: {
-    extend: {}
+    extend: {},
+    fontFamily: {
+      sans: ['NB International Pro', 'ui-sans-serif', 'system-ui']
+    }
   },
   plugins: []
-};
+});
