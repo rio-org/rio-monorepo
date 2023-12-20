@@ -5,6 +5,7 @@
   "scripts": {
     "local-node": "docker-compose up",
     "codegen": "graph codegen",
+    "prebuild": "graph codegen",
     "build": "graph build",
     "build:local": "graph build --network local",
     "create:local": "graph create --node http://localhost:8020/ rio-org",
