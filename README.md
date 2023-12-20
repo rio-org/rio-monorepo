@@ -54,7 +54,7 @@
 
 ## About the project
 
-Rio issues liquid restaking tokens (LRTs). The first LRT product is restaked ETH (reETH).
+Rio is a liquid restaking network. Our first product is reETH, which provides access to risk-managed ETH total return without sacrificing liquidity.
 
 ### Built With
 
