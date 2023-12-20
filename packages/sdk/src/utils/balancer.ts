@@ -23,7 +23,7 @@ export enum WeightedPoolExitKind {
  * Addresses of the `BalancerHelpers` contract on each network.
  */
 export const BALANCER_HELPERS_ADDRESS: Record<number, Address> = {
-  [5]: '0x5aDDCCa35b7A0D07C74063c48700C8590E87864E',
+  [5]: '0x5aDDCCa35b7A0D07C74063c48700C8590E87864E'
 };
 
 /**

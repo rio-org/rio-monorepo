@@ -9,7 +9,7 @@ export {
   Join,
   JoinType,
   Exit,
-  ExitType,
+  ExitType
 } from './types';
 export {
   SUBGRAPH_URLS,

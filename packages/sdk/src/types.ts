@@ -1,5 +1,6 @@
 import { Address as ViemAddress } from 'viem';
 
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type Address = ViemAddress | string;
 
 export interface InputTokenExactIn {

@@ -246,7 +246,9 @@ export class LiquidRestakingTokenClient {
    * @param params The parameters required to query for an exit to a single output token
    * with an exact amount of LRT.
    */
-  public async queryRequestExitTokenExactIn(params: QueryExitTokenExactInParams) {
+  public async queryRequestExitTokenExactIn(
+    params: QueryExitTokenExactInParams
+  ) {
     if (!this._token) await this.populate();
 
     const queryInputs: { tokensOut: OutputTokenMinOut[] } = {
@@ -262,8 +264,8 @@ export class LiquidRestakingTokenClient {
       tokenOut: {
         address: params.tokenOut,
         minAmount: BigInt(-1),
-        requiresUnwrap: false,
-      },
+        requiresUnwrap: false
+      }
     };
 
     // Add all underlying tokens to the query input function.
@@ -329,7 +331,10 @@ export class LiquidRestakingTokenClient {
         args: [tokenOut]
       });
     }
-    output.tokenOut.minAmount = subtractSlippage(tokenOut, BigInt(params.slippage));
+    output.tokenOut.minAmount = subtractSlippage(
+      tokenOut,
+      BigInt(params.slippage)
+    );
 
     return output;
   }
@@ -391,7 +396,7 @@ export class LiquidRestakingTokenClient {
           requiresUnwrap: tokenOut.requiresUnwrap ?? false,
           amountIn: BigInt(amountIn)
         }
-      ],
+      ]
     });
     return this._wallet.writeContract(request);
   }

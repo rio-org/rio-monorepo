@@ -1,1 +1,6 @@
-export { RioNetworkProvider, RioNetworkContext, RioNetwork, RioNetworkProps } from './RioNetworkProvider.js';
+export {
+  RioNetworkProvider,
+  RioNetworkContext,
+  RioNetwork,
+  RioNetworkProps
+} from './RioNetworkProvider.js';
