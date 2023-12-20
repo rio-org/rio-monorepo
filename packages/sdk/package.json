@@ -1,6 +1,6 @@
 {
   "name": "@rionetwork/sdk",
-  "version": "0.1.0-alpha.8",
+  "version": "0.1.0-alpha.9",
   "description": "Utilities that simplify interaction with the Rio Network protocol",
   "license": "GPL-3.0",
   "publishConfig": {
@@ -16,10 +16,10 @@
     "build": "tsc -p tsconfig.json",
     "clean:build": "rimraf ./dist",
     "dev": "nodemon",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint src --ext .ts",
     "lint:fix": "pnpm lint --fix",
-    "format": "prettier --check .",
-    "format:fix": "prettier --write .",
+    "format": "prettier --check src/**/*.ts",
+    "format:fix": "prettier --write src/**/*.ts",
     "test": "jest",
     "typecheck": "tsc",
     "codegen": "graphql-codegen --config scripts/gql-codegen.ts"

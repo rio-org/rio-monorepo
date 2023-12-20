@@ -17,10 +17,10 @@
     "build": "tsc -p tsconfig.json",
     "clean:build": "rimraf ./dist",
     "dev": "nodemon",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint src --ext .ts",
     "lint:fix": "pnpm lint --fix",
-    "format": "prettier --check .",
-    "format:fix": "prettier --write .",
+    "format": "prettier --check src/**/*.ts",
+    "format:fix": "prettier --write src/**/*.ts",
     "typecheck": "tsc"
   },
   "peerDependencies": {
