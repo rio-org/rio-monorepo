@@ -13,14 +13,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "forge build && tsc -p tsconfig.build.json",
     "clean:build": "rimraf ./dist",
     "dev": "nodemon",
-    "lint": "eslint . --ext .js,.ts",
+    "lint": "eslint src --ext .ts",
     "lint:fix": "pnpm lint --fix",
-    "format": "prettier --check .",
-    "format:fix": "prettier --write .",
-    "test": "jest",
+    "format": "prettier --check src/**/*.ts",
+    "format:fix": "prettier --write src/**/*.ts",
+    "test": "forge test",
     "typecheck": "tsc"
   }
 }

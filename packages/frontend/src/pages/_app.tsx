@@ -17,16 +17,11 @@ import {
 } from 'wagmi';
 import { goerli } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@material-tailwind/react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Layout from '../components/Layout';
 import { APP_TITLE } from '../../config';
-
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark'
-  }
-});
+import { theme } from '../lib/theme';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [mainnet, goerli, sepolia],
@@ -67,7 +62,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider appInfo={appInfo} chains={chains}>
-        <ThemeProvider theme={darkTheme}>
+        <ThemeProvider value={theme}>
           <CssBaseline />
           <Layout>
             <Component {...pageProps} />

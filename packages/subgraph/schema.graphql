@@ -1,0 +1,134 @@
+enum JoinType {
+  TOKENS_EXACT_IN
+  TOKEN_EXACT_OUT
+  ALL_TOKENS_EXACT_OUT
+}
+
+enum ExitType {
+  TOKEN_EXACT_IN
+  ALL_TOKENS_EXACT_IN
+  TOKENS_EXACT_OUT
+}
+
+type Issuer @entity {
+  id: ID!
+  address: Bytes!
+  tokensIssued: Int!
+  tokens: [LiquidRestakingToken!] @derivedFrom(field: "issuer")
+}
+
+type TokenWrapperFactory @entity {
+  id: ID!
+  address: Bytes!
+  tokenWrappers: [TokenWrapper!] @derivedFrom(field: "factory")
+}
+
+type TokenWrapper @entity(immutable: true) {
+  id: ID!
+  address: Bytes!
+  factory: TokenWrapperFactory!
+  wrappedToken: Token!
+  unwrappedToken: Token!
+}
+
+type Gateway @entity {
+  id: ID!
+  address: Bytes!
+  restakingToken: LiquidRestakingToken!
+}
+
+type LiquidRestakingToken @entity {
+  id: ID!
+
+  address: Bytes!
+  symbol: String!
+  name: String!
+
+  createdTimestamp: Int!
+  totalSupply: BigDecimal!
+
+  poolId: String! # The underlying Balancer pool ID
+
+  issuer: Issuer!
+  gateway: Gateway!
+
+  underlyingTokens: [UnderlyingToken!] @derivedFrom(field: "restakingToken")
+}
+
+type User @entity {
+  id: ID!
+  address: Bytes!
+  balance: BigDecimal!
+  joins: [Join!] @derivedFrom(field: "user")
+  exits: [Exit!] @derivedFrom(field: "user")
+}
+
+type Join @entity(immutable: true) {
+  id: ID!
+  type: JoinType!
+  user: User!
+  sender: Bytes!
+  tokensIn: [Token!]!
+  amountsIn: [BigDecimal!]!
+  amountOut: BigDecimal!
+  restakingToken: LiquidRestakingToken!
+  userBalanceBefore: BigDecimal!
+  userBalanceAfter: BigDecimal!
+  valueUSD: BigDecimal
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  tx: Bytes!
+}
+
+type Exit @entity {
+  id: ID!
+  type: ExitType!
+  user: User!
+  sender: Bytes!
+  tokensOut: [Token!]!
+  amountsOut: [BigDecimal!]!
+  sharesOwed: [BigDecimal!]!
+  amountIn: BigDecimal!
+  restakingToken: LiquidRestakingToken!
+  userBalanceBefore: BigDecimal!
+  userBalanceAfter: BigDecimal!
+  valueUSD: BigDecimal
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  tx: Bytes!
+}
+
+type UnderlyingToken @entity {
+  id: ID!
+  address: Bytes!
+  restakingToken: LiquidRestakingToken!
+  token: Token!
+  index: Int!
+  balance: BigDecimal!
+  cashBalance: BigDecimal!
+  managedBalance: BigDecimal!
+
+  strategy: Bytes!
+
+  weight: BigDecimal!
+  circuitBreaker: CircuitBreaker
+}
+
+type Token @entity {
+  id: ID!
+  symbol: String!
+  name: String!
+  decimals: Int!
+  address: Bytes!
+  wrapper: TokenWrapper
+  latestUSDPrice: BigDecimal # Latest price of token in USD, updated when pool liquidity changes.
+  latestUSDPriceTimestamp: BigInt # Timestamp at which the latestUSDPrice was updated
+}
+
+type CircuitBreaker @entity {
+  id: ID!
+  token: UnderlyingToken!
+  restakingTokenPrice: BigDecimal!
+  lowerBoundPercentage: BigDecimal!
+  upperBoundPercentage: BigDecimal!
+}

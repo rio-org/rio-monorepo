@@ -21,11 +21,11 @@ interface IRioLRTRewardDistributor {
     /// @notice Thrown when there are no rewards to distribute.
     error NO_REWARDS_TO_DISTRIBUTE();
 
-    /// @notice Thrown when the treasury share is too high.
-    error TREASURY_SHARE_BPS_TOO_HIGH();
+    /// @notice Thrown when the treasury ETH validator reward share is too high.
+    error TREASURY_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
 
-    /// @notice Thrown when the operator share is too high.
-    error OPERATOR_SHARE_BPS_TOO_HIGH();
+    /// @notice Thrown when the operator ETH validator reward share is too high.
+    error OPERATOR_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
 
     /// @notice Thrown when there is no price checker for a token.
     error NO_PRICE_CHECKER_FOR_TOKEN();
@@ -39,18 +39,19 @@ interface IRioLRTRewardDistributor {
     /// @notice Thrown when swap cancellation is attempted before the `swapCancellationDelay` has elapsed.
     error TOO_SOON_TO_CANCEL();
 
-    /// @notice Emitted when rewards are distributed.
+    /// @notice Emitted when ETH validator rewards are distributed.
     /// @param treasuryShare The amount of rewards sent to the treasury.
     /// @param operatorShare The amount of rewards sent to the operator.
-    event RewardsDistributed(uint256 treasuryShare, uint256 operatorShare);
+    /// @param poolShare The amount of rewards burned to realize the pool's gain.
+    event ETHValidatorRewardsDistributed(uint256 treasuryShare, uint256 operatorShare, uint256 poolShare);
 
-    /// @notice Emitted when the treasury share is set.
-    /// @param newTreasuryShareBPS The new treasury share.
-    event TreasuryShareBPSSet(uint16 newTreasuryShareBPS);
+    /// @notice Emitted when the treasury's share of Ethereum validator rewards is updated.
+    /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
+    event TreasuryETHValidatorRewardShareBPSSet(uint16 newTreasuryETHValidatorRewardShareBPS);
 
-    /// @notice Emitted when the operator share is set.
-    /// @param newOperatorShareBPS The new operator share.
-    event OperatorShareBPSSet(uint16 newOperatorShareBPS);
+    /// @notice Emitted when the operator's share of Ethereum validator rewards is updated.
+    /// @param newOperatorETHValidatorRewardShareBPS The new operator share.
+    event OperatorETHValidatorRewardShareBPSSet(uint16 newOperatorETHValidatorRewardShareBPS);
 
     /// @notice Emitted when the swap cancellation delay is set.
     /// @param newSwapCancellationDelay The new swap cancellation delay.
@@ -73,10 +74,22 @@ interface IRioLRTRewardDistributor {
     /// @param amountIn The amount in of the swap.
     event SwapCancelled(address indexed orderContract, address indexed fromToken, uint256 amountIn);
 
+    /// @notice Emitted when ether is received.
+    /// @param from The sender of the ether.
+    /// @param amount The amount of ether received.
+    event EtherReceived(address indexed from, uint256 amount);
+
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param bpt The BPT (LRT) token address.
+    /// @param restakingToken The liquid restaking token address (LRT).
+    /// @param gateway The liquid restaking token gateway.
     /// @param treasury The treasury address.
     /// @param operator The operator reward pool address.
-    function initialize(address initialOwner, address bpt, address treasury, address operator) external;
+    function initialize(
+        address initialOwner,
+        address restakingToken,
+        address gateway,
+        address treasury,
+        address operator
+    ) external;
 }

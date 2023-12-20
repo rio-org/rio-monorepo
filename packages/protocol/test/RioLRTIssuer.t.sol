@@ -2,26 +2,26 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 import {MockERC20} from 'test/utils/MockERC20.sol';
 
 contract RioLRTIssuerTest is RioDeployer {
-    address public constant SECURITY_COUNCIL = address(0xC0);
-    uint256 public constant MIN_SWAP_FEE = 1e12; // 0.0001%
-
     function setUp() public {
         deployRio();
     }
 
-    function test_issueLRT() public {
+    function test_issuesLRTWithValidParams() public {
         address tokenA = address(new MockERC20('Token A', 'A'));
         address tokenB = address(new MockERC20('Token B', 'B'));
 
-        IERC20[] memory tokens = new IERC20[](2);
-        tokens[0] = IERC20(tokenA < tokenB ? tokenA : tokenB);
-        tokens[1] = IERC20(tokenA < tokenB ? tokenB : tokenA);
+        address[] memory tokens = new address[](2);
+        tokens[0] = tokenA < tokenB ? tokenA : tokenB;
+        tokens[1] = tokenA < tokenB ? tokenB : tokenA;
+
+        address[] memory strategies = new address[](2);
+        strategies[0] = address(1);
+        strategies[1] = address(1);
 
         uint256[] memory amountsIn = new uint256[](2);
         amountsIn[0] = 100e18;
@@ -31,29 +31,36 @@ contract RioLRTIssuerTest is RioDeployer {
         normalizedWeights[0] = 0.3e18;
         normalizedWeights[1] = 0.7e18;
 
-        // Allow the issuer to pull the tokens.
-        tokens[0].approve(address(issuer), amountsIn[0]);
-        tokens[1].approve(address(issuer), amountsIn[1]);
+        uint64[] memory targetAUMPercentages = new uint64[](2);
+        targetAUMPercentages[0] = 0.95e18;
+        targetAUMPercentages[1] = 0.95e18;
 
-        (address pool, address controller) = issuer.issueLRT(
+        // Allow the issuer to pull the tokens.
+        IERC20(tokens[0]).approve(address(issuer), amountsIn[0]);
+        IERC20(tokens[1]).approve(address(issuer), amountsIn[1]);
+
+        IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
             'Restaked Ether',
             'reETH',
             IRioLRTIssuer.LRTConfig({
+                tokens: tokens,
+                strategies: strategies,
                 amountsIn: amountsIn,
-                allowedLPs: new address[](0),
-                securityCouncil: SECURITY_COUNCIL,
-                settings: IManagedPoolSettings.ManagedPoolSettingsParams({
-                    tokens: tokens,
-                    normalizedWeights: normalizedWeights,
-                    swapFeePercentage: MIN_SWAP_FEE,
-                    swapEnabledOnStart: true,
-                    mustAllowlistLPs: false,
-                    managementAumFeePercentage: 0,
-                    aumFeeId: uint256(IManagedPoolSettings.ProtocolFeeType.AUM)
-                })
+                normalizedWeights: normalizedWeights,
+                targetAUMPercentages: targetAUMPercentages,
+                swapFeePercentage: MIN_SWAP_FEE,
+                managementAumFeePercentage: 0,
+                swapEnabledOnStart: true,
+                securityCouncil: SECURITY_COUNCIL
             })
         );
-        assertNotEq(pool, address(0));
-        assertNotEq(controller, address(0));
+        assertNotEq(deployment.token, address(0));
+        assertNotEq(deployment.assetManager, address(0));
+        assertNotEq(deployment.gateway, address(0));
+        assertNotEq(deployment.rewardDistributor, address(0));
+        assertNotEq(deployment.operatorRegistry, address(0));
+        assertNotEq(deployment.withdrawalQueue, address(0));
+
+        assertGt(IERC20(deployment.token).balanceOf(address(this)), 0);
     }
 }

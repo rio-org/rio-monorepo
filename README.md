@@ -8,14 +8,21 @@
     </a>
   </p>
   <h1>Rio Network</h1>
-  <p>A network for issuing LRTs</p>
+  <p>The liquid restaking network</p>
 
 <a href="./packages/protocol">Protocol</a>
 &nbsp;&nbsp;&nbsp;
-<a href="./packages/sdk">SDK</a></a>
+<a href="./packages/sdk">SDK</a>
 &nbsp;&nbsp;&nbsp;
-<a href="./packages/frontend">Frontend</a></a>
+<a href="./packages/subgraph">Subgraph</a>
+&nbsp;&nbsp;&nbsp;
+<a href="./packages/frontend">Frontend</a>
 
+  <p align="center">
+    <a href="https://rio.network/">
+      <img src="https://img.shields.io/badge/website-rio.network-blue">
+    </a>
+  </p>
 </div>
 <br />
 
@@ -47,7 +54,7 @@
 
 ## About the project
 
-Rio is a network for issuing LRTs. The first LRT product is restaked ETH (reETH).
+Rio issues liquid restaking tokens (LRTs). The first LRT product is restaked ETH (reETH).
 
 ### Built With
 

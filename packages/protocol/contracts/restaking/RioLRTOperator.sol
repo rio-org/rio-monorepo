@@ -5,11 +5,13 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {Initializable} from '@openzeppelin/contracts/proxy/utils/Initializable.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
+import {IBLSPublicKeyCompendium} from 'contracts/interfaces/eigenlayer/IBLSPublicKeyCompendium.sol';
+import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
 import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager.sol';
-import {ISlasher} from 'contracts/interfaces/eigenlayer/ISlasher.sol';
-import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
+import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
+import {ISlasher} from 'contracts/interfaces/eigenlayer/ISlasher.sol';
 import {Memory} from 'contracts/utils/Memory.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
@@ -42,6 +44,9 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @notice The primary delegation contract for EigenLayer.
     IDelegationManager public immutable delegationManager;
 
+    /// @notice A contract for EigenLayer operators to register their BLS public keys.
+    IBLSPublicKeyCompendium public immutable blsPublicKeyCompendium;
+
     /// @notice The primary 'slashing' contract for EigenLayer.
     ISlasher public immutable slasher;
 
@@ -53,6 +58,9 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
 
     /// @notice The LRT asset manager.
     address public assetManager;
+
+    /// @notice The operator's EigenPod.
+    IEigenPod public eigenPod;
 
     /// @notice Credentials to withdraw ETH on Consensus Layer via the EigenPod.
     bytes32 public withdrawalCredentials;
@@ -69,41 +77,72 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         _;
     }
 
-    /// @param _strategyManager The primary entry and exit-point for funds into and out of EigenLayer.
-    /// @param _eigenPodManager The contract used for creating and managing EigenPods.
-    /// @param _delegationManager The primary delegation contract for EigenLayer.
-    /// @param _slasher The primary 'slashing' contract for EigenLayer.
-    /// @param _delegationApprover Address to verify staker delegation signatures and control forced undelegations.
-    constructor(
-        address _strategyManager,
-        address _eigenPodManager,
-        address _delegationManager,
-        address _slasher,
-        address _delegationApprover
-    ) initializer {
-        strategyManager = IStrategyManager(_strategyManager);
-        eigenPodManager = IEigenPodManager(_eigenPodManager);
-        delegationManager = IDelegationManager(_delegationManager);
-        slasher = ISlasher(_slasher);
+    /// @notice Require that the caller is the LRT's asset manager
+    /// or the LRT's operator registry.
+    modifier onlyAssetManagerOrOperatorRegistry() {
+        if (msg.sender != assetManager && msg.sender != operatorRegistry) {
+            revert ONLY_ASSET_MANAGER_OR_OPERATOR_REGISTRY();
+        }
+        _;
+    }
 
-        delegationApprover = _delegationApprover;
+    /// @param strategyManager_ The primary entry and exit-point for funds into and out of EigenLayer.
+    /// @param eigenPodManager_ The contract used for creating and managing EigenPods.
+    /// @param delegationManager_ The primary delegation contract for EigenLayer.
+    /// @param blsPublicKeyCompendium_ A contract for EigenLayer operators to register their BLS public keys.
+    /// @param slasher_ The primary 'slashing' contract for EigenLayer.
+    /// @param delegationApprover_ Address to verify staker delegation signatures and control forced undelegations.
+    constructor(
+        address strategyManager_,
+        address eigenPodManager_,
+        address delegationManager_,
+        address blsPublicKeyCompendium_,
+        address slasher_,
+        address delegationApprover_
+    ) {
+        _disableInitializers();
+
+        strategyManager = IStrategyManager(strategyManager_);
+        eigenPodManager = IEigenPodManager(eigenPodManager_);
+        delegationManager = IDelegationManager(delegationManager_);
+        blsPublicKeyCompendium = IBLSPublicKeyCompendium(blsPublicKeyCompendium_);
+        slasher = ISlasher(slasher_);
+
+        delegationApprover = delegationApprover_;
     }
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract by registering the operator with EigenLayer.
-    /// @param _assetManager The LRT asset manager.
+    /// @param assetManager_ The LRT asset manager.
     /// @param rewardDistributor The LRT reward distributor.
     /// @param initialMetadataURI The initial metadata URI.
-    function initialize(address _assetManager, address rewardDistributor, string calldata initialMetadataURI) external initializer {
+    /// @param blsDetails The operator's BLS public key registration information.
+    function initialize(
+        address assetManager_,
+        address rewardDistributor,
+        string calldata initialMetadataURI,
+        BLSRegistrationDetails calldata blsDetails
+    ) external initializer {
         operatorRegistry = msg.sender;
-        assetManager = _assetManager;
+        assetManager = assetManager_;
 
         delegationManager.registerAsOperator(
             IDelegationManager.OperatorDetails(rewardDistributor, delegationApprover, 0), initialMetadataURI
         );
+        blsPublicKeyCompendium.registerBLSPublicKey(
+            blsDetails.signedMessageHash, blsDetails.pubkeyG1, blsDetails.pubkeyG2
+        );
 
         // Deploy an EigenPod and set the withdrawal credentials to its address.
-        withdrawalCredentials = _computeWithdrawalCredentials(eigenPodManager.createPod());
+        address eigenPodAddress = eigenPodManager.createPod();
+
+        eigenPod = IEigenPod(eigenPodAddress);
+        withdrawalCredentials = _computeWithdrawalCredentials(eigenPodAddress);
+    }
+
+    /// @notice Returns the number of shares in the operator's EigenPod.
+    function getEigenPodShares() external view returns (int256) {
+        return eigenPodManager.podOwnerShares(address(this));
     }
 
     /// @notice Sets the operator's metadata URI.
@@ -112,10 +151,37 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         delegationManager.updateOperatorMetadataURI(newMetadataURI);
     }
 
-    /// @notice Gives the `contractAddress` permission to slash this operator.
-    /// @param contractAddress The address of the contract to give permission to.
-    function optIntoSlashing(address contractAddress) external onlyOperatorRegistry {
-        slasher.optIntoSlashing(contractAddress);
+    /// @notice Verifies withdrawal credentials of validator(s) owned by this operator.
+    /// It also verifies the effective balance of the validator(s).
+    /// @param oracleTimestamp The Beacon Chain timestamp whose state root the `proof` will be proven against.
+    /// @param stateRootProof Proves a `beaconStateRoot` against a block root fetched from the oracle.
+    /// @param validatorIndices The list of indices of the validators being proven, refer to consensus specs.
+    /// @param validatorFieldsProofs Proofs against the `beaconStateRoot` for each validator in `validatorFields`.
+    /// @param validatorFields The fields of the "Validator Container", refer to consensus specs.
+    function verifyWithdrawalCredentials(
+        uint64 oracleTimestamp,
+        IBeaconChainProofs.StateRootProof calldata stateRootProof,
+        uint40[] calldata validatorIndices,
+        bytes[] calldata validatorFieldsProofs,
+        bytes32[][] calldata validatorFields
+    ) external onlyOperatorRegistry {
+        eigenPod.verifyWithdrawalCredentials(
+            oracleTimestamp, stateRootProof, validatorIndices, validatorFieldsProofs, validatorFields
+        );
+    }
+
+    /// @notice Gives the `slashingContract` permission to slash this operator.
+    /// @param slashingContract The address of the contract to give permission to.
+    function optIntoSlashing(address slashingContract) external onlyOperatorRegistry {
+        slasher.optIntoSlashing(slashingContract);
+    }
+
+    /// @notice Scrapes ETH sitting in the operator's EigenPod to the reward distributor.
+    /// @dev Anyone can call this function.
+    function scrapeEigenPodETHBalanceToRewardDistributor() external {
+        eigenPod.withdrawNonBeaconChainETHBalanceWei(
+            delegationManager.earningsReceiver(address(this)), eigenPod.nonBeaconChainETHBalanceWei()
+        );
     }
 
     // forgefmt: disable-next-item
@@ -123,9 +189,9 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param strategy The strategy to stake the tokens into.
     /// @param token The token to stake.
     /// @param amount The amount of tokens to stake.
-    function stakeERC20(IStrategy strategy, IERC20 token, uint256 amount) external onlyAssetManager returns (uint256 shares) {
-        if (token.allowance(address(this), address(strategyManager)) < amount) {
-            token.forceApprove(address(strategyManager), type(uint256).max);
+    function stakeERC20(address strategy, address token, uint256 amount) external onlyAssetManager returns (uint256 shares) {
+        if (IERC20(token).allowance(address(this), address(strategyManager)) < amount) {
+            IERC20(token).forceApprove(address(strategyManager), type(uint256).max);
         }
         shares = strategyManager.depositIntoStrategy(strategy, token, amount);
     }
@@ -166,7 +232,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param strategy The strategy to withdraw from.
     /// @param shares The amount of shares to withdraw.
     /// @param withdrawer The address who has permission to complete the withdrawal.
-    function queueWithdrawal(IStrategy strategy, uint256 shares, address withdrawer) external onlyAssetManager returns (bytes32 root) {
+    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external onlyAssetManagerOrOperatorRegistry returns (bytes32 root) {
         root = delegationManager.queueWithdrawal(strategy.toArray(), shares.toArray(), withdrawer);
     }
 

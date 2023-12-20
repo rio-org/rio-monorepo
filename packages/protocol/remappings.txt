@@ -4,5 +4,4 @@ forge-std/=lib/forge-std/src/
 ds-test/=lib/forge-std/lib/ds-test/src/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
-@balancer-v2/contracts/=lib/balancer-v2-monorepo/pkg/
 @solady/=lib/solady/src/

@@ -6,13 +6,13 @@ pragma solidity 0.8.21;
 library ValidatorDetails {
     using ValidatorDetails for bytes32;
 
-    /// @dev The validator pubkey byte length.
+    /// @notice The validator pubkey byte length.
     uint256 internal constant PUBKEY_LENGTH = 48;
 
-    /// @dev The validator signature byte length.
+    /// @notice The validator signature byte length.
     uint256 internal constant SIGNATURE_LENGTH = 96;
 
-    /// @dev The maximum uint40 value.
+    /// @notice The maximum uint40 value.
     uint256 internal constant UINT40_MAX = type(uint40).max;
 
     /// @notice Thrown when the number of keys is invalid.
@@ -43,7 +43,7 @@ library ValidatorDetails {
         return uint256(keccak256(abi.encodePacked(position, operatorId, keyIndex)));
     }
 
-    /// @dev Store operator details.
+    /// @notice Store operator details.
     /// @param position The storage slot.
     /// @param operatorId The operator ID.
     /// @param startIndex The start index.
@@ -99,7 +99,7 @@ library ValidatorDetails {
     }
 
     // forgefmt: disable-next-item
-    /// @dev Remove validator details from storage.
+    /// @notice Remove validator details from storage.
     /// @param position The storage slot.
     /// @param operatorId The Operator ID.
     /// @param startIndex The start index.
@@ -154,7 +154,7 @@ library ValidatorDetails {
         return uint40(totalKeysCount);
     }
 
-    /// @dev Load validator details from storage.
+    /// @notice Load validator details from storage.
     /// @param position The storage slot.
     /// @param operatorId The operator ID.
     /// @param startIndex The start index.
@@ -191,7 +191,7 @@ library ValidatorDetails {
         }
     }
 
-    /// @dev Allocate memory for `count` validator details.
+    /// @notice Allocate memory for `count` validator details.
     /// @param count The number of validators.
     function allocateMemory(uint256 count) internal pure returns (bytes memory, bytes memory) {
         return (new bytes(count * PUBKEY_LENGTH), new bytes(count * SIGNATURE_LENGTH));

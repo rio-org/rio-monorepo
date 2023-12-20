@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
+import {LibMap} from '@solady/utils/LibMap.sol';
+
 /// @title Operator Utilization Heap
 /// @notice The `OperatorUtilizationHeap` library provides functionality for managing an in-memory heap data
 /// structure that organizes operators based on their utilization. The heap allows for efficient insertion,
@@ -9,6 +11,7 @@ pragma solidity 0.8.21;
 /// https://people.scs.carleton.ca/~santoro/Reports/MinMaxHeap.pdf
 library OperatorUtilizationHeap {
     using OperatorUtilizationHeap for Data;
+    using LibMap for *;
 
     /// @notice Thrown when an operator is not found in the heap.
     error OPERATOR_NOT_FOUND();
@@ -57,6 +60,18 @@ library OperatorUtilizationHeap {
     /// @param self The heap.
     function isFull(Data memory self) internal pure returns (bool) {
         return self.count == self.operators.length - 1;
+    }
+
+    /// @notice Inserts the heap into storage.
+    /// @param self The heap.
+    /// @param heapStore The stored heap.
+    function store(Data memory self, LibMap.Uint8Map storage heapStore) internal {
+        for (uint8 i = 0; i < self.count;) {
+            unchecked {
+                heapStore.set(i, self.operators[i + 1].id);
+                ++i;
+            }
+        }
     }
 
     /// @notice Inserts an operator into the heap.

@@ -7,3 +7,6 @@ dist
 cache
 out
 lib
+
+# Solidity (Handled by forge-fmt)
+**/*.sol

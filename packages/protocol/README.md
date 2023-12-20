@@ -1,6 +1,14 @@
-# @rionetwork/protocol
-
-The Rio Network protocol contracts
+<h1 align="center">
+  @rionetwork/protocol
+</h1>
+<p align="center">
+  The Rio Network protocol contracts
+</p>
+<p align="center">
+  <a href="https://rio.network/">
+    <img src="https://img.shields.io/badge/website-rio.network-blue">
+  </a>
+</p>
 
 ## Contract Development
 
