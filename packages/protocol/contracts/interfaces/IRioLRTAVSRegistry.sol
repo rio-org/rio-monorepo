@@ -7,7 +7,7 @@ interface IRioLRTAVSRegistry {
         /// @dev A name for the AVS.
         string name;
         /// @dev Whether the AVS is active.
-        bool isActive;
+        bool active;
         /// @dev The address of the AVS' slashing contract.
         address slashingContract;
         /// @dev The address of the AVS' registry contract.

@@ -2,6 +2,7 @@
 pragma solidity 0.8.21;
 
 import {IBLSPublicKeyCompendium} from 'contracts/interfaces/eigenlayer/IBLSPublicKeyCompendium.sol';
+import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 
 interface IRioLRTOperator {
     /// @notice The operator's BLS public key registration information.
@@ -52,6 +53,25 @@ interface IRioLRTOperator {
     /// @notice Sets the operator's metadata URI.
     /// @param newMetadataURI The new metadata URI.
     function setMetadataURI(string calldata newMetadataURI) external;
+
+    /// @notice Gives the `slashingContract` permission to slash this operator.
+    /// @param slashingContract The address of the contract to give permission to.
+    function optIntoSlashing(address slashingContract) external;
+
+    /// @notice Verifies withdrawal credentials of validator(s) owned by this operator.
+    /// It also verifies the effective balance of the validator(s).
+    /// @param oracleTimestamp The Beacon Chain timestamp whose state root the `proof` will be proven against.
+    /// @param stateRootProof Proves a `beaconStateRoot` against a block root fetched from the oracle.
+    /// @param validatorIndices The list of indices of the validators being proven, refer to consensus specs.
+    /// @param validatorFieldsProofs Proofs against the `beaconStateRoot` for each validator in `validatorFields`.
+    /// @param validatorFields The fields of the "Validator Container", refer to consensus specs.
+    function verifyWithdrawalCredentials(
+        uint64 oracleTimestamp,
+        IBeaconChainProofs.StateRootProof calldata stateRootProof,
+        uint40[] calldata validatorIndices,
+        bytes[] calldata validatorFieldsProofs,
+        bytes32[][] calldata validatorFields
+    ) external;
 
     /// @notice Approve EigenLayer to spend an ERC20 token, then stake it into an EigenLayer strategy.
     /// @param strategy The strategy to stake the tokens into.

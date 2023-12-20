@@ -163,7 +163,7 @@ importers:
   packages/sdk-react:
     dependencies:
       '@rionetwork/sdk':
-        specifier: 0.1.0-alpha.7
+        specifier: 0.1.0-alpha.8
         version: link:../sdk
     devDependencies:
       '@types/react':

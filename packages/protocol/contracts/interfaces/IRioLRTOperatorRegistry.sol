@@ -154,6 +154,15 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @notice Thrown when an invalid index is provided.
     error INVALID_INDEX();
 
+    /// @notice Thrown when an invalid slashing contract address is provided.
+    error INVALID_SLASHING_CONTRACT();
+
+    /// @notice Thrown when attempting to opt into a slashing contract that is not active.
+    error SLASHING_CONTRACT_NOT_ACTIVE();
+
+    /// @notice Thrown when attempting an operation that requires the operator to be active.
+    error OPERATOR_NOT_ACTIVE();
+
     /// @notice Thrown when attempting to activate an operator that is already active.
     error OPERATOR_ALREADY_ACTIVE();
 
@@ -230,6 +239,17 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param manager The new manager of the operator.
     event OperatorManagerSet(uint8 indexed operatorId, address manager);
 
+    /// @notice Emitted when an operator opts into a slashing contract.
+    /// @param operatorId The operator's ID.
+    /// @param slashingContract The slashing contract address.
+    event OperatorSlashingOptedIn(uint8 indexed operatorId, address slashingContract);
+
+    /// @notice Emitted following the verification of withdrawal credentials for one or more validators.
+    /// @param operatorId The operator's ID.
+    /// @param oracleTimestamp The Beacon Chain timestamp whose state root the `proof` will be proven against.
+    /// @param validatorIndices The list of indices of the validators being proven, refer to consensus specs.
+    event OperatorWithdrawalCredentialsVerified(uint8 indexed operatorId, uint64 oracleTimestamp, uint40[] validatorIndices);
+
     /// @notice Emitted when an operator uploads a new set of validator details (public keys and signatures).
     /// @param operatorId The operator's ID.
     /// @param validatorCount The number of validator details that were added.
@@ -251,9 +271,10 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param initialOwner The initial owner of the contract.
     /// @param poolId The underlying Balancer pool ID.
     /// @param gateway The LRT gateway.
+    /// @param avsRegistry The AVS registry.
     /// @param rewardDistributor The LRT reward distributor.
     /// @param assetManager The LRT asset manager.
-    function initialize(address initialOwner, bytes32 poolId, address gateway, address rewardDistributor, address assetManager) external;
+    function initialize(address initialOwner, bytes32 poolId, address gateway, address avsRegistry, address rewardDistributor, address assetManager) external;
 
     /// @notice Returns the operator details for the provided operator ID.
     /// @param operatorId The operator's ID.

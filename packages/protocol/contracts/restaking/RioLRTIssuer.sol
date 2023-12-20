@@ -142,7 +142,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         IRioLRT(d.token).initialize(initialOwner, name, symbol, d.gateway);
         IRioLRTAssetManager(d.assetManager).initialize(initialOwner, poolId, d);
         IRioLRTRewardDistributor(d.rewardDistributor).initialize(initialOwner, d.token, d.gateway, initialOwner, address(0));
-        IRioLRTOperatorRegistry(d.operatorRegistry).initialize(initialOwner, poolId, d.gateway, d.rewardDistributor, d.assetManager);
+        IRioLRTOperatorRegistry(d.operatorRegistry).initialize(initialOwner, poolId, d.gateway, d.avsRegistry, d.rewardDistributor, d.assetManager);
         IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(initialOwner, d.gateway, d.assetManager);
         IRioLRTAVSRegistry(d.avsRegistry).initialize(initialOwner);
 

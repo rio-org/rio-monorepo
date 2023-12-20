@@ -32,6 +32,7 @@ interface IRioLRTWithdrawalQueue {
     struct WithdrawalRequest {
         uint256 epoch;
         address token;
+        bool requiresUnwrap;
     }
 
     /// @notice Thrown when the caller is not the LRT asset manager.
