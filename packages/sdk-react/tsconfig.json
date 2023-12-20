@@ -3,11 +3,11 @@
   "compilerOptions": {
     "lib": ["ES2021"],
     "moduleResolution": "Node",
-    "module": "CommonJS",
-    "target": "ES2021",
+    "module": "ESNext",
     "noEmit": false,
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "jsx": "react-jsx"
   },
   "include": ["src"],
   "exclude": ["dist"]

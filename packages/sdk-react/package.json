@@ -1,11 +1,12 @@
 {
-  "name": "@rionetwork/sdk",
-  "version": "0.1.0-alpha.7",
-  "description": "Utilities that simplify interaction with the Rio Network protocol",
+  "name": "@rionetwork/sdk-react",
+  "version": "0.1.0-alpha.9",
+  "description": "Utilities that simplify interaction with the Rio Network from React applications",
   "license": "GPL-3.0",
   "publishConfig": {
     "access": "public"
   },
+  "type": "module",
   "engines": {
     "node": ">=16",
     "pnpm": ">=7.5.1"
@@ -21,17 +22,18 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "test": "jest",
-    "typecheck": "tsc",
-    "codegen": "graphql-codegen --config scripts/gql-codegen.ts"
+    "typecheck": "tsc"
+  },
+  "peerDependencies": {
+    "react": ">=16.13.1",
+    "wagmi": ">=1.2"
   },
   "dependencies": {
-    "@graphql-typed-document-node/core": "^3.2.0",
-    "abitype": "^0.10.3",
-    "graphql-request": "^6.1.0",
-    "viem": "^1.18.8"
+    "@rionetwork/sdk": "0.1.0-alpha.7"
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^5.0.0",
-    "@graphql-codegen/client-preset": "^4.1.0"
+    "@types/react": "^18.2.37",
+    "react": "^18.2.0",
+    "wagmi": "~1.4.5"
   }
 }
