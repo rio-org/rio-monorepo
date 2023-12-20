@@ -1,21 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IBasePoolAuthentication} from 'contracts/interfaces/balancer/IBasePoolAuthentication.sol';
-import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
-import {IRioLRTController} from 'contracts/interfaces/IRioLRTController.sol';
+import {IPoolController} from 'contracts/interfaces/misc/IPoolController.sol';
 import {IManagedPool} from 'contracts/interfaces/balancer/IManagedPool.sol';
-import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
-import {IVault} from 'contracts/interfaces/balancer/IVault.sol';
 
-contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradeable {
-    using SafeERC20 for IERC20;
-    using FixedPointMathLib for uint256;
+abstract contract PoolController is IPoolController, OwnableUpgradeable, UUPSUpgradeable {
+    /// @notice The minimum acceptable weight for a token in the pool. We need this due to limitations
+    /// in the implementation of the power function, as these ratios are often exponents.
+    uint256 public constant MIN_WEIGHT = 0.01e18;
 
     /// @notice The minimum weight change duration.
     uint256 public constant MIN_WEIGHT_CHANGE_DURATION = 3 days;
@@ -29,16 +24,9 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
     /// @notice The pool that's controlled by this contract.
     IManagedPool public pool;
 
-    /// @notice The contract in charge of managing the LRT's assets.
-    IRioLRTAssetManager public assetManager;
-
     /// @notice The DAO-managed council that has permission to temporarily
     /// pause the LRT, enable recovery mode, and set circuit breakers.
     address public securityCouncil;
-
-    /// @notice The security daemon's wallet, which is controlled by the security council and owner.
-    /// The security daemon is responsible for removal of duplicate or invalid validator keys.
-    address public securityDaemon;
 
     /// @notice Require that the caller is the owner of this contract or
     /// the security council.
@@ -48,21 +36,19 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
     }
 
     // forgefmt: disable-next-item
-    /// @notice Initializes the controller.
+    /// @notice Initializes the pool controller.
     /// @param initialOwner The initial owner of the contract.
-    /// @param _pool The pool that's controlled by this contract.
-    /// @param _assetManager The contract in charge of managing the LRT's assets.
-    /// @param _securityCouncil The address of the DAO-managed security council.
+    /// @param pool_ The pool that's controlled by this contract.
+    /// @param securityCouncil_ The address of the DAO-managed security council.
     /// @param allowedLPs The addresses of the LPs that are allowed to join the pool.
-    function initialize(address initialOwner, address _pool, address _assetManager, address _securityCouncil, address[] calldata allowedLPs) external initializer {
-        if (IBasePoolAuthentication(_pool).getOwner() != address(this)) revert INVALID_INITIALIZATION();
+    function _initializePoolController(address initialOwner, address pool_, address securityCouncil_, address[] calldata allowedLPs) internal onlyInitializing {
+        if (IBasePoolAuthentication(pool_).getOwner() != address(this)) revert INVALID_INITIALIZATION();
         
         __UUPSUpgradeable_init();
         _transferOwnership(initialOwner);
 
-        pool = IManagedPool(_pool);
-        assetManager = IRioLRTAssetManager(_assetManager);
-        securityCouncil = _securityCouncil;
+        pool = IManagedPool(pool_);
+        securityCouncil = securityCouncil_;
 
         if (allowedLPs.length != 0) {
             pool.setMustAllowlistLPs(true);
@@ -81,81 +67,12 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
         emit SecurityCouncilChanged(newSecurityCouncil);
     }
 
-    /// @notice Add an underlying token to the LRT.
-    /// @param token The token to add.
-    /// @param strategy The strategy to deposit the token into.
-    /// @param amount The amount of the token to add.
-    /// @param normalizedWeight The normalized weight of the token to add.
-    /// @param targetAUMPercentage The target AUM percentage of the token to add.
-    function addToken(
-        IERC20 token,
-        IStrategy strategy,
-        uint256 amount,
-        uint256 normalizedWeight,
-        uint64 targetAUMPercentage
-    ) external onlyOwner {
-        if (strategy.underlyingToken() != token) revert INVALID_STRATEGY_FOR_TOKEN();
-
-        address manager = address(assetManager);
-        uint256 supply = pool.getActualSupply();
-        uint256 mintAmount = (supply * normalizedWeight) / (FixedPointMathLib.WAD - normalizedWeight);
-
-        token.safeTransferFrom(msg.sender, manager, amount);
-
-        pool.addToken(token, manager, normalizedWeight, mintAmount, owner());
-        IRioLRTAssetManager(manager).addToken(
-            token, amount, IRioLRTAssetManager.TokenConfig(0, targetAUMPercentage, strategy)
-        );
-    }
-
-    /// @notice Remove an underlying token from the LRT.
-    /// @param token The token to remove.
-    function removeToken(IERC20 token) external onlyOwner {
-        IVault vault = pool.getVault();
-        bytes32 poolId = pool.getPoolId();
-        uint256 supply = pool.getActualSupply();
-
-        (uint256 tokenBalance,,,) = vault.getPoolTokenInfo(poolId, token);
-
-        (IERC20[] memory registeredTokens,,) = vault.getPoolTokens(poolId);
-        uint256[] memory registeredTokensWeights = pool.getNormalizedWeights();
-
-        // `registeredTokensWeights` does not contain the BPT, so we need to offset by one.
-        uint256 normalizedWeight;
-        for (uint256 i = 1; i < registeredTokens.length; ++i) {
-            if (registeredTokens[i] != token) {
-                continue;
-            }
-
-            normalizedWeight = registeredTokensWeights[i - 1];
-            break;
-        }
-        uint256 burnAmount = supply.mulWad(normalizedWeight);
-
-        // The owner MUST hold enough BPT to withdraw the remaining balance.
-        assetManager.removeToken(token, tokenBalance, msg.sender);
-        pool.removeToken(token, burnAmount, msg.sender);
-    }
-
-    /// @notice Set the target AUM percentage for a token.
-    /// @param token The token to set the target AUM percentage for.
-    /// @param newTargetAUMPercentage The new target AUM percentage.
-    function setTargetAUMPercentageForToken(IERC20 token, uint64 newTargetAUMPercentage) external onlyOwner {
-        assetManager.setTargetAUMPercentage(token, newTargetAUMPercentage);
-    }
-
-    /// @notice Set the LRT rebalance delay (in seconds).
-    /// @param newRebalanceDelay The new rebalance delay.
-    function setRebalanceDelay(uint24 newRebalanceDelay) external onlyOwner {
-        assetManager.setRebalanceDelay(newRebalanceDelay);
-    }
-
     /// @notice Update weights linearly from the current values to the given end weights,
     /// between the current timestamp and the current timestamp plus `duration`.
     /// @param duration The duration of the weight change.
     /// @param tokens The tokens whose weights will be updated.
     /// @param endWeights The end weights of the tokens.
-    function startGradualWeightChange(uint256 duration, IERC20[] calldata tokens, uint256[] calldata endWeights)
+    function startGradualWeightChange(uint256 duration, address[] calldata tokens, uint256[] calldata endWeights)
         external
     {
         scheduleGradualWeightChange(block.timestamp, block.timestamp + duration, tokens, endWeights);
@@ -170,7 +87,7 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
     function scheduleGradualWeightChange(
         uint256 startTime,
         uint256 endTime,
-        IERC20[] calldata tokens,
+        address[] calldata tokens,
         uint256[] calldata endWeights
     ) public onlyOwner {
         if (endTime < startTime || endTime - startTime < MIN_WEIGHT_CHANGE_DURATION) revert WEIGHT_CHANGE_TOO_FAST();
@@ -209,7 +126,6 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
         if (startSwapFeePercentage > MAX_SWAP_FEE_PERCENTAGE || endSwapFeePercentage > MAX_SWAP_FEE_PERCENTAGE) {
             revert SWAP_FEE_TOO_HIGH();
         }
-
         pool.updateSwapFeeGradually(startTime, endTime, startSwapFeePercentage, endSwapFeePercentage);
     }
 
@@ -227,14 +143,6 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
         amount = pool.setManagementAumFeePercentage(aumFeePercentage);
     }
 
-    /// @notice Sets the security daemon's wallet to a new account (`newSecurityDaemon`).
-    /// @param newSecurityDaemon The new security daemon wallet address.
-    function setSecurityDaemon(address newSecurityDaemon) external onlyOwnerOrSecurityCouncil {
-        securityDaemon = newSecurityDaemon;
-
-        emit SecurityDaemonChanged(newSecurityDaemon);
-    }
-
     /// @notice Set a circuit breaker for one or more tokens. The lower and upper bounds are percentages,
     /// corresponding to a relative change in the token's spot price: e.g., a lower bound of 0.8 means the
     /// breaker should prevent trades that result in the value of the token dropping 20% or more relative
@@ -244,7 +152,7 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
     /// @param lowerBoundPercentages The lower bound percentages.
     /// @param upperBoundPercentages The upper bound percentages.
     function setCircuitBreakers(
-        IERC20[] calldata tokens,
+        address[] calldata tokens,
         uint256[] calldata bptPrices,
         uint256[] calldata lowerBoundPercentages,
         uint256[] calldata upperBoundPercentages
@@ -252,7 +160,7 @@ contract RioLRTController is IRioLRTController, OwnableUpgradeable, UUPSUpgradea
         pool.setCircuitBreakers(tokens, bptPrices, lowerBoundPercentages, upperBoundPercentages);
     }
 
-    /// @dev Allows the owner to upgrade the controller implementation.
+    /// @dev Allows the owner to upgrade the implementation.
     /// @param newImplementation The implementation to upgrade to.
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

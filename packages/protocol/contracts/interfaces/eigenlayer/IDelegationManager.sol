@@ -191,7 +191,7 @@ interface IDelegationManager is ISignatureUtils {
     /// from the staker. If the staker is delegated, withdrawn shares/strategies are also removed from
     /// their operator.
     /// All withdrawn shares/strategies are placed in a queue and can be fully withdrawn after a delay.
-    function queueWithdrawal(IStrategy[] calldata strategies, uint256[] calldata shares, address withdrawer)
+    function queueWithdrawal(address[] calldata strategies, uint256[] calldata shares, address withdrawer)
         external
         returns (bytes32);
 

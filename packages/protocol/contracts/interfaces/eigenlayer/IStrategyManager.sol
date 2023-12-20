@@ -37,7 +37,7 @@ interface IStrategyManager {
     /// @dev Cannot be called by an address that is 'frozen' (this function will revert if the `msg.sender` is frozen).
     /// WARNING: Depositing tokens that allow reentrancy (eg. ERC-777) into a strategy is not recommended.  This can lead to attack vectors
     /// where the token balance and corresponding strategy shares are not in sync upon reentrancy.
-    function depositIntoStrategy(IStrategy strategy, IERC20 token, uint256 amount) external returns (uint256 shares);
+    function depositIntoStrategy(address strategy, address token, uint256 amount) external returns (uint256 shares);
 
     /// @notice Used for depositing an asset into the specified strategy with the resultant shares credited to `staker`,
     /// who must sign off on the action.
@@ -87,7 +87,7 @@ interface IStrategyManager {
 
     /// @notice Owner-only function that adds the provided Strategies to the 'whitelist' of strategies that stakers can deposit into
     /// @param strategiesToWhitelist Strategies that will be added to the `strategyIsWhitelistedForDeposit` mapping (if they aren't in it already)
-    function addStrategiesToDepositWhitelist(IStrategy[] calldata strategiesToWhitelist) external;
+    function addStrategiesToDepositWhitelist(address[] calldata strategiesToWhitelist) external;
 
     /// @notice Owner-only function that removes the provided Strategies from the 'whitelist' of strategies that stakers can deposit into
     /// @param strategiesToRemoveFromWhitelist Strategies that will be removed to the `strategyIsWhitelistedForDeposit` mapping (if they are in it)

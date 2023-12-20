@@ -248,7 +248,7 @@ interface IVault is ISignaturesValidator, ITemporarilyPausable, IAuthentication 
     /// change for this purpose, and will update `lastChangeBlock`.
     ///
     /// `assetManager` is the Pool's token Asset Manager.
-    function getPoolTokenInfo(bytes32 poolId, IERC20 token)
+    function getPoolTokenInfo(bytes32 poolId, address token)
         external
         view
         returns (uint256 cash, uint256 managed, uint256 lastChangeBlock, address assetManager);
@@ -268,7 +268,7 @@ interface IVault is ISignaturesValidator, ITemporarilyPausable, IAuthentication 
     function getPoolTokens(bytes32 poolId)
         external
         view
-        returns (IERC20[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock);
+        returns (address[] memory tokens, uint256[] memory balances, uint256 lastChangeBlock);
 
     /// @dev Called by users to join a Pool, which transfers tokens from `sender` into the Pool's balance. This will
     /// trigger custom Pool behavior, which will typically grant something in return to `recipient` - often tokenized
@@ -595,7 +595,7 @@ interface IVault is ISignaturesValidator, ITemporarilyPausable, IAuthentication 
     struct PoolBalanceOp {
         PoolBalanceOpKind kind;
         bytes32 poolId;
-        IERC20 token;
+        address token;
         uint256 amount;
     }
 

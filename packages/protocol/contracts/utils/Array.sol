@@ -2,7 +2,6 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
 /// @title Array utility functions
 library Array {
@@ -10,13 +9,6 @@ library Array {
     /// @param element The element to convert.
     function toArray(uint256 element) internal pure returns (uint256[] memory array) {
         array = new uint256[](1);
-        array[0] = element;
-    }
-
-    /// @notice Convert an `IStrategy` element to an array.
-    /// @param element The element to convert.
-    function toArray(IStrategy element) internal pure returns (IStrategy[] memory array) {
-        array = new IStrategy[](1);
         array[0] = element;
     }
 

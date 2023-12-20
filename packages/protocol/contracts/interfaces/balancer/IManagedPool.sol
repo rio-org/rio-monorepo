@@ -23,7 +23,7 @@ interface IManagedPool is IBasePool {
     }
 
     struct ManagedPoolSettingsParams {
-        IERC20[] tokens;
+        address[] tokens;
         uint256[] normalizedWeights;
         uint256 swapFeePercentage;
         bool swapEnabledOnStart;
@@ -125,7 +125,7 @@ interface IManagedPool is IBasePool {
     function updateWeightsGradually(
         uint256 startTime,
         uint256 endTime,
-        IERC20[] memory tokens,
+        address[] memory tokens,
         uint256[] memory endWeights
     ) external;
 
@@ -239,7 +239,7 @@ interface IManagedPool is IBasePool {
     /// relative change in the token's spot price: e.g., a lower bound of 0.8 means the breaker should prevent
     /// trades that result in the value of the token dropping 20% or more relative to the rest of the pool.
     function setCircuitBreakers(
-        IERC20[] memory tokens,
+        address[] memory tokens,
         uint256[] memory bptPrices,
         uint256[] memory lowerBoundPercentages,
         uint256[] memory upperBoundPercentages
@@ -289,7 +289,7 @@ interface IManagedPool is IBasePool {
     /// @param mintAmount - The amount of BPT to be minted as a result of adding `token` to the Pool.
     /// @param recipient - The address to receive the BPT minted by the Pool.
     function addToken(
-        IERC20 tokenToAdd,
+        address tokenToAdd,
         address assetManager,
         uint256 tokenToAddNormalizedWeight,
         uint256 mintAmount,
@@ -313,7 +313,7 @@ interface IManagedPool is IBasePool {
     /// @param tokenToRemove - The ERC20 token to be removed from the Pool.
     /// @param burnAmount - The amount of BPT to be burned after removing `token` from the Pool.
     /// @param sender - The address to burn BPT from.
-    function removeToken(IERC20 tokenToRemove, uint256 burnAmount, address sender) external;
+    function removeToken(address tokenToRemove, uint256 burnAmount, address sender) external;
 
     function getVault() external view returns (IVault);
 }

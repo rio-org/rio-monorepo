@@ -67,7 +67,7 @@ interface IStrategy {
     function userUnderlyingView(address user) external view returns (uint256);
 
     /// @notice The underlying token for shares in this Strategy
-    function underlyingToken() external view returns (IERC20);
+    function underlyingToken() external view returns (address);
 
     /// @notice The total number of extant shares in this Strategy
     function totalShares() external view returns (uint256);

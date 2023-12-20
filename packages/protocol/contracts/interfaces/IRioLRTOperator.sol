@@ -1,15 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
+import {IBLSPublicKeyCompendium} from 'contracts/interfaces/eigenlayer/IBLSPublicKeyCompendium.sol';
 
 interface IRioLRTOperator {
+    /// @notice The operator's BLS public key registration information.
+    struct BLSRegistrationDetails {
+        IBLSPublicKeyCompendium.G1Point signedMessageHash;
+        IBLSPublicKeyCompendium.G1Point pubkeyG1;
+        IBLSPublicKeyCompendium.G2Point pubkeyG2;
+    }
+
     /// @notice Thrown when the caller is not the operator registry.
     error ONLY_OPERATOR_REGISTRY();
 
-    /// @notice Thrown when the caller is not the LRT asset manager.
+    /// @notice Thrown when the caller is not the asset manager.
     error ONLY_ASSET_MANAGER();
+
+    /// @notice Thrown when the caller is not the asset manager
+    /// or the operator registry.
+    error ONLY_ASSET_MANAGER_OR_OPERATOR_REGISTRY();
 
     /// @notice Thrown when the validator count is `0` or does not match the provided ETH value.
     error INVALID_VALIDATOR_COUNT();
@@ -28,7 +38,16 @@ interface IRioLRTOperator {
     /// @param assetManager The LRT asset manager.
     /// @param rewardDistributor The LRT reward distributor.
     /// @param initialMetadataURI The initial metadata URI.
-    function initialize(address assetManager, address rewardDistributor, string calldata initialMetadataURI) external;
+    /// @param blsDetails The operator's BLS public key registration information.
+    function initialize(
+        address assetManager,
+        address rewardDistributor,
+        string calldata initialMetadataURI,
+        BLSRegistrationDetails calldata blsDetails
+    ) external;
+
+    /// @notice Returns the number of shares in the operator's EigenPod.
+    function getEigenPodShares() external view returns (int256);
 
     /// @notice Sets the operator's metadata URI.
     /// @param newMetadataURI The new metadata URI.
@@ -38,7 +57,7 @@ interface IRioLRTOperator {
     /// @param strategy The strategy to stake the tokens into.
     /// @param token The token to stake.
     /// @param amount The amount of tokens to stake.
-    function stakeERC20(IStrategy strategy, IERC20 token, uint256 amount) external returns (uint256 shares);
+    function stakeERC20(address strategy, address token, uint256 amount) external returns (uint256 shares);
 
     // forgefmt: disable-next-item
     /// Stake ETH via the operator's EigenPod, using the provided validator information.
@@ -51,5 +70,5 @@ interface IRioLRTOperator {
     /// @param strategy The strategy to withdraw from.
     /// @param shares The amount of shares to withdraw.
     /// @param withdrawer The address who has permission to complete the withdrawal.
-    function queueWithdrawal(IStrategy strategy, uint256 shares, address withdrawer) external returns (bytes32 root);
+    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external returns (bytes32 root);
 }
