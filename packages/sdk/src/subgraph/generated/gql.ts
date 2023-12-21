@@ -17,7 +17,7 @@ const documents = {
     types.IssuerFieldsFragmentDoc,
   '\n  fragment TokenWrapperFields on TokenWrapper {\n    id\n    address\n    wrappedToken {\n      id\n    }\n    unwrappedToken {\n      id\n    }\n  }\n':
     types.TokenWrapperFieldsFragmentDoc,
-  '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    gateway {\n      id\n    }\n    poolId\n    underlyingTokens(orderBy: index, orderDirection: asc) {\n      address\n      token {\n        symbol\n        name\n        wrapper {\n          ...TokenWrapperFields\n        }\n      }\n      index\n      strategy\n    }\n  }\n':
+  '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    gateway {\n      id\n    }\n    poolId\n    underlyingTokens(orderBy: index, orderDirection: asc) {\n      address\n      token {\n        symbol\n        name\n        wrapper {\n          ...TokenWrapperFields\n        }\n      }\n      index\n      strategy\n      weight\n      balance\n    }\n  }\n':
     types.LiquidRestakingTokenFieldsFragmentDoc,
   '\n  fragment JoinFields on Join {\n    id\n    type\n    sender\n    tokensIn {\n      id\n    }\n    amountsIn\n    amountOut\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n  }\n':
     types.JoinFieldsFragmentDoc,
@@ -69,8 +69,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    gateway {\n      id\n    }\n    poolId\n    underlyingTokens(orderBy: index, orderDirection: asc) {\n      address\n      token {\n        symbol\n        name\n        wrapper {\n          ...TokenWrapperFields\n        }\n      }\n      index\n      strategy\n    }\n  }\n'
-): (typeof documents)['\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    gateway {\n      id\n    }\n    poolId\n    underlyingTokens(orderBy: index, orderDirection: asc) {\n      address\n      token {\n        symbol\n        name\n        wrapper {\n          ...TokenWrapperFields\n        }\n      }\n      index\n      strategy\n    }\n  }\n'];
+  source: '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    gateway {\n      id\n    }\n    poolId\n    underlyingTokens(orderBy: index, orderDirection: asc) {\n      address\n      token {\n        symbol\n        name\n        wrapper {\n          ...TokenWrapperFields\n        }\n      }\n      index\n      strategy\n      weight\n      balance\n    }\n  }\n'
+): (typeof documents)['\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    gateway {\n      id\n    }\n    poolId\n    underlyingTokens(orderBy: index, orderDirection: asc) {\n      address\n      token {\n        symbol\n        name\n        wrapper {\n          ...TokenWrapperFields\n        }\n      }\n      index\n      strategy\n      weight\n      balance\n    }\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

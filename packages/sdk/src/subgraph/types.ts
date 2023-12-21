@@ -29,6 +29,8 @@ export interface UnderlyingToken {
   name: string;
   index: number;
   strategy: Address;
+  weight: string;
+  balance: string;
   wrapper?: TokenWrapper;
 }
 

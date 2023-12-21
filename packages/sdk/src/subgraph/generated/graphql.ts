@@ -1922,6 +1922,8 @@ export type LiquidRestakingTokenFieldsFragment = {
     address: any;
     index: number;
     strategy: any;
+    weight: any;
+    balance: any;
     token: {
       __typename?: 'Token';
       symbol: string;
@@ -2004,6 +2006,8 @@ export type LiquidRestakingTokenQuery = {
       address: any;
       index: number;
       strategy: any;
+      weight: any;
+      balance: any;
       token: {
         __typename?: 'Token';
         symbol: string;
@@ -2060,6 +2064,8 @@ export type ManyLiquidRestakingTokensQuery = {
       address: any;
       index: number;
       strategy: any;
+      weight: any;
+      balance: any;
       token: {
         __typename?: 'Token';
         symbol: string;
@@ -2299,7 +2305,9 @@ export const LiquidRestakingTokenFieldsFragmentDoc = {
                   }
                 },
                 { kind: 'Field', name: { kind: 'Name', value: 'index' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'strategy' } }
+                { kind: 'Field', name: { kind: 'Name', value: 'strategy' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'weight' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'balance' } }
               ]
             }
           }
@@ -2664,7 +2672,9 @@ export const LiquidRestakingTokenDocument = {
                   }
                 },
                 { kind: 'Field', name: { kind: 'Name', value: 'index' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'strategy' } }
+                { kind: 'Field', name: { kind: 'Name', value: 'strategy' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'weight' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'balance' } }
               ]
             }
           }
@@ -2990,7 +3000,9 @@ export const ManyLiquidRestakingTokensDocument = {
                   }
                 },
                 { kind: 'Field', name: { kind: 'Name', value: 'index' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'strategy' } }
+                { kind: 'Field', name: { kind: 'Name', value: 'strategy' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'weight' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'balance' } }
               ]
             }
           }

@@ -49,6 +49,8 @@ export const LiquidRestakingTokenFields = graphql(`
       }
       index
       strategy
+      weight
+      balance
     }
   }
 `);

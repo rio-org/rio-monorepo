@@ -1,4 +1,5 @@
 import { Address } from 'viem';
+import { LiquidRestakingToken } from '../subgraph';
 
 /**
  * All possible Balancer weighted pool join kinds.
@@ -38,8 +39,50 @@ export const toPoolAddress = (poolId: string) => poolId.slice(0, 42);
  * @param slippage The slippage value in BPT - i.e. 50 = 0.5%
  */
 export const subtractSlippage = (amount: bigint, slippage: bigint): bigint => {
-  const bptPerOne = BigInt(10000); // Number of basis points in 100%
+  const bptPerOne = BigInt(10_000); // Number of basis points in 100%
   const delta = (amount * slippage) / bptPerOne;
 
   return amount - delta;
+};
+
+/**
+ * Get the expected amount of LRT with no price impact.
+ * @param restakingToken The liquid restaking token.
+ * @param tokenAmounts The token amounts (in units).
+ */
+const getLRTZeroPriceImpact = (restakingToken: LiquidRestakingToken, tokenAmounts: (string | number)[]): number => {
+  if (tokenAmounts.length !== restakingToken.underlyingTokens.length) {
+    throw new Error('Input length mismatch');
+  }
+
+  let lrtZeroPriceImpact = 0;
+  for (let i = 0; i < tokenAmounts.length; i++) {
+    const { weight, balance } = restakingToken.underlyingTokens[i];
+    const price = (Number(weight) * Number(restakingToken.totalSupply)) / Number(balance);
+    const newTerm = (price * Number(tokenAmounts[i]));
+    
+    lrtZeroPriceImpact += newTerm;
+  }
+  return lrtZeroPriceImpact;
+}
+
+/**
+ * Calculate the price impact of a join or exit.
+ * @param restakingToken The liquid restaking token.
+ * @param tokenAmounts The underlying token amounts (in units).
+ * @param restakingTokenAmount The restaking token amount (in units).
+ * @param isJoin Whether the transaction is a join or exit.
+ */
+export const calcPriceImpact = (
+  restakingToken: LiquidRestakingToken,
+  tokenAmounts: (string | number)[],
+  restakingTokenAmount: string | number,
+  isJoin: boolean
+): number => {
+  const lrtZeroPriceImpact = getLRTZeroPriceImpact(restakingToken, tokenAmounts);
+
+  if (isJoin) {
+    return Math.max(0, 1 - (Number(restakingTokenAmount) / lrtZeroPriceImpact));
+  }
+  return  Math.max(0, (Number(restakingTokenAmount) / lrtZeroPriceImpact) - 1);
 };

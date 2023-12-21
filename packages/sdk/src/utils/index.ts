@@ -2,5 +2,6 @@ export {
   WeightedPoolJoinKind,
   BALANCER_HELPERS_ADDRESS,
   toPoolAddress,
-  subtractSlippage
+  subtractSlippage,
+  calcPriceImpact
 } from './balancer';
