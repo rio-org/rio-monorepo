@@ -168,7 +168,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
         truncDec(
           calcPriceImpact(
             restakingToken.token,
-            res.tokensIn.map(t => t.amount.toString()),
+            res.tokensIn.map((t) => t.amount.toString()),
             res.minAmountOut.toString(),
             true
           ) * 100,
