@@ -249,7 +249,14 @@ export class SubgraphClient {
       gateway: gateway.id,
       underlyingTokens:
         underlyingTokens?.map(
-          ({ address, index, strategy, weight, balance, token: { symbol, name, wrapper } }) => ({
+          ({
+            address,
+            index,
+            strategy,
+            weight,
+            balance,
+            token: { symbol, name, wrapper }
+          }) => ({
             address,
             symbol,
             name,

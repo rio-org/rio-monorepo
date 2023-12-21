@@ -50,7 +50,11 @@ export const subtractSlippage = (amount: bigint, slippage: bigint): bigint => {
  * @param restakingToken The liquid restaking token.
  * @param tokenAmounts The token amounts (in units).
  */
-const getLRTZeroPriceImpact = (restakingToken: LiquidRestakingToken, tokenAmounts: (string | number)[]): number => {
+// prettier-ignore
+const getLRTZeroPriceImpact = (
+  restakingToken: LiquidRestakingToken,
+  tokenAmounts: (string | number)[]
+): number => {
   if (tokenAmounts.length !== restakingToken.underlyingTokens.length) {
     throw new Error('Input length mismatch');
   }
@@ -59,12 +63,12 @@ const getLRTZeroPriceImpact = (restakingToken: LiquidRestakingToken, tokenAmount
   for (let i = 0; i < tokenAmounts.length; i++) {
     const { weight, balance } = restakingToken.underlyingTokens[i];
     const price = (Number(weight) * Number(restakingToken.totalSupply)) / Number(balance);
-    const newTerm = (price * Number(tokenAmounts[i]));
-    
+    const newTerm = price * Number(tokenAmounts[i]);
+
     lrtZeroPriceImpact += newTerm;
   }
   return lrtZeroPriceImpact;
-}
+};
 
 /**
  * Calculate the price impact of a join or exit.
@@ -79,10 +83,13 @@ export const calcPriceImpact = (
   restakingTokenAmount: string | number,
   isJoin: boolean
 ): number => {
-  const lrtZeroPriceImpact = getLRTZeroPriceImpact(restakingToken, tokenAmounts);
+  const lrtZeroPriceImpact = getLRTZeroPriceImpact(
+    restakingToken,
+    tokenAmounts
+  );
 
   if (isJoin) {
-    return Math.max(0, 1 - (Number(restakingTokenAmount) / lrtZeroPriceImpact));
+    return Math.max(0, 1 - Number(restakingTokenAmount) / lrtZeroPriceImpact);
   }
-  return  Math.max(0, (Number(restakingTokenAmount) / lrtZeroPriceImpact) - 1);
+  return Math.max(0, Number(restakingTokenAmount) / lrtZeroPriceImpact - 1);
 };
