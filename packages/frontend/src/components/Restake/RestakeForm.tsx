@@ -274,7 +274,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
               {minAmountOut && typeof minAmountOut === 'bigint'
                 ? bigDecimal.round(
                     formatUnits(minAmountOut, activeToken.decimals),
-                    2,
+                    3,
                     bigDecimal.RoundingModes.DOWN
                   )
                 : 0}{' '}
