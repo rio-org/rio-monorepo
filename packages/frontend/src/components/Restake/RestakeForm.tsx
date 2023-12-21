@@ -16,13 +16,15 @@ import {
   InputTokenExactInWithWrap,
   JoinTokensExactInParams,
   LiquidRestakingTokenClient,
+  calcPriceImpact,
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
 import { ASSET_ADDRESS } from '../../lib/constants';
-import { parsePriceImpact } from '../../lib/utilities';
+import { truncDec } from '../../lib/utilities';
 import { Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '../Shared/ApproveButtons';
 import bigDecimal from 'js-big-decimal';
+
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
   activeToken: AssetDetails,
@@ -149,7 +151,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
     if (restakingToken) {
       queryTokens(restakingToken, activeToken, amount)
         .then((res) => {
-          amount && handleTokenQuery(amount, res);
+          res && handleTokenQuery(res);
         })
         .catch((err) => {
           console.log('err', err);
@@ -157,12 +159,22 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
     }
   }, [amount, activeToken]);
 
-  const handleTokenQuery = (amount: bigint, res?: JoinTokensExactInParams) => {
+  const handleTokenQuery = (res: JoinTokensExactInParams) => {
     if (!res) return;
     setTokensIn(res.tokensIn);
     setMinAmountOut(res.minAmountOut);
-    if (res.minAmountOut && typeof res.minAmountOut === 'bigint') {
-      setPriceImpact(parsePriceImpact(amount, res.minAmountOut));
+    if (!!restakingToken?.token && typeof res?.minAmountOut === 'bigint') {
+      setPriceImpact(
+        truncDec(
+          calcPriceImpact(
+            restakingToken.token,
+            res.tokensIn.map(t => t.amount.toString()),
+            res.minAmountOut.toString(),
+            true
+          ) * 100,
+          2
+        )
+      );
     }
   };
 

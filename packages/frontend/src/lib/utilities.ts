@@ -133,14 +133,6 @@ export const dateFromTimestamp = (timestamp: number) => {
   return str;
 };
 
-export const parsePriceImpact = (
-  requestedAmount: bigint,
-  minAmount: bigint
-) => {
-  const perc = (Number(minAmount) / Number(requestedAmount)) * 100;
-  return truncDec(perc - 100, 2);
-};
-
 export const displayEthAmount = (amount: string) => {
   const decimalPlaces = CHAIN_ID === 1 ? 2 : 5;
   return parseFloat(
