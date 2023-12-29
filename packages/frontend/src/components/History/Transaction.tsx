@@ -77,7 +77,7 @@ const Transaction = ({ transaction, index }: Props) => {
             <div className="mt-2 mb-4 flex flex-col gap-2 ">
               {assets.map((asset) => {
                 return (
-                  <div className="px-4 lg:pl-6 lg:pr-12">
+                  <div className="px-4 lg:pl-6 lg:pr-[44px]">
                     <ItemizedAsset
                       key={asset.symbol}
                       asset={asset}
