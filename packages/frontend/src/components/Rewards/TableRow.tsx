@@ -55,7 +55,7 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
             target="_blank"
             rel="noreferrer"
             className={cx(
-              `px-[8px] py-[4px] whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200 leading-none`
+              `pr-[8px] py-[4px] whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200 leading-none`
             )}
           >
             <span className="pt-1">{event.date}</span>
@@ -117,7 +117,7 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
       </motion.td>
       <motion.td
         className={cx(
-          'p-4 pr-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
+          'p-4 pr-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors w-[15%]',
           isFirst && 'rounded-tr-xl'
         )}
         key={`${index}-balance`}

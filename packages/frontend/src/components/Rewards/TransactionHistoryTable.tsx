@@ -89,7 +89,9 @@ const TransactionHistoryTable = () => {
                               key={head}
                               className={cx(
                                 'text-[12px] font-normal px-4 py-2 opacity-50',
-                                i < 2 ? 'text-left' : 'text-right'
+                                i < 2 ? 'text-left' : 'text-right',
+                                i === 0 && 'pl-6',
+                                i === txHistoryTableHeader.length - 1 && 'pr-6',
                               )}
                             >
                               {head}

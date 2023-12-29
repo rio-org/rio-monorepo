@@ -16,7 +16,6 @@ const History: NextPage = () => {
   const accountWithdrawals = useGetAccountWithdrawals(
     address as EthereumAddress
   );
-  console.log('accountWithdrawals', accountWithdrawals);
   useEffect(() => {
     setIsMounted(true);
   }, []);
