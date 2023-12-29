@@ -35,11 +35,11 @@ export const statsData = [
   },
   {
     label: 'Restaking points',
-    value: '13290.8019',
+    value: '13290',
     denominator: ''
   },
   {
-    label: 'Average APR',
+    label: 'Average APY',
     value: '5.38',
     denominator: '%'
   }
