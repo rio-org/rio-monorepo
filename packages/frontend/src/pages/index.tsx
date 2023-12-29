@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useGetAssetsList } from '../hooks/useGetAssetsList';
 import { AssetDetails } from '../lib/typings';
 import { CHAIN_ID } from '../../config';
+import { Tooltip } from '@material-tailwind/react';
 
 type Props = {
   assetsList: AssetDetails[];
@@ -22,6 +23,9 @@ const Home: NextPage<Props> = ({ assetsList }) => {
       <Skeleton width={40} />
     );
   const apr = isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
+  const tooltipContent = <>
+    <p>APY information TKTK</p>
+  </>;
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -35,9 +39,16 @@ const Home: NextPage<Props> = ({ assetsList }) => {
             <span className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4 flex gap-1">
               TVL: {tvl}
             </span>
-            <span className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4">
-              {apr}% APY
-            </span>
+            <Tooltip content={tooltipContent}>
+              <a
+                href="TODO"
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4"
+              >
+                {apr}% APY
+              </a>
+            </Tooltip>
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 lg:p-6 w-full m-[2px]">
