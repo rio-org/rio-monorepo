@@ -253,7 +253,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
             <div className="flex justify-between text-[14px]">
               <span className="text-black opacity-50">Exchange rate</span>
               <strong className="text-right">
-                1.00 reETH = {rethToEth} ETH (${ethInUSD})
+                1.00 reETH = {rethToEth} ETH <strong className='opacity-50'>(${ethInUSD})</strong>
               </strong>
             </div>
             <div className="flex justify-between text-[14px]">
@@ -269,14 +269,14 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
           </div>
           <HR />
           <div className="flex justify-between text-[14px]">
-            <span className="text-black opacity-50">Minimum received</span>
+            <span className="text-black font-bold">Minimum received</span>
             <strong>
               {minAmountOut && typeof minAmountOut === 'bigint'
                 ? bigDecimal.round(
-                    formatUnits(minAmountOut, activeToken.decimals),
-                    3,
-                    bigDecimal.RoundingModes.DOWN
-                  )
+                  formatUnits(minAmountOut, activeToken.decimals),
+                  3,
+                  bigDecimal.RoundingModes.DOWN
+                )
                 : 0}{' '}
               reETH
             </strong>
