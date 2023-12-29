@@ -103,8 +103,8 @@ const DepositButton = ({
             'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
             !isValidAmount && 'bg-opacity-20',
             isValidAmount &&
-              !isJoinLoading &&
-              'hover:bg-[var(--color-dark-gray)]'
+            !isJoinLoading &&
+            'hover:bg-[var(--color-dark-gray)]'
           )}
           disabled={!isValidAmount || isJoinLoading}
           onClick={() => {
@@ -114,10 +114,11 @@ const DepositButton = ({
           key={'restakeContent'}
         >
           {isJoinLoading && (
-            <span className="flex items-center justify-center">
+            <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 mb-2">
-                <Spinner />
+                <Spinner width={16} />
               </span>
+              <span className="opacity-40">Awaiting confirmation</span>
             </span>
           )}
           {!isJoinLoading && (

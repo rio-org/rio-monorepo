@@ -20,7 +20,7 @@ import {
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
 import { ASSET_ADDRESS } from '../../lib/constants';
-import { truncDec } from '../../lib/utilities';
+import { displayEthAmount, truncDec } from '../../lib/utilities';
 import { Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '../Shared/ApproveButtons';
 import bigDecimal from 'js-big-decimal';
@@ -188,15 +188,32 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
   });
 
   useEffect(() => {
+    if (isTxLoading) {
+      setIsJoinLoading(true);
+      setIsJoinError(false);
+      setIsJoinSuccess(false);
+      return;
+    }
+    if (isTxError) {
+      setIsJoinLoading(false);
+      setIsJoinError(true);
+      setIsJoinSuccess(false);
+      return;
+    }
     if (txData?.status === 'success') {
-      setIsJoinLoading(isTxLoading);
+      setIsJoinLoading(false);
+      setIsJoinError(false);
       setIsJoinSuccess(true);
+      setAmount(null);
+      return;
     }
     if (txData?.status === 'reverted') {
-      setIsJoinLoading(isTxLoading);
-      setIsJoinSuccess(isTxError);
+      setIsJoinLoading(false);
+      setIsJoinError(true);
+      setIsJoinSuccess(false);
+      return;
     }
-  }, [txData]);
+  }, [txData, isTxLoading, isTxError]);
 
   const handleJoin = async () => {
     await restakingToken
@@ -272,13 +289,9 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
           <div className="flex justify-between text-[14px]">
             <span className="text-black font-bold">Minimum received</span>
             <strong>
-              {minAmountOut && typeof minAmountOut === 'bigint'
-                ? bigDecimal.round(
-                    formatUnits(minAmountOut, activeToken.decimals),
-                    3,
-                    bigDecimal.RoundingModes.DOWN
-                  )
-                : 0}{' '}
+              {minAmountOut && typeof minAmountOut === 'bigint' ? displayEthAmount(formatUnits(minAmountOut, activeToken.decimals))
+                : displayEthAmount((0).toString())}
+              {' '}
               reETH
             </strong>
           </div>
