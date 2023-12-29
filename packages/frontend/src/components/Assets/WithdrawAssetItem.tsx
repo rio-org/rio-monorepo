@@ -40,7 +40,7 @@ const WithdrawAssetItem = ({
           <strong className="text-[14px]">
             1 reETH = {reETHConversionAmount}＊ETH
           </strong>
-          <span className="text-[14px] opacity-50">
+          <span className="text-[14px] opacity-50 font-bold">
             (${data.latestUSDPrice * reETHConversionAmount})
           </span>
         </>
