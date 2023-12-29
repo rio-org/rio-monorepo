@@ -78,7 +78,7 @@ const StakeField = ({
         isDesktopOrLaptop && focusInput();
       }}
     >
-      <label htmlFor="amount" className="mb-1 font-medium">
+      <label htmlFor="amount" className="mb-1 font-medium block">
         Amount
       </label>
       <div
@@ -129,8 +129,8 @@ const StakeField = ({
           </span>
           <div>
             {isMounted &&
-            accountTokenBalance !== undefined &&
-            activeToken.symbol ? (
+              accountTokenBalance !== undefined &&
+              activeToken.symbol ? (
               <>
                 <span className="opacity-50">
                   Balance:{' '}

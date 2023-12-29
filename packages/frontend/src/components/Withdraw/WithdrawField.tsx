@@ -49,7 +49,7 @@ const WithdrawField = ({
     <div>
       <div className="flex flex-row justify-between gap-4">
         <label htmlFor="amount" className="mb-1 font-medium">
-          Amount
+          reETH Amount
         </label>
         {hasMounted && accountReETHBalance !== undefined && reETHToken ? (
           <>
