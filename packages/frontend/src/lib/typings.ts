@@ -128,15 +128,6 @@ export interface WithdrawEvent {
 
 export type TransactionStatus = 'Pending' | 'Available' | 'Claimed' | 'None';
 
-// export interface TransactionEvent {
-//   date: string;
-//   txId: string;
-//   type: string;
-//   historicalReEthPrice: number;
-//   amountReEth: number;
-//   balance: number;
-// }
-
 export interface ExitSubgraphResponse {
   id: string;
   type: ExitType;
@@ -169,42 +160,13 @@ export interface TransactionEventSubgraphResponse {
   };
 }
 
-// export interface JoinSubgraphResponse {
-//   id: string;
-//   type: JoinType;
-//   sender: EthereumAddress;
-//   amountsIn: string[];
-//   amountOut: string;
-//   tx: string;
-//   tokensIn: EthereumAddress[];
-//   restakingToken: EthereumAddress;
-//   timestamp: string;
-// }
-
 export type TransactionType = 'Deposit' | 'Withdrawal';
 
 export interface TransactionEvent {
   date: string;
   type: TransactionType;
-  // amountsIn: string[];
-  // amountOut: string;
   tx: string;
-  // tokensIn: EthereumAddress[];
   historicalReEthPrice: number;
   amountReEth: string;
   balance: string;
 }
-
-// export type ExitType = "TOKEN_EXACT_IN" | "ALL_TOKENS_EXACT_IN" | "TOKENS_EXACT_OUT"
-
-// export type Exit = {
-//   amountIn: string;
-//   amountsOut: string[];
-//   sender: string;
-//   sharesOwed: string[];
-//   tx: EthereumTransactionHash;
-//   type: ExitType;
-//   user: {
-//     address: EthereumAddress;
-//   };
-// }
