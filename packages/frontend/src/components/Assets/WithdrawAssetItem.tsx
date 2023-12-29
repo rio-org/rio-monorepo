@@ -38,7 +38,7 @@ const WithdrawAssetItem = ({
       {!isLoading && data && reETHConversionAmount ? (
         <>
           <strong className="text-[14px]">
-            1 reETH = {reETHConversionAmount}＊ETH
+            1 reETH = {reETHConversionAmount}{" "}{token.symbol}
           </strong>
           <span className="text-[14px] opacity-50 font-bold">
             (${data.latestUSDPrice * reETHConversionAmount})

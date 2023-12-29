@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AssetDetails, TokenSymbol } from '../../lib/typings';
 import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
 import Image from 'next/image';
@@ -7,6 +7,7 @@ import cx from 'classnames';
 import { Drawer } from '@material-tailwind/react';
 import { useMediaQuery } from 'react-responsive';
 import AssetList from './AssetList';
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 
 type Props = {
   activeTokenSymbol: TokenSymbol;
@@ -25,6 +26,7 @@ const AssetSelector = ({
   unFocusInput
 }: Props) => {
   const [isListOpen, setIsListOpen] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
@@ -39,9 +41,21 @@ const AssetSelector = ({
       unFocusInput();
       setIsListOpen(true);
     } else {
-      setIsListOpen(!isListOpen);
+      if (isListOpen) {
+        setIsListOpen(false);
+      }
+      if (!isListOpen) {
+        setIsListOpen(true);
+      }
     }
   };
+
+  const listRef = useOutsideClick(
+    () => {
+      setIsListOpen(false);
+    },
+    isButtonHovered
+  );
 
   return (
     <>
@@ -52,6 +66,8 @@ const AssetSelector = ({
           isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
         )}
         disabled={isDisabled}
+        onMouseEnter={() => setIsButtonHovered(true)}
+        onMouseLeave={() => setIsButtonHovered(false)}
       >
         <Image
           src={ASSETS[activeTokenSymbol].logo}
@@ -65,7 +81,9 @@ const AssetSelector = ({
         </div>
       </button>
       {isDesktopOrLaptop && isListOpen && (
-        <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
+        <div
+          ref={listRef}
+          className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
             assets={assets}
@@ -88,7 +106,7 @@ const AssetSelector = ({
             setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />
-        </Drawer>
+        </Drawer >
       )}
     </>
   );

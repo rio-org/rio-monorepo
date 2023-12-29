@@ -7,6 +7,7 @@ import IconSelectArrow from '../Icons/IconSelectArrow';
 import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import { Drawer } from '@material-tailwind/react';
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 
 type Props = {
   assetsList: AssetDetails[];
@@ -50,12 +51,19 @@ const WithdrawAssetSelector = ({
   activeToken,
   setActiveToken
 }: Props) => {
-  const [isMounted, setIsMounted] = useState(false);
   const [isListOpen, setIsListOpen] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
   const drawerContentRef = useRef<HTMLDivElement>(null);
+  const listRef = useOutsideClick(
+    () => {
+      setIsListOpen(false);
+    },
+    isButtonHovered
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -65,7 +73,12 @@ const WithdrawAssetSelector = ({
     <>
       <div className="relative">
         <div>
-          <label htmlFor="asset" className="block mb-1 font-medium">
+          <label
+            htmlFor="asset"
+            className="block mb-1 font-medium"
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
+          >
             Select asset
           </label>
           <button
@@ -75,6 +88,8 @@ const WithdrawAssetSelector = ({
             )}
             id="asset"
             onClick={() => setIsListOpen(!isListOpen)}
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
           >
             <AssetItemContent
               asset={activeToken}
@@ -89,7 +104,9 @@ const WithdrawAssetSelector = ({
           </button>
         </div>
         {isDesktopOrLaptop && isListOpen && (
-          <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
+          <div
+            ref={listRef}
+            className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
             <List
               assetsList={assetsList}
               setIsListOpen={setIsListOpen}
@@ -104,7 +121,6 @@ const WithdrawAssetSelector = ({
         <Drawer
           placement="bottom"
           size={470}
-          // size={drawerContentRef.current?.offsetHeight} // todo
           open={isListOpen}
           onClose={() => setIsListOpen(false)}
           className="rounded-t-2xl p-4"
