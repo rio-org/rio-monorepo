@@ -35,7 +35,7 @@ export const statsData = [
   },
   {
     label: 'Restaking points',
-    value: '13,290.8019',
+    value: '13290.8019',
     denominator: ''
   },
   {

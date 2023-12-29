@@ -3,6 +3,8 @@ import { AssetDetails } from '../../lib/typings';
 import cx from 'classnames';
 import AssetItemContent from './AssetItemContent';
 import { useAccount, useBalance } from 'wagmi';
+import { formatUnits } from 'viem';
+import { displayEthAmount } from '../../lib/utilities';
 
 type Props = {
   asset: AssetDetails;
@@ -26,7 +28,8 @@ const DepositAssetItem = ({
         : asset.address
       : undefined
   });
-  const amount = data && <>{(+data?.formatted).toFixed(2)}</>;
+  // const amount = data && <>{(+data?.formatted).toFixed(2)}</>;
+  const amount = data && <>{displayEthAmount(formatUnits(data.value, data.decimals))}</>;
   const handleClick = (asset: AssetDetails) => {
     setActiveToken(asset);
     setIsListOpen(false);

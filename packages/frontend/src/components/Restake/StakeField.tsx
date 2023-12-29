@@ -6,7 +6,7 @@ import cx from 'classnames';
 import { ethInUSD } from '../../../placeholder';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
-import { parseBigIntFieldAmount } from '../../lib/utilities';
+import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
 import bigDecimal from 'js-big-decimal';
 
@@ -134,18 +134,12 @@ const StakeField = ({
               <>
                 <span className="opacity-50">
                   Balance:{' '}
-                  {bigDecimal.round(
-                    formatUnits(accountTokenBalance, activeToken.decimals),
-                    2,
-                    bigDecimal.RoundingModes.DOWN
-                  )}
-                  {/* {truncDec(
-                    +formatUnits(accountTokenBalance, activeToken.decimals)
-                  )} */}{' '}
+                  {displayEthAmount(formatUnits(accountTokenBalance, activeToken.decimals))}
+                  {' '}
                   {activeToken.symbol}
                 </span>{' '}
                 <button
-                  className="text-[color:var(--color-blue)] font-medium underline ml-2 hover:[color:var(--color-light-blue)]"
+                  className="text-[color:var(--color-blue)] font-medium underline mx-1 hover:[color:var(--color-light-blue)]"
                   onClick={() => {
                     handleMaxBalance(accountTokenBalance);
                   }}

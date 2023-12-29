@@ -2,6 +2,8 @@ import React from 'react';
 import HR from '../Shared/HR';
 import { AssetDetails } from '../../lib/typings';
 import { formatUnits } from 'viem';
+import { displayEthAmount } from '../../lib/utilities';
+import Skeleton from 'react-loading-skeleton';
 
 type Props = {
   activeToken: AssetDetails;
@@ -63,7 +65,7 @@ const WithdrawItemized = ({ amount, activeToken }: Props) => {
       <div className="flex justify-between text-[14px] mt-4">
         <strong>Total received</strong>
         <strong className="flex flex-row gap-2 items-center">
-          {amountNum.toFixed(2)}
+          {amount ? displayEthAmount(formatUnits(amount, activeToken.decimals)) : displayEthAmount(formatUnits(BigInt(0), activeToken.decimals))}
           <span className="bg-[var(--color-element-wrapper-bg)] rounded-[4px] px-2 py-1 text-[12px] min-w-[60px] text-center block">
             {activeToken.symbol}
           </span>

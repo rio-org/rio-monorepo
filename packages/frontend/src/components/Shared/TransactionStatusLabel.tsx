@@ -1,5 +1,5 @@
 import React from 'react';
-import { WithdrawEvent } from '../../lib/typings';
+import { EthereumAddress, WithdrawEvent } from '../../lib/typings';
 import cx from 'classnames';
 import IconExternal from '../Icons/IconExternal';
 import { IconClock } from '../Icons/IconClock';
@@ -58,17 +58,17 @@ const TransactionStatusLabel = ({ transaction }: Props) => {
   return (
     <div className="w-full">
       <a
-        href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
+        href={linkToTxOnBlockExplorer(transaction.tx as EthereumAddress, CHAIN_ID)}
         target="_blank"
         rel="noreferrer"
         className={cx(
           `px-[8px] py-[4px] whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200`,
           transaction.status === 'Pending' &&
-            'bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] hover:bg-[var(--color-yellow-bg-hover)]',
+          'bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] hover:bg-[var(--color-yellow-bg-hover)]',
           transaction.status === 'Available' &&
-            'bg-[var(--color-green-bg)] text-[var(--color-green)] hover:bg-[var(--color-green-bg-hover)]',
+          'bg-[var(--color-green-bg)] text-[var(--color-green)] hover:bg-[var(--color-green-bg-hover)]',
           transaction.status === 'Claimed' &&
-            'bg-[var(--color-blue-bg)] text-[var(--color-blue)] hover:bg-[var(--color-blue-bg-hover)]'
+          'bg-[var(--color-blue-bg)] text-[var(--color-blue)] hover:bg-[var(--color-blue-bg-hover)]'
         )}
       >
         {transaction.status === 'Pending' && (

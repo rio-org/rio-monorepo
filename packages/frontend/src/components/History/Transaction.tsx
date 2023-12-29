@@ -3,7 +3,7 @@ import { WithdrawEvent } from '../../lib/typings';
 import TransactionStatusLabel from '../Shared/TransactionStatusLabel';
 import SymbolPill from '../Shared/SymbolPill';
 import { AnimatePresence, motion } from 'framer-motion';
-import { buildAssetList } from '../../lib/utilities';
+import { buildAssetList, displayEthAmount } from '../../lib/utilities';
 import ItemizedAsset from '../Assets/ItemizedAsset';
 import IconSelectArrow from '../Icons/IconSelectArrow';
 import { useMediaQuery } from 'react-responsive';
@@ -54,7 +54,9 @@ const Transaction = ({ transaction, index }: Props) => {
             )}
             <div className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
               <div className="flex items-center gap-0 font-medium">
-                <span className="mr-2">{transaction.amount.toFixed(2)}</span>
+                <span className="mr-2">
+                  {displayEthAmount(transaction.amount.toString())}
+                </span>
                 <SymbolPill symbol={transaction.symbol} />
               </div>
               <IconSelectArrow direction={isOpen ? 'up' : 'down'} />
@@ -82,7 +84,7 @@ const Transaction = ({ transaction, index }: Props) => {
                       isActiveToken={false}
                       isLoading={false}
                       isError={false}
-                      amount={transaction.amount / 5}
+                      amount={transaction.amount}
                     />
                   </div>
                 );
