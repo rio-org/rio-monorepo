@@ -22,7 +22,7 @@ const Home: NextPage<Props> = ({ assetsList }) => {
       <Skeleton width={40} />
     );
   const apr =
-    isMounted && networkStats?.apr ? networkStats?.apr + '%' : <Skeleton />;
+    isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -37,7 +37,7 @@ const Home: NextPage<Props> = ({ assetsList }) => {
               TVL: {tvl}
             </span>
             <span className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4">
-              {apr}
+              {apr}% APY
             </span>
           </div>
         </div>
