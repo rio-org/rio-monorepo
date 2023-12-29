@@ -23,9 +23,11 @@ const Home: NextPage<Props> = ({ assetsList }) => {
       <Skeleton width={40} />
     );
   const apr = isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
-  const tooltipContent = <>
-    <p>APY information TKTK</p>
-  </>;
+  const tooltipContent = (
+    <>
+      <p>APY information TKTK</p>
+    </>
+  );
   useEffect(() => {
     setIsMounted(true);
   }, []);

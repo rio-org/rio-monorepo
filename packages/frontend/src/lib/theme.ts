@@ -38,10 +38,10 @@ export const theme = {
   tooltip: {
     styles: {
       base: {
-        bg: "bg-white",
-        textColor: "text-[var(--color-dark-gray)]",
-        boxShadow: "shadow-lg",
+        bg: 'bg-white',
+        textColor: 'text-[var(--color-dark-gray)]',
+        boxShadow: 'shadow-lg'
       }
     }
-  },
+  }
 };
