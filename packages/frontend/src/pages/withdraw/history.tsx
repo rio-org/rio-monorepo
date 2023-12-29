@@ -33,7 +33,7 @@ const History: NextPage = () => {
   return (
     <WithdrawWrapper noPadding>
       <h2 className="px-4 lg:px-6 pt-4 lg:pt-6 lg:pb-1 text-[14px]">
-        Withdraw history
+        Withdrawal history
       </h2>
       {accountWithdrawals.isLoading || !isMounted ? (
         <motion.div
@@ -54,8 +54,8 @@ const History: NextPage = () => {
             </h2>
           )}
           {address &&
-          accountWithdrawals.data &&
-          accountWithdrawals.data.length > 0 ? (
+            accountWithdrawals.data &&
+            accountWithdrawals.data.length > 0 ? (
             <motion.div
               className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200"
               layoutId="withdraw-history"
