@@ -2,15 +2,22 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
+import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {IBLSPublicKeyCompendium} from 'contracts/interfaces/eigenlayer/IBLSPublicKeyCompendium.sol';
+import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
 import {IRioLRTGateway} from 'contracts/interfaces/IRioLRTGateway.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {TokenWrapper} from 'contracts/wrapping/TokenWrapper.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
+import {TestUtils} from 'test/utils/TestUtils.sol';
 
 contract RioLRTIssuerTest is RioDeployer {
     IRioLRTIssuer.LRTDeployment public deployment;
+    IRioLRTOperatorRegistry public operatorRegistry;
     IRioLRTWithdrawalQueue public withdrawalQueue;
+    IRioLRTAssetManager public assetManager;
     IRioLRTGateway public gateway;
     IERC20 public reETH;
 
@@ -22,18 +29,79 @@ contract RioLRTIssuerTest is RioDeployer {
 
         (deployment, tokens) = issueRestakedETH();
 
+        operatorRegistry = IRioLRTOperatorRegistry(deployment.operatorRegistry);
         withdrawalQueue = IRioLRTWithdrawalQueue(deployment.withdrawalQueue);
+        assetManager = IRioLRTAssetManager(deployment.assetManager);
         gateway = IRioLRTGateway(deployment.gateway);
         reETH = IERC20(deployment.token);
 
         // Approve the gateway to pull all underlying tokens.
-        for (uint256 i = 0; i < tokens.length; i++) {
+        for (uint256 i = 0; i < tokens.length; ++i) {
             IERC20(tokens[i]).approve(deployment.gateway, type(uint256).max);
         }
         stETH.approve(deployment.gateway, type(uint256).max);
         stETH.transfer(deployment.gateway, 1);
 
         startingReETHBalance = reETH.balanceOf(address(this));
+
+        // Ignore BLS key validation
+        vm.mockCall(
+            BLS_PUBLIC_KEY_COMPENDIUM_ADDRESS,
+            abi.encodeWithSelector(IBLSPublicKeyCompendium.registerBLSPublicKey.selector),
+            new bytes(0)
+        );
+
+        // Stub Ethereum POS deposits
+        vm.mockCall(
+            ETH_POS_ADDRESS,
+            abi.encodeWithSelector(0x22895118), // deposit(bytes,bytes,bytes,bytes32)
+            new bytes(0)
+        );
+
+        // Create some operators
+        uint256 validatorCount = 10;
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(validatorCount);
+        IRioLRTOperatorRegistry.StrategyShareCap[] memory caps = new IRioLRTOperatorRegistry.StrategyShareCap[](tokens.length);
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            caps[i] = IRioLRTOperatorRegistry.StrategyShareCap({
+                strategy: assetManager.getStrategy(tokens[i]),
+                cap: 1_000 ether
+            });
+        }
+        for (uint256 i = 0; i < 5; ++i) {
+            uint256 zero = 0;
+            (uint8 operatorId, ) = operatorRegistry.createOperator(
+                address(this),
+                address(this),
+                'https://example.com/metadata.json',
+                IRioLRTOperator.BLSRegistrationDetails({
+                    signedMessageHash: IBLSPublicKeyCompendium.G1Point(0, 0),
+                    pubkeyG1: IBLSPublicKeyCompendium.G1Point(0, 0),
+                    pubkeyG2: IBLSPublicKeyCompendium.G2Point([zero, zero], [zero, zero])
+                }),
+                caps,
+                1_000,
+                bytes32(i)
+            );
+
+            // Upload validator keys
+            operatorRegistry.addValidatorDetails(
+                operatorId,
+                validatorCount,
+                publicKeys,
+                signatures
+            );
+        }
+
+        // Fast forward to allow validator keys time to confirm.
+        skip(operatorRegistry.validatorKeyReviewPeriod());
+    }
+
+    function rebalance(address token, bool shouldLeaveCash) public {
+        if (!shouldLeaveCash) {
+            assetManager.setTargetAUMPercentage(token, 1e18); // 100%
+        }
+        assetManager.rebalance(token);
     }
 
     function test_joinTokensExactInMinOutNotMetReverts() public {
@@ -402,6 +470,124 @@ contract RioLRTIssuerTest is RioDeployer {
         assertEq(withdrawal.shares, 0);
     }
 
+    function test_requestExitTokenExactInSomeCash() public {
+        rebalance(tokens[0], true); // Rebalance, leaving some cash in the pool.
+
+        uint256 cashRemaining = IERC20(tokens[0]).balanceOf(VAULT_ADDRESS);
+
+        // Request more than remaining cash.
+        uint256 MIN_AMOUNT_OUT = cashRemaining + 4e18;
+        uint256 AMOUNT_IN = cashRemaining + 5e18;
+
+        uint256 startingToken0Balance = IERC20(tokens[0]).balanceOf(address(this));
+        uint256 amountIn = gateway.requestExitTokenExactIn(
+            IRioLRTGateway.ExitTokenExactInParams({
+                tokenOut: tokens[0],
+                minAmountOut: MIN_AMOUNT_OUT,
+                requiresUnwrap: false,
+                amountIn: AMOUNT_IN
+            })
+        );
+        assertEq(amountIn, AMOUNT_IN);
+        assertEq(startingReETHBalance - reETH.balanceOf(address(this)), AMOUNT_IN);
+
+        assertEq(IERC20(tokens[0]).balanceOf(address(this)) - startingToken0Balance, cashRemaining);
+
+        uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[0]);
+        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+            tokens[0], currentEpoch, address(this)
+        );
+        assertGe(withdrawal.shares, MIN_AMOUNT_OUT - cashRemaining);
+        assertFalse(withdrawal.claimed);
+    }
+
+    function test_requestExitTokenExactInSomeCashEther() public {
+        rebalance(address(weth), true); // Rebalance, leaving some cash in the pool.
+
+        uint256 cashRemaining = weth.balanceOf(VAULT_ADDRESS);
+
+        // Request more than remaining cash.
+        uint256 MIN_AMOUNT_OUT = cashRemaining + 4e18;
+        uint256 AMOUNT_IN = cashRemaining + 5e18;
+
+        uint256 startingEtherBalance = address(this).balance;
+        uint256 amountIn = gateway.requestExitTokenExactIn(
+            IRioLRTGateway.ExitTokenExactInParams({
+                tokenOut: address(0),
+                minAmountOut: MIN_AMOUNT_OUT,
+                requiresUnwrap: false,
+                amountIn: AMOUNT_IN
+            })
+        );
+        assertEq(amountIn, AMOUNT_IN);
+        assertEq(startingReETHBalance - reETH.balanceOf(address(this)), AMOUNT_IN);
+
+        assertEq(address(this).balance - startingEtherBalance, cashRemaining);
+
+        uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[0]);
+        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+            address(weth), currentEpoch, address(this)
+        );
+        assertGe(withdrawal.shares, MIN_AMOUNT_OUT - cashRemaining);
+        assertFalse(withdrawal.claimed);
+    }
+
+    function test_requestExitTokenExactInNoCash() public {
+        rebalance(tokens[0], false); // Rebalance, leaving no cash remaining in the pool.
+
+        uint256 MIN_AMOUNT_OUT = 4e18;
+        uint256 AMOUNT_IN = 5e18;
+
+        uint256 startingToken0Balance = IERC20(tokens[0]).balanceOf(address(this));
+        uint256 amountIn = gateway.requestExitTokenExactIn(
+            IRioLRTGateway.ExitTokenExactInParams({
+                tokenOut: tokens[0],
+                minAmountOut: MIN_AMOUNT_OUT,
+                requiresUnwrap: false,
+                amountIn: AMOUNT_IN
+            })
+        );
+        assertEq(amountIn, AMOUNT_IN);
+        assertEq(startingReETHBalance - reETH.balanceOf(address(this)), AMOUNT_IN);
+
+        assertEq(IERC20(tokens[0]).balanceOf(address(this)), startingToken0Balance);
+
+        uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[0]);
+        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+            tokens[0], currentEpoch, address(this)
+        );
+        assertGe(withdrawal.shares, MIN_AMOUNT_OUT);
+        assertFalse(withdrawal.claimed);
+    }
+
+    function test_requestExitTokenExactInNoCashEther() public {
+        rebalance(address(weth), false); // Rebalance, leaving no cash remaining in the pool.
+
+        uint256 MIN_AMOUNT_OUT = 4e18;
+        uint256 AMOUNT_IN = 5e18;
+
+        uint256 startingEtherBalance = address(this).balance;
+        uint256 amountIn = gateway.requestExitTokenExactIn(
+            IRioLRTGateway.ExitTokenExactInParams({
+                tokenOut: address(0),
+                minAmountOut: MIN_AMOUNT_OUT,
+                requiresUnwrap: false,
+                amountIn: AMOUNT_IN
+            })
+        );
+        assertEq(amountIn, AMOUNT_IN);
+        assertEq(startingReETHBalance - reETH.balanceOf(address(this)), AMOUNT_IN);
+
+        assertEq(address(this).balance, startingEtherBalance);
+
+        uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(address(weth));
+        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+            address(weth), currentEpoch, address(this)
+        );
+        assertGe(withdrawal.shares, MIN_AMOUNT_OUT);
+        assertFalse(withdrawal.claimed);
+    }
+
     function test_requestExitAllTokensExactInAllCash() public {
         uint256 AMOUNT_IN = 18e18;
         uint256 MIN_AMOUNT_OUT_TOKEN_0 = 5e18;
@@ -521,6 +707,82 @@ contract RioLRTIssuerTest is RioDeployer {
         }
     }
 
+    function test_requestExitAllTokensExactInSomeCash() public {
+        uint256[] memory cashAmountsRemaining = new uint256[](tokens.length);
+        uint256[] memory startingTokenBalances = new uint256[](tokens.length);
+        uint256[] memory minAmountsOut = new uint256[](tokens.length);
+
+        uint256 AMOUNT_IN = startingReETHBalance;
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            rebalance(tokens[i], true); // Rebalance, leaving some cash in the pool.
+
+            cashAmountsRemaining[i] = IERC20(tokens[i]).balanceOf(VAULT_ADDRESS);
+            startingTokenBalances[i] = IERC20(tokens[i]).balanceOf(address(this));
+
+            minAmountsOut[i] = cashAmountsRemaining[i] + 1e18; // Request more than remaining cash.
+        }
+
+        uint256 amountIn = gateway.requestExitAllTokensExactIn(
+            IRioLRTGateway.ExitAllTokensExactInParams({
+                tokensOut: tokens,
+                minAmountsOut: minAmountsOut,
+                requiresUnwrap: new bool[](3),
+                amountIn: AMOUNT_IN
+            })
+        );
+        assertEq(amountIn, AMOUNT_IN);
+        assertEq(startingReETHBalance - reETH.balanceOf(address(this)), AMOUNT_IN);
+
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            assertEq(IERC20(tokens[i]).balanceOf(address(this)) - startingTokenBalances[i], cashAmountsRemaining[i]);
+
+            uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[i]);
+            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+                tokens[i], currentEpoch, address(this)
+            );
+            assertGe(withdrawal.shares, minAmountsOut[i] - cashAmountsRemaining[i]);
+            assertFalse(withdrawal.claimed);
+        }
+    }
+
+    function test_requestExitAllTokensExactInNoCash() public {
+        uint256 AMOUNT_IN = 16e18;
+
+        uint256[] memory minAmountsOut = new uint256[](tokens.length);
+        minAmountsOut[0] = 4e18;
+        minAmountsOut[1] = 4e18;
+        minAmountsOut[2] = 5e18;
+
+        uint256[] memory startingTokenBalances = new uint256[](tokens.length);
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            rebalance(tokens[i], false); // Rebalance, leaving no cash remaining in the pool.
+
+            startingTokenBalances[i] = IERC20(tokens[i]).balanceOf(address(this));
+        }
+
+        uint256 amountIn = gateway.requestExitAllTokensExactIn(
+            IRioLRTGateway.ExitAllTokensExactInParams({
+                tokensOut: tokens,
+                minAmountsOut: minAmountsOut,
+                requiresUnwrap: new bool[](3),
+                amountIn: AMOUNT_IN
+            })
+        );
+        assertEq(amountIn, AMOUNT_IN);
+        assertEq(startingReETHBalance - reETH.balanceOf(address(this)), AMOUNT_IN);
+
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            assertEq(IERC20(tokens[i]).balanceOf(address(this)), startingTokenBalances[i]);
+
+            uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[i]);
+            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+                tokens[i], currentEpoch, address(this)
+            );
+            assertGe(withdrawal.shares, minAmountsOut[i]);
+            assertFalse(withdrawal.claimed);
+        }
+    }
+
     function test_requestExitTokensExactOutAllCash() public {
         uint256 MAX_AMOUNT_IN = 18e18;
         uint256 AMOUNT_OUT_TOKEN_0 = 5e18;
@@ -634,6 +896,82 @@ contract RioLRTIssuerTest is RioDeployer {
             IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal =
                 withdrawalQueue.getUserWithdrawal(tokens[i], withdrawalQueue.getCurrentEpoch(tokens[i]), address(this));
             assertEq(withdrawal.shares, 0);
+        }
+    }
+
+    function test_requestExitTokensExactOutSomeCash() public {
+        uint256[] memory cashAmountsRemaining = new uint256[](tokens.length);
+        uint256[] memory startingTokenBalances = new uint256[](tokens.length);
+        uint256[] memory amountsOut = new uint256[](tokens.length);
+
+        uint256 MAX_AMOUNT_IN = startingReETHBalance;
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            rebalance(tokens[i], true); // Rebalance, leaving some cash in the pool.
+
+            cashAmountsRemaining[i] = IERC20(tokens[i]).balanceOf(VAULT_ADDRESS);
+            startingTokenBalances[i] = IERC20(tokens[i]).balanceOf(address(this));
+
+            amountsOut[i] = cashAmountsRemaining[i] + 1e18; // Request more than remaining cash.
+        }
+
+        uint256 amountIn = gateway.requestExitTokensExactOut(
+            IRioLRTGateway.ExitTokensExactOutParams({
+                tokensOut: tokens,
+                amountsOut: amountsOut,
+                requiresUnwrap: new bool[](3),
+                maxAmountIn: MAX_AMOUNT_IN
+            })
+        );
+        assertLt(amountIn, MAX_AMOUNT_IN);
+        assertEq(startingReETHBalance - reETH.balanceOf(address(this)), amountIn);
+
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            assertEq(IERC20(tokens[i]).balanceOf(address(this)) - startingTokenBalances[i], cashAmountsRemaining[i]);
+
+            uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[i]);
+            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+                tokens[i], currentEpoch, address(this)
+            );
+            assertEq(withdrawal.shares, amountsOut[i] - cashAmountsRemaining[i]);
+            assertFalse(withdrawal.claimed);
+        }
+    }
+
+    function test_requestExitTokensExactOutNoCash() public {
+        uint256 MAX_AMOUNT_IN = 16e18;
+
+        uint256[] memory amountsOut = new uint256[](tokens.length);
+        amountsOut[0] = 4e18;
+        amountsOut[1] = 4e18;
+        amountsOut[2] = 5e18;
+
+        uint256[] memory startingTokenBalances = new uint256[](tokens.length);
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            rebalance(tokens[i], false); // Rebalance, leaving no cash remaining in the pool.
+
+            startingTokenBalances[i] = IERC20(tokens[i]).balanceOf(address(this));
+        }
+
+        uint256 amountIn = gateway.requestExitTokensExactOut(
+            IRioLRTGateway.ExitTokensExactOutParams({
+                tokensOut: tokens,
+                amountsOut: amountsOut,
+                requiresUnwrap: new bool[](3),
+                maxAmountIn: MAX_AMOUNT_IN
+            })
+        );
+        assertLt(amountIn, MAX_AMOUNT_IN);
+        assertEq(startingReETHBalance - reETH.balanceOf(address(this)), amountIn);
+
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            assertEq(IERC20(tokens[i]).balanceOf(address(this)), startingTokenBalances[i]);
+
+            uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[i]);
+            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+                tokens[i], currentEpoch, address(this)
+            );
+            assertEq(withdrawal.shares, amountsOut[i]);
+            assertFalse(withdrawal.claimed);
         }
     }
 

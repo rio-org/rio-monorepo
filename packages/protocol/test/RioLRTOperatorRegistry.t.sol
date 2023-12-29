@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
+import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {IBLSPublicKeyCompendium} from 'contracts/interfaces/eigenlayer/IBLSPublicKeyCompendium.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
+import {TestUtils} from 'test/utils/TestUtils.sol';
 
 contract RioLRTOperatorRegistryTest is RioDeployer {
     IRioLRTIssuer.LRTDeployment public deployment;
@@ -39,6 +41,59 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             abi.encodeWithSelector(IBLSPublicKeyCompendium.registerBLSPublicKey.selector),
             new bytes(0)
         );
+
+        // Stub Ethereum POS deposits
+        vm.mockCall(
+            ETH_POS_ADDRESS,
+            abi.encodeWithSelector(0x22895118), // deposit(bytes,bytes,bytes,bytes32)
+            new bytes(0)
+        );
+    }
+
+    function testFuzz_allocateETHDeposits(uint8 operatorCount, uint8 validatorsPerOperator, uint16 depositsToAllocate) public {
+        vm.assume(operatorCount > 0 && operatorCount <= 64);
+        vm.assume(validatorsPerOperator > 0);
+        vm.assume(depositsToAllocate > 0);
+
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(validatorsPerOperator);
+
+        // Create 10 operators
+        for (uint256 i = 0; i < operatorCount; i++) {
+            (uint8 operatorId, ) = operatorRegistry.createOperator(
+                address(this),
+                address(this),
+                'https://example.com/metadata.json',
+                defaultBlsDetails,
+                defaultStrategyShareCaps,
+                validatorsPerOperator,
+                bytes32(i) // Salt
+            );
+
+            // Upload validator keys
+            operatorRegistry.addValidatorDetails(
+                operatorId,
+                validatorsPerOperator,
+                publicKeys,
+                signatures
+            );
+
+            // Fast forward to allow validator keys time to confirm.
+            skip(operatorRegistry.validatorKeyReviewPeriod());
+        }
+
+        vm.prank(deployment.assetManager);
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
+            depositsToAllocate
+        );
+
+        assertEq(depositsAllocated, Math.min(uint256(depositsToAllocate), uint256(operatorCount) * validatorsPerOperator));
+
+        for (uint256 i = 0; i < allocations.length - 1; ++i) {
+            assertEq(allocations[i].deposits, validatorsPerOperator);
+        }
+        uint256 remainingDeposits = depositsAllocated % validatorsPerOperator;
+        uint256 expectedDeposits = remainingDeposits > 0 ? remainingDeposits : validatorsPerOperator;
+        assertEq(allocations[allocations.length - 1].deposits, expectedDeposits);
     }
 
     function test_createOperatorWithoutManagerReverts() public {
@@ -190,7 +245,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         operatorRegistry.allocateStrategyShares(STETH_STRATEGY, 1);
     }
 
-    function test_allocateStrategySharesFullyAllocated() public {
+    function test_allocateStrategySharesFullyAllocatedExact() public {
         // Create 10 operators
         for (uint256 i = 0; i < 10; i++) {
             operatorRegistry.createOperator(
@@ -277,5 +332,134 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         assertEq(allocations[1].tokens, DEFAULT_STRATEGY_CAP);
         assertEq(allocations[2].shares, DEFAULT_STRATEGY_CAP / 2);
         assertEq(allocations[2].tokens, DEFAULT_STRATEGY_CAP / 2);
+    }
+
+    function test_allocateETHDepositsFullyAllocatedExact() public {
+        uint256 OPERATOR_COUNT = 10;
+        uint40 VALIDATORS_PER_OPERATOR = 5;
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(VALIDATORS_PER_OPERATOR);
+
+        // Create 10 operators
+        for (uint256 i = 0; i < OPERATOR_COUNT; i++) {
+            (uint8 operatorId, ) = operatorRegistry.createOperator(
+                address(this),
+                address(this),
+                'https://example.com/metadata.json',
+                defaultBlsDetails,
+                defaultStrategyShareCaps,
+                VALIDATORS_PER_OPERATOR,
+                bytes32(i) // Salt
+            );
+
+            // Upload validator keys
+            operatorRegistry.addValidatorDetails(
+                operatorId,
+                VALIDATORS_PER_OPERATOR,
+                publicKeys,
+                signatures
+            );
+
+            // Fast forward to allow validator keys time to confirm.
+            skip(operatorRegistry.validatorKeyReviewPeriod());
+        }
+
+        uint256 TOTAL_DEPOSITS_TO_ALLOCATE = OPERATOR_COUNT * VALIDATORS_PER_OPERATOR;
+
+        vm.prank(deployment.assetManager);
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
+            TOTAL_DEPOSITS_TO_ALLOCATE
+        );
+        assertEq(depositsAllocated, TOTAL_DEPOSITS_TO_ALLOCATE);
+        assertEq(allocations.length, 10);
+
+        for (uint256 i = 0; i < allocations.length; i++) {
+            assertEq(allocations[i].deposits, VALIDATORS_PER_OPERATOR);
+        }
+    }
+
+    function test_allocateETHDepositsOverAllocationIsCapped() public {
+        uint256 OPERATOR_COUNT = 10;
+        uint40 VALIDATORS_PER_OPERATOR = 5;
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(VALIDATORS_PER_OPERATOR);
+
+        // Create 10 operators
+        for (uint256 i = 0; i < OPERATOR_COUNT; i++) {
+            (uint8 operatorId, ) = operatorRegistry.createOperator(
+                address(this),
+                address(this),
+                'https://example.com/metadata.json',
+                defaultBlsDetails,
+                defaultStrategyShareCaps,
+                VALIDATORS_PER_OPERATOR,
+                bytes32(i) // Salt
+            );
+
+            // Upload validator keys
+            operatorRegistry.addValidatorDetails(
+                operatorId,
+                VALIDATORS_PER_OPERATOR,
+                publicKeys,
+                signatures
+            );
+
+            // Fast forward to allow validator keys time to confirm.
+            skip(operatorRegistry.validatorKeyReviewPeriod());
+        }
+
+        uint256 TOTAL_DEPOSITS_TO_ALLOCATE = OPERATOR_COUNT * VALIDATORS_PER_OPERATOR;
+
+        vm.prank(deployment.assetManager);
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
+            TOTAL_DEPOSITS_TO_ALLOCATE + 2 // Requesting more than available
+        );
+        assertEq(depositsAllocated, TOTAL_DEPOSITS_TO_ALLOCATE);
+        assertEq(allocations.length, 10);
+
+        for (uint256 i = 0; i < allocations.length; i++) {
+            assertEq(allocations[i].deposits, VALIDATORS_PER_OPERATOR);
+        }
+    }
+
+    function test_allocateETHDepositsPartiallyAllocated() public {
+        uint256 OPERATOR_COUNT = 10;
+        uint40 VALIDATORS_PER_OPERATOR = 5;
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(VALIDATORS_PER_OPERATOR);
+
+        // Create 10 operators
+        for (uint256 i = 0; i < OPERATOR_COUNT; i++) {
+            (uint8 operatorId, ) = operatorRegistry.createOperator(
+                address(this),
+                address(this),
+                'https://example.com/metadata.json',
+                defaultBlsDetails,
+                defaultStrategyShareCaps,
+                VALIDATORS_PER_OPERATOR,
+                bytes32(i) // Salt
+            );
+
+            // Upload validator keys
+            operatorRegistry.addValidatorDetails(
+                operatorId,
+                VALIDATORS_PER_OPERATOR,
+                publicKeys,
+                signatures
+            );
+
+            // Fast forward to allow validator keys time to confirm.
+            skip(operatorRegistry.validatorKeyReviewPeriod());
+        }
+
+        uint256 TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL = (VALIDATORS_PER_OPERATOR * 2) + (VALIDATORS_PER_OPERATOR / 2);
+
+        vm.prank(deployment.assetManager);
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
+            TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL
+        );
+        assertEq(depositsAllocated, TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL);
+        assertEq(allocations.length, 3);
+
+        assertEq(allocations[0].deposits, VALIDATORS_PER_OPERATOR);
+        assertEq(allocations[1].deposits, VALIDATORS_PER_OPERATOR);
+        assertEq(allocations[2].deposits, VALIDATORS_PER_OPERATOR / 2);
     }
 }

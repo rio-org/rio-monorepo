@@ -23,9 +23,9 @@ abstract contract RioDeployer is BalancerDeployer, EigenLayerDeployer {
     address public constant BEACON_CHAIN_ETH_STRATEGY = 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0;
     uint256 public constant MIN_SWAP_FEE = 1e12; // 0.0001%
 
-    uint256 public constant INITIAL_RETH_CASH_BALANCE = 100 ether;
-    uint256 public constant INITIAL_WETH_CASH_BALANCE = 100 ether;
-    uint256 public constant INITIAL_WSTETH_CASH_BALANCE = 120 ether;
+    uint256 public constant INITIAL_RETH_CASH_BALANCE = 960 ether;
+    uint256 public constant INITIAL_WETH_CASH_BALANCE = 960 ether;
+    uint256 public constant INITIAL_WSTETH_CASH_BALANCE = 1150 ether;
 
     uint64 public constant TARGET_AUM_PERCENTAGE = 0.95e18; // 95%
 

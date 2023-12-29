@@ -294,6 +294,9 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @notice Returns the total number of active operators in the registry.
     function activeOperatorCount() external view returns (uint8);
 
+    /// @notice The amount of time (in seconds) before uploaded validator keys are considered "vetted".
+    function validatorKeyReviewPeriod() external view returns (uint24);
+
     /// @notice Get the expected contract address of an operator created with the provided salt.
     /// @param salt The salt used to generate the operator's address.
     function predictOperatorAddress(bytes32 salt) external view returns (address operator);
@@ -327,6 +330,26 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// asset manager.
     /// @param operatorId The operator's ID.
     function deactivateOperator(uint8 operatorId) external;
+
+    /// @notice Adds pending validator details (public keys and signatures) to storage for the provided operator.
+    /// Each added batch extends the timestamp at which the details will be considered confirmed.
+    /// @param operatorId The operator's ID.
+    /// @param validatorCount The number of validators in the batch.
+    /// @param publicKeys The validator public keys.
+    /// @param signatures The validator signatures.
+    function addValidatorDetails(
+        uint8 operatorId,
+        uint256 validatorCount,
+        bytes calldata publicKeys,
+        bytes calldata signatures
+    ) external;
+
+    // forgefmt: disable-next-item
+    /// @notice Removes pending validator details (public keys and signatures) from storage for the provided operator.
+    /// @param operatorId The operator's ID.
+    /// @param fromIndex The index of the first validator to remove.
+    /// @param validatorCount The number of validator to remove.
+    function removeValidatorDetails(uint8 operatorId, uint256 fromIndex, uint256 validatorCount) external;
 
     // forgefmt: disable-next-item
     /// @notice Allocates a specified amount of shares for the provided strategy to the operators with the lowest utilization.

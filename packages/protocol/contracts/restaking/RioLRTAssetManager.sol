@@ -75,7 +75,8 @@ contract RioLRTAssetManager is IRioLRTAssetManager, WrappedTokenHandler, Ownable
     /// @notice Require that the rebalance delay has been met.
     /// @param token The token to check the rebalance delay for.
     modifier onlyAfterRebalanceDelay(address token) {
-        if (block.timestamp - tokenRebalances[token].lastRebalancedAt >= rebalanceDelay) {
+        uint256 lastRebalancedAt = tokenRebalances[token].lastRebalancedAt;
+        if (lastRebalancedAt > 0 && block.timestamp - lastRebalancedAt < rebalanceDelay) {
             revert REBALANCE_DELAY_NOT_MET();
         }
         _;
