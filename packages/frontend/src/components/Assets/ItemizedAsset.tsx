@@ -37,7 +37,9 @@ const ItemizedAsset = ({
         </p>
       </div>
       <p className="flex gap-2 items-center justify-center content-center text-[14px]">
-        {amount ? displayEthAmount(amount.toString()) : displayEthAmount(formatUnits(BigInt(0), asset.decimals))}
+        {amount
+          ? displayEthAmount(amount.toString())
+          : displayEthAmount(formatUnits(BigInt(0), asset.decimals))}
         <SymbolPill symbol={asset.symbol} />
         {isLoading && <Skeleton width={60} />}
         {isError && (

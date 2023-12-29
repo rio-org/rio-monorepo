@@ -54,8 +54,8 @@ const History: NextPage = () => {
             </h2>
           )}
           {address &&
-            accountWithdrawals.data &&
-            accountWithdrawals.data.length > 0 ? (
+          accountWithdrawals.data &&
+          accountWithdrawals.data.length > 0 ? (
             <motion.div
               className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200"
               layoutId="withdraw-history"

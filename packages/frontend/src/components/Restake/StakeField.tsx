@@ -8,7 +8,6 @@ import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
-import bigDecimal from 'js-big-decimal';
 
 type Props = {
   activeToken: AssetDetails;
@@ -129,13 +128,14 @@ const StakeField = ({
           </span>
           <div>
             {isMounted &&
-              accountTokenBalance !== undefined &&
-              activeToken.symbol ? (
+            accountTokenBalance !== undefined &&
+            activeToken.symbol ? (
               <>
                 <span className="opacity-50">
                   Balance:{' '}
-                  {displayEthAmount(formatUnits(accountTokenBalance, activeToken.decimals))}
-                  {' '}
+                  {displayEthAmount(
+                    formatUnits(accountTokenBalance, activeToken.decimals)
+                  )}{' '}
                   {activeToken.symbol}
                 </span>{' '}
                 <button

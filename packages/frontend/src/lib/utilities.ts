@@ -135,7 +135,9 @@ export const dateFromTimestamp = (timestamp: number) => {
 
 export const displayEthAmount = (amount: string) => {
   const decimalPlaces = CHAIN_ID === 1 ? 2 : 3;
-  return parseFloat(parseFloat(
-    bigDecimal.round(amount, decimalPlaces, bigDecimal.RoundingModes.DOWN)
-  ).toFixed(decimalPlaces));
+  return parseFloat(
+    parseFloat(
+      bigDecimal.round(amount, decimalPlaces, bigDecimal.RoundingModes.DOWN)
+    ).toFixed(decimalPlaces)
+  );
 };

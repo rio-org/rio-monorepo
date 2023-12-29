@@ -29,7 +29,9 @@ const DepositAssetItem = ({
       : undefined
   });
   // const amount = data && <>{(+data?.formatted).toFixed(2)}</>;
-  const amount = data && <>{displayEthAmount(formatUnits(data.value, data.decimals))}</>;
+  const amount = data && (
+    <>{displayEthAmount(formatUnits(data.value, data.decimals))}</>
+  );
   const handleClick = (asset: AssetDetails) => {
     setActiveToken(asset);
     setIsListOpen(false);

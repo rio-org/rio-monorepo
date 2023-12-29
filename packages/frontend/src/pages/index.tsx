@@ -21,8 +21,7 @@ const Home: NextPage<Props> = ({ assetsList }) => {
     ) : (
       <Skeleton width={40} />
     );
-  const apr =
-    isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
+  const apr = isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
   useEffect(() => {
     setIsMounted(true);
   }, []);

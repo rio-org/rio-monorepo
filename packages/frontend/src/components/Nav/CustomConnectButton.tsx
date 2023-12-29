@@ -17,7 +17,7 @@ import cx from 'classnames';
 import { mainNavConnectVariants } from '../../lib/motion';
 import { motion } from 'framer-motion';
 import { formatEther, formatUnits } from 'viem';
-import { displayEthAmount, truncDec } from '../../lib/utilities';
+import { displayEthAmount } from '../../lib/utilities';
 
 export const CustomConnectButton = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -127,11 +127,14 @@ export const CustomConnectButton = () => {
                         <div className="flex flex-col py-1 px-2 text-right items-end hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer text-[14px]">
                           {account?.displayName}
                           <span className="text-sm opacity-50 hidden lg:block">
-                            {reEthBalance && (
-                              displayEthAmount(formatUnits(
-                                reEthBalance.value,
-                                reEthBalance.decimals
-                              )))} {" "} reETH
+                            {reEthBalance &&
+                              displayEthAmount(
+                                formatUnits(
+                                  reEthBalance.value,
+                                  reEthBalance.decimals
+                                )
+                              )}{' '}
+                            reETH
                           </span>
                         </div>
                       </MenuHandler>

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AssetDetails } from '../../lib/typings';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
-import { displayEthAmount, parseBigIntFieldAmount, truncDec } from '../../lib/utilities';
+import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
@@ -54,7 +54,11 @@ const WithdrawField = ({
         {hasMounted && accountReETHBalance !== undefined && reETHToken ? (
           <>
             <span className="opacity-50 text-[12px] -tracking-tight">
-              Balance:{' '}{displayEthAmount(formatUnits(accountReETHBalance, reETHToken.decimals))}{' '}reETH
+              Balance:{' '}
+              {displayEthAmount(
+                formatUnits(accountReETHBalance, reETHToken.decimals)
+              )}{' '}
+              reETH
             </span>{' '}
           </>
         ) : (
