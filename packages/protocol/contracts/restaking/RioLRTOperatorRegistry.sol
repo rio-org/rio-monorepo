@@ -571,9 +571,12 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         uint256 allocationIndex;
         uint256 remainingDeposits = depositsToAllocate;
 
+        uint8 skippedOperatorCount;
+        OperatorUtilizationHeap.Operator[] memory skippedOperators = new OperatorUtilizationHeap.Operator[](heap.count);
+
         bytes memory pubKeyBatch;
         bytes memory signatureBatch;
-        while (remainingDeposits > 0) {
+        while (remainingDeposits > 0 && !heap.isEmpty()) {
             uint8 operatorId = heap.getMin().id;
 
             OperatorDetails storage operator = operatorDetails[operatorId];
@@ -594,25 +597,29 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
             // We can only allocate to confirmed keys that have not yet received a deposit.
             uint256 unallocatedConfirmedKeys = validators.confirmed - validators.deposited - validators.exited;
             if (unallocatedConfirmedKeys == 0) {
+                skippedOperators[skippedOperatorCount++] = heap.extractMin();
                 continue;
             }
 
             // Each allocation is a 32 ETH deposit. We can only allocate up to the number of unallocated confirmed keys.
-            uint256 newDepositAllocation = FixedPointMathLib.min(
-                FixedPointMathLib.min(validators.cap - activeDeposits, unallocatedConfirmedKeys), remainingDeposits
-            );
+            uint256 updatedAllocation;
+            {
+                uint256 newDepositAllocation = FixedPointMathLib.min(
+                    FixedPointMathLib.min(validators.cap - activeDeposits, unallocatedConfirmedKeys), remainingDeposits
+                );
 
-            // Load the allocated validator details from storage and update the deposited validator count.
-            (pubKeyBatch, signatureBatch) = ValidatorDetails.allocateMemory(newDepositAllocation);
-            VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
-                operatorId, validators.deposited, newDepositAllocation, pubKeyBatch, signatureBatch, 0
-            );
-            operator.validatorDetails.deposited += uint40(newDepositAllocation);
+                // Load the allocated validator details from storage and update the deposited validator count.
+                (pubKeyBatch, signatureBatch) = ValidatorDetails.allocateMemory(newDepositAllocation);
+                VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
+                    operatorId, validators.deposited, newDepositAllocation, pubKeyBatch, signatureBatch, 0
+                );
+                operator.validatorDetails.deposited += uint40(newDepositAllocation);
 
-            allocations[allocationIndex] = OperatorETHAllocation(operator.operatorContract, newDepositAllocation, pubKeyBatch, signatureBatch);
-            remainingDeposits -= newDepositAllocation;
+                allocations[allocationIndex] = OperatorETHAllocation(operator.operatorContract, newDepositAllocation, pubKeyBatch, signatureBatch);
+                remainingDeposits -= newDepositAllocation;
 
-            uint256 updatedAllocation = activeDeposits + newDepositAllocation;
+                updatedAllocation = activeDeposits + newDepositAllocation;
+            }
             heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, updatedAllocation.divWad(validators.cap));
 
             unchecked {
@@ -620,7 +627,12 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
             }
         }
         depositsAllocated = depositsToAllocate - remainingDeposits;
+        if (depositsAllocated == 0) revert NO_AVAILABLE_OPERATORS_FOR_ALLOCATION();
 
+        // Reinsert skipped operators back into the heap.
+        for (uint256 i = 0; i < skippedOperatorCount; ++i) {
+            heap.insert(skippedOperators[i]);
+        }
         heap.store(activeOperatorsByETHDepositUtilization);
 
         // Shrink the array length to the number of allocations made.

@@ -53,7 +53,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
     function testFuzz_allocateETHDeposits(uint8 operatorCount, uint8 validatorsPerOperator, uint16 depositsToAllocate) public {
         vm.assume(operatorCount > 0 && operatorCount <= 64);
         vm.assume(validatorsPerOperator > 0);
-        vm.assume(depositsToAllocate > 0);
+        vm.assume(depositsToAllocate > 0 && depositsToAllocate <= 100);
 
         (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(validatorsPerOperator);
 
@@ -334,6 +334,37 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         assertEq(allocations[2].tokens, DEFAULT_STRATEGY_CAP / 2);
     }
 
+    function test_allocateETHDepositsWithNoOperatorsReverts() public {
+        vm.prank(deployment.assetManager);
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.NO_AVAILABLE_OPERATORS_FOR_ALLOCATION.selector));
+        operatorRegistry.allocateETHDeposits(1);
+    }
+
+    function test_allocateETHDepositsWithNoConfirmedKeysReverts() public {
+        // Create an operator with unconfirmed keys.
+        uint40 VALIDATORS_PER_OPERATOR = 10;
+        (uint8 operatorId,) = operatorRegistry.createOperator(
+            address(this),
+            address(this),
+            'https://example.com/metadata.json',
+            defaultBlsDetails,
+            defaultStrategyShareCaps,
+            VALIDATORS_PER_OPERATOR,
+            bytes32(uint256(1)) // Salt
+        );
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(VALIDATORS_PER_OPERATOR);
+        operatorRegistry.addValidatorDetails(
+            operatorId,
+            VALIDATORS_PER_OPERATOR,
+            publicKeys,
+            signatures
+        );
+
+        vm.prank(deployment.assetManager);
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.NO_AVAILABLE_OPERATORS_FOR_ALLOCATION.selector));
+        operatorRegistry.allocateETHDeposits(VALIDATORS_PER_OPERATOR);
+    }
+
     function test_allocateETHDepositsFullyAllocatedExact() public {
         uint256 OPERATOR_COUNT = 10;
         uint40 VALIDATORS_PER_OPERATOR = 5;
@@ -461,5 +492,49 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         assertEq(allocations[0].deposits, VALIDATORS_PER_OPERATOR);
         assertEq(allocations[1].deposits, VALIDATORS_PER_OPERATOR);
         assertEq(allocations[2].deposits, VALIDATORS_PER_OPERATOR / 2);
+    }
+
+    function test_allocateETHDepositsSkipsOperatorsWithNoConfirmedKeys() public {
+        uint40 VALIDATORS_PER_OPERATOR = 10;
+            
+        // Create an operator without uploading any keys.
+        operatorRegistry.createOperator(
+            address(this),
+            address(this),
+            'https://example.com/metadata.json',
+            defaultBlsDetails,
+            defaultStrategyShareCaps,
+            VALIDATORS_PER_OPERATOR,
+            bytes32(uint256(0)) // Salt
+        );
+
+        // Create an operator with confirmed keys.
+        (uint8 operatorId, address operatorContract) = operatorRegistry.createOperator(
+            address(this),
+            address(this),
+            'https://example.com/metadata.json',
+            defaultBlsDetails,
+            defaultStrategyShareCaps,
+            VALIDATORS_PER_OPERATOR,
+            bytes32(uint256(1)) // Salt
+        );
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(VALIDATORS_PER_OPERATOR);
+        operatorRegistry.addValidatorDetails(
+            operatorId,
+            VALIDATORS_PER_OPERATOR,
+            publicKeys,
+            signatures
+        );
+        skip(operatorRegistry.validatorKeyReviewPeriod());
+
+        vm.prank(deployment.assetManager);
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
+            VALIDATORS_PER_OPERATOR * 2 // Try to allocate to both operators.
+        );
+        assertEq(depositsAllocated, VALIDATORS_PER_OPERATOR); // Only the operator with confirmed keys should be allocated to.
+        assertEq(allocations.length, 1);
+
+        assertEq(allocations[0].operator, operatorContract);
+        assertEq(allocations[0].deposits, VALIDATORS_PER_OPERATOR);
     }
 }
