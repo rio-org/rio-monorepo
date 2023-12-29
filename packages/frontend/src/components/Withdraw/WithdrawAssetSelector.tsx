@@ -58,12 +58,9 @@ const WithdrawAssetSelector = ({
     query: DESKTOP_MQ
   });
   const drawerContentRef = useRef<HTMLDivElement>(null);
-  const listRef = useOutsideClick(
-    () => {
-      setIsListOpen(false);
-    },
-    isButtonHovered
-  );
+  const listRef = useOutsideClick(() => {
+    setIsListOpen(false);
+  }, isButtonHovered);
 
   useEffect(() => {
     setIsMounted(true);
@@ -106,7 +103,8 @@ const WithdrawAssetSelector = ({
         {isDesktopOrLaptop && isListOpen && (
           <div
             ref={listRef}
-            className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
+            className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit"
+          >
             <List
               assetsList={assetsList}
               setIsListOpen={setIsListOpen}

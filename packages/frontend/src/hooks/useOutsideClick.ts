@@ -1,8 +1,12 @@
-import React, { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react';
 
-
-export const useOutsideClick = (callback: () => void, removeListener: boolean) => {
+export const useOutsideClick = (
+  callback: () => void,
+  removeListener: boolean
+) => {
   const ref = useRef<HTMLDivElement>(null);
+  const win = window as Window;
+  const doc = win.document as Document;
 
   const handleClick = (event: MouseEvent) => {
     if (ref.current && !ref.current.contains(event.target as Node)) {
@@ -13,15 +17,15 @@ export const useOutsideClick = (callback: () => void, removeListener: boolean) =
   useEffect(() => {
     if (removeListener) {
       return () => {
-        document.removeEventListener('click', handleClick, true);
+        doc.removeEventListener('click', handleClick, true);
       };
     } else {
-      document.addEventListener('click', handleClick, true);
+      doc.addEventListener('click', handleClick, true);
       return () => {
-        document.removeEventListener('click', handleClick, true);
+        doc.removeEventListener('click', handleClick, true);
       };
     }
   }, [ref, removeListener]);
 
   return ref;
-}
+};
