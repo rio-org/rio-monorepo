@@ -103,8 +103,8 @@ const DepositButton = ({
             'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
             !isValidAmount && 'bg-opacity-20',
             isValidAmount &&
-            !isJoinLoading &&
-            'hover:bg-[var(--color-dark-gray)]'
+              !isJoinLoading &&
+              'hover:bg-[var(--color-dark-gray)]'
           )}
           disabled={!isValidAmount || isJoinLoading}
           onClick={() => {

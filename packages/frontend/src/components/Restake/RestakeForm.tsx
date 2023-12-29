@@ -23,7 +23,6 @@ import { ASSET_ADDRESS } from '../../lib/constants';
 import { displayEthAmount, truncDec } from '../../lib/utilities';
 import { Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '../Shared/ApproveButtons';
-import bigDecimal from 'js-big-decimal';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -289,9 +288,11 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
           <div className="flex justify-between text-[14px]">
             <span className="text-black font-bold">Minimum received</span>
             <strong>
-              {minAmountOut && typeof minAmountOut === 'bigint' ? displayEthAmount(formatUnits(minAmountOut, activeToken.decimals))
-                : displayEthAmount((0).toString())}
-              {' '}
+              {minAmountOut && typeof minAmountOut === 'bigint'
+                ? displayEthAmount(
+                    formatUnits(minAmountOut, activeToken.decimals)
+                  )
+                : displayEthAmount((0).toString())}{' '}
               reETH
             </strong>
           </div>

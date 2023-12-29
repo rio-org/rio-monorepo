@@ -42,11 +42,11 @@ const parseTxs = (data: {
     }
     return {
       date: dateFromTimestamp(+event.timestamp),
-      tx: event.tx,
       type: event.type as TransactionType,
+      tx: event.tx,
       historicalReEthPrice: +event.valueUSD || 2200,
-      amountReEth: displayEthAmount(amount),
-      balance: displayEthAmount(event.userBalanceAfter)
+      amountReEth: displayEthAmount(amount).toString(),
+      balance: displayEthAmount(event.userBalanceAfter).toString()
     };
   });
 };
