@@ -50,7 +50,9 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         );
     }
 
-    function testFuzz_allocateETHDeposits(uint8 operatorCount, uint8 validatorsPerOperator, uint16 depositsToAllocate) public {
+    function testFuzz_allocateETHDeposits(uint8 operatorCount, uint8 validatorsPerOperator, uint16 depositsToAllocate)
+        public
+    {
         vm.assume(operatorCount > 0 && operatorCount <= 64);
         vm.assume(validatorsPerOperator > 0);
         vm.assume(depositsToAllocate > 0 && depositsToAllocate <= 100);
@@ -59,7 +61,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Create 10 operators
         for (uint256 i = 0; i < operatorCount; i++) {
-            (uint8 operatorId, ) = operatorRegistry.createOperator(
+            (uint8 operatorId,) = operatorRegistry.createOperator(
                 address(this),
                 address(this),
                 'https://example.com/metadata.json',
@@ -70,23 +72,19 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             );
 
             // Upload validator keys
-            operatorRegistry.addValidatorDetails(
-                operatorId,
-                validatorsPerOperator,
-                publicKeys,
-                signatures
-            );
+            operatorRegistry.addValidatorDetails(operatorId, validatorsPerOperator, publicKeys, signatures);
 
             // Fast forward to allow validator keys time to confirm.
             skip(operatorRegistry.validatorKeyReviewPeriod());
         }
 
         vm.prank(deployment.assetManager);
-        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
-            depositsToAllocate
-        );
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
+            operatorRegistry.allocateETHDeposits(depositsToAllocate);
 
-        assertEq(depositsAllocated, Math.min(uint256(depositsToAllocate), uint256(operatorCount) * validatorsPerOperator));
+        assertEq(
+            depositsAllocated, Math.min(uint256(depositsToAllocate), uint256(operatorCount) * validatorsPerOperator)
+        );
 
         for (uint256 i = 0; i < allocations.length - 1; ++i) {
             assertEq(allocations[i].deposits, validatorsPerOperator);
@@ -353,12 +351,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             bytes32(uint256(1)) // Salt
         );
         (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(VALIDATORS_PER_OPERATOR);
-        operatorRegistry.addValidatorDetails(
-            operatorId,
-            VALIDATORS_PER_OPERATOR,
-            publicKeys,
-            signatures
-        );
+        operatorRegistry.addValidatorDetails(operatorId, VALIDATORS_PER_OPERATOR, publicKeys, signatures);
 
         vm.prank(deployment.assetManager);
         vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.NO_AVAILABLE_OPERATORS_FOR_ALLOCATION.selector));
@@ -372,7 +365,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Create 10 operators
         for (uint256 i = 0; i < OPERATOR_COUNT; i++) {
-            (uint8 operatorId, ) = operatorRegistry.createOperator(
+            (uint8 operatorId,) = operatorRegistry.createOperator(
                 address(this),
                 address(this),
                 'https://example.com/metadata.json',
@@ -383,12 +376,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             );
 
             // Upload validator keys
-            operatorRegistry.addValidatorDetails(
-                operatorId,
-                VALIDATORS_PER_OPERATOR,
-                publicKeys,
-                signatures
-            );
+            operatorRegistry.addValidatorDetails(operatorId, VALIDATORS_PER_OPERATOR, publicKeys, signatures);
 
             // Fast forward to allow validator keys time to confirm.
             skip(operatorRegistry.validatorKeyReviewPeriod());
@@ -397,9 +385,8 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         uint256 TOTAL_DEPOSITS_TO_ALLOCATE = OPERATOR_COUNT * VALIDATORS_PER_OPERATOR;
 
         vm.prank(deployment.assetManager);
-        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
-            TOTAL_DEPOSITS_TO_ALLOCATE
-        );
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
+            operatorRegistry.allocateETHDeposits(TOTAL_DEPOSITS_TO_ALLOCATE);
         assertEq(depositsAllocated, TOTAL_DEPOSITS_TO_ALLOCATE);
         assertEq(allocations.length, 10);
 
@@ -415,7 +402,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Create 10 operators
         for (uint256 i = 0; i < OPERATOR_COUNT; i++) {
-            (uint8 operatorId, ) = operatorRegistry.createOperator(
+            (uint8 operatorId,) = operatorRegistry.createOperator(
                 address(this),
                 address(this),
                 'https://example.com/metadata.json',
@@ -426,12 +413,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             );
 
             // Upload validator keys
-            operatorRegistry.addValidatorDetails(
-                operatorId,
-                VALIDATORS_PER_OPERATOR,
-                publicKeys,
-                signatures
-            );
+            operatorRegistry.addValidatorDetails(operatorId, VALIDATORS_PER_OPERATOR, publicKeys, signatures);
 
             // Fast forward to allow validator keys time to confirm.
             skip(operatorRegistry.validatorKeyReviewPeriod());
@@ -440,7 +422,8 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         uint256 TOTAL_DEPOSITS_TO_ALLOCATE = OPERATOR_COUNT * VALIDATORS_PER_OPERATOR;
 
         vm.prank(deployment.assetManager);
-        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
+        operatorRegistry.allocateETHDeposits(
             TOTAL_DEPOSITS_TO_ALLOCATE + 2 // Requesting more than available
         );
         assertEq(depositsAllocated, TOTAL_DEPOSITS_TO_ALLOCATE);
@@ -458,7 +441,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Create 10 operators
         for (uint256 i = 0; i < OPERATOR_COUNT; i++) {
-            (uint8 operatorId, ) = operatorRegistry.createOperator(
+            (uint8 operatorId,) = operatorRegistry.createOperator(
                 address(this),
                 address(this),
                 'https://example.com/metadata.json',
@@ -469,12 +452,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             );
 
             // Upload validator keys
-            operatorRegistry.addValidatorDetails(
-                operatorId,
-                VALIDATORS_PER_OPERATOR,
-                publicKeys,
-                signatures
-            );
+            operatorRegistry.addValidatorDetails(operatorId, VALIDATORS_PER_OPERATOR, publicKeys, signatures);
 
             // Fast forward to allow validator keys time to confirm.
             skip(operatorRegistry.validatorKeyReviewPeriod());
@@ -483,9 +461,8 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         uint256 TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL = (VALIDATORS_PER_OPERATOR * 2) + (VALIDATORS_PER_OPERATOR / 2);
 
         vm.prank(deployment.assetManager);
-        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
-            TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL
-        );
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
+            operatorRegistry.allocateETHDeposits(TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL);
         assertEq(depositsAllocated, TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL);
         assertEq(allocations.length, 3);
 
@@ -496,7 +473,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
     function test_allocateETHDepositsSkipsOperatorsWithNoConfirmedKeys() public {
         uint40 VALIDATORS_PER_OPERATOR = 10;
-            
+
         // Create an operator without uploading any keys.
         operatorRegistry.createOperator(
             address(this),
@@ -519,16 +496,12 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             bytes32(uint256(1)) // Salt
         );
         (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(VALIDATORS_PER_OPERATOR);
-        operatorRegistry.addValidatorDetails(
-            operatorId,
-            VALIDATORS_PER_OPERATOR,
-            publicKeys,
-            signatures
-        );
+        operatorRegistry.addValidatorDetails(operatorId, VALIDATORS_PER_OPERATOR, publicKeys, signatures);
         skip(operatorRegistry.validatorKeyReviewPeriod());
 
         vm.prank(deployment.assetManager);
-        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
+        operatorRegistry.allocateETHDeposits(
             VALIDATORS_PER_OPERATOR * 2 // Try to allocate to both operators.
         );
         assertEq(depositsAllocated, VALIDATORS_PER_OPERATOR); // Only the operator with confirmed keys should be allocated to.

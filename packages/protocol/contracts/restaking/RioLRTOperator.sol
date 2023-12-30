@@ -181,7 +181,11 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param registryContract The address of the registry contract.
     /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registering for.
     /// @param registrationData The data that is decoded to get the operator's registration information.
-    function registerOperatorWithCoordinator(address registryContract, bytes memory quorumNumbers, bytes calldata registrationData) external onlyOperatorRegistry {
+    function registerOperatorWithCoordinator(
+        address registryContract,
+        bytes memory quorumNumbers,
+        bytes calldata registrationData
+    ) external onlyOperatorRegistry {
         IRegistryCoordinator(registryContract).registerOperatorWithCoordinator(quorumNumbers, registrationData);
     }
 
@@ -189,7 +193,11 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param registryContract The address of the registry contract.
     /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registered for.
     /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
-    function deregisterOperatorWithCoordinator(address registryContract, bytes calldata quorumNumbers, bytes calldata deregistrationData) external onlyOperatorRegistry {
+    function deregisterOperatorWithCoordinator(
+        address registryContract,
+        bytes calldata quorumNumbers,
+        bytes calldata deregistrationData
+    ) external onlyOperatorRegistry {
         IRegistryCoordinator(registryContract).deregisterOperatorWithCoordinator(quorumNumbers, deregistrationData);
     }
 

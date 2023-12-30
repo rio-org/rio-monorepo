@@ -62,13 +62,21 @@ interface IRioLRTOperator {
     /// @param registryContract The address of the registry contract.
     /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registering for.
     /// @param registrationData The data that is decoded to get the operator's registration information.
-    function registerOperatorWithCoordinator(address registryContract, bytes memory quorumNumbers, bytes calldata registrationData) external;
+    function registerOperatorWithCoordinator(
+        address registryContract,
+        bytes memory quorumNumbers,
+        bytes calldata registrationData
+    ) external;
 
     /// @notice Deregisters this operator from the given quorum numbers on `registryContract`.
     /// @param registryContract The address of the registry contract.
     /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registered for.
     /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
-    function deregisterOperatorWithCoordinator(address registryContract, bytes calldata quorumNumbers, bytes calldata deregistrationData) external;
+    function deregisterOperatorWithCoordinator(
+        address registryContract,
+        bytes calldata quorumNumbers,
+        bytes calldata deregistrationData
+    ) external;
 
     /// @notice Verifies withdrawal credentials of validator(s) owned by this operator.
     /// It also verifies the effective balance of the validator(s).

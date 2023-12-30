@@ -61,7 +61,8 @@ contract RioLRTIssuerTest is RioDeployer {
         // Create some operators
         uint256 validatorCount = 10;
         (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(validatorCount);
-        IRioLRTOperatorRegistry.StrategyShareCap[] memory caps = new IRioLRTOperatorRegistry.StrategyShareCap[](tokens.length);
+        IRioLRTOperatorRegistry.StrategyShareCap[] memory caps =
+            new IRioLRTOperatorRegistry.StrategyShareCap[](tokens.length);
         for (uint256 i = 0; i < tokens.length; ++i) {
             caps[i] = IRioLRTOperatorRegistry.StrategyShareCap({
                 strategy: assetManager.getStrategy(tokens[i]),
@@ -70,7 +71,7 @@ contract RioLRTIssuerTest is RioDeployer {
         }
         for (uint256 i = 0; i < 5; ++i) {
             uint256 zero = 0;
-            (uint8 operatorId, ) = operatorRegistry.createOperator(
+            (uint8 operatorId,) = operatorRegistry.createOperator(
                 address(this),
                 address(this),
                 'https://example.com/metadata.json',
@@ -85,12 +86,7 @@ contract RioLRTIssuerTest is RioDeployer {
             );
 
             // Upload validator keys
-            operatorRegistry.addValidatorDetails(
-                operatorId,
-                validatorCount,
-                publicKeys,
-                signatures
-            );
+            operatorRegistry.addValidatorDetails(operatorId, validatorCount, publicKeys, signatures);
         }
 
         // Fast forward to allow validator keys time to confirm.
@@ -494,9 +490,8 @@ contract RioLRTIssuerTest is RioDeployer {
         assertEq(IERC20(tokens[0]).balanceOf(address(this)) - startingToken0Balance, cashRemaining);
 
         uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[0]);
-        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
-            tokens[0], currentEpoch, address(this)
-        );
+        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal =
+            withdrawalQueue.getUserWithdrawal(tokens[0], currentEpoch, address(this));
         assertGe(withdrawal.shares, MIN_AMOUNT_OUT - cashRemaining);
         assertFalse(withdrawal.claimed);
     }
@@ -525,9 +520,8 @@ contract RioLRTIssuerTest is RioDeployer {
         assertEq(address(this).balance - startingEtherBalance, cashRemaining);
 
         uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[0]);
-        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
-            address(weth), currentEpoch, address(this)
-        );
+        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal =
+            withdrawalQueue.getUserWithdrawal(address(weth), currentEpoch, address(this));
         assertGe(withdrawal.shares, MIN_AMOUNT_OUT - cashRemaining);
         assertFalse(withdrawal.claimed);
     }
@@ -553,9 +547,8 @@ contract RioLRTIssuerTest is RioDeployer {
         assertEq(IERC20(tokens[0]).balanceOf(address(this)), startingToken0Balance);
 
         uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[0]);
-        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
-            tokens[0], currentEpoch, address(this)
-        );
+        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal =
+            withdrawalQueue.getUserWithdrawal(tokens[0], currentEpoch, address(this));
         assertGe(withdrawal.shares, MIN_AMOUNT_OUT);
         assertFalse(withdrawal.claimed);
     }
@@ -581,9 +574,8 @@ contract RioLRTIssuerTest is RioDeployer {
         assertEq(address(this).balance, startingEtherBalance);
 
         uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(address(weth));
-        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
-            address(weth), currentEpoch, address(this)
-        );
+        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal =
+            withdrawalQueue.getUserWithdrawal(address(weth), currentEpoch, address(this));
         assertGe(withdrawal.shares, MIN_AMOUNT_OUT);
         assertFalse(withdrawal.claimed);
     }
@@ -737,9 +729,8 @@ contract RioLRTIssuerTest is RioDeployer {
             assertEq(IERC20(tokens[i]).balanceOf(address(this)) - startingTokenBalances[i], cashAmountsRemaining[i]);
 
             uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[i]);
-            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
-                tokens[i], currentEpoch, address(this)
-            );
+            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal =
+                withdrawalQueue.getUserWithdrawal(tokens[i], currentEpoch, address(this));
             assertGe(withdrawal.shares, minAmountsOut[i] - cashAmountsRemaining[i]);
             assertFalse(withdrawal.claimed);
         }
@@ -775,9 +766,8 @@ contract RioLRTIssuerTest is RioDeployer {
             assertEq(IERC20(tokens[i]).balanceOf(address(this)), startingTokenBalances[i]);
 
             uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[i]);
-            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
-                tokens[i], currentEpoch, address(this)
-            );
+            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal =
+                withdrawalQueue.getUserWithdrawal(tokens[i], currentEpoch, address(this));
             assertGe(withdrawal.shares, minAmountsOut[i]);
             assertFalse(withdrawal.claimed);
         }
@@ -929,9 +919,8 @@ contract RioLRTIssuerTest is RioDeployer {
             assertEq(IERC20(tokens[i]).balanceOf(address(this)) - startingTokenBalances[i], cashAmountsRemaining[i]);
 
             uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[i]);
-            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
-                tokens[i], currentEpoch, address(this)
-            );
+            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal =
+                withdrawalQueue.getUserWithdrawal(tokens[i], currentEpoch, address(this));
             assertEq(withdrawal.shares, amountsOut[i] - cashAmountsRemaining[i]);
             assertFalse(withdrawal.claimed);
         }
@@ -967,9 +956,8 @@ contract RioLRTIssuerTest is RioDeployer {
             assertEq(IERC20(tokens[i]).balanceOf(address(this)), startingTokenBalances[i]);
 
             uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(tokens[i]);
-            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
-                tokens[i], currentEpoch, address(this)
-            );
+            IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal =
+                withdrawalQueue.getUserWithdrawal(tokens[i], currentEpoch, address(this));
             assertEq(withdrawal.shares, amountsOut[i]);
             assertFalse(withdrawal.claimed);
         }

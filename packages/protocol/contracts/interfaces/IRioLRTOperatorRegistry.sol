@@ -247,14 +247,18 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param avsId The AVS's ID.
     /// @param quorumNumbers The quorum numbers the operator registered for.
     /// @param registrationData The data that is decoded to get the operator's registration information.
-    event OperatorRegisteredWithAVSCoordinator(uint8 indexed operatorId, uint128 indexed avsId, bytes quorumNumbers, bytes registrationData);
+    event OperatorRegisteredWithAVSCoordinator(
+        uint8 indexed operatorId, uint128 indexed avsId, bytes quorumNumbers, bytes registrationData
+    );
 
     /// @notice Emitted when an operator deregisters with an AVS coordinator.
     /// @param operatorId The operator's ID.
     /// @param avsId The AVS's ID.
     /// @param quorumNumbers The quorum numbers the operator deregistered from.
     /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
-    event OperatorDeregisteredWithAVSCoordinator(uint8 indexed operatorId, uint128 indexed avsId, bytes quorumNumbers, bytes deregistrationData);
+    event OperatorDeregisteredWithAVSCoordinator(
+        uint8 indexed operatorId, uint128 indexed avsId, bytes quorumNumbers, bytes deregistrationData
+    );
 
     /// @notice Emitted when an operator opts into slashing for an AVS.
     /// @param operatorId The operator's ID.
@@ -265,7 +269,9 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param operatorId The operator's ID.
     /// @param oracleTimestamp The Beacon Chain timestamp whose state root the `proof` will be proven against.
     /// @param validatorIndices The list of indices of the validators being proven, refer to consensus specs.
-    event OperatorWithdrawalCredentialsVerified(uint8 indexed operatorId, uint64 oracleTimestamp, uint40[] validatorIndices);
+    event OperatorWithdrawalCredentialsVerified(
+        uint8 indexed operatorId, uint64 oracleTimestamp, uint40[] validatorIndices
+    );
 
     /// @notice Emitted when an operator uploads a new set of validator details (public keys and signatures).
     /// @param operatorId The operator's ID.

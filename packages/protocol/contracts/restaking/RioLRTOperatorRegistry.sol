@@ -424,14 +424,21 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registering for.
     /// @param registrationData The data that is decoded to get the operator's registration information.
     /// @dev Only active operators can register with an AVS coordinator.
-    function registerOperatorWithAVSCoordinator(uint8 operatorId, uint128 avsId, bytes calldata quorumNumbers, bytes calldata registrationData) external onlyOperatorManager(operatorId) {
+    function registerOperatorWithAVSCoordinator(
+        uint8 operatorId,
+        uint128 avsId,
+        bytes calldata quorumNumbers,
+        bytes calldata registrationData
+    ) external onlyOperatorManager(operatorId) {
         OperatorDetails storage operator = operatorDetails[operatorId];
         if (!operator.active) revert OPERATOR_NOT_ACTIVE();
 
         IRioLRTAVSRegistry.AVS memory avs = avsRegistry.getAVS(avsId);
         if (!avs.active) revert AVS_NOT_ACTIVE();
 
-        IRioLRTOperator(operator.operatorContract).registerOperatorWithCoordinator(avs.registryContract, quorumNumbers, registrationData);
+        IRioLRTOperator(operator.operatorContract).registerOperatorWithCoordinator(
+            avs.registryContract, quorumNumbers, registrationData
+        );
 
         emit OperatorRegisteredWithAVSCoordinator(operatorId, avsId, quorumNumbers, registrationData);
     }
@@ -441,13 +448,20 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param avsId The AVS's ID.
     /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registered for.
     /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
-    function deregisterOperatorWithAVSCoordinator(uint8 operatorId, uint128 avsId, bytes calldata quorumNumbers, bytes calldata deregistrationData) external onlyOperatorManager(operatorId) {
+    function deregisterOperatorWithAVSCoordinator(
+        uint8 operatorId,
+        uint128 avsId,
+        bytes calldata quorumNumbers,
+        bytes calldata deregistrationData
+    ) external onlyOperatorManager(operatorId) {
         OperatorDetails storage operator = operatorDetails[operatorId];
 
         IRioLRTAVSRegistry.AVS memory avs = avsRegistry.getAVS(avsId);
         if (avs.registryContract == address(0)) revert AVS_NOT_REGISTERED();
 
-        IRioLRTOperator(operator.operatorContract).deregisterOperatorWithCoordinator(avs.registryContract, quorumNumbers, deregistrationData);
+        IRioLRTOperator(operator.operatorContract).deregisterOperatorWithCoordinator(
+            avs.registryContract, quorumNumbers, deregistrationData
+        );
 
         emit OperatorDeregisteredWithAVSCoordinator(operatorId, avsId, quorumNumbers, deregistrationData);
     }
