@@ -154,12 +154,6 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @notice Thrown when an invalid index is provided.
     error INVALID_INDEX();
 
-    /// @notice Thrown when an invalid slashing contract address is provided.
-    error INVALID_SLASHING_CONTRACT();
-
-    /// @notice Thrown when attempting to opt into a slashing contract that is not active.
-    error SLASHING_CONTRACT_NOT_ACTIVE();
-
     /// @notice Thrown when attempting an operation that requires the operator to be active.
     error OPERATOR_NOT_ACTIVE();
 
@@ -178,6 +172,15 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
 
     /// @notice Thrown when there are no available operators for deallocation.
     error NO_AVAILABLE_OPERATORS_FOR_DEALLOCATION();
+
+    /// @notice Thrown when attempting an operation that requires the AVS to be active.
+    error AVS_NOT_ACTIVE();
+
+    /// @notice Thrown when attempting an operation that requires the AVS to be registered.
+    error AVS_NOT_REGISTERED();
+
+    /// @notice Thrown when attempting to opt into slashing for an AVS that has no slashing contract.
+    error NO_SLASHING_CONTRACT_FOR_AVS();
 
     /// @notice Thrown when attempting to queue the exit of zero shares.
     error CANNOT_EXIT_ZERO_SHARES();
@@ -239,10 +242,24 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param manager The new manager of the operator.
     event OperatorManagerSet(uint8 indexed operatorId, address manager);
 
-    /// @notice Emitted when an operator opts into a slashing contract.
+    /// @notice Emitted when an operator registers with an AVS coordinator.
     /// @param operatorId The operator's ID.
-    /// @param slashingContract The slashing contract address.
-    event OperatorSlashingOptedIn(uint8 indexed operatorId, address slashingContract);
+    /// @param avsId The AVS's ID.
+    /// @param quorumNumbers The quorum numbers the operator registered for.
+    /// @param registrationData The data that is decoded to get the operator's registration information.
+    event OperatorRegisteredWithAVSCoordinator(uint8 indexed operatorId, uint128 indexed avsId, bytes quorumNumbers, bytes registrationData);
+
+    /// @notice Emitted when an operator deregisters with an AVS coordinator.
+    /// @param operatorId The operator's ID.
+    /// @param avsId The AVS's ID.
+    /// @param quorumNumbers The quorum numbers the operator deregistered from.
+    /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
+    event OperatorDeregisteredWithAVSCoordinator(uint8 indexed operatorId, uint128 indexed avsId, bytes quorumNumbers, bytes deregistrationData);
+
+    /// @notice Emitted when an operator opts into slashing for an AVS.
+    /// @param operatorId The operator's ID.
+    /// @param avsId The AVS's ID.
+    event OperatorOptedIntoSlashingForAVS(uint8 indexed operatorId, uint128 indexed avsId);
 
     /// @notice Emitted following the verification of withdrawal credentials for one or more validators.
     /// @param operatorId The operator's ID.

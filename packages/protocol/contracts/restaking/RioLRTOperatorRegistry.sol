@@ -418,20 +418,55 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         emit OperatorManagerSet(operatorId, sender);
     }
 
-    /// @notice Gives the `slashingContract` permission to slash this operator.
+    /// @notice Registers an operator with an AVS coordinator for the given quorum numbers.
     /// @param operatorId The operator's ID.
-    /// @param slashingContract The address of the contract to give permission to.
-    /// @dev Unlike other operator functions, only active operators can opt into slashing.
-    function optIntoSlashing(uint8 operatorId, address slashingContract) external onlyOperatorManager(operatorId) {
-        if (slashingContract.code.length == 0) revert INVALID_SLASHING_CONTRACT();
-        if (!avsRegistry.isActiveSlashingContract(slashingContract)) revert SLASHING_CONTRACT_NOT_ACTIVE();
-
+    /// @param avsId The AVS's ID.
+    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registering for.
+    /// @param registrationData The data that is decoded to get the operator's registration information.
+    /// @dev Only active operators can register with an AVS coordinator.
+    function registerOperatorWithAVSCoordinator(uint8 operatorId, uint128 avsId, bytes calldata quorumNumbers, bytes calldata registrationData) external onlyOperatorManager(operatorId) {
         OperatorDetails storage operator = operatorDetails[operatorId];
         if (!operator.active) revert OPERATOR_NOT_ACTIVE();
 
-        IRioLRTOperator(operator.operatorContract).optIntoSlashing(slashingContract);
+        IRioLRTAVSRegistry.AVS memory avs = avsRegistry.getAVS(avsId);
+        if (!avs.active) revert AVS_NOT_ACTIVE();
 
-        emit OperatorSlashingOptedIn(operatorId, slashingContract);
+        IRioLRTOperator(operator.operatorContract).registerOperatorWithCoordinator(avs.registryContract, quorumNumbers, registrationData);
+
+        emit OperatorRegisteredWithAVSCoordinator(operatorId, avsId, quorumNumbers, registrationData);
+    }
+
+    /// @notice Deregisters an operator with an AVS coordinator for the given quorum numbers.
+    /// @param operatorId The operator's ID.
+    /// @param avsId The AVS's ID.
+    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registered for.
+    /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
+    function deregisterOperatorWithAVSCoordinator(uint8 operatorId, uint128 avsId, bytes calldata quorumNumbers, bytes calldata deregistrationData) external onlyOperatorManager(operatorId) {
+        OperatorDetails storage operator = operatorDetails[operatorId];
+
+        IRioLRTAVSRegistry.AVS memory avs = avsRegistry.getAVS(avsId);
+        if (avs.registryContract == address(0)) revert AVS_NOT_REGISTERED();
+
+        IRioLRTOperator(operator.operatorContract).deregisterOperatorWithCoordinator(avs.registryContract, quorumNumbers, deregistrationData);
+
+        emit OperatorDeregisteredWithAVSCoordinator(operatorId, avsId, quorumNumbers, deregistrationData);
+    }
+
+    /// @notice Gives an AVS slashing contract permission to slash an operator.
+    /// @param operatorId The operator's ID.
+    /// @param avsId The AVS's ID.
+    /// @dev Only active operators can opt into slashing.
+    function optIntoSlashingForAVS(uint8 operatorId, uint128 avsId) external onlyOperatorManager(operatorId) {
+        OperatorDetails storage operator = operatorDetails[operatorId];
+        if (!operator.active) revert OPERATOR_NOT_ACTIVE();
+
+        IRioLRTAVSRegistry.AVS memory avs = avsRegistry.getAVS(avsId);
+        if (!avs.active) revert AVS_NOT_ACTIVE();
+        if (avs.slashingContract == address(0)) revert NO_SLASHING_CONTRACT_FOR_AVS();
+
+        IRioLRTOperator(operator.operatorContract).optIntoSlashing(avs.slashingContract);
+
+        emit OperatorOptedIntoSlashingForAVS(operatorId, avsId);
     }
 
     /// @notice Verifies withdrawal credentials of validator(s) owned by the provided

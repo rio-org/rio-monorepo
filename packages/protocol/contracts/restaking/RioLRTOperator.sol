@@ -6,6 +6,7 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Initializable} from '@openzeppelin/contracts/proxy/utils/Initializable.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IBLSPublicKeyCompendium} from 'contracts/interfaces/eigenlayer/IBLSPublicKeyCompendium.sol';
+import {IRegistryCoordinator} from 'contracts/interfaces/eigenlayer/IRegistryCoordinator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
 import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager.sol';
@@ -174,6 +175,22 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param slashingContract The address of the contract to give permission to.
     function optIntoSlashing(address slashingContract) external onlyOperatorRegistry {
         slasher.optIntoSlashing(slashingContract);
+    }
+
+    /// @notice Registers this operator for the given quorum numbers on `registryContract`.
+    /// @param registryContract The address of the registry contract.
+    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registering for.
+    /// @param registrationData The data that is decoded to get the operator's registration information.
+    function registerOperatorWithCoordinator(address registryContract, bytes memory quorumNumbers, bytes calldata registrationData) external onlyOperatorRegistry {
+        IRegistryCoordinator(registryContract).registerOperatorWithCoordinator(quorumNumbers, registrationData);
+    }
+
+    /// @notice Deregisters this operator from the given quorum numbers on `registryContract`.
+    /// @param registryContract The address of the registry contract.
+    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registered for.
+    /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
+    function deregisterOperatorWithCoordinator(address registryContract, bytes calldata quorumNumbers, bytes calldata deregistrationData) external onlyOperatorRegistry {
+        IRegistryCoordinator(registryContract).deregisterOperatorWithCoordinator(quorumNumbers, deregistrationData);
     }
 
     /// @notice Scrapes ETH sitting in the operator's EigenPod to the reward distributor.
