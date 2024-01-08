@@ -32,7 +32,7 @@ const WithdrawAssetItem = ({
     setIsListOpen(false);
   };
 
-  const reETHConversionAmount = 1.02; // temp todo
+  const reETHConversionAmount = 1.02; // TODO: get this from the API
   const amount = (
     <>
       {!isLoading && data && reETHConversionAmount ? (

@@ -20,7 +20,6 @@ const parseExits = (data: ExitSubgraphResponse[]): WithdrawEvent[] => {
     return +b.timestamp - +a.timestamp;
   });
   return sorted.map((event) => {
-    console.log('event', event);
     return {
       date: dateFromTimestamp(+event.timestamp),
       status: 'Claimed' as TransactionStatus, // TODO: "Claimed" hardcoded for now. need to adjust when request > claim > available process is supported

@@ -38,7 +38,7 @@ const List = ({
             isActiveToken={asset.symbol === activeToken.symbol}
             setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
-            isBestRate={asset.symbol === '＊ETH' ? true : false} // todo: make dynamic
+            isBestRate={asset.symbol === '＊ETH' ? true : false} // todo: make dynamic when "best rate" data is made available
           />
         );
       })}

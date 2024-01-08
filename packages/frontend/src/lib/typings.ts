@@ -30,17 +30,11 @@ export const enum CHAIN_ID {
   ZORA_GOERLI = 999,
   FOUNDRY = 31337
 }
+
 export interface Chain extends WagmiChain {
   id: CHAIN_ID;
   slug: string;
   icon: string;
-}
-
-// used for demo
-export interface Proposal {
-  id: string;
-  title: string;
-  description: string;
 }
 
 export interface ConnectButtonProps {
@@ -73,11 +67,15 @@ export interface ConnectButtonProps {
   connectModalOpen: boolean;
 }
 
+// TODO: remove this when we have a proper type for the subgraph response
 export interface NetworkStats {
   tvl: number;
   apr: number;
 }
 
+///////////////////////////
+// asset types
+///////////////////////////
 export type Asset = {
   [key in TokenSymbol]: AssetDetails;
 };
@@ -87,13 +85,6 @@ export interface AssetDetails {
   symbol: TokenSymbol;
   address: EthereumAddress;
   logo: StaticImageData;
-  decimals: number;
-}
-
-export interface AssetSubgraphResponse {
-  name: string;
-  symbol: TokenSymbol;
-  address: EthereumAddress | null;
   decimals: number;
 }
 
@@ -118,6 +109,12 @@ export type AssetAddress = {
   [key in TokenSymbol]: AddressType | null;
 };
 
+///////////////////////////
+// transaction types
+///////////////////////////
+
+export type TransactionType = 'Deposit' | 'Withdrawal';
+export type TransactionStatus = 'Pending' | 'Available' | 'Claimed' | 'None';
 export interface WithdrawEvent {
   date: string;
   status: TransactionStatus;
@@ -126,8 +123,18 @@ export interface WithdrawEvent {
   tx: string;
 }
 
-export type TransactionStatus = 'Pending' | 'Available' | 'Claimed' | 'None';
+export interface TransactionEvent {
+  date: string;
+  type: TransactionType;
+  tx: string;
+  historicalReEthPrice: number;
+  amountReEth: string;
+  balance: string;
+}
 
+///////////////////////////
+// subgraph response types
+///////////////////////////
 export interface ExitSubgraphResponse {
   id: string;
   type: ExitType;
@@ -145,6 +152,14 @@ export interface ExitSubgraphResponse {
   timestamp: string;
 }
 
+
+export interface AssetSubgraphResponse {
+  name: string;
+  symbol: TokenSymbol;
+  address: EthereumAddress | null;
+  decimals: number;
+}
+
 export interface TransactionEventSubgraphResponse {
   type: ExitType;
   amountsOut: string[] | null;
@@ -158,15 +173,4 @@ export interface TransactionEventSubgraphResponse {
   user: {
     address: EthereumAddress;
   };
-}
-
-export type TransactionType = 'Deposit' | 'Withdrawal';
-
-export interface TransactionEvent {
-  date: string;
-  type: TransactionType;
-  tx: string;
-  historicalReEthPrice: number;
-  amountReEth: string;
-  balance: string;
 }

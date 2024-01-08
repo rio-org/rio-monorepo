@@ -36,7 +36,7 @@ const GOERLI_ASSET_ADDRESS: AssetAddress = {
   '＊ETH': null
 };
 
-// TODO:
+// TODO: update mainnet addresses
 const MAINNET_ASSET_ADDRESS: AssetAddress = {
   ETH: '0x0000000000000000000000000000000000000000',
   WETH: '0x00000',
@@ -122,7 +122,6 @@ export const ASSETS: Asset = {
 };
 
 // prettier-ignore
-// Demo Subgraph URLs
 export const PUBLIC_SUBGRAPH_URL = {
   1: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-mainnet',
   5: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-goerli',
@@ -152,3 +151,12 @@ export const TX_BUTTON_VARIANTS = {
 };
 
 export const DESKTOP_MQ = '(min-width: 960px)';
+
+// txHistoryTableHeader
+export const TX_HISTORY_TABLE_HEADER_LABELS = [
+  'Date',
+  'Transaction',
+  'Historical reETH price',
+  'Amount (USD)',
+  'Balance'
+];

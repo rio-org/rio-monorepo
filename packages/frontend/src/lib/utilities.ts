@@ -85,16 +85,6 @@ export const linkToTxOnBlockExplorer = (
   return `https://${subdomain}etherscan.io/tx/${address}`;
 };
 
-export const trunc = (address: string, amount: number = 4) =>
-  `${address?.slice(0, amount)}...${address?.slice(
-    address.length - amount,
-    address.length
-  )}`;
-
-export const getRandomNum = (min: number, max: number) => {
-  return Math.random() * (max - min) + min;
-};
-
 export const buildAssetList = (activeTokenSymbol: TokenSymbol) => {
   let assets = [ASSETS[activeTokenSymbol]];
   if (activeTokenSymbol === '＊ETH') {
@@ -106,6 +96,12 @@ export const buildAssetList = (activeTokenSymbol: TokenSymbol) => {
 
   return assets;
 };
+
+export const trunc = (address: string, amount: number = 4) =>
+  `${address?.slice(0, amount)}...${address?.slice(
+    address.length - amount,
+    address.length
+  )}`;
 
 export const truncDec = (num: number, digits: number = 3) => {
   const decimalPlaces = 10 ** digits;

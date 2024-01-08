@@ -30,7 +30,6 @@ const WithdrawWrapper = ({ children, noPadding }: Props) => {
               'bg-white rounded-xl w-full m-[2px] flex flex-col gap-4',
               noPadding ? '' : ' p-4 lg:p-6'
             )}
-            // layoutId="page-content-box"
           >
             {children}
           </motion.div>

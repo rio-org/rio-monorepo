@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { txHistoryTableHeader } from '../../../placeholder';
 import cx from 'classnames';
 import TableRow from './TableRow';
 import { useMediaQuery } from 'react-responsive';
-import { DESKTOP_MQ } from '../../lib/constants';
+import { DESKTOP_MQ, TX_HISTORY_TABLE_HEADER_LABELS } from '../../lib/constants';
 import { useAccount } from 'wagmi';
 import { useGetAccountTxHistory } from '../../hooks/useGetAccountTxHistory';
 import { EthereumAddress } from '../../lib/typings';
@@ -84,14 +83,14 @@ const TransactionHistoryTable = () => {
                     {isMounted && isDesktopOrLaptop && (
                       <motion.thead layoutId="table-header">
                         <tr>
-                          {txHistoryTableHeader.map((head, i) => (
+                          {TX_HISTORY_TABLE_HEADER_LABELS.map((head, i) => (
                             <th
                               key={head}
                               className={cx(
                                 'text-[12px] font-normal px-4 py-2 opacity-50',
                                 i < 2 ? 'text-left' : 'text-right',
                                 i === 0 && 'pl-6',
-                                i === txHistoryTableHeader.length - 1 && 'pr-6'
+                                i === TX_HISTORY_TABLE_HEADER_LABELS.length - 1 && 'pr-6'
                               )}
                             >
                               {head}

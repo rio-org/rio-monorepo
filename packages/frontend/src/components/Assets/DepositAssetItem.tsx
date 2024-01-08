@@ -28,7 +28,6 @@ const DepositAssetItem = ({
         : asset.address
       : undefined
   });
-  // const amount = data && <>{(+data?.formatted).toFixed(2)}</>;
   const amount = data && (
     <>{displayEthAmount(formatUnits(data.value, data.decimals))}</>
   );

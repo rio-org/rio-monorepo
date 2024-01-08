@@ -1,6 +1,5 @@
 import type { NextPage } from 'next';
 import RestakeWrapper from '../components/Restake/RestakeWrapper';
-import { useGetNetworkStats } from '../hooks/useGetNetworkStats';
 import Skeleton from 'react-loading-skeleton';
 import RestakeForm from '../components/Restake/RestakeForm';
 import { useState, useEffect } from 'react';
@@ -8,6 +7,7 @@ import { useGetAssetsList } from '../hooks/useGetAssetsList';
 import { AssetDetails } from '../lib/typings';
 import { CHAIN_ID } from '../../config';
 import { Tooltip } from '@material-tailwind/react';
+import { apr, tvl } from '../../placeholder';
 
 type Props = {
   assetsList: AssetDetails[];
@@ -15,14 +15,21 @@ type Props = {
 
 const Home: NextPage<Props> = ({ assetsList }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const { networkStats } = useGetNetworkStats();
-  const tvl =
+
+  // TODO: replace these stats with real data
+  const networkStats = {
+    tvl: Math.trunc(tvl),
+    apr: apr
+  }
+  const tvlVal =
     isMounted && networkStats?.tvl ? (
       networkStats.tvl.toLocaleString() + ' ETH'
     ) : (
       <Skeleton width={40} />
     );
-  const apr = isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
+  const aprVal = isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
+
+  // TODO: Replace the tooltip content with real copy
   const tooltipContent = (
     <>
       <p>APY information TKTK</p>
@@ -39,16 +46,16 @@ const Home: NextPage<Props> = ({ assetsList }) => {
           <h1 className="text-2xl font-medium">Restake</h1>
           <div className="flex gap-2 lg:justify-center items-center">
             <span className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4 flex gap-1">
-              TVL: {tvl}
+              TVL: {tvlVal}
             </span>
             <Tooltip content={tooltipContent}>
               <a
-                href="TODO"
+                href="TODO" // TODO: add link to public view of APY details
                 target="_blank"
                 rel="noreferrer"
                 className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4"
               >
-                {apr}% APY
+                {aprVal}% APY
               </a>
             </Tooltip>
           </div>

@@ -27,7 +27,8 @@ const WithdrawItemized = ({ amount, activeToken }: Props) => {
           <strong>Free</strong>
         </div>
       </div>
-      {/* removed distributed list until multiple-token withdrawals are active */}
+      {/* TODO: */}
+      {/* commented out the distributed list below and vars above until multiple-token withdrawals are active */}
       {/* <HR />
       <div
         className="flex justify-between items-center text-[14px]"
