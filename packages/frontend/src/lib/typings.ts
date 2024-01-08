@@ -152,7 +152,6 @@ export interface ExitSubgraphResponse {
   timestamp: string;
 }
 
-
 export interface AssetSubgraphResponse {
   name: string;
   symbol: TokenSymbol;

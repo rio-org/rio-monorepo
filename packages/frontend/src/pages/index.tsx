@@ -20,14 +20,15 @@ const Home: NextPage<Props> = ({ assetsList }) => {
   const networkStats = {
     tvl: Math.trunc(tvl),
     apr: apr
-  }
+  };
   const tvlVal =
     isMounted && networkStats?.tvl ? (
       networkStats.tvl.toLocaleString() + ' ETH'
     ) : (
       <Skeleton width={40} />
     );
-  const aprVal = isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
+  const aprVal =
+    isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
 
   // TODO: Replace the tooltip content with real copy
   const tooltipContent = (
