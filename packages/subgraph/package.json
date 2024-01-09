@@ -1,0 +1,25 @@
+{
+  "name": "@rionetwork/subgraph",
+  "version": "0.0.0-development",
+  "license": "GPL-3.0",
+  "scripts": {
+    "local-node": "docker-compose up",
+    "codegen": "graph codegen",
+    "prebuild": "graph codegen",
+    "build": "graph build",
+    "build:local": "graph build --network local",
+    "create:local": "graph create --node http://localhost:8020/ rio-org",
+    "remove:local": "graph remove --node http://localhost:8020/ rio-org",
+    "deploy:local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 rio-org",
+    "build:goerli": "graph build --network goerli",
+    "deploy:goerli": "graph deploy --network goerli --product hosted-service rio-org/rio-network-goerli",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.47.0",
+    "@graphprotocol/graph-ts": "0.29.3"
+  },
+  "devDependencies": {
+    "matchstick-as": "0.5.0"
+  }
+}

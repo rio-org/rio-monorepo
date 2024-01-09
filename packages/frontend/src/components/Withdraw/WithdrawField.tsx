@@ -22,7 +22,6 @@ const WithdrawField = ({
 }: Props) => {
   const [hasMounted, setHasMounted] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-
   const handleValueChange = (value: string) => {
     const parsedAmount = parseUnits(value, 18);
     if (value === '') {

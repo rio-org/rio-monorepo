@@ -1,16 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IManagedPoolSettings} from 'contracts/interfaces/balancer/IManagedPoolSettings.sol';
-
 interface IRioLRTIssuer {
     /// @notice Information required to issue a new liquid restaking token.
     struct LRTConfig {
+        address[] tokens;
+        address[] strategies;
         uint256[] amountsIn;
-        address[] allowedLPs;
+        uint256[] normalizedWeights;
+        uint64[] targetAUMPercentages;
+        uint256 swapFeePercentage;
+        uint256 managementAumFeePercentage;
+        bool swapEnabledOnStart;
         address securityCouncil;
-        IManagedPoolSettings.ManagedPoolSettingsParams settings;
+    }
+
+    /// @notice Deployed addresses for a given liquid restaking token.
+    struct LRTDeployment {
+        address token;
+        address gateway;
+        address assetManager;
+        address rewardDistributor;
+        address operatorRegistry;
+        address withdrawalQueue;
+        address avsRegistry;
     }
 
     /// @notice The pool join kind.
@@ -30,32 +43,14 @@ interface IRioLRTIssuer {
     /// @notice Thrown when the AUM fee is too high.
     error AUM_FEE_TOO_HIGH();
 
-    /// @notice Thrown when the LP allowlist is enabled, but no LPs have been allowlisted.
-    error NO_LPS_ALLOWLISTED();
-
-    /// @notice Thrown when the LP allowlist is disabled, but LPs have been allowlisted.
-    error ALLOWLIST_DISABLED_BUT_LPS_ALLOWLISTED();
-
     /// @notice Emitted when a new liquid restaking token is issued.
-    /// @param id The LRT pool ID.
     /// @param name The name of the new LRT.
     /// @param symbol The symbol of the new LRT.
-    /// @param tokens The underlying tokens of the LRT.
-    /// @param controller The LRT controller.
-    /// @param assetManager The LRT asset manager.
-    /// @param rewardDistributor The LRT reward distributor.
-    /// @param operatorRegistry The LRT operator registry.
-    /// @param withdrawalQueue The LRT withdrawal queue.
+    /// @param poolId The underlying pool ID.
+    /// @param config The LRT configuration.
+    /// @param deployment The LRT deployment addresses.
     event LiquidRestakingTokenIssued(
-        bytes32 id,
-        string name,
-        string symbol,
-        IERC20[] tokens,
-        address controller,
-        address assetManager,
-        address rewardDistributor,
-        address operatorRegistry,
-        address withdrawalQueue
+        string name, string symbol, bytes32 poolId, LRTConfig config, LRTDeployment deployment
     );
 
     /// @notice Initializes the contract.

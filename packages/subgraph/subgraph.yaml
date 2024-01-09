@@ -1,0 +1,91 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: RioLRTIssuer
+    source:
+      abi: RioLRTIssuer
+      address: "0x2A2fb9f94b92C957Df58dAD26f20fA51Cf45002C"
+      startBlock: 10204427
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/issuer.ts
+      entities:
+        - LRTIssuer
+        - LiquidRestakingToken
+      abis:
+        - name: RioLRTIssuer
+          file: ./abis/RioLRTIssuer.json
+        - name: ERC20Token
+          file: ./abis/ERC20Token.json
+      eventHandlers:
+        - event: LiquidRestakingTokenIssued(string,string,bytes32,(address[],address[],uint256[],uint256[],uint64[],uint256,uint256,bool,address),(address,address,address,address,address,address))
+          handler: handleLiquidRestakingTokenIssued
+    network: goerli
+  - kind: ethereum/contract
+    name: TokenWrapperFactory
+    source:
+      abi: TokenWrapperFactory
+      address: "0x9751Ee0CE7D683BbAce6fCbf16c645Fa5874E29e"
+      startBlock: 10204427
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/token-wrapper-factory.ts
+      entities:
+        - TokenWrapperFactory
+        - TokenWrapper
+      abis:
+        - name: TokenWrapperFactory
+          file: ./abis/TokenWrapperFactory.json
+        - name: ERC20Token
+          file: ./abis/ERC20Token.json
+      eventHandlers:
+        - event: WrappersDeployed(indexed address,indexed address,address[2])
+          handler: handleWrappersDeployed
+    network: goerli
+templates:
+  - name: LiquidRestakingToken
+    kind: ethereum/contract
+    source:
+      abi: RioLRT
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/liquid-restaking-token.ts
+      entities:
+        - LiquidRestakingToken
+      abis:
+        - name: RioLRT
+          file: ./abis/RioLRT.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleLiquidRestakingTokenTransfer
+    network: goerli
+  - name: Gateway
+    kind: ethereum/contract
+    source:
+      abi: RioLRTGateway
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/gateway.ts
+      entities:
+        - Join
+        - User
+      abis:
+        - name: RioLRTGateway
+          file: ./abis/RioLRTGateway.json
+      eventHandlers:
+        - event: JoinedTokensExactIn(indexed address,address[],uint256[],uint256)
+          handler: handleJoinedTokensExactIn
+        - event: RequestedExitTokenExactIn(indexed
+            address,address,uint256,uint256,uint256)
+          handler: handleRequestedExitTokenExactIn
+    network: goerli
