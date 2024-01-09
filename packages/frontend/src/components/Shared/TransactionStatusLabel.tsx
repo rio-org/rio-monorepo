@@ -1,5 +1,5 @@
 import React from 'react';
-import { WithdrawEvent } from '../../lib/typings';
+import { EthereumAddress, WithdrawEvent } from '../../lib/typings';
 import cx from 'classnames';
 import IconExternal from '../Icons/IconExternal';
 import { IconClock } from '../Icons/IconClock';
@@ -7,13 +7,13 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
+import { CHAIN_ID } from '../../../config';
 
 type Props = {
   transaction: WithdrawEvent;
 };
 
 const TransactionStatusLabel = ({ transaction }: Props) => {
-  const chainId = 1;
   const thresholds = [
     { l: 's', r: 1 },
     { l: 'm', r: 1 },
@@ -58,7 +58,10 @@ const TransactionStatusLabel = ({ transaction }: Props) => {
   return (
     <div className="w-full">
       <a
-        href={linkToTxOnBlockExplorer('0x000', chainId)}
+        href={linkToTxOnBlockExplorer(
+          transaction.tx as EthereumAddress,
+          CHAIN_ID
+        )}
         target="_blank"
         rel="noreferrer"
         className={cx(

@@ -1,36 +1,32 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import type { NextPage } from 'next';
-import { useAccount, useBalance } from 'wagmi';
-import { Spinner, Alert } from '@material-tailwind/react';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
 import WithdrawForm from '../../components/Withdraw/WithdrawForm';
+import { useGetAssetsList } from '../../hooks/useGetAssetsList';
+import { CHAIN_ID } from '../../../config';
+import { AssetDetails } from '../../lib/typings';
 
-const Withdraw: NextPage = () => {
-  const { address } = useAccount();
-  const { data, isError, isLoading } = useBalance({
-    address: address
-    // TODO: use reETH address. currently using ETH address for testing
-  });
+type Props = {
+  assetsList: AssetDetails[];
+};
 
-  useEffect(() => {
-    if (data) {
-      console.log(data);
-    }
-  }, [data]);
-
-  if (isError) return <Alert color="red">Error loading account balance.</Alert>;
-  if (isLoading)
-    return (
-      <div className="w-full text-center min-h-[100px] flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
-
+const Withdraw: NextPage<Props> = ({ assetsList }) => {
   return (
     <WithdrawWrapper>
-      <WithdrawForm />
+      <WithdrawForm assets={assetsList} />
     </WithdrawWrapper>
   );
 };
 
 export default Withdraw;
+
+export async function getStaticProps() {
+  const chainId = CHAIN_ID;
+  const assetsList = await useGetAssetsList(chainId);
+
+  return {
+    props: {
+      assetsList
+    }
+  };
+}

@@ -1,44 +1,48 @@
 import React from 'react';
-import { TokenSymbol, AssetDetails } from '../../lib/typings';
+import { AssetDetails } from '../../lib/typings';
 import cx from 'classnames';
 import AssetItemContent from './AssetItemContent';
 import Skeleton from 'react-loading-skeleton';
-import { reEthInUSD } from '../../../placeholder';
-import { useFetchDummyData } from '../../hooks/useFetchDummyData';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { useGetLatestAssetPrice } from '../../hooks/useGetLatestAssetPrice';
+import { CHAIN_ID } from '../../../config';
+
 type Props = {
-  asset: AssetDetails;
+  token: AssetDetails;
   isActiveToken: boolean;
   isBestRate: boolean;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  setActiveToken: (token: AssetDetails) => void;
   setIsListOpen: (isOpen: boolean) => void;
 };
 
 const WithdrawAssetItem = ({
-  asset,
+  token,
   isActiveToken,
   isBestRate,
-  setActiveTokenSymbol,
+  setActiveToken,
   setIsListOpen
 }: Props) => {
-  const handleClick = (symbol: TokenSymbol) => {
-    setActiveTokenSymbol(symbol);
+  const { data, isLoading, isError } = useGetLatestAssetPrice(
+    token.address,
+    CHAIN_ID
+  );
+  const handleClick = (token: AssetDetails) => {
+    setActiveToken(token);
     setIsListOpen(false);
   };
-  const {
-    isLoading,
-    isError,
-    data: reETHConversionAmount
-  } = useFetchDummyData();
+
+  const reETHConversionAmount = 1.02; // TODO: get this from the API
   const amount = (
     <>
-      {!isLoading && reETHConversionAmount ? (
+      {!isLoading && data && reETHConversionAmount ? (
         <>
           <strong className="text-[14px]">
-            1 reETH = {reETHConversionAmount} ＊ETH
+            1 reETH = {reETHConversionAmount} {token.symbol}
           </strong>
-          <span className="text-[14px] opacity-50">(${reEthInUSD})</span>
+          <span className="text-[14px] opacity-50 font-bold">
+            (${data.latestUSDPrice * reETHConversionAmount})
+          </span>
         </>
       ) : (
         <Skeleton inline width={100} />
@@ -53,9 +57,9 @@ const WithdrawAssetItem = ({
   return (
     <button
       onClick={() => {
-        handleClick(asset.symbol);
+        handleClick(token);
       }}
-      disabled={isError}
+      disabled={isError ? true : false}
       className={cx(
         'flex flex-row gap-2 w-full py-3 lg:py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
         !isError && 'hover:bg-[var(--color-element-wrapper-bg)]',
@@ -64,10 +68,10 @@ const WithdrawAssetItem = ({
       )}
     >
       <AssetItemContent
-        asset={asset}
+        asset={token}
         isActiveToken={isActiveToken}
         isLoading={isLoading}
-        isError={isError}
+        isError={isError ? true : false}
         isBestRate={isBestRate}
         amount={amount}
       />

@@ -1,27 +1,25 @@
 import React from 'react';
 import HR from '../Shared/HR';
-import ItemizedAsset from '../Assets/ItemizedAsset';
-import { TokenSymbol } from '../../lib/typings';
-import { buildAssetList } from '../../lib/utilities';
-import IconSelectArrow from '../Icons/IconSelectArrow';
-import { motion } from 'framer-motion';
+import { AssetDetails } from '../../lib/typings';
+import { formatUnits } from 'viem';
+import { displayEthAmount } from '../../lib/utilities';
 
 type Props = {
-  activeTokenSymbol: TokenSymbol;
-  amount: number;
+  activeToken: AssetDetails;
+  amount: bigint | null;
 };
 
-const WithdrawItemized = ({ activeTokenSymbol, amount }: Props) => {
-  const [isExpanded, setIsExpanded] = React.useState(true);
-  const assets = buildAssetList(activeTokenSymbol);
+const WithdrawItemized = ({ amount, activeToken }: Props) => {
+  // const [isExpanded, setIsExpanded] = React.useState(true);
+  // const assets = buildAssetList(activeToken.symbol);
   return (
     <div>
       <div className="flex flex-col gap-2">
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Exchange rate</span>
           <strong className="text-right">
-            1.00 reETH = 1.02 {activeTokenSymbol}{' '}
-            <span className="font-normal text-right">($1,789.28)</span>
+            1.00 reETH = 1.02 {activeToken.symbol}{' '}
+            <span className="text-right font-bold opacity-50">($1,789.28)</span>
           </strong>
         </div>
         <div className="flex justify-between text-[14px]">
@@ -29,7 +27,9 @@ const WithdrawItemized = ({ activeTokenSymbol, amount }: Props) => {
           <strong>Free</strong>
         </div>
       </div>
-      <HR />
+      {/* TODO: */}
+      {/* commented out the distributed list below and vars above until multiple-token withdrawals are active */}
+      {/* <HR />
       <div
         className="flex justify-between items-center text-[14px]"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -54,19 +54,21 @@ const WithdrawItemized = ({ activeTokenSymbol, amount }: Props) => {
                 isActiveToken={false}
                 isLoading={false}
                 isError={false}
-                amount={amount / 5}
+                amount={amountNum / 5}
               />
             );
           })}
         </div>
-      </motion.div>
+      </motion.div> */}
       <HR />
       <div className="flex justify-between text-[14px] mt-4">
         <strong>Total received</strong>
         <strong className="flex flex-row gap-2 items-center">
-          {amount.toFixed(2)}
+          {amount
+            ? displayEthAmount(formatUnits(amount, activeToken.decimals))
+            : displayEthAmount(formatUnits(BigInt(0), activeToken.decimals))}
           <span className="bg-[var(--color-element-wrapper-bg)] rounded-[4px] px-2 py-1 text-[12px] min-w-[60px] text-center block">
-            {activeTokenSymbol}
+            {activeToken.symbol}
           </span>
         </strong>
       </div>

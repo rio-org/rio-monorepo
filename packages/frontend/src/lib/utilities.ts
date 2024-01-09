@@ -1,5 +1,9 @@
+import { formatUnits } from 'viem';
 import { ASSETS } from './constants';
 import { CHAIN_ID_NUMBER, EthereumAddress, TokenSymbol } from './typings';
+import dayjs from 'dayjs';
+import bigDecimal from 'js-big-decimal';
+import { CHAIN_ID } from '../../config';
 
 export const getChainName = (chainId: number) => {
   switch (chainId) {
@@ -81,16 +85,6 @@ export const linkToTxOnBlockExplorer = (
   return `https://${subdomain}etherscan.io/tx/${address}`;
 };
 
-export const trunc = (address: string, amount: number = 4) =>
-  `${address?.slice(0, amount)}...${address?.slice(
-    address.length - amount,
-    address.length
-  )}`;
-
-export const getRandomNum = (min: number, max: number) => {
-  return Math.random() * (max - min) + min;
-};
-
 export const buildAssetList = (activeTokenSymbol: TokenSymbol) => {
   let assets = [ASSETS[activeTokenSymbol]];
   if (activeTokenSymbol === '＊ETH') {
@@ -101,4 +95,45 @@ export const buildAssetList = (activeTokenSymbol: TokenSymbol) => {
   }
 
   return assets;
+};
+
+export const trunc = (address: string, amount: number = 4) =>
+  `${address?.slice(0, amount)}...${address?.slice(
+    address.length - amount,
+    address.length
+  )}`;
+
+export const truncDec = (num: number, digits: number = 3) => {
+  const decimalPlaces = 10 ** digits;
+  return Math.trunc(num * decimalPlaces) / decimalPlaces;
+};
+
+export const parseBigIntFieldAmount = (
+  amount: bigint | null,
+  tokenDecimals: number
+) => {
+  if (amount === null) return '';
+  const isSafe = (+formatUnits(amount, tokenDecimals)).toString().includes('e')
+    ? false
+    : true;
+  if (isSafe) {
+    return truncDec(+formatUnits(amount, tokenDecimals), tokenDecimals);
+  } else {
+    return formatUnits(amount, tokenDecimals);
+  }
+};
+
+export const dateFromTimestamp = (timestamp: number) => {
+  const date = new Date(timestamp * 1000);
+  const str = dayjs(date).format('MMMM D, YYYY');
+  return str;
+};
+
+export const displayEthAmount = (amount: string) => {
+  const decimalPlaces = CHAIN_ID === 1 ? 2 : 3;
+  return parseFloat(
+    parseFloat(
+      bigDecimal.round(amount, decimalPlaces, bigDecimal.RoundingModes.DOWN)
+    ).toFixed(decimalPlaces)
+  );
 };

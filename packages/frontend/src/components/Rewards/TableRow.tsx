@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TransactionEvent } from '../../lib/typings';
+import { EthereumAddress, TransactionEvent } from '../../lib/typings';
 import TableLabel from './TableLabel';
 import cx from 'classnames';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
@@ -9,80 +9,135 @@ import { AnimatePresence, motion } from 'framer-motion';
 import IconLineArrow from '../Icons/IconLineArrow';
 import IconExpand from '../Icons/IconExpand';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { CHAIN_ID } from '../../../config';
 
 type Props = {
   event: TransactionEvent;
   isFirst?: boolean;
+  index: number;
 };
 
 type ScreenSizeRowProps = {
   event: TransactionEvent;
   isOpen: boolean;
-  chainId: number;
   setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   isFirst?: boolean;
+  index: number;
 };
 
-const DesktopRow = ({ event, isFirst, chainId }: ScreenSizeRowProps) => {
+const animationDuration = 0.1;
+const animationDelay = 0.025;
+const exitDuration = 0.085;
+
+const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
   return (
-    <tr className="group bg-white divide-gray-100">
-      <td
+    <motion.tr className="group bg-white divide-gray-100">
+      <motion.td
         className={cx(
           'p-4 pl-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
           isFirst && 'rounded-tl-xl'
         )}
+        key={`${index}-date`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
       >
         <TableLabel>
           <a
-            href={linkToTxOnBlockExplorer('0x000', chainId)}
+            href={linkToTxOnBlockExplorer(
+              event.tx as EthereumAddress,
+              CHAIN_ID
+            )}
             target="_blank"
             rel="noreferrer"
             className={cx(
-              `px-[8px] py-[4px] whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200 leading-none`
+              `pr-[8px] py-[4px] whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200 leading-none`
             )}
           >
             <span className="pt-1">{event.date}</span>
             <IconExternal transactionStatus="None" />
           </a>
         </TableLabel>
-      </td>
-      <td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors">
+      </motion.td>
+      <motion.td
+        className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
+        key={`${index}-type`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
+      >
         <TableLabel>{event.type}</TableLabel>
-      </td>
+      </motion.td>
 
-      <td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors">
+      <motion.td
+        className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
+        key={`${index}-price`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
+      >
         <TableLabel textDirection="right">
           ${event.historicalReEthPrice.toLocaleString()}
         </TableLabel>
-      </td>
-      <td className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors">
+      </motion.td>
+      <motion.td
+        className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
+        key={`${index}-amount`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
+      >
         <div className="flex flex-col">
           <TableLabel textDirection="right">
             {event.amountReEth} reETH
           </TableLabel>
           <TableLabel isSecondary={true} textDirection="right">
             $
-            {(+(event.amountReEth * event.historicalReEthPrice).toFixed(
-              2
-            )).toLocaleString()}
+            {(+event.amountReEth * event.historicalReEthPrice)
+              .toFixed(2)
+              .toLocaleString()}
           </TableLabel>
         </div>
-      </td>
-      <td
+      </motion.td>
+      <motion.td
         className={cx(
-          'p-4 pr-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
+          'p-4 pr-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors w-[15%]',
           isFirst && 'rounded-tr-xl'
         )}
+        key={`${index}-balance`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: exitDuration } }}
+        transition={{
+          duration: animationDuration,
+          delay: index * animationDelay
+        }}
       >
         <TableLabel textDirection="right">{event.balance} reETH</TableLabel>
         <TableLabel isSecondary={true} textDirection="right">
           $
-          {(+(event.balance * event.historicalReEthPrice).toFixed(
-            2
-          )).toLocaleString()}
+          {(+event.balance * event.historicalReEthPrice)
+            .toFixed(2)
+            .toLocaleString()}
         </TableLabel>
-      </td>
-    </tr>
+      </motion.td>
+    </motion.tr>
   );
 };
 
@@ -90,8 +145,7 @@ const MobileRow = ({
   event,
   isOpen,
   setIsOpen,
-  isFirst,
-  chainId
+  isFirst
 }: ScreenSizeRowProps) => {
   return (
     <tr
@@ -104,7 +158,7 @@ const MobileRow = ({
         <span className="text-[12px] font-normal opacity-50 flex">Date</span>
         <TableLabel>
           <a
-            href={linkToTxOnBlockExplorer('0x000', chainId)}
+            href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
             target="_blank"
             rel="noreferrer"
             className={cx(
@@ -175,10 +229,9 @@ const MobileRow = ({
   );
 };
 
-const TableRow = ({ event, isFirst }: Props) => {
+const TableRow = ({ event, isFirst, index }: Props) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const chainId = 1;
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
@@ -193,8 +246,8 @@ const TableRow = ({ event, isFirst }: Props) => {
         event={event}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
-        chainId={chainId}
         isFirst={isFirst}
+        index={index}
       />
     );
   }
@@ -203,8 +256,8 @@ const TableRow = ({ event, isFirst }: Props) => {
       event={event}
       isOpen={isOpen}
       setIsOpen={setIsOpen}
-      chainId={chainId}
       isFirst={isFirst}
+      index={index}
     />
   );
 };

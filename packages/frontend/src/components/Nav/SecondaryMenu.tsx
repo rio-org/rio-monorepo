@@ -6,6 +6,8 @@ import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import SecondaryMenuItems from './SecondaryMenuItems';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { motion } from 'framer-motion';
+import { mainNavChildrenVariants } from '../../lib/motion';
 
 type Props = {
   isSecondaryMenuOpen: boolean;
@@ -30,7 +32,7 @@ const SecondaryMenu = ({
 
   return (
     <>
-      <div>
+      <motion.div key={'secondaryMenu'} variants={mainNavChildrenVariants}>
         {isMounted && isDesktopOrLaptop ? (
           <Menu
             placement="bottom-start"
@@ -90,7 +92,7 @@ const SecondaryMenu = ({
             </button>
           </>
         )}
-      </div>
+      </motion.div>
     </>
   );
 };

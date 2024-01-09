@@ -1,30 +1,39 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TokenSymbol } from '../../lib/typings';
+import { AssetDetails } from '../../lib/typings';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
+import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
+import { formatUnits, parseUnits } from 'viem';
+import { useMediaQuery } from 'react-responsive';
+import { DESKTOP_MQ } from '../../lib/constants';
 
 type Props = {
-  amount: number;
-  accountTokenBalance: number;
-  activeTokenSymbol: TokenSymbol;
-  setAmount: (amount: number) => void;
+  amount: bigint | null;
+  accountReETHBalance: bigint;
+  reETHToken: AssetDetails;
+  setAmount: (amount: bigint | null) => void;
 };
 
 const WithdrawField = ({
   amount,
-  accountTokenBalance,
-  activeTokenSymbol,
+  accountReETHBalance,
+  reETHToken,
   setAmount
 }: Props) => {
   const [hasMounted, setHasMounted] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = +Number(e.target.value);
-    if (val >= 0) {
-      setAmount(+val.toFixed(2));
+  const handleValueChange = (value: string) => {
+    const parsedAmount = parseUnits(value, 18);
+    if (value === '') {
+      setAmount(null);
+      return;
     }
+    setAmount(parsedAmount);
   };
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const isDesktopOrLaptop = useMediaQuery({
+    query: DESKTOP_MQ
+  });
 
   const focusInput = () => {
     if (!inputRef.current) return;
@@ -39,14 +48,16 @@ const WithdrawField = ({
     <div>
       <div className="flex flex-row justify-between gap-4">
         <label htmlFor="amount" className="mb-1 font-medium">
-          Amount
+          reETH Amount
         </label>
-        {hasMounted &&
-        accountTokenBalance !== undefined &&
-        activeTokenSymbol ? (
+        {hasMounted && accountReETHBalance !== undefined && reETHToken ? (
           <>
             <span className="opacity-50 text-[12px] -tracking-tight">
-              Balance: {Math.trunc(accountTokenBalance * 1000) / 1000} reETH
+              Balance:{' '}
+              {displayEthAmount(
+                formatUnits(accountReETHBalance, reETHToken.decimals)
+              )}{' '}
+              reETH
             </span>{' '}
           </>
         ) : (
@@ -64,16 +75,18 @@ const WithdrawField = ({
       >
         <div className="relative flex flex-row gap-4 items-center">
           <input
-            className="text-[22px] bg-transparent w-full focus:outline-none"
+            className="text-[22px] bg-transparent w-full focus:outline-none flex-1"
             id="amount"
             type="number"
-            value={amount ? amount : ''}
             placeholder="0.00"
-            onChange={(e) => {
-              handleValueChange(e);
-            }}
-            autoFocus
+            autoFocus={isDesktopOrLaptop}
+            min={0}
+            value={parseBigIntFieldAmount(amount, 18)}
+            step="0.1"
             ref={inputRef}
+            onChange={(e) => {
+              handleValueChange(e.target.value);
+            }}
             onFocus={() => {
               setIsFocused(true);
             }}
@@ -84,7 +97,7 @@ const WithdrawField = ({
           <button
             className="font-medium ml-2 px-3 py-2 bg-[var(--color-element-wrapper-bg)] rounded-xl hover:bg-black hover:bg-opacity-10 transition-colors duration-200"
             onClick={() => {
-              setAmount(accountTokenBalance);
+              setAmount(accountReETHBalance);
             }}
           >
             Max

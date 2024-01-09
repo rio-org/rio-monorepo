@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TokenSymbol } from '../../lib/typings';
+import { AssetDetails, TokenSymbol } from '../../lib/typings';
 import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
 import Image from 'next/image';
 import IconSelectArrow from '../Icons/IconSelectArrow';
@@ -7,20 +7,26 @@ import cx from 'classnames';
 import { Drawer } from '@material-tailwind/react';
 import { useMediaQuery } from 'react-responsive';
 import AssetList from './AssetList';
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 
 type Props = {
   activeTokenSymbol: TokenSymbol;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  assets: AssetDetails[];
+  isDisabled?: boolean;
+  setActiveToken: (asset: AssetDetails) => void;
   setIsFocused: (isFocused: boolean) => void;
   unFocusInput: () => void;
 };
 
 const AssetSelector = ({
   activeTokenSymbol,
-  setActiveTokenSymbol,
+  assets,
+  isDisabled,
+  setActiveToken,
   unFocusInput
 }: Props) => {
   const [isListOpen, setIsListOpen] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
@@ -35,18 +41,30 @@ const AssetSelector = ({
       unFocusInput();
       setIsListOpen(true);
     } else {
-      setIsListOpen(!isListOpen);
+      if (isListOpen) {
+        setIsListOpen(false);
+      }
+      if (!isListOpen) {
+        setIsListOpen(true);
+      }
     }
   };
+
+  const listRef = useOutsideClick(() => {
+    setIsListOpen(false);
+  }, isButtonHovered);
 
   return (
     <>
       <button
-        onClick={() => handleClick()}
+        onClick={() => !isDisabled && handleClick()}
         className={cx(
           'flex flex-row gap-1 justify-center items-center py-1 pl-1 pr-2 rounded-full bg-[var(--color-element-wrapper-bg-light)] duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors',
           isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
         )}
+        disabled={isDisabled}
+        onMouseEnter={() => setIsButtonHovered(true)}
+        onMouseLeave={() => setIsButtonHovered(false)}
       >
         <Image
           src={ASSETS[activeTokenSymbol].logo}
@@ -60,10 +78,14 @@ const AssetSelector = ({
         </div>
       </button>
       {isDesktopOrLaptop && isListOpen && (
-        <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
+        <div
+          ref={listRef}
+          className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit"
+        >
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            assets={assets}
+            setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />
         </div>
@@ -78,7 +100,8 @@ const AssetSelector = ({
         >
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            assets={assets}
+            setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />
         </Drawer>

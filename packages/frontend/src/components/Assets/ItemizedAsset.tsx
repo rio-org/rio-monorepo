@@ -5,6 +5,8 @@ import InlineErrorMessage from '../Shared/InlineErrorMessage';
 import Image from 'next/image';
 import { AssetDetails } from '../../lib/typings';
 import SymbolPill from '../Shared/SymbolPill';
+import { formatUnits } from 'viem';
+import { displayEthAmount } from '../../lib/utilities';
 
 type Props = {
   asset: AssetDetails;
@@ -35,7 +37,9 @@ const ItemizedAsset = ({
         </p>
       </div>
       <p className="flex gap-2 items-center justify-center content-center text-[14px]">
-        {amount > 0 ? amount.toFixed(2) : '0.00'}
+        {amount
+          ? displayEthAmount(amount.toString())
+          : displayEthAmount(formatUnits(BigInt(0), asset.decimals))}
         <SymbolPill symbol={asset.symbol} />
         {isLoading && <Skeleton width={60} />}
         {isError && (
