@@ -85,7 +85,7 @@ const WithdrawField = ({
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
-              handleValueChange(e.target.value as string);
+              handleValueChange(e.target.value);
             }}
             onFocus={() => {
               setIsFocused(true);

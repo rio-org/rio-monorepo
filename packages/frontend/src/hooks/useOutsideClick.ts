@@ -6,7 +6,7 @@ export const useOutsideClick = (
 ) => {
   const ref = useRef<HTMLDivElement>(null);
   const win = window as Window;
-  const doc = win.document as Document;
+  const doc = win.document;
 
   const handleClick = (event: MouseEvent) => {
     if (ref.current && !ref.current.contains(event.target as Node)) {
