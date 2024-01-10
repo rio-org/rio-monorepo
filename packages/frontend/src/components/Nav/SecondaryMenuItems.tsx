@@ -18,35 +18,43 @@ const SecondaryMenuItems = ({ setIsSecondaryMenuOpen }: Props) => {
   return (
     <>
       <div>
-        {APP_SECONDARY_NAV_ITEMS.map(({ label, url, icon }, index) => (
-          <MenuItem key={label + index}>
-            <Link
-              href={url}
-              className="py-1 px-0 hover:text-black flex flex-row gap-2 items-center text-black font-medium"
-              onClick={() => setIsSecondaryMenuOpen(false)}
-            >
-              <Image src={icon} width={16} height={16} alt={label} />
-              {label}
-            </Link>
-          </MenuItem>
-        ))}
+        {APP_SECONDARY_NAV_ITEMS.map(
+          ({ label, url, icon }, index) =>
+            url && (
+              <MenuItem key={label + index}>
+                <Link
+                  href={url}
+                  className="py-1 px-0 hover:text-black flex flex-row gap-2 items-center text-black font-medium"
+                  onClick={() => setIsSecondaryMenuOpen(false)}
+                >
+                  <Image src={icon} width={16} height={16} alt={label} />
+                  {label}
+                </Link>
+              </MenuItem>
+            )
+        )}
       </div>
       <hr className="mx-2 my-2 border-t border-black border-opacity-10 bg-transparent " />
       <div className="mb-4">
-        {APP_TERTIARY_NAV_ITEMS.map(({ label, url }, index) => (
-          <MenuItem className="group" key={label + index}>
-            <Link
-              href={url}
-              className={twJoin(
-                'py-0 px-0 flex flex-row gap-1 items-center',
-                'text-black font-medium opacity-50',
-                'group-hover:opacity-100 text-[14px]'
-              )}
-            >
-              {label} <IconLineArrow direction="external" />
-            </Link>
-          </MenuItem>
-        ))}
+        {APP_TERTIARY_NAV_ITEMS.map(
+          ({ label, url, external }, index) =>
+            url && (
+              <MenuItem className="group" key={label + index}>
+                <Link
+                  href={url}
+                  target={external ? '_blank' : undefined}
+                  rel={external ? 'noopener noreferrer' : undefined}
+                  className={twJoin(
+                    'py-0 px-0 flex flex-row gap-1 items-center',
+                    'text-black font-medium opacity-50',
+                    'group-hover:opacity-100 text-[14px]'
+                  )}
+                >
+                  {label} <IconLineArrow direction="external" />
+                </Link>
+              </MenuItem>
+            )
+        )}
       </div>
       <div className="flex flex-row gap-1 mx-2 mb-2">
         {APP_SOCIAL_NAV_ITEMS.map(({ url, icon }, index) => (
