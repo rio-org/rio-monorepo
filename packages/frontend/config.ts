@@ -1,6 +1,7 @@
 import iconEth from './src/assets/icon-eth.svg';
+import iconDiscord from './src/assets/icon-discord.svg';
 import iconPaper from './src/assets/icon-paper.svg';
-import iconTwitter from './src/assets/icon-twitter.svg';
+import iconX from './src/assets/icon-x.svg';
 import iconTelegram from './src/assets/icon-telegram.svg';
 import iconGithub from './src/assets/icon-github.svg';
 import iconMail from './src/assets/icon-mail.svg';
@@ -55,19 +56,23 @@ export const APP_TERTIARY_NAV_ITEMS = [
 
 export const APP_SOCIAL_NAV_ITEMS = [
   {
-    url: '/',
-    icon: iconTwitter
+    url: 'https://discord.gg/rio-network',
+    icon: iconDiscord
   },
   {
-    url: '/',
+    url: 'https://x.com/RioRestaking',
+    icon: iconX
+  },
+  {
+    url: 'https://github.com/rio-org',
     icon: iconGithub
   },
   {
-    url: '/',
+    url: 'https://t.me/rionetworkupdates',
     icon: iconTelegram
   },
   {
-    url: '/',
+    url: 'mailto:hi@rio.network',
     icon: iconMail
   }
 ];

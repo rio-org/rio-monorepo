@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { mainNavChildrenVariants, mainNavVariants } from '../../lib/motion';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 const slugUrl = (slug: string) => {
   if (slug === '/') return '/';
@@ -61,14 +62,10 @@ const AppNav = () => {
   const activeTab =
     APP_NAV_ITEMS.find((item) => baseUrlSegment.includes(item.slug))?.slug ||
     APP_NAV_ITEMS[0].slug;
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
-
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <>

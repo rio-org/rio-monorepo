@@ -88,7 +88,7 @@ importers:
         version: 1.2.0(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@1.18.8)(wagmi@1.4.5)
       '@rionetwork/sdk-react':
         specifier: 0.1.0-alpha.12
-        version: 0.1.0-alpha.12(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        version: link:../sdk-react
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
@@ -131,6 +131,9 @@ importers:
       sharp:
         specifier: ^0.32.6
         version: 0.32.6
+      tailwind-merge:
+        specifier: ^2.2.0
+        version: 2.2.0
       viem:
         specifier: ^1.18.8
         version: 1.18.8(typescript@5.2.2)
@@ -1008,6 +1011,13 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
+
+  /@babel/runtime@7.23.8:
+    resolution: {integrity: sha512-Y7KbAP984rn1VGMbGqKmBLio9V7y5Je9GvU4rQPCPinCyNfUcToxIXl06d59URp/F3LwinvODxab5N/G6qggkw==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      regenerator-runtime: 0.14.0
+    dev: false
 
   /@babel/template@7.22.15:
     resolution: {integrity: sha512-QPErUVm4uyJa60rkI73qneDacvdvzxshT3kksGqlGWYdOTIUOwJ7RDUL8sGqslY1uXWSL6xMFKEXDS3ox2uF0w==}
@@ -3087,42 +3097,6 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.12(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
-    resolution: {integrity: sha512-CYQYA7DAwmUQt3j2/zns366GhThryB7bv6LWTsJvbX8bzDbJeVs6L0m1E0yNvINmTAZslZ2bd6S1Vc24yDkOZw==}
-    engines: {node: '>=16', pnpm: '>=7.5.1'}
-    peerDependencies:
-      react: '>=16.13.1'
-      wagmi: '>=1.2'
-    dependencies:
-      '@rionetwork/sdk': 0.1.0-alpha.11(graphql@16.8.1)(typescript@5.2.2)
-      react: 18.2.0
-      wagmi: 1.4.5(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - graphql
-      - typescript
-      - utf-8-validate
-      - zod
-    dev: false
-
-  /@rionetwork/sdk@0.1.0-alpha.11(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-kno38BhNSXOc5G2IQdTxtOqQHLGLoTLfgEIowtxh60Vhxp4s4gjrOwqECEWMKEoaXnFWeLiclf6XYiXA1+2PDA==}
-    engines: {node: '>=16', pnpm: '>=7.5.1'}
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
-      abitype: 0.10.3(typescript@5.2.2)
-      graphql-request: 6.1.0(graphql@16.8.1)
-      viem: 1.19.9(typescript@5.2.2)
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - graphql
-      - typescript
-      - utf-8-validate
-      - zod
-    dev: false
-
   /@rushstack/eslint-patch@1.5.1:
     resolution: {integrity: sha512-6i/8UoL0P5y4leBIGzvkZdS85RDMG9y1ihZzmTZQ5LdHUYmZ7pKFoj8X0236s3lusPs1Fa5HTQUpwI+UfTcmeA==}
     dev: true
@@ -4510,20 +4484,6 @@ packages:
         optional: true
     dependencies:
       typescript: 5.1.6
-    dev: false
-
-  /abitype@0.10.3(typescript@5.2.2):
-    resolution: {integrity: sha512-tRN+7XIa7J9xugdbRzFv/95ka5ivR/sRe01eiWvM0HWWjHuigSZEACgKa0sj4wGuekTDtghCx+5Izk/cOi78pQ==}
-    peerDependencies:
-      typescript: '>=5.0.4'
-      zod: ^3 >=3.22.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-      zod:
-        optional: true
-    dependencies:
-      typescript: 5.2.2
     dev: false
 
   /abitype@0.8.7(typescript@5.2.2):
@@ -6608,7 +6568,7 @@ packages:
     dependencies:
       acorn: 8.10.0
       acorn-jsx: 5.3.2(acorn@8.10.0)
-      eslint-visitor-keys: 3.4.2
+      eslint-visitor-keys: 3.4.3
     dev: true
 
   /esprima@4.0.1:
@@ -11320,6 +11280,12 @@ packages:
 
   /tailwind-merge@1.8.1:
     resolution: {integrity: sha512-+fflfPxvHFr81hTJpQ3MIwtqgvefHZFUHFiIHpVIRXvG/nX9+gu2P7JNlFu2bfDMJ+uHhi/pUgzaYacMoXv+Ww==}
+    dev: false
+
+  /tailwind-merge@2.2.0:
+    resolution: {integrity: sha512-SqqhhaL0T06SW59+JVNfAqKdqLs0497esifRrZ7jOaefP3o64fdFNDMrAQWZFMxTLJPiHVjRLUywT8uFz1xNWQ==}
+    dependencies:
+      '@babel/runtime': 7.23.8
     dev: false
 
   /tailwindcss@3.3.5:
