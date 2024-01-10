@@ -37,8 +37,13 @@ const DepositButton = ({
   const [buttonText, setButtonText] = useState('Enter an amount');
   const { chain } = useNetwork();
   const { error, isLoading, switchNetwork } = useSwitchNetwork();
-  console.log(error && 'error switching networks');
   const wrongNetwork = chain?.id !== CHAIN_ID;
+
+  useEffect(() => {
+    if (!error) return;
+    console.error('error switching networks');
+  }, [error]);
+
   useEffect(() => {
     if (isValidAmount) {
       setButtonText('Restake');

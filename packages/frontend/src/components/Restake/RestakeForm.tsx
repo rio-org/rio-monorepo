@@ -38,7 +38,6 @@ const queryTokens = async (
     ],
     slippage: 50
   });
-  console.log('query', query);
   return query;
 };
 
@@ -69,7 +68,6 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
         : activeToken.address
       : undefined
   });
-  console.log('isError', isError);
   const isValidAmount =
     !!amount && amount > BigInt(0) && amount <= accountTokenBalance;
   const isEmpty = !amount;
@@ -221,7 +219,6 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
         minAmountOut: minAmountOut
       })
       .then((res) => {
-        console.log('success', res);
         setIsJoinSuccess(true);
         setIsJoinLoading(false);
         setJoinTxHash(res);

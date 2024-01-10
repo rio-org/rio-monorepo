@@ -40,7 +40,6 @@ export const useGetAssetsList = async (chainId: CHAIN_ID_NUMBER) => {
 
   const data: AssetDetails[] | ApolloError = await getData(client)
     .then((res) => {
-      console.log(res.tokens);
       return JSON.parse(
         JSON.stringify(
           parseAssetList(res.tokens.concat(res.liquidRestakingTokens))
