@@ -202,10 +202,6 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, WrappedTokenHandler, O
         epochWithdrawals.settled = true;
         restakingToken.burn(epochWithdrawals.amountToBurnAtSettlement);
 
-        // TODO: We need to remove the shares at this point.
-        // i.e. assetShares[asset] -= sharesWithdrawn
-        // Not sure if it's a good idea to do this optimistically upon queuing or not.
-
         uint256 balanceBefore = asset.getSelfBalance();
 
         address[] memory assets = asset.toArray();

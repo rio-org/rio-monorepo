@@ -15,8 +15,6 @@ import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-// TODO: Updating of `assetSharesHeld`
-
 contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable {
     using OperatorOperations for IRioLRTOperatorRegistry;
     using SafeERC20 for IERC20;
@@ -156,9 +154,6 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
 
         IERC20(address(restakingToken)).safeTransferFrom(msg.sender, address(withdrawalQueue), amountIn);
 
-        // TODO: We could also account for the assets in the deposit pool, but if the yield drag
-        // causes the amount of shares owed to be greater than the amount of shares held in the
-        // deposit pool, then we have a problem.
         if (sharesOwed > assetSharesHeld[asset] - withdrawalQueue.getSharesOwedInCurrentEpoch(asset)) {
             revert INSUFFICIENT_SHARES_FOR_WITHDRAWAL();
         }
