@@ -103,7 +103,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         // Initialize all supporting contracts.
         IRioLRT(d.token).initialize(initialOwner, name, symbol, d.coordinator);
         IRioLRTCoordinator(d.coordinator).initialize(initialOwner, d.token, d.assetRegistry, d.operatorRegistry, d.depositPool, d.withdrawalQueue);
-        IRioLRTAssetRegistry(d.assetRegistry).initialize(initialOwner, d.coordinator, config.priceFeedDecimals);
+        IRioLRTAssetRegistry(d.assetRegistry).initialize(initialOwner, d.coordinator, config.priceFeedDecimals, config.assets);
         IRioLRTOperatorRegistry(d.operatorRegistry).initialize(initialOwner, d.coordinator, d.assetRegistry, d.avsRegistry, d.depositPool, d.rewardDistributor);
         IRioLRTAVSRegistry(d.avsRegistry).initialize(initialOwner);
         IRioLRTDepositPool(d.depositPool).initialize(initialOwner, d.assetRegistry, d.operatorRegistry, d.coordinator);

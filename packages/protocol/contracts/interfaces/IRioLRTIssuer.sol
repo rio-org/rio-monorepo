@@ -6,7 +6,7 @@ import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.so
 interface IRioLRTIssuer {
     /// @notice Information required to issue a new liquid restaking token.
     struct LRTConfig {
-        IRioLRTAssetRegistry.AssetConfig[] asset;
+        IRioLRTAssetRegistry.AssetConfig[] assets;
         uint8 priceFeedDecimals;
         address operatorRewardPool;
         address treasury;

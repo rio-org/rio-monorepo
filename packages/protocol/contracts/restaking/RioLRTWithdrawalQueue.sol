@@ -5,14 +5,13 @@ import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
-import {WrappedTokenHandler} from 'contracts/wrapping/WrappedTokenHandler.sol';
 import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, WrappedTokenHandler, OwnableUpgradeable, UUPSUpgradeable {
+contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable {
     using FixedPointMathLib for *;
     using Asset for address;
     using Array for *;
@@ -40,9 +39,8 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, WrappedTokenHandler, O
         _;
     }
 
-    /// @param tokenWrapperFactory_ The contract that deploys token wrappers.
     /// @param delegationManager_ The EigenLayer delegation manager.
-    constructor(address tokenWrapperFactory_, address delegationManager_) WrappedTokenHandler(tokenWrapperFactory_) {
+    constructor(address delegationManager_) {
         _disableInitializers();
 
         delegationManager = IDelegationManager(delegationManager_);

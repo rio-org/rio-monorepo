@@ -30,11 +30,22 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @notice Information about a supported asset.
     mapping(address asset => AssetInfo) public assetInfo;
 
+    /// @dev Prevent any future reinitialization.
+    constructor() {
+        _disableInitializers();
+    }
+
     /// @notice Initializes the asset manager contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param coordinator_ The liquid restaking token coordinator.
     /// @param priceFeedDecimals_ The number of decimals that all price feeds must use.
-    function initialize(address initialOwner, address coordinator_, uint8 priceFeedDecimals_) external initializer {
+    /// @param initialAssets The initial supported asset configurations.
+    function initialize(
+        address initialOwner,
+        address coordinator_,
+        uint8 priceFeedDecimals_,
+        AssetConfig[] calldata initialAssets
+    ) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
         
@@ -45,6 +56,11 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
 
         priceFeedDecimals = priceFeedDecimals_;
         priceScale = uint64(10) ** priceFeedDecimals_;
+
+        // Add the initial assets, if any.
+        for (uint256 i = 0; i < initialAssets.length; ++i) {
+            _addAsset(initialAssets[i]);
+        }
     }
 
     /// @notice Checks if a given asset is supported.
@@ -166,28 +182,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @notice Adds a new underlying asset to the liquid restaking token.
     /// @param config The asset's configuration.
     function addAsset(AssetConfig calldata config) external onlyOwner {
-        if (isSupportedAsset(config.asset)) revert ASSET_ALREADY_SUPPORTED(config.asset);
-        if (config.asset == address(0)) revert INVALID_ASSET_ADDRESS();
-
-        uint8 decimals = config.asset == ETH_ADDRESS ? 18 : IERC20Metadata(config.asset).decimals();
-        if (config.asset == ETH_ADDRESS) {
-            if (config.priceFeed != address(0)) revert INVALID_PRICE_FEED();
-            if (config.strategy != BEACON_CHAIN_STRATEGY) revert INVALID_STRATEGY();
-        } else {
-            if (decimals > 18) revert INVALID_ASSET_DECIMALS();
-            if (config.priceFeed == address(0)) revert INVALID_PRICE_FEED();
-            if (IPriceFeed(config.priceFeed).decimals() != priceFeedDecimals) revert INVALID_PRICE_FEED_DECIMALS();
-            if (IStrategy(config.strategy).underlyingToken() != config.asset) revert INVALID_STRATEGY();
-        }
-        supportedAssets.push(config.asset);
-
-        AssetInfo storage info = assetInfo[config.asset];
-        info.decimals = decimals;
-        info.depositCap = config.depositCap;
-        info.priceFeed = config.priceFeed;
-        info.strategy = config.strategy;
-
-        emit AssetAdded(config);
+        _addAsset(config);
     }
 
     /// @notice Removes an underlying asset from the liquid restaking token.
@@ -226,6 +221,33 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         assetInfo[asset].priceFeed = newPriceFeed;
 
         emit AssetPriceFeedSet(asset, newPriceFeed);
+    }
+
+    /// @dev Adds a new underlying asset to the liquid restaking token.
+    /// @param config The asset's configuration.
+    function _addAsset(AssetConfig calldata config) internal {
+        if (isSupportedAsset(config.asset)) revert ASSET_ALREADY_SUPPORTED(config.asset);
+        if (config.asset == address(0)) revert INVALID_ASSET_ADDRESS();
+
+        uint8 decimals = config.asset == ETH_ADDRESS ? 18 : IERC20Metadata(config.asset).decimals();
+        if (config.asset == ETH_ADDRESS) {
+            if (config.priceFeed != address(0)) revert INVALID_PRICE_FEED();
+            if (config.strategy != BEACON_CHAIN_STRATEGY) revert INVALID_STRATEGY();
+        } else {
+            if (decimals > 18) revert INVALID_ASSET_DECIMALS();
+            if (config.priceFeed == address(0)) revert INVALID_PRICE_FEED();
+            if (IPriceFeed(config.priceFeed).decimals() != priceFeedDecimals) revert INVALID_PRICE_FEED_DECIMALS();
+            if (IStrategy(config.strategy).underlyingToken() != config.asset) revert INVALID_STRATEGY();
+        }
+        supportedAssets.push(config.asset);
+
+        AssetInfo storage info = assetInfo[config.asset];
+        info.decimals = decimals;
+        info.depositCap = config.depositCap;
+        info.priceFeed = config.priceFeed;
+        info.strategy = config.strategy;
+
+        emit AssetAdded(config);
     }
 
     /// @dev Returns the index of the asset in the supported assets array.
