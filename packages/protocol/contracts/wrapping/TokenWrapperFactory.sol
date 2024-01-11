@@ -6,6 +6,9 @@ import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {ITokenWrapperFactory} from 'contracts/interfaces/wrapping/ITokenWrapperFactory.sol';
 
 contract TokenWrapperFactory is ITokenWrapperFactory, Ownable {
+    /// @param initialOwner The initial owner of the contract.
+    constructor(address initialOwner) Ownable(initialOwner) {}
+
     /// @notice Deploys the token wrappers for the specified tokens.
     /// @param unwrapped The unwrapped token address.
     /// @param wrapped The wrapped token address.

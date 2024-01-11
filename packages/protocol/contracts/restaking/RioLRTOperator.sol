@@ -57,8 +57,8 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @notice The address of the LRT operator registry.
     address public operatorRegistry;
 
-    /// @notice The LRT asset manager.
-    address public assetManager;
+    /// @notice The LRT deposit pool.
+    address public depositPool;
 
     /// @notice The operator's EigenPod.
     IEigenPod public eigenPod;
@@ -72,17 +72,17 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         _;
     }
 
-    /// @notice Require that the caller is the LRT's asset manager.
-    modifier onlyAssetManager() {
-        if (msg.sender != assetManager) revert ONLY_ASSET_MANAGER();
+    /// @notice Require that the caller is the LRT's deposit pool.
+    modifier onlyDepositPool() {
+        if (msg.sender != depositPool) revert ONLY_DEPOSIT_POOL();
         _;
     }
 
-    /// @notice Require that the caller is the LRT's asset manager
+    /// @notice Require that the caller is the LRT's deposit pool
     /// or the LRT's operator registry.
-    modifier onlyAssetManagerOrOperatorRegistry() {
-        if (msg.sender != assetManager && msg.sender != operatorRegistry) {
-            revert ONLY_ASSET_MANAGER_OR_OPERATOR_REGISTRY();
+    modifier onlyDepositPoolOrOperatorRegistry() {
+        if (msg.sender != depositPool && msg.sender != operatorRegistry) {
+            revert ONLY_DEPOSIT_POOL_OR_OPERATOR_REGISTRY();
         }
         _;
     }
@@ -114,18 +114,18 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract by registering the operator with EigenLayer.
-    /// @param assetManager_ The LRT asset manager.
+    /// @param depositPool_ The LRT deposit pool.
     /// @param rewardDistributor The LRT reward distributor.
     /// @param initialMetadataURI The initial metadata URI.
     /// @param blsDetails The operator's BLS public key registration information.
     function initialize(
-        address assetManager_,
+        address depositPool_,
         address rewardDistributor,
         string calldata initialMetadataURI,
         BLSRegistrationDetails calldata blsDetails
     ) external initializer {
         operatorRegistry = msg.sender;
-        assetManager = assetManager_;
+        depositPool = depositPool_;
 
         delegationManager.registerAsOperator(
             IDelegationManager.OperatorDetails(rewardDistributor, delegationApprover, 0), initialMetadataURI
@@ -214,7 +214,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param strategy The strategy to stake the tokens into.
     /// @param token The token to stake.
     /// @param amount The amount of tokens to stake.
-    function stakeERC20(address strategy, address token, uint256 amount) external onlyAssetManager returns (uint256 shares) {
+    function stakeERC20(address strategy, address token, uint256 amount) external onlyDepositPool returns (uint256 shares) {
         if (IERC20(token).allowance(address(this), address(strategyManager)) < amount) {
             IERC20(token).forceApprove(address(strategyManager), type(uint256).max);
         }
@@ -226,7 +226,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param validatorCount The number of validators to deposit into.
     /// @param pubkeyBatch Batched validator public keys.
     /// @param signatureBatch Batched validator signatures.
-    function stakeETH(uint256 validatorCount, bytes calldata pubkeyBatch, bytes calldata signatureBatch) external payable onlyAssetManager {
+    function stakeETH(uint256 validatorCount, bytes calldata pubkeyBatch, bytes calldata signatureBatch) external payable onlyDepositPool {
         if (validatorCount == 0 || msg.value / DEPOSIT_SIZE != validatorCount) revert INVALID_VALIDATOR_COUNT();
         if (pubkeyBatch.length != PUBLIC_KEY_LENGTH * validatorCount) {
             revert INVALID_PUBLIC_KEYS_BATCH_LENGTH(pubkeyBatch.length, PUBLIC_KEY_LENGTH * validatorCount);
@@ -257,7 +257,7 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param strategy The strategy to withdraw from.
     /// @param shares The amount of shares to withdraw.
     /// @param withdrawer The address who has permission to complete the withdrawal.
-    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external onlyAssetManagerOrOperatorRegistry returns (bytes32 root) {
+    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external onlyDepositPoolOrOperatorRegistry returns (bytes32 root) {
         root = delegationManager.queueWithdrawal(strategy.toArray(), shares.toArray(), withdrawer);
     }
 

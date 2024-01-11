@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IPoRAddressList} from 'contracts/interfaces/chainlink/IPoRAddressList.sol';
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 
-interface IRioLRTOperatorRegistry is IPoRAddressList {
+interface IRioLRTOperatorRegistry {
     /// @dev Configuration used to track the maximum number of shares that can be
     /// allocated to an operator for a given strategy.
     struct StrategyShareCap {
@@ -33,7 +32,7 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
         /// decremented in the event that pending keys are removed.
         uint40 total;
         /// @dev The total number of validator keys that have been confirmed following
-        /// review by the security council (all-time).
+        /// review by the security daemon (all-time).
         uint40 confirmed;
         /// @dev The number of validators that have reached the deposited state (all-time).
         uint40 deposited;
@@ -121,8 +120,8 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @notice Thrown when the caller is not the operator's manager or OR the security daemon.
     error ONLY_OPERATOR_MANAGER_OR_SECURITY_DAEMON();
 
-    /// @notice Thrown when the caller is not the asset manager.
-    error ONLY_ASSET_MANAGER();
+    /// @notice Thrown when the caller is not the deposit pool.
+    error ONLY_DEPOSIT_POOL();
 
     /// @notice Thrown when the caller is not the operator's pending manager.
     error ONLY_OPERATOR_PENDING_MANAGER();
@@ -218,6 +217,10 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     /// @param cap The new maximum active validator cap.
     event OperatorValidatorCapSet(uint8 indexed operatorId, uint40 cap);
 
+    /// @notice Emitted when the security daemon is set.
+    /// @param securityDaemon The new security daemon.
+    event SecurityDaemonSet(address securityDaemon);
+
     /// @notice Emitted when the validator key review period is set.
     /// @param validatorKeyReviewPeriod The new validator key review period.
     event ValidatorKeyReviewPeriodSet(uint24 validatorKeyReviewPeriod);
@@ -292,12 +295,12 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param poolId The underlying Balancer pool ID.
-    /// @param gateway The LRT gateway.
+    /// @param coordinator The LRT coordinator.
+    /// @param assetRegistry The LRT asset registry.
     /// @param avsRegistry The AVS registry.
+    /// @param depositPool The LRT deposit pool.
     /// @param rewardDistributor The LRT reward distributor.
-    /// @param assetManager The LRT asset manager.
-    function initialize(address initialOwner, bytes32 poolId, address gateway, address avsRegistry, address rewardDistributor, address assetManager) external;
+    function initialize(address initialOwner, address coordinator, address assetRegistry, address avsRegistry, address depositPool, address rewardDistributor) external;
 
     /// @notice Returns the operator details for the provided operator ID.
     /// @param operatorId The operator's ID.
@@ -350,7 +353,7 @@ interface IRioLRTOperatorRegistry is IPoRAddressList {
     function activateOperator(uint8 operatorId) external;
 
     /// Deactivates an operator, exiting all remaining stake to the
-    /// asset manager.
+    /// deposit pool.
     /// @param operatorId The operator's ID.
     function deactivateOperator(uint8 operatorId) external;
 

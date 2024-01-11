@@ -2,15 +2,12 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {ITokenWrapper} from 'contracts/interfaces/wrapping/ITokenWrapper.sol';
 import {OnlyDelegateCall} from 'contracts/utils/OnlyDelegateCall.sol';
 import {IWSTETH} from 'contracts/interfaces/misc/IWSTETH.sol';
 
 /// @notice Wraps and unwraps Lido staked ether.
 contract LidoStakedEtherWrapper is ITokenWrapper, OnlyDelegateCall {
-    using SafeERC20 for IERC20;
-
     /// @notice The Lido staked ether token contract.
     IERC20 public immutable stETH;
 
@@ -37,13 +34,13 @@ contract LidoStakedEtherWrapper is ITokenWrapper, OnlyDelegateCall {
     /// @notice Sets up the wrapper contract by approving the wstETH contract
     /// to spend an unlimited amount of stETH.
     function setup() external onlyDelegateCall {
-        stETH.safeApprove(address(wstETH), type(uint256).max);
+        stETH.approve(address(wstETH), type(uint256).max);
     }
 
     /// @notice Tears down the wrapper contract by revoking the wstETH contract's
     /// ability to spend stETH.
     function teardown() external override onlyDelegateCall {
-        stETH.safeApprove(address(wstETH), 0);
+        stETH.approve(address(wstETH), 0);
     }
 
     /// @notice Get the amount of wrapped tokens received for a given amount of unwrapped tokens.

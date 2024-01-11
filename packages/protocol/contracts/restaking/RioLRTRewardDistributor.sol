@@ -2,17 +2,18 @@
 pragma solidity 0.8.21;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IRioLRTRewardDistributor} from 'contracts/interfaces/IRioLRTRewardDistributor.sol';
-import {IRioLRTGateway} from 'contracts/interfaces/IRioLRTGateway.sol';
+// import {IRioLRTGateway} from 'contracts/interfaces/IRioLRTGateway.sol';
 import {IMilkman} from 'contracts/interfaces/misc/IMilkman.sol';
 import {IWETH} from 'contracts/interfaces/misc/IWETH.sol';
 
-contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable, UUPSUpgradeable {
-    using SafeERC20 for IERC20;
+// TODO: No need to swap for the LRT anymore... we can swap for the underlying if we want.
+// If deposit caps are hit, then you'd need to buy it on the open market, which may hurt pricing.
+// Maybe we just go for the underlying.
 
+contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable, UUPSUpgradeable {
     /// @notice The maximum basis points value (100%).
     uint16 public constant MAX_BPS = 10_000;
 
@@ -36,7 +37,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
     address public treasury;
 
     /// @notice The operator reward pool address.
-    address public operator;
+    address public operatorRewardPool;
 
     /// @notice The liquid restaking token (LRT).
     address public restakingToken;
@@ -68,10 +69,10 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
     /// @param restakingToken_ The liquid restaking token address (LRT).
     /// @param gateway_ The liquid restaking token gateway.
     /// @param treasury_ The treasury address.
-    /// @param operator_ The operator reward pool address.
-    function initialize(address initialOwner, address restakingToken_, address gateway_, address treasury_, address operator_) external initializer {
+    /// @param operatorRewardPool_ The operator reward pool address.
+    function initialize(address initialOwner, address restakingToken_, address gateway_, address treasury_, address operatorRewardPool_) external initializer {
+        __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        _transferOwnership(initialOwner);
 
         _setTreasuryETHValidatorRewardShareBPS(500); // 5%
         _setOperatorETHValidatorRewardShareBPS(500); // 5%
@@ -81,7 +82,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         restakingToken = restakingToken_;
         gateway = gateway_;
         treasury = treasury_;
-        operator = operator_;
+        operatorRewardPool = operatorRewardPool_;
     }
 
     /// @notice Distribute ETH validator rewards by sending liquid restaking tokens to the
@@ -97,8 +98,8 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         uint256 poolShare = balance - treasuryShare - operatorShare;
 
         if (treasuryShare > 0) rewardToken.transfer(treasury, treasuryShare);
-        if (operatorShare > 0) rewardToken.transfer(operator, operatorShare);
-        if (poolShare > 0) IRioLRTGateway(gateway).burnLRT(poolShare);
+        if (operatorShare > 0) rewardToken.transfer(operatorRewardPool, operatorShare);
+        // if (poolShare > 0) IRioLRTGateway(gateway).burnLRT(poolShare);
 
         emit ETHValidatorRewardsDistributed(treasuryShare, operatorShare, poolShare);
     }
@@ -119,7 +120,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         if (amountIn < config.minAmountIn) revert AMOUNT_IN_TOO_LOW();
 
         if (IERC20(weth).allowance(address(this), milkman) < amountIn) {
-            IERC20(weth).safeApprove(milkman, type(uint256).max);
+            IERC20(weth).approve(milkman, type(uint256).max);
         }
 
         orderContract = IMilkman(milkman).requestSwapExactTokensForTokens(

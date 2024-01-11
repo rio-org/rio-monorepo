@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.21;
 
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {IStakeRegistry} from 'contracts/interfaces/eigenlayer/IStakeRegistry.sol';
 import {ISignatureUtils} from 'contracts/interfaces/eigenlayer/ISignatureUtils.sol';
@@ -209,7 +208,7 @@ interface IDelegationManager is ISignatureUtils {
     /// any other strategies, which will be transferred to the withdrawer.
     function completeQueuedWithdrawal(
         Withdrawal calldata withdrawal,
-        IERC20[] calldata tokens,
+        address[] calldata tokens,
         uint256 middlewareTimesIndex,
         bool receiveAsTokens
     ) external;
@@ -223,7 +222,7 @@ interface IDelegationManager is ISignatureUtils {
     /// @dev See `completeQueuedWithdrawal` for relevant dev tags
     function completeQueuedWithdrawals(
         Withdrawal[] calldata withdrawals,
-        IERC20[][] calldata tokens,
+        address[][] calldata tokens,
         uint256[] calldata middlewareTimesIndexes,
         bool[] calldata receiveAsTokens
     ) external;

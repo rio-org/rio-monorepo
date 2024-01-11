@@ -11,13 +11,13 @@ import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Own
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
-import {IRioLRTAssetManager} from 'contracts/interfaces/IRioLRTAssetManager.sol';
+import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
+import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {IRioLRTAVSRegistry} from 'contracts/interfaces/IRioLRTAVSRegistry.sol';
 import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
-import {IRioLRTGateway} from 'contracts/interfaces/IRioLRTGateway.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
-import {IVault} from 'contracts/interfaces/balancer/IVault.sol';
+import {BEACON_CHAIN_STRATEGY} from 'contracts/utils/Constants.sol';
 
 contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, UUPSUpgradeable {
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
@@ -31,32 +31,30 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice The maximum number of active operators allowed.
     uint8 public constant MAX_ACTIVE_OPERATOR_COUNT = 64;
 
-    /// @dev The Beacon Chain ETH strategy pseudo-address.
-    address internal constant BEACON_CHAIN_STRATEGY = 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0;
-
     /// @dev The validator details storage position.
     bytes32 internal constant VALIDATOR_DETAILS_POSITION = keccak256('RIO.OPERATOR_REGISTRY.VALIDATOR_DETAILS');
-
-    /// @notice The Balancer vault contract.
-    IVault public immutable vault;
 
     /// @notice The operator beacon contract implementation.
     address public immutable operatorBeaconImpl;
 
-    /// @notice The underlying Balancer pool ID.
-    bytes32 public poolId;
+    /// @notice The LRT coordinator contract.
+    IRioLRTCoordinator public coordinator;
 
-    /// @notice The LRT gateway.
-    IRioLRTGateway public gateway;
+    /// @notice The contract that stores information about supported underlying assets.
+    IRioLRTAssetRegistry public assetRegistry;
 
     /// @notice The AVS registry.
     IRioLRTAVSRegistry public avsRegistry;
 
+    /// @notice The contract that holds funds awaiting deposit into EigenLayer.
+    address public depositPool;
+
     /// @notice The LRT reward distributor.
     address public rewardDistributor;
 
-    /// @notice The LRT asset manager.
-    address public assetManager;
+    /// @notice The security daemon, which is responsible for removal of duplicate
+    /// or invalid validator keys.
+    address public securityDaemon;
 
     /// @notice The total number of operators in the registry.
     uint8 public operatorCount;
@@ -76,9 +74,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice A mapping of operator ids to their detailed information.
     mapping(uint8 => OperatorDetails) internal operatorDetails;
 
-    /// @notice Require that the caller is the asset manager.
-    modifier onlyAssetManager() {
-        if (msg.sender != assetManager) revert ONLY_ASSET_MANAGER();
+    /// @notice Require that the caller is the deposit pool.
+    modifier onlyDepositPool() {
+        if (msg.sender != depositPool) revert ONLY_DEPOSIT_POOL();
         _;
     }
 
@@ -93,38 +91,37 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// wallet that has been configured by the security council.
     /// @param operatorId The operator's ID.
     modifier onlyOperatorManagerOrSecurityDaemon(uint8 operatorId) {
-        if (msg.sender != operatorDetails[operatorId].manager && msg.sender != gateway.securityDaemon()) {
+        if (msg.sender != operatorDetails[operatorId].manager && msg.sender != securityDaemon) {
             revert ONLY_OPERATOR_MANAGER_OR_SECURITY_DAEMON();
         }
         _;
     }
 
-    /// @param vault_ The Balancer vault contract.
+    /// @param initialBeaconOwner The initial owner who can upgrade the operator beacon contract.
     /// @param operatorImpl_ The operator contract implementation.
-    constructor(address vault_, address operatorImpl_) {
+    constructor(address initialBeaconOwner, address operatorImpl_) {
         _disableInitializers();
 
-        vault = IVault(vault_);
-        operatorBeaconImpl = address(new UpgradeableBeacon(operatorImpl_));
+        operatorBeaconImpl = address(new UpgradeableBeacon(operatorImpl_, initialBeaconOwner));
     }
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param poolId_ The underlying Balancer pool ID.
-    /// @param gateway_ The LRT gateway.
+    /// @param coordinator_ The LRT coordinator contract address.
+    /// @param assetRegistry_ The LRT asset registry.
     /// @param avsRegistry_ The AVS registry.
+    /// @param depositPool_ The LRT deposit pool.
     /// @param rewardDistributor_ The LRT reward distributor.
-    /// @param assetManager_ The LRT asset manager.
-    function initialize(address initialOwner, bytes32 poolId_, address gateway_, address avsRegistry_, address rewardDistributor_, address assetManager_) external initializer {
+    function initialize(address initialOwner, address coordinator_, address assetRegistry_, address avsRegistry_, address depositPool_, address rewardDistributor_) external initializer {
+        __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        _transferOwnership(initialOwner);
 
-        poolId = poolId_;
-        gateway = IRioLRTGateway(gateway_);
+        coordinator = IRioLRTCoordinator(coordinator_);
+        assetRegistry = IRioLRTAssetRegistry(assetRegistry_);
         avsRegistry = IRioLRTAVSRegistry(avsRegistry_);
+        depositPool = depositPool_;
         rewardDistributor = rewardDistributor_;
-        assetManager = assetManager_;
 
         _setValidatorKeyReviewPeriod(3 days);
     }
@@ -192,7 +189,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
         // Create the operator with the provided salt and initialize it.
         operatorContract = address(new BeaconProxy{salt: salt}(operatorBeaconImpl, ''));
-        IRioLRTOperator(operatorContract).initialize(assetManager, rewardDistributor, initialMetadataURI, blsDetails);
+        IRioLRTOperator(operatorContract).initialize(depositPool, rewardDistributor, initialMetadataURI, blsDetails);
 
         OperatorDetails storage operator = operatorDetails[operatorId];
         operator.active = true;
@@ -243,13 +240,11 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         activeOperatorCount += 1;
 
         OperatorUtilizationHeap.Data memory heap;
-        IRioLRTAssetManager manager = IRioLRTAssetManager(assetManager);
-        (address[] memory registeredTokens,,) = vault.getPoolTokens(poolId);
+        address[] memory strategies = assetRegistry.getAssetStrategies();
 
         // Insert the operator into the utilization heap for all strategies that have a non-zero cap.
-        // We start at index 1 because the Balancer pool token is always at index 0.
-        for (uint256 i = 1; i < registeredTokens.length; ++i) {
-            address strategy = manager.getStrategy(registeredTokens[i]);
+        for (uint256 i = 0; i < strategies.length; ++i) {
+            address strategy = strategies[i];
             OperatorShareDetails memory operatorShares = operator.shareDetails[strategy];
 
             if (operatorShares.cap == 0) continue;
@@ -258,7 +253,6 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
             heap.insert(OperatorUtilizationHeap.Operator(operatorId, 0));
             heap.store(activeOperatorsByStrategyShareUtilization[strategy]);
         }
-
         emit OperatorActivated(operatorId);
     }
 
@@ -271,12 +265,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         if (operator.manager == address(0)) revert INVALID_OPERATOR();
         if (!operator.active) revert OPERATOR_ALREADY_INACTIVE();
 
-        IRioLRTAssetManager manager = IRioLRTAssetManager(assetManager);
-        (address[] memory registeredTokens,,) = vault.getPoolTokens(poolId);
-
-        // We start at index 1 because the Balancer pool token is always at index 0.
-        for (uint256 i = 1; i < registeredTokens.length; ++i) {
-            address strategy = manager.getStrategy(registeredTokens[i]);
+        address[] memory strategies = assetRegistry.getAssetStrategies();
+        for (uint256 i = 0; i < strategies.length; ++i) {
+            address strategy = strategies[i];
             if (operator.shareDetails[strategy].allocation > 0) {
                 _queueOperatorStrategyExit(operatorId, operator, strategy);
 
@@ -360,6 +351,14 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         operator.validatorDetails.cap = newValidatorCap;
 
         emit OperatorValidatorCapSet(operatorId, newValidatorCap);
+    }
+
+    /// @notice Sets the security daemon to a new account (`newSecurityDaemon`).
+    /// @param newSecurityDaemon The new security daemon address.
+    function setSecurityDaemon(address newSecurityDaemon) external onlyOwner {
+        securityDaemon = newSecurityDaemon;
+
+        emit SecurityDaemonSet(newSecurityDaemon);
     }
 
     /// @notice Sets the amount of time (in seconds) before uploaded validator keys are considered "vetted".
@@ -561,7 +560,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice Allocates a specified amount of shares for the provided strategy to the operators with the lowest utilization.
     /// @param strategy The strategy to allocate the shares to.
     /// @param sharesToAllocate The amount of shares to allocate.
-    function allocateStrategyShares(address strategy, uint256 sharesToAllocate) external onlyAssetManager returns (uint256 sharesAllocated, OperatorStrategyAllocation[] memory allocations) {
+    function allocateStrategyShares(address strategy, uint256 sharesToAllocate) external onlyDepositPool returns (uint256 sharesAllocated, OperatorStrategyAllocation[] memory allocations) {
         allocations = new OperatorStrategyAllocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForStrategy(strategy);
@@ -611,7 +610,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     // forgefmt: disable-next-item
     /// @notice Allocates a specified amount of ETH deposits to the operators with the lowest utilization.
     /// @param depositsToAllocate The amount of deposits to allocate (32 ETH each)
-    function allocateETHDeposits(uint256 depositsToAllocate) external onlyAssetManager returns (uint256 depositsAllocated, OperatorETHAllocation[] memory allocations) {
+    function allocateETHDeposits(uint256 depositsToAllocate) external onlyDepositPool returns (uint256 depositsAllocated, OperatorETHAllocation[] memory allocations) {
         allocations = new OperatorETHAllocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForETH();
@@ -696,7 +695,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice Deallocates a specified amount of shares for the provided strategy from the operators with the highest utilization.
     /// @param strategy The strategy to deallocate the shares from.
     /// @param sharesToDeallocate The amount of shares to deallocate.
-    function deallocateStrategyShares(address strategy, uint256 sharesToDeallocate) external onlyAssetManager returns (uint256 sharesDeallocated, OperatorStrategyDeallocation[] memory deallocations) {        
+    function deallocateStrategyShares(address strategy, uint256 sharesToDeallocate) external onlyDepositPool returns (uint256 sharesDeallocated, OperatorStrategyDeallocation[] memory deallocations) {        
         deallocations = new OperatorStrategyDeallocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForStrategy(strategy);
@@ -746,7 +745,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     // forgefmt: disable-next-item
     /// @notice Deallocates a specified amount of ETH deposits from the operators with the highest utilization.
     /// @param depositsToDeallocate The amount of deposits to deallocate (32 ETH each)
-    function deallocateETHDeposits(uint256 depositsToDeallocate) external onlyAssetManager returns (uint256 depositsDeallocated, OperatorETHDeallocation[] memory deallocations) {
+    function deallocateETHDeposits(uint256 depositsToDeallocate) external onlyDepositPool returns (uint256 depositsDeallocated, OperatorETHDeallocation[] memory deallocations) {
         deallocations = new OperatorETHDeallocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForETH();
@@ -794,10 +793,6 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
     }
 
-    function getPoRAddressListLength() external view override returns (uint256) {}
-
-    function getPoRAddressList(uint256 startIndex, uint256 endIndex) external view override returns (string[] memory) {}
-
     /// @dev Sets the amount of time (in seconds) before uploaded validator keys are considered "vetted".
     /// @param newValidatorKeyReviewPeriod The new validator key review period.
     function _setValidatorKeyReviewPeriod(uint24 newValidatorKeyReviewPeriod) internal {
@@ -822,7 +817,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
         if (sharesToExit == 0) revert CANNOT_EXIT_ZERO_SHARES();
 
-        operatorContract.queueWithdrawal(strategy, sharesToExit, assetManager);
+        operatorContract.queueWithdrawal(strategy, sharesToExit, depositPool);
 
         emit OperatorStrategyExitQueued(operatorId, strategy, sharesToExit);
     }

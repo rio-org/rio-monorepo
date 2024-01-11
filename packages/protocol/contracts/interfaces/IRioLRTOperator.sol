@@ -15,12 +15,12 @@ interface IRioLRTOperator {
     /// @notice Thrown when the caller is not the operator registry.
     error ONLY_OPERATOR_REGISTRY();
 
-    /// @notice Thrown when the caller is not the asset manager.
-    error ONLY_ASSET_MANAGER();
+    /// @notice Thrown when the caller is not the deposit pool.
+    error ONLY_DEPOSIT_POOL();
 
-    /// @notice Thrown when the caller is not the asset manager
+    /// @notice Thrown when the caller is not the deposit pool
     /// or the operator registry.
-    error ONLY_ASSET_MANAGER_OR_OPERATOR_REGISTRY();
+    error ONLY_DEPOSIT_POOL_OR_OPERATOR_REGISTRY();
 
     /// @notice Thrown when the validator count is `0` or does not match the provided ETH value.
     error INVALID_VALIDATOR_COUNT();
@@ -36,12 +36,12 @@ interface IRioLRTOperator {
     error INVALID_SIGNATURES_BATCH_LENGTH(uint256 actual, uint256 expected);
 
     /// @notice Initializes the contract by registering the operator with EigenLayer.
-    /// @param assetManager The LRT asset manager.
+    /// @param depositPool The LRT deposit pool.
     /// @param rewardDistributor The LRT reward distributor.
     /// @param initialMetadataURI The initial metadata URI.
     /// @param blsDetails The operator's BLS public key registration information.
     function initialize(
-        address assetManager,
+        address depositPool,
         address rewardDistributor,
         string calldata initialMetadataURI,
         BLSRegistrationDetails calldata blsDetails

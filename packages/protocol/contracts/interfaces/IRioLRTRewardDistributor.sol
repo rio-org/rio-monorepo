@@ -84,12 +84,12 @@ interface IRioLRTRewardDistributor {
     /// @param restakingToken The liquid restaking token address (LRT).
     /// @param gateway The liquid restaking token gateway.
     /// @param treasury The treasury address.
-    /// @param operator The operator reward pool address.
+    /// @param operatorRewardPool The operator reward pool address.
     function initialize(
         address initialOwner,
         address restakingToken,
         address gateway,
         address treasury,
-        address operator
+        address operatorRewardPool
     ) external;
 }
