@@ -108,7 +108,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         IRioLRTAVSRegistry(d.avsRegistry).initialize(initialOwner);
         IRioLRTDepositPool(d.depositPool).initialize(initialOwner, d.assetRegistry, d.operatorRegistry, d.coordinator);
         IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(initialOwner, d.token, d.coordinator);
-        IRioLRTRewardDistributor(d.rewardDistributor).initialize(initialOwner, d.token, d.coordinator, config.treasury, config.operatorRewardPool);
+        IRioLRTRewardDistributor(d.rewardDistributor).initialize(initialOwner, config.treasury, config.operatorRewardPool, d.depositPool);
 
         isTokenFromFactory[d.token] = true;
         emit LiquidRestakingTokenIssued(name, symbol, config, d);
