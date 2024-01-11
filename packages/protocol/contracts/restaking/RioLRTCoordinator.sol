@@ -150,10 +150,15 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @param asset The asset being withdrawn.
     /// @param amountIn The amount of restaking tokens being redeemed.
     function requestWithdrawal(address asset, uint256 amountIn) external {
+        if (!assetRegistry.isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+
+        // Determine the amount of shares owed to the withdrawer using the current exchange rate.
         uint256 sharesOwed = convertToSharesFromRestakingTokens(asset, amountIn);
 
+        // Pull restaking tokens from the sender to the withdrawal queue.
         IERC20(address(restakingToken)).safeTransferFrom(msg.sender, address(withdrawalQueue), amountIn);
 
+        // Ensure there are enough shares to cover the withdrawal request, and queue the withdrawal.
         if (sharesOwed > assetSharesHeld[asset] - withdrawalQueue.getSharesOwedInCurrentEpoch(asset)) {
             revert INSUFFICIENT_SHARES_FOR_WITHDRAWAL();
         }
@@ -166,11 +171,15 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// depositing remaining assets into EigenLayer.
     /// @param asset The asset to rebalance.
     function rebalance(address asset) external onRebalance(asset) {
+        if (!assetRegistry.isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+
+        // Process any outstanding withdrawals using funds from the deposit pool and EigenLayer.
         uint256 sharesOwed = withdrawalQueue.getSharesOwedInCurrentEpoch(asset);
         if (sharesOwed > 0) {
             _processUserWithdrawalsForCurrentEpoch(asset, sharesOwed);
         }
 
+        // Deposit remaining assets into EigenLayer.
         assetSharesHeld[asset] += depositPool.depositBalanceIntoEigenLayer(asset);
     }
 
