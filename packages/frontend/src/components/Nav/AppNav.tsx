@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { Collapse, Navbar } from '@material-tailwind/react';
 import cx from 'classnames';
-import { APP_NAV_ITEMS } from '../../../config';
+import { APP_NAV_ITEMS, APP_NAV_LOGO_ITEM } from '../../../config';
 import logo from '../../assets/rio-logo.png';
 import Image from 'next/image';
 import { CustomConnectButton } from './CustomConnectButton';
@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { mainNavChildrenVariants, mainNavVariants } from '../../lib/motion';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 const slugUrl = (slug: string) => {
   if (slug === '/') return '/';
@@ -61,14 +62,10 @@ const AppNav = () => {
   const activeTab =
     APP_NAV_ITEMS.find((item) => baseUrlSegment.includes(item.slug))?.slug ||
     APP_NAV_ITEMS[0].slug;
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
-
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <>
@@ -80,7 +77,11 @@ const AppNav = () => {
         <div className="flex items-center justify-between text-blue-gray-900">
           <div className="flex flex-row gap-4 items-center justify-between w-full">
             <Link
-              href={slugUrl('/')}
+              href={APP_NAV_LOGO_ITEM.url}
+              target={APP_NAV_LOGO_ITEM.external ? '_blank' : undefined}
+              rel={
+                APP_NAV_LOGO_ITEM.external ? 'noopener noreferrer' : undefined
+              }
               className="w-[37px] h-[37px] lg:w-[32px] lg:h-[32px] aspect-square block my-2"
             >
               <Image
