@@ -164,6 +164,9 @@ importers:
       abitype:
         specifier: ^0.10.3
         version: 0.10.3(typescript@5.1.6)
+      cacheables:
+        specifier: ^1.2.2
+        version: 1.2.2
       graphql-request:
         specifier: ^6.1.0
         version: 6.1.0(graphql@16.8.1)
@@ -182,7 +185,7 @@ importers:
     dependencies:
       '@rionetwork/sdk':
         specifier: 0.1.0-alpha.11
-        version: link:../sdk
+        version: 0.1.0-alpha.11(graphql@16.8.1)(typescript@5.2.2)
     devDependencies:
       '@types/react':
         specifier: ^18.2.37
@@ -3081,6 +3084,23 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
+  /@rionetwork/sdk@0.1.0-alpha.11(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-kno38BhNSXOc5G2IQdTxtOqQHLGLoTLfgEIowtxh60Vhxp4s4gjrOwqECEWMKEoaXnFWeLiclf6XYiXA1+2PDA==}
+    engines: {node: '>=16', pnpm: '>=7.5.1'}
+    dependencies:
+      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
+      abitype: 0.10.3(typescript@5.2.2)
+      graphql-request: 6.1.0(graphql@16.8.1)
+      viem: 1.19.9(typescript@5.2.2)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - graphql
+      - typescript
+      - utf-8-validate
+      - zod
+    dev: false
+
   /@rushstack/eslint-patch@1.5.1:
     resolution: {integrity: sha512-6i/8UoL0P5y4leBIGzvkZdS85RDMG9y1ihZzmTZQ5LdHUYmZ7pKFoj8X0236s3lusPs1Fa5HTQUpwI+UfTcmeA==}
     dev: true
@@ -4470,6 +4490,20 @@ packages:
       typescript: 5.1.6
     dev: false
 
+  /abitype@0.10.3(typescript@5.2.2):
+    resolution: {integrity: sha512-tRN+7XIa7J9xugdbRzFv/95ka5ivR/sRe01eiWvM0HWWjHuigSZEACgKa0sj4wGuekTDtghCx+5Izk/cOi78pQ==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+      zod: ^3 >=3.22.0
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+      zod:
+        optional: true
+    dependencies:
+      typescript: 5.2.2
+    dev: false
+
   /abitype@0.8.7(typescript@5.2.2):
     resolution: {integrity: sha512-wQ7hV8Yg/yKmGyFpqrNZufCxbszDe5es4AZGYPBitocfSqXtjrTG9JMWFcc4N30ukl2ve48aBTwt7NJxVQdU3w==}
     peerDependencies:
@@ -5235,6 +5269,10 @@ packages:
     engines: {node: '>=10.16.0'}
     dependencies:
       streamsearch: 1.1.0
+
+  /cacheables@1.2.2:
+    resolution: {integrity: sha512-OFYfH4OaycyIqGEqkOzjiYZOKEiyQqv/+K84u6Wzv8P5rUA3BJm+2s0NExe5G6XY9AMOykEZYg2RqVlv1l27HQ==}
+    dev: false
 
   /call-bind@1.0.5:
     resolution: {integrity: sha512-C3nQxfFZxFRVoJoGKKI8y3MOEo129NQ+FgQ08iye+Mk4zNZZGdjfs06bVTr+DBSlA66Q2VEcMki/cUCP4SercQ==}

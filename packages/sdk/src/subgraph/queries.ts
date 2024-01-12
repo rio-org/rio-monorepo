@@ -13,19 +13,6 @@ export const IssuerFields = graphql(`
   }
 `);
 
-export const TokenWrapperFields = graphql(`
-  fragment TokenWrapperFields on TokenWrapper {
-    id
-    address
-    wrappedToken {
-      id
-    }
-    unwrappedToken {
-      id
-    }
-  }
-`);
-
 export const LiquidRestakingTokenFields = graphql(`
   fragment LiquidRestakingTokenFields on LiquidRestakingToken {
     id
@@ -34,36 +21,31 @@ export const LiquidRestakingTokenFields = graphql(`
     name
     createdTimestamp
     totalSupply
-    gateway {
+    coordinator {
       id
     }
-    poolId
-    underlyingTokens(orderBy: index, orderDirection: asc) {
+    underlyingAssets {
       address
-      token {
+      asset {
         symbol
         name
-        wrapper {
-          ...TokenWrapperFields
-        }
       }
-      index
       strategy
-      weight
+      priceFeed
+      depositCap
       balance
     }
   }
 `);
 
-export const JoinFields = graphql(`
-  fragment JoinFields on Join {
+export const DepositFields = graphql(`
+  fragment DepositFields on Deposit {
     id
-    type
     sender
-    tokensIn {
+    assetIn {
       id
     }
-    amountsIn
+    amountIn
     amountOut
     restakingToken {
       id
@@ -75,15 +57,13 @@ export const JoinFields = graphql(`
   }
 `);
 
-export const ExitFields = graphql(`
-  fragment ExitFields on Exit {
+export const WithdrawalFields = graphql(`
+  fragment WithdrawalFields on Withdrawal {
     id
-    type
     sender
-    tokensOut {
+    assetOut {
       id
     }
-    amountsOut
     sharesOwed
     amountIn
     restakingToken {
@@ -92,7 +72,12 @@ export const ExitFields = graphql(`
     userBalanceAfter
     timestamp
     blockNumber
-    tx
+    requestTx
+
+    isReadyToClaim
+    isClaimed
+    amountOut
+    claimTx
   }
 `);
 
@@ -112,14 +97,6 @@ export const LiquidRestakingTokenQuery = graphql(`
   query liquidRestakingToken($id: ID!) {
     liquidRestakingToken(id: $id) {
       ...LiquidRestakingTokenFields
-    }
-  }
-`);
-
-export const TokenWrapperQuery = graphql(`
-  query tokenWrapper($id: ID!) {
-    tokenWrapper(id: $id) {
-      ...TokenWrapperFields
     }
   }
 `);
@@ -148,62 +125,42 @@ export const ManyLiquidRestakingTokensQuery = graphql(`
   }
 `);
 
-export const ManyTokenWrappers = graphql(`
-  query manyTokenWrappers(
+export const ManyDepositsQuery = graphql(`
+  query manyDeposits(
     $first: Int!
     $skip: Int!
-    $orderBy: TokenWrapper_orderBy
+    $orderBy: Deposit_orderBy
     $orderDirection: OrderDirection
-    $where: TokenWrapper_filter
+    $where: Deposit_filter
   ) {
-    tokenWrappers(
+    deposits(
       first: $first
       skip: $skip
       orderBy: $orderBy
       orderDirection: $orderDirection
       where: $where
     ) {
-      ...TokenWrapperFields
+      ...DepositFields
     }
   }
 `);
 
-export const ManyJoinsQuery = graphql(`
-  query manyJoins(
+export const ManyWithdrawalsQuery = graphql(`
+  query manyWithdrawals(
     $first: Int!
     $skip: Int!
-    $orderBy: Join_orderBy
+    $orderBy: Withdrawal_orderBy
     $orderDirection: OrderDirection
-    $where: Join_filter
+    $where: Withdrawal_filter
   ) {
-    joins(
+    withdrawals(
       first: $first
       skip: $skip
       orderBy: $orderBy
       orderDirection: $orderDirection
       where: $where
     ) {
-      ...JoinFields
-    }
-  }
-`);
-
-export const ManyExitsQuery = graphql(`
-  query manyExits(
-    $first: Int!
-    $skip: Int!
-    $orderBy: Exit_orderBy
-    $orderDirection: OrderDirection
-    $where: Exit_filter
-  ) {
-    exits(
-      first: $first
-      skip: $skip
-      orderBy: $orderBy
-      orderDirection: $orderDirection
-      where: $where
-    ) {
-      ...ExitFields
+      ...WithdrawalFields
     }
   }
 `);

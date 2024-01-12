@@ -4,33 +4,27 @@ import {
   toPaginated
 } from './utils';
 import {
-  Join_Filter,
-  Join_OrderBy,
+  Deposit_Filter,
+  Deposit_OrderBy,
   LiquidRestakingToken_Filter,
   LiquidRestakingToken_OrderBy,
-  TokenWrapperFieldsFragment,
   LiquidRestakingTokenFieldsFragment,
-  TokenWrapper_OrderBy,
-  TokenWrapper_Filter,
-  Exit_OrderBy,
-  Exit_Filter
+  Withdrawal_OrderBy,
+  Withdrawal_Filter
 } from './generated/graphql';
 import {
   IssuerQuery,
   LiquidRestakingTokenQuery,
-  ManyJoinsQuery,
-  ManyExitsQuery,
-  ManyLiquidRestakingTokensQuery,
-  ManyTokenWrappers,
-  TokenWrapperQuery
+  ManyDepositsQuery,
+  ManyWithdrawalsQuery,
+  ManyLiquidRestakingTokensQuery
 } from './queries';
 import {
-  Exit,
+  Withdrawal,
   Issuer,
-  Join,
+  Deposit,
   LiquidRestakingToken,
-  QueryConfig,
-  TokenWrapper
+  QueryConfig
 } from './types';
 import { GraphQLClient } from 'graphql-request';
 
@@ -40,7 +34,7 @@ export class SubgraphClient {
   /**
    * The Rio Network issuer ID.
    */
-  public static readonly ISSUER_ID = '1';
+  public static readonly ISSUER_ID = 'ISSUER';
 
   /**
    * Returns a `SubgraphClient` instance for the provided chain ID
@@ -113,51 +107,22 @@ export class SubgraphClient {
   }
 
   /**
-   * Get information about a specific token wrapper.
-   * @param wrapperAddress The address of the token wrapper to fetch.
-   */
-  public async getTokenWrapper(wrapperAddress: string): Promise<TokenWrapper> {
-    const { tokenWrapper } = await this._gql.request(TokenWrapperQuery, {
-      id: wrapperAddress.toLowerCase()
-    });
-    if (!tokenWrapper) {
-      throw new Error(`TokenWrapper not found: ${wrapperAddress}`);
-    }
-    return this.toTokenWrapper(tokenWrapper);
-  }
-
-  /**
-   * Get information about a one or more token wrappers.
+   * Get information about a one or more deposits.
    * @param config Filtering, pagination, and ordering configuration.
    */
-  public async getTokenWrappers(
-    config: Partial<QueryConfig<TokenWrapper_OrderBy, TokenWrapper_Filter>> = {}
-  ): Promise<TokenWrapper[]> {
-    const { tokenWrappers } = await this._gql.request(
-      ManyTokenWrappers,
-      toPaginated(this.merge(getDefaultConfig(TokenWrapper_OrderBy.Id), config))
+  public async getDeposits(
+    config: Partial<QueryConfig<Deposit_OrderBy, Deposit_Filter>> = {}
+  ): Promise<Deposit[]> {
+    const { deposits } = await this._gql.request(
+      ManyDepositsQuery,
+      toPaginated(this.merge(getDefaultConfig(Deposit_OrderBy.Id), config))
     );
-    return tokenWrappers.map((wrapper) => this.toTokenWrapper(wrapper));
-  }
-
-  /**
-   * Get information about a one or more pool joins.
-   * @param config Filtering, pagination, and ordering configuration.
-   */
-  public async getJoins(
-    config: Partial<QueryConfig<Join_OrderBy, Join_Filter>> = {}
-  ): Promise<Join[]> {
-    const { joins } = await this._gql.request(
-      ManyJoinsQuery,
-      toPaginated(this.merge(getDefaultConfig(Join_OrderBy.Id), config))
-    );
-    return joins.map(
+    return deposits.map(
       ({
         id,
-        type,
         sender,
-        tokensIn,
-        amountsIn,
+        assetIn,
+        amountIn,
         amountOut,
         restakingToken,
         userBalanceAfter,
@@ -166,10 +131,9 @@ export class SubgraphClient {
         tx
       }) => ({
         id,
-        type,
         sender,
-        tokensIn: tokensIn.map(({ id }) => id),
-        amountsIn,
+        assetIn: assetIn.id,
+        amountIn,
         amountOut,
         restakingToken: restakingToken.id,
         userBalanceAfter,
@@ -181,43 +145,47 @@ export class SubgraphClient {
   }
 
   /**
-   * Get information about a one or more pool exits.
+   * Get information about a one or more withdrawals.
    * @param config Filtering, pagination, and ordering configuration.
    */
-  public async getExits(
-    config: Partial<QueryConfig<Exit_OrderBy, Exit_Filter>> = {}
-  ): Promise<Exit[]> {
-    const { exits } = await this._gql.request(
-      ManyExitsQuery,
-      toPaginated(this.merge(getDefaultConfig(Exit_OrderBy.Id), config))
+  public async getWithdrawals(
+    config: Partial<QueryConfig<Withdrawal_OrderBy, Withdrawal_Filter>> = {}
+  ): Promise<Withdrawal[]> {
+    const { withdrawals } = await this._gql.request(
+      ManyWithdrawalsQuery,
+      toPaginated(this.merge(getDefaultConfig(Withdrawal_OrderBy.Id), config))
     );
-    return exits.map(
+    return withdrawals.map(
       ({
         id,
-        type,
         sender,
-        tokensOut,
-        amountsOut,
+        assetOut,
         sharesOwed,
         amountIn,
         restakingToken,
         userBalanceAfter,
         timestamp,
         blockNumber,
-        tx
+        requestTx,
+        isReadyToClaim,
+        isClaimed,
+        amountOut,
+        claimTx
       }) => ({
         id,
-        type,
         sender,
-        tokensOut: tokensOut.map(({ id }) => id),
-        amountsOut,
+        assetOut: assetOut.id,
         sharesOwed,
         amountIn,
         restakingToken: restakingToken.id,
         userBalanceAfter,
         timestamp,
         blockNumber,
-        tx
+        requestTx,
+        isReadyToClaim,
+        isClaimed,
+        amountOut,
+        claimTx
       })
     );
   }
@@ -235,9 +203,8 @@ export class SubgraphClient {
       name,
       createdTimestamp,
       totalSupply,
-      gateway,
-      poolId,
-      underlyingTokens
+      coordinator,
+      underlyingAssets
     } = raw;
     return {
       address,
@@ -245,40 +212,26 @@ export class SubgraphClient {
       name,
       createdTimestamp,
       totalSupply,
-      poolId,
-      gateway: gateway.id,
-      underlyingTokens:
-        underlyingTokens?.map(
+      coordinator: coordinator.id,
+      underlyingAssets:
+        underlyingAssets?.map(
           ({
             address,
-            index,
             strategy,
-            weight,
+            depositCap,
+            priceFeed,
             balance,
-            token: { symbol, name, wrapper }
+            asset: { symbol, name }
           }) => ({
             address,
             symbol,
             name,
-            index,
             strategy,
-            weight,
-            balance,
-            ...(wrapper ? { wrapper: this.toTokenWrapper(wrapper) } : {})
+            depositCap,
+            priceFeed,
+            balance
           })
         ) ?? []
-    };
-  }
-
-  /**
-   * Convert a raw `TokenWrapperFieldsFragment` object to a `TokenWrapper`.
-   * @param raw The raw `TokenWrapperFieldsFragment` object.
-   */
-  protected toTokenWrapper(raw: TokenWrapperFieldsFragment): TokenWrapper {
-    return {
-      address: raw.address,
-      wrappedToken: raw.wrappedToken.id,
-      unwrappedToken: raw.unwrappedToken.id
     };
   }
 

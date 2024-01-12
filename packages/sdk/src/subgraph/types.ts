@@ -17,21 +17,14 @@ export interface Issuer {
   tokens: Address[];
 }
 
-export interface TokenWrapper {
-  address: Address;
-  wrappedToken: Address;
-  unwrappedToken: Address;
-}
-
-export interface UnderlyingToken {
+export interface UnderlyingAsset {
   address: Address;
   symbol: string;
   name: string;
-  index: number;
   strategy: Address;
-  weight: string;
+  depositCap: string;
+  priceFeed: Address;
   balance: string;
-  wrapper?: TokenWrapper;
 }
 
 export interface LiquidRestakingToken {
@@ -40,50 +33,39 @@ export interface LiquidRestakingToken {
   name: string;
   createdTimestamp: number;
   totalSupply: string;
-  gateway: Address;
-  poolId: string;
-  underlyingTokens: UnderlyingToken[];
+  coordinator: Address;
+  underlyingAssets: UnderlyingAsset[];
 }
 
-export enum JoinType {
-  AllTokensExactOut = 'ALL_TOKENS_EXACT_OUT',
-  TokensExactIn = 'TOKENS_EXACT_IN',
-  TokenExactOut = 'TOKEN_EXACT_OUT'
-}
-
-export enum ExitType {
-  TokenExactIn = 'TOKEN_EXACT_IN',
-  AllTokensExactIn = 'ALL_TOKENS_EXACT_IN',
-  TokensExactOut = 'TOKENS_EXACT_OUT'
-}
-
-export interface Join {
+export interface Deposit {
   id: string;
-  type: JoinType;
   sender: Address;
-  amountsIn: string[];
+  assetIn: Address;
+  amountIn: string;
   amountOut: string;
   timestamp: string;
   blockNumber: string;
-  tx: string;
-  tokensIn: Address[];
   restakingToken: Address;
   userBalanceAfter: string;
+  tx: string;
 }
 
-export interface Exit {
+export interface Withdrawal {
   id: string;
-  type: ExitType;
   sender: Address;
-  tokensOut: Address[];
-  amountsOut: string[];
-  sharesOwed: string[];
+  assetOut: Address;
+  sharesOwed: string;
   amountIn: string;
   restakingToken: Address;
   userBalanceAfter: string;
   timestamp: string;
   blockNumber: string;
-  tx: string;
+  requestTx: string;
+
+  isReadyToClaim: boolean;
+  isClaimed: boolean;
+  amountOut?: string;
+  claimTx?: string;
 }
 
 //#endregion

@@ -1,8 +1,8 @@
 {
   "goerli": {
     "RioLRTIssuer": {
-      "address": "0x87C00B995b0EEa62A8Ff287BAb3800559c6A5337",
-      "startBlock": 10360668     
+      "address": "0x2e89AF154E09C53b4E891C8DD484e41fD5f1C341",
+      "startBlock": 10360963     
     }
   }
 }
