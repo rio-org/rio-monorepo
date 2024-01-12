@@ -4,8 +4,6 @@ import TransactionStatusLabel from '../Shared/TransactionStatusLabel';
 import SymbolPill from '../Shared/SymbolPill';
 import { motion } from 'framer-motion';
 import { displayEthAmount } from '../../lib/utilities';
-// import ItemizedAsset from '../Assets/ItemizedAsset';
-// import IconSelectArrow from '../Icons/IconSelectArrow';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 
@@ -15,8 +13,6 @@ type Props = {
 };
 
 const Transaction = ({ transaction, index }: Props) => {
-  // const [isOpen, setIsOpen] = useState(false);
-  // const assets = buildAssetList(transaction.symbol);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
@@ -37,10 +33,7 @@ const Transaction = ({ transaction, index }: Props) => {
         }}
       >
         <td className="w-full flex flex-row justify-between items-center">
-          <div
-            className="w-full py-4 flex flex-row justify-between items-center"
-            // onClick={() => setIsOpen(!isOpen)}
-          >
+          <div className="w-full py-4 flex flex-row justify-between items-center">
             <div className="flex flex-col items-start px-4 lg:px-6 whitespace-nowrap text-sm font-medium text-gray-900">
               <span className="mb-1 lg:mb-0">{transaction.date}</span>
               {!isDesktopOrLaptop && (
@@ -59,42 +52,10 @@ const Transaction = ({ transaction, index }: Props) => {
                 </span>
                 <SymbolPill symbol={transaction.symbol} />
               </div>
-              {/* <IconSelectArrow direction={isOpen ? 'up' : 'down'} /> */}
             </div>
           </div>
         </td>
       </motion.tr>
-      {/* <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            className="overflow-hidden"
-            initial={{ height: 0 }}
-            animate={{ height: 'auto' }}
-            exit={{ height: 0 }}
-            transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
-          >
-            {
-              // inner padding to prevent jump when wrapper is removed
-              <div className="mt-2 mb-4 flex flex-col gap-2 ">
-                {assets.map((asset) => {
-                  return (
-                    <div className="px-4 lg:pl-6 lg:pr-[44px]">
-                      <ItemizedAsset
-                        key={asset.symbol}
-                        asset={asset}
-                        isActiveToken={false}
-                        isLoading={false}
-                        isError={false}
-                        amount={transaction.amount}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            }
-          </motion.div>
-        )}
-      </AnimatePresence> */}
     </>
   );
 };
