@@ -86,4 +86,17 @@ interface IRioLRTCoordinator {
     /// @param asset The address of the asset whose EigenLayer shares to convert to.
     /// @param amount The amount of restaking tokens to convert.
     function convertToSharesFromRestakingTokens(address asset, uint256 amount) external view returns (uint256 shares);
+
+    /// @notice Deposits ERC20 tokens and mints restaking token(s) to the caller.
+    /// @param token The token being deposited.
+    /// @param amountIn The amount of the asset being deposited.
+    function deposit(address token, uint256 amountIn) external payable;
+
+    /// @notice Deposits ETH and mints restaking token(s) to the caller.
+    function depositETH() external payable;
+
+    /// @notice Requests a withdrawal to `asset` for `amountIn` restaking tokens.
+    /// @param asset The asset being withdrawn.
+    /// @param amountIn The amount of restaking tokens being redeemed.
+    function requestWithdrawal(address asset, uint256 amountIn) external;
 }

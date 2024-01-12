@@ -104,6 +104,10 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @notice Returns the total value of the underlying asset in the unit of account.
     /// @param asset The address of the asset.
     function getTVLForAsset(address asset) public view returns (uint256) {
+        uint256 balance = getTotalBalanceForAsset(asset);
+        if (asset == ETH_ADDRESS) {
+            return balance;
+        }
         return assetRegistry.convertToUnitOfAccountFromAsset(asset, getTotalBalanceForAsset(asset));
     }
 
