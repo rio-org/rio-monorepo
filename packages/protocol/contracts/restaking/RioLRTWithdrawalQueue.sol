@@ -71,6 +71,29 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         sharesOwed = _getEpochWithdrawals(asset, getCurrentEpoch(asset)).sharesOwed;
     }
 
+    /// @notice Retrieve withdrawal epoch information for a given asset and epoch.
+    /// @param asset The withdrawal asset.
+    /// @param epoch The epoch for which to retrieve the information.
+    function getEpochWithdrawalSummary(address asset, uint256 epoch) external view returns (EpochWithdrawalSummary memory) {
+        EpochWithdrawals storage withdrawals = _getEpochWithdrawals(asset, epoch);
+        return EpochWithdrawalSummary({
+            settled: withdrawals.settled,
+            assetsReceived: withdrawals.assetsReceived,
+            shareValueOfAssetsReceived: withdrawals.shareValueOfAssetsReceived,
+            sharesOwed: withdrawals.sharesOwed,
+            amountToBurnAtSettlement: withdrawals.amountToBurnAtSettlement,
+            aggregateRoot: withdrawals.aggregateRoot
+        });
+    }
+
+    /// @notice Retrieve a user's withdrawal information for a given asset and epoch.
+    /// @param asset The withdrawal asset.
+    /// @param epoch The epoch for which to retrieve the information.
+    /// @param user The address of the user for which to retrieve the information.
+    function getUserWithdrawal(address asset, uint256 epoch, address user) external view returns (UserWithdrawal memory) {
+        return _getEpochWithdrawals(asset, epoch).users[user];
+    }
+
     /// @notice Withdraws owed assets to the caller.
     /// @param request The withdrawal request.
     function withdraw(WithdrawalRequest calldata request) public {

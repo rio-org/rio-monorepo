@@ -5,6 +5,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
+import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 
 contract RioLRTCoordinatorTest is RioDeployer {
@@ -36,6 +37,30 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         // The initial exchange rate is 1:1.
         assertEq(reETH.balanceOf(address(this)), 1 ether);
+    }
+
+    function test_requestWithdrawal() public {
+        coordinator.depositETH{value: 1 ether}();
+
+        coordinator.requestWithdrawal(ETH_ADDRESS, 1 ether);
+
+        uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
+        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory summary = withdrawalQueue.getEpochWithdrawalSummary(
+            ETH_ADDRESS, currentEpoch
+        );
+        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+            ETH_ADDRESS, currentEpoch, address(this)
+        );
+
+        assertEq(reETH.balanceOf(address(this)), 0);
+        assertEq(withdrawalQueue.getSharesOwedInCurrentEpoch(ETH_ADDRESS), 1 ether);
+
+        assertFalse(summary.settled);
+        assertEq(summary.sharesOwed, 1 ether);
+        assertEq(summary.amountToBurnAtSettlement, 1 ether);
+
+        assertFalse(withdrawal.claimed);
+        assertEq(withdrawal.sharesOwed, 1 ether);
     }
 
     receive() external payable {}

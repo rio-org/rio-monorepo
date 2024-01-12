@@ -163,7 +163,8 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         IERC20(address(restakingToken)).safeTransferFrom(msg.sender, address(withdrawalQueue), amountIn);
 
         // Ensure there are enough shares to cover the withdrawal request, and queue the withdrawal.
-        if (sharesOwed > assetSharesHeld[asset] - withdrawalQueue.getSharesOwedInCurrentEpoch(asset)) {
+        uint256 availableShares = assetRegistry.convertToSharesFromAsset(asset, getTotalBalanceForAsset(asset));
+        if (sharesOwed > availableShares - withdrawalQueue.getSharesOwedInCurrentEpoch(asset)) {
             revert INSUFFICIENT_SHARES_FOR_WITHDRAWAL();
         }
         withdrawalQueue.queueWithdrawal(msg.sender, asset, sharesOwed, amountIn);

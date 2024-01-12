@@ -12,7 +12,7 @@ interface IRioLRTWithdrawalQueue {
         uint120 sharesOwed;
     }
 
-    /// @notice How much cash is owed to all users in a given epoch,
+    /// @notice How many shares owed to all users in a given epoch,
     /// as well as whether or not the epoch's withdrawals have been completed.
     struct EpochWithdrawals {
         /// @dev Indicates whether or not the epoch has been settled.
@@ -30,6 +30,24 @@ interface IRioLRTWithdrawalQueue {
         uint256 amountToBurnAtSettlement;
         /// @dev All user withdrawals in the epoch.
         mapping(address => UserWithdrawal) users;
+    }
+
+    /// @notice Epoch withdrawal information without the mapping, which
+    /// allows us to return the struct from a view function.
+    struct EpochWithdrawalSummary {
+        /// @dev Indicates whether or not the epoch has been settled.
+        bool settled;
+        /// @dev The amount of assets received to settle the epoch.
+        uint120 assetsReceived;
+        /// @dev The value of the assets received in EigenLayer shares at
+        /// the time that the assets were received.
+        uint120 shareValueOfAssetsReceived;
+        /// @dev The total number of shares owed to users in the epoch.
+        uint120 sharesOwed;
+        /// @dev The aggregate root of the queued EigenLayer withdrawals.
+        bytes32 aggregateRoot;
+        /// @dev The amount of restaking tokens that to burn upon epoch settlement.
+        uint256 amountToBurnAtSettlement;
     }
 
     /// @notice A withdrawal request made by a user.
@@ -106,6 +124,25 @@ interface IRioLRTWithdrawalQueue {
     /// @param coordinator The liquid restaking token coordinator.
     function initialize(address initialOwner, address restakingToken, address coordinator) external;
 
+    /// @notice Retrieve the current withdrawal epoch for a given asset.
+    /// @param asset The asset to retrieve the current epoch for.
+    function getCurrentEpoch(address asset) external view returns (uint256);
+
+    /// @notice Get the amount of shares owed to withdrawers in the current `epoch` for `asset`.
+    /// @param asset The address of the withdrawal asset.
+    function getSharesOwedInCurrentEpoch(address asset) external view returns (uint256 sharesOwed);
+
+    /// @notice Retrieve withdrawal epoch information for a given asset and epoch.
+    /// @param asset The withdrawal asset.
+    /// @param epoch The epoch for which to retrieve the information.
+    function getEpochWithdrawalSummary(address asset, uint256 epoch) external view returns (EpochWithdrawalSummary memory);
+
+    /// @notice Retrieve a user's withdrawal information for a given asset and epoch.
+    /// @param asset The withdrawal asset.
+    /// @param epoch The epoch for which to retrieve the information.
+    /// @param user The address of the user for which to retrieve the information.
+    function getUserWithdrawal(address asset, uint256 epoch, address user) external view returns (UserWithdrawal memory);
+
     /// @notice Queue `sharesOwed` of `asset` to `withdrawer` in the current epoch. These owed shares
     /// can be claimed as the underlying asset by the withdrawer once the current epoch is settled.
     /// @param withdrawer The address requesting the withdrawal.
@@ -113,10 +150,6 @@ interface IRioLRTWithdrawalQueue {
     /// @param sharesOwed The amount of shares owed to the withdrawer.
     /// @param amountIn The amount of restaking tokens pulled from the withdrawer.
     function queueWithdrawal(address withdrawer, address asset, uint256 sharesOwed, uint256 amountIn) external;
-
-    /// @notice Get the amount of shares owed to withdrawers in the current `epoch` for `asset`.
-    /// @param asset The address of the withdrawal asset.
-    function getSharesOwedInCurrentEpoch(address asset) external view returns (uint256 sharesOwed);
 
     /// @notice Settle the current epoch for `asset` using `assetsPaid` from the deposit pool.
     /// @param asset The address of the withdrawal asset.

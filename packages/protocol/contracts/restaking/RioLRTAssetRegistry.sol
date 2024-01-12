@@ -130,6 +130,9 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @param asset The address of the asset to convert.
     /// @param amount The amount of the asset to convert.
     function convertToUnitOfAccountFromAsset(address asset, uint256 amount) public view returns (uint256) {
+        if (asset == ETH_ADDRESS) {
+            return amount;
+        }
         address priceFeed = assetInfo[asset].priceFeed;
         uint256 price = getPrice(priceFeed);
 
@@ -141,6 +144,9 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @param asset The address of the asset to convert to.
     /// @param value The asset's value in the unit of account.
     function convertFromUnitOfAccountToAsset(address asset, uint256 value) public view returns (uint256) {
+        if (asset == ETH_ADDRESS) {
+            return value;
+        }
         address priceFeed = assetInfo[asset].priceFeed;
         uint256 price = getPrice(priceFeed);
 
