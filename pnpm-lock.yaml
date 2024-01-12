@@ -184,8 +184,8 @@ importers:
   packages/sdk-react:
     dependencies:
       '@rionetwork/sdk':
-        specifier: 0.1.0-alpha.11
-        version: 0.1.0-alpha.11(graphql@16.8.1)(typescript@5.2.2)
+        specifier: 0.1.0-alpha.12
+        version: 0.1.0-alpha.12(graphql@16.8.1)(typescript@5.2.2)
     devDependencies:
       '@types/react':
         specifier: ^18.2.37
@@ -3084,12 +3084,13 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk@0.1.0-alpha.11(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-kno38BhNSXOc5G2IQdTxtOqQHLGLoTLfgEIowtxh60Vhxp4s4gjrOwqECEWMKEoaXnFWeLiclf6XYiXA1+2PDA==}
+  /@rionetwork/sdk@0.1.0-alpha.12(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-mFO4qJYfYgwMKVLXAaNPuxSp+DDnQiGJKbMrFxFjylD+6mK0m37c7kp8xfFI4DfkP4xjSS43bvyBwjhqTsN6tA==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       abitype: 0.10.3(typescript@5.2.2)
+      cacheables: 1.2.2
       graphql-request: 6.1.0(graphql@16.8.1)
       viem: 1.19.9(typescript@5.2.2)
     transitivePeerDependencies:
