@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AssetDetails, TokenSymbol } from '../../lib/typings';
 import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
 import Image from 'next/image';
@@ -8,6 +8,8 @@ import { Drawer } from '@material-tailwind/react';
 import { useMediaQuery } from 'react-responsive';
 import AssetList from './AssetList';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
+import { twJoin, twMerge } from 'tailwind-merge';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 type Props = {
   activeTokenSymbol: TokenSymbol;
@@ -27,14 +29,14 @@ const AssetSelector = ({
 }: Props) => {
   const [isListOpen, setIsListOpen] = useState(false);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const eligibleAssets = useMemo(() => {
+    return assets.filter((asset) => asset.symbol !== 'reETH');
+  }, [assets]);
 
   const handleClick = () => {
     if (!isDesktopOrLaptop && !isListOpen) {
@@ -54,18 +56,21 @@ const AssetSelector = ({
     setIsListOpen(false);
   }, isButtonHovered);
 
-  return (
-    <>
-      <button
-        onClick={() => !isDisabled && handleClick()}
-        className={cx(
-          'flex flex-row gap-1 justify-center items-center py-1 pl-1 pr-2 rounded-full bg-[var(--color-element-wrapper-bg-light)] duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors',
-          isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
-        )}
-        disabled={isDisabled}
-        onMouseEnter={() => setIsButtonHovered(true)}
-        onMouseLeave={() => setIsButtonHovered(false)}
-      >
+  const isDropdown = eligibleAssets.length > 1;
+
+  const buttonClassName = useMemo(() => {
+    return twMerge(
+      'flex flex-row gap-1 justify-center items-center',
+      'py-1 pl-1 pr-2 rounded-full bg-[var(--color-element-wrapper-bg-light)]',
+      isDropdown
+        ? 'duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors'
+        : 'pr-0'
+    );
+  }, [isDropdown]);
+
+  const buttonInternal = useMemo(
+    () => (
+      <>
         <Image
           src={ASSETS[activeTokenSymbol].logo}
           alt={`${ASSETS[activeTokenSymbol].name} logo`}
@@ -73,24 +78,49 @@ const AssetSelector = ({
           height={24}
         />
         <span className="pr-2">{activeTokenSymbol}</span>
-        <div className="w-fit flex-none">
-          <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />
-        </div>
-      </button>
-      {isDesktopOrLaptop && isListOpen && (
+      </>
+    ),
+    [activeTokenSymbol]
+  );
+
+  return (
+    <>
+      {isDropdown ? (
+        <button
+          onClick={() => !isDisabled && handleClick()}
+          className={cx(
+            buttonClassName,
+            isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
+          )}
+          disabled={isDisabled}
+          onMouseEnter={() => setIsButtonHovered(true)}
+          onMouseLeave={() => setIsButtonHovered(false)}
+        >
+          {buttonInternal}
+          <div className="w-fit flex-none">
+            <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />
+          </div>
+        </button>
+      ) : (
+        <div className={buttonClassName}>{buttonInternal}</div>
+      )}
+      {isDropdown && isDesktopOrLaptop && isListOpen && (
         <div
           ref={listRef}
-          className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit"
+          className={twJoin(
+            'absolute top-[calc(100%+10px)] left-0 w-full',
+            'bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit'
+          )}
         >
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
-            assets={assets}
+            assets={eligibleAssets}
             setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />
         </div>
       )}
-      {isMounted && !isDesktopOrLaptop && isListOpen && (
+      {isDropdown && isMounted && !isDesktopOrLaptop && isListOpen && (
         <Drawer
           placement="bottom"
           size={330}
@@ -100,7 +130,7 @@ const AssetSelector = ({
         >
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
-            assets={assets}
+            assets={eligibleAssets}
             setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />

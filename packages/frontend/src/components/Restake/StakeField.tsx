@@ -1,13 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { AssetDetails } from '../../lib/typings';
 import AssetSelector from './AssetSelector';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
-import { ethInUSD } from '../../../placeholder';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
+import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 type Props = {
   activeToken: AssetDetails;
@@ -28,9 +29,16 @@ const StakeField = ({
   setAmount,
   setActiveToken
 }: Props) => {
-  const [isMounted, setIsMounted] = useState(false);
-  const [usdAmount, setUsdAmount] = useState(0);
+  const isMounted = useIsMounted();
   const [isFocused, setIsFocused] = useState(false);
+
+  const assetPriceUsd = useAssetPriceUsd(activeToken.address);
+  const usdAmount = useMemo(() => {
+    return amount
+      ? +formatUnits(amount, activeToken.decimals) * assetPriceUsd
+      : 0;
+  }, [amount, activeToken.decimals, assetPriceUsd]);
+
   const handleValueChange = (value: string) => {
     const parsedAmount = parseUnits(value, activeToken.decimals);
     if (value === '') {
@@ -48,10 +56,6 @@ const StakeField = ({
     query: DESKTOP_MQ
   });
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const focusInput = () => {
     if (!inputRef.current) return;
     inputRef.current.focus();
@@ -63,12 +67,6 @@ const StakeField = ({
     setIsFocused(false);
     inputRef.current.blur();
   };
-
-  useEffect(() => {
-    setUsdAmount(
-      amount ? +formatUnits(amount, activeToken.decimals) * ethInUSD : 0
-    );
-  }, [amount]);
 
   return (
     <div

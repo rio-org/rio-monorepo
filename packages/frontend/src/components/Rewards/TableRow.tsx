@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { EthereumAddress, TransactionEvent } from '../../lib/typings';
 import TableLabel from './TableLabel';
 import cx from 'classnames';
@@ -10,6 +10,7 @@ import IconLineArrow from '../Icons/IconLineArrow';
 import IconExpand from '../Icons/IconExpand';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { CHAIN_ID } from '../../../config';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 type Props = {
   event: TransactionEvent;
@@ -230,15 +231,11 @@ const MobileRow = ({
 };
 
 const TableRow = ({ event, isFirst, index }: Props) => {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const [isOpen, setIsOpen] = useState(false);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   if (isMounted && !isDesktopOrLaptop) {
     return (

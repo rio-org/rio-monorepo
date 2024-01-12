@@ -159,6 +159,39 @@ export interface AssetSubgraphResponse {
   decimals: number;
 }
 
+export type NumberString = `${number}`;
+
+export interface UnderlyingTokenSubgraphResponse {
+  id: string;
+  balance: NumberString;
+  cashBalance: NumberString;
+  managedBalance: NumberString;
+  weight: NumberString;
+  token: AssetSubgraphResponse;
+}
+
+export interface UnderlyingTokenDetails
+  extends Omit<UnderlyingTokenSubgraphResponse, 'id' | 'token'> {
+  token: AssetDetails;
+}
+
+export interface LRTSubgraphResponse
+  extends Omit<AssetSubgraphResponse, 'decimals'> {
+  id: string;
+  totalSupply: NumberString;
+  underlyingTokens: UnderlyingTokenSubgraphResponse[];
+}
+
+export interface LRTDetails {
+  name: string;
+  symbol: TokenSymbol;
+  address: EthereumAddress;
+  logo: StaticImageData;
+  decimals: number;
+  totalSupply: NumberString;
+  underlyingTokens: UnderlyingTokenDetails[];
+}
+
 export interface TransactionEventSubgraphResponse {
   type: ExitType;
   amountsOut: string[] | null;
