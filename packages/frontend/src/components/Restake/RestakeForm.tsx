@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import StakeField from './StakeField';
 import {
   erc20ABI,
@@ -8,10 +8,9 @@ import {
   useWaitForTransaction
 } from 'wagmi';
 import { Alert, Spinner } from '@material-tailwind/react';
-import { AssetDetails, EthereumAddress } from '../../lib/typings';
+import { AssetDetails, EthereumAddress, LRTDetails } from '../../lib/typings';
 import HR from '../Shared/HR';
 import DepositButton from './DepositButton';
-import { ethInUSD } from '../../../placeholder';
 import {
   InputTokenExactInWithWrap,
   JoinTokensExactInParams,
@@ -23,6 +22,8 @@ import { ASSET_ADDRESS } from '../../lib/constants';
 import { displayEthAmount, truncDec } from '../../lib/utilities';
 import { Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '../Shared/ApproveButtons';
+import { useIsMounted } from '../../hooks/useIsMounted';
+import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -41,8 +42,14 @@ const queryTokens = async (
   return query;
 };
 
-const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
-  const [isMounted, setIsMounted] = useState(false);
+const RestakeForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
+  // When more LRT products are available, we'll offer a way to switch these
+  const [activeLrt] = useState<LRTDetails>(lrtList[0]);
+  const assets = useMemo(() => {
+    return activeLrt.underlyingTokens.map((t) => t.token);
+  }, [activeLrt]);
+
+  const isMounted = useIsMounted();
   const [amount, setAmount] = useState<bigint | null>(null);
   const [accountTokenBalance, setAccountTokenBalance] = useState(BigInt(0));
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets[0]);
@@ -56,10 +63,13 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(false);
   const [priceImpact, setPriceImpact] = useState<number | null>(null);
-  const rethAddress = assets.find((asset) => asset.symbol === 'reETH')?.address;
-  const restakingToken = useLiquidRestakingToken(rethAddress || '');
+  const restakingToken = useLiquidRestakingToken(activeLrt.address || '');
+  const assetPriceUsd = useAssetPriceUsd(activeToken.address);
   const { address } = useAccount();
-  const rethToEth = 1.02;
+
+  // TODO: Get actual exchange rate
+  const lrtAssetExchangeRate = 1.02;
+
   const { data, isError, isLoading } = useBalance({
     address: address,
     token: activeToken.address
@@ -94,10 +104,6 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
     !address && setActiveToken(assets[0]);
   }, [address]);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const { data: allowance, refetch } = useContractRead({
     address: activeToken.address,
     abi: erc20ABI,
@@ -119,8 +125,8 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
       setAllowanceTarget(undefined);
       return;
     }
-    if (restakingToken) {
-      setAllowanceTarget(restakingToken.allowanceTarget as EthereumAddress);
+    if (restakingToken?.token?.gateway) {
+      setAllowanceTarget(restakingToken.token.gateway as EthereumAddress);
     }
   }, [restakingToken, activeToken]);
 
@@ -170,7 +176,7 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
             true
           ) * 100,
           2
-        )
+        ) || 0
       );
     }
   };
@@ -266,16 +272,17 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
             <div className="flex justify-between text-[14px]">
               <span className="text-black opacity-50">Exchange rate</span>
               <strong className="text-right">
-                1.00 reETH = {rethToEth} ETH{' '}
-                <strong className="opacity-50">(${ethInUSD})</strong>
+                1.00 {activeToken.symbol} ={' '}
+                {(1 / lrtAssetExchangeRate).toLocaleString()} {activeLrt.symbol}{' '}
+                <strong className="opacity-50">(${assetPriceUsd})</strong>
               </strong>
             </div>
-            <div className="flex justify-between text-[14px]">
-              <span className="text-black opacity-50">Price impact</span>
-              <strong className="text-right">
-                {priceImpact ? priceImpact : 0}%
-              </strong>
-            </div>
+            {assets.length > 1 && (
+              <div className="flex justify-between text-[14px]">
+                <span className="text-black opacity-50">Price impact</span>
+                <strong className="text-right">{priceImpact ?? 0}%</strong>
+              </div>
+            )}
             <div className="flex justify-between text-[14px]">
               <span className="text-black opacity-50">Reward fee</span>
               <strong className="text-right">10%</strong>
@@ -317,9 +324,11 @@ const RestakeForm = ({ assets }: { assets: AssetDetails[] }) => {
               refetchAllowance={handleRefetch}
             />
           )}
-          <p className="text-sm text-center px-2 mt-2 text-gray-500 font-normal">
-            {allowanceNote}
-          </p>
+          {allowanceNote && (
+            <p className="text-sm text-center px-2 mt-2 text-gray-500 font-normal">
+              {allowanceNote}
+            </p>
+          )}
         </>
       )}
     </>

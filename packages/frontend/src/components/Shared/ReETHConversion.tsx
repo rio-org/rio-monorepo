@@ -1,9 +1,12 @@
-import React, { ReactNode, useState } from 'react';
-import { reEthInUSD } from '../../../placeholder';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import iconTransaction from '../../assets/icon-transaction.svg';
 import { motion } from 'framer-motion';
 import cx from 'classnames';
+import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
+import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
+import { CHAIN_ID } from '../../../config';
+import { LRTDetails } from '../../lib/typings';
 
 const styledAmount = (amount: number) => {
   const main = amount.toFixed();
@@ -22,19 +25,29 @@ type Props = {
 const ReETHConversion = ({ padded }: Props) => {
   const reEth = <>1 reETH</>;
   const [isReEth, setIsReEth] = useState<boolean>(true);
-  const [first, setFirst] = useState<ReactNode>(reEth);
-  const [second, setSecond] = useState<ReactNode>(styledAmount(reEthInUSD));
+  const [reEthInUSD, setReEthInUSD] = useState<number>(0);
+  const [reEthToken, setReEthToken] = useState<LRTDetails | null>(null);
+  const assetPriceUsd = useAssetPriceUsd(reEthToken?.address);
+
+  useEffect(() => {
+    useGetLiquidRestakingTokens(CHAIN_ID)
+      .then((lrts) => {
+        if (!Array.isArray(lrts)) return;
+        const reEth = lrts.find((lrt) => lrt.symbol === 'reETH');
+        if (!reEth) return;
+        setReEthToken(reEth);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }, []);
+
+  useEffect(() => {
+    setReEthInUSD(assetPriceUsd);
+  }, [assetPriceUsd]);
 
   const handleChange = () => {
-    if (isReEth) {
-      setFirst(styledAmount(reEthInUSD));
-      setSecond(reEth);
-      setIsReEth(false);
-    } else {
-      setFirst(reEth);
-      setSecond(styledAmount(reEthInUSD));
-      setIsReEth(true);
-    }
+    setIsReEth((prev) => !prev);
   };
 
   return (
@@ -46,7 +59,15 @@ const ReETHConversion = ({ padded }: Props) => {
       onClick={() => handleChange()}
     >
       <span className="text-[var(--color-black-50)] group-hover:text-black">
-        {first} = {second}
+        {isReEth ? (
+          <>
+            {styledAmount(reEthInUSD)} = {reEth}
+          </>
+        ) : (
+          <>
+            {reEth} = {styledAmount(reEthInUSD)}
+          </>
+        )}
       </span>
       <motion.div
         animate={{ rotate: isReEth ? 180 : -180 }}

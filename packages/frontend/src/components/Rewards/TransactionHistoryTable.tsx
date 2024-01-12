@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import cx from 'classnames';
 import TableRow from './TableRow';
 import { useMediaQuery } from 'react-responsive';
@@ -12,9 +12,10 @@ import { EthereumAddress } from '../../lib/typings';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
 import Pagination from './Pagination';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 const TransactionHistoryTable = () => {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const [page, setPage] = useState(0);
   const { address } = useAccount();
   const isDesktopOrLaptop = useMediaQuery({
@@ -41,10 +42,6 @@ const TransactionHistoryTable = () => {
     if (page === 0) return;
     setPage(page - 1);
   };
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <div>

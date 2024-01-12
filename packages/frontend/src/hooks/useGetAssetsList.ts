@@ -12,6 +12,7 @@ import {
 import subgraphClient from '../lib/subgraphClient';
 import { ASSET_LOGOS } from '../lib/constants';
 import { zeroAddress } from 'viem';
+import { ALLOW_ALL_LSTS, ASSET_SYMBOLS_ALLOWED } from '../../config';
 
 const parseAssetList = (data: AssetSubgraphResponse[]): AssetDetails[] => {
   return data.map((asset) => {
@@ -40,11 +41,16 @@ export const useGetAssetsList = async (chainId: CHAIN_ID_NUMBER) => {
 
   const data: AssetDetails[] | ApolloError = await getData(client)
     .then((res) => {
-      return JSON.parse(
+      const completeAssetList = JSON.parse(
         JSON.stringify(
           parseAssetList(res.tokens.concat(res.liquidRestakingTokens))
         )
       ) as AssetDetails[];
+      return ALLOW_ALL_LSTS
+        ? completeAssetList
+        : completeAssetList.filter(
+            ({ symbol }) => ASSET_SYMBOLS_ALLOWED[symbol]
+          );
     })
     .catch((err) => {
       console.log(err);

@@ -2,18 +2,18 @@ import React from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
 import WithdrawForm from '../../components/Withdraw/WithdrawForm';
-import { useGetAssetsList } from '../../hooks/useGetAssetsList';
 import { CHAIN_ID } from '../../../config';
-import { AssetDetails } from '../../lib/typings';
+import { LRTDetails } from '../../lib/typings';
+import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
 
 type Props = {
-  assetsList: AssetDetails[];
+  lrtList: LRTDetails[];
 };
 
-const Withdraw: NextPage<Props> = ({ assetsList }) => {
+const Withdraw: NextPage<Props> = ({ lrtList }) => {
   return (
     <WithdrawWrapper>
-      <WithdrawForm assets={assetsList} />
+      <WithdrawForm lrtList={lrtList} />
     </WithdrawWrapper>
   );
 };
@@ -22,11 +22,10 @@ export default Withdraw;
 
 export async function getStaticProps() {
   const chainId = CHAIN_ID;
-  const assetsList = await useGetAssetsList(chainId);
-
+  const lrtList = await useGetLiquidRestakingTokens(chainId);
   return {
     props: {
-      assetsList
+      lrtList
     }
   };
 }

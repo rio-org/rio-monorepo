@@ -21,6 +21,33 @@ export const getAssetList = () => {
   `;
 };
 
+export const getLiquidRestakingTokenList = () => {
+  return gql`
+    query getLiquidRestakingTokenList {
+      liquidRestakingTokens {
+        id
+        address
+        name
+        symbol
+        totalSupply
+        underlyingTokens {
+          balance
+          cashBalance
+          managedBalance
+          weight
+          token {
+            id
+            address
+            name
+            symbol
+            decimals
+          }
+        }
+      }
+    }
+  `;
+};
+
 export const getLatestAssetUSDPrice = (tokenAddress: EthereumAddress) => {
   return gql`
     query getLatestAssetUSDPrice {
@@ -80,7 +107,7 @@ export const getUserTxHistory = (address: EthereumAddress) => {
         first: 1000
         where: {user: "${address.toLowerCase()}"}
       ) {
-        
+
         amountIn
         tx
         timestamp

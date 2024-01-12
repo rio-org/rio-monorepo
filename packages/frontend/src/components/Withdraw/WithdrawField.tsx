@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { AssetDetails } from '../../lib/typings';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
@@ -6,6 +6,7 @@ import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 type Props = {
   amount: bigint | null;
@@ -20,7 +21,7 @@ const WithdrawField = ({
   reETHToken,
   setAmount
 }: Props) => {
-  const [hasMounted, setHasMounted] = useState(false);
+  const hasMounted = useIsMounted();
   const [isFocused, setIsFocused] = useState(false);
   const handleValueChange = (value: string) => {
     const parsedAmount = parseUnits(value, 18);
@@ -40,9 +41,6 @@ const WithdrawField = ({
     inputRef.current.focus();
     setIsFocused(true);
   };
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   return (
     <div>
@@ -55,7 +53,7 @@ const WithdrawField = ({
             <span className="opacity-50 text-[12px] -tracking-tight">
               Balance:{' '}
               {displayEthAmount(
-                formatUnits(accountReETHBalance, reETHToken.decimals)
+                formatUnits(accountReETHBalance, reETHToken.decimals ?? 18)
               )}{' '}
               reETH
             </span>{' '}

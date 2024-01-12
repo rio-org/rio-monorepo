@@ -1,7 +1,7 @@
 import { Alert, Spinner } from '@material-tailwind/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAccount, useBalance, useWaitForTransaction } from 'wagmi';
-import { AssetDetails } from '../../lib/typings';
+import { AssetDetails, LRTDetails } from '../../lib/typings';
 import WithdrawAssetSelector from './WithdrawAssetSelector';
 import WithdrawButton from './WithdrawButton';
 import WithdrawField from './WithdrawField';
@@ -14,7 +14,13 @@ import {
 } from '@rionetwork/sdk-react';
 import { Hash } from 'viem';
 
-const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
+const WithdrawForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
+  // When more LRT products are available, we'll offer a way to switch these
+  const [activeLrt] = useState<LRTDetails>(lrtList[0]);
+  const assets = useMemo(() => {
+    return activeLrt.underlyingTokens.map((t) => t.token);
+  }, [activeLrt]);
+
   const [isMounted, setIsMounted] = useState(false);
   const [amount, setAmount] = useState<bigint | null>(null);
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets[0]);
@@ -25,11 +31,11 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
   const [isExitLoading, setIsExitLoading] = useState(false);
   const [isExitSuccess, setIsExitSuccess] = useState(false);
   const [exitTxHash, setExitTxHash] = useState<Hash>();
-  const reETHToken = assets.find((asset) => asset.symbol === 'reETH');
+
   const { address } = useAccount();
   const { data, isError, isLoading } = useBalance({
     address: address,
-    token: reETHToken ? reETHToken.address : undefined
+    token: activeLrt ? activeLrt.address : undefined
   });
   const isValidAmount =
     amount && amount > BigInt(0) && amount <= accountReETHBalance
@@ -46,7 +52,7 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
     }
   }, [data]);
 
-  const restakingToken = useLiquidRestakingToken(reETHToken?.address as string);
+  const restakingToken = useLiquidRestakingToken(activeLrt?.address as string);
   const queryTokens = async (
     restakingToken: LiquidRestakingTokenClient | null,
     activeToken: AssetDetails,
@@ -145,20 +151,26 @@ const WithdrawForm = ({ assets }: { assets: AssetDetails[] }) => {
     <>
       {isMounted && !isLoading && (
         <>
-          {reETHToken && (
+          {!!activeLrt && (
             <WithdrawField
               amount={amount}
               accountReETHBalance={accountReETHBalance}
-              reETHToken={reETHToken}
+              reETHToken={activeLrt}
               setAmount={setAmount}
             />
           )}
-          <WithdrawAssetSelector
-            assetsList={assets}
+          {assets.length > 1 && (
+            <WithdrawAssetSelector
+              assetsList={assets}
+              activeToken={activeToken}
+              setActiveToken={setActiveToken}
+            />
+          )}
+          <WithdrawItemized
+            assets={assets}
+            amount={amount}
             activeToken={activeToken}
-            setActiveToken={setActiveToken}
           />
-          <WithdrawItemized amount={amount} activeToken={activeToken} />
           {address && (
             <WithdrawButton
               isValid={isValidAmount}

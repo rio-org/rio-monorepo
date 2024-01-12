@@ -1,6 +1,16 @@
-import { formatUnits } from 'viem';
-import { ASSETS } from './constants';
-import { CHAIN_ID_NUMBER, EthereumAddress, TokenSymbol } from './typings';
+import { formatUnits, zeroAddress } from 'viem';
+import { ASSETS, ASSET_LOGOS } from './constants';
+import {
+  AssetDetails,
+  AssetSubgraphResponse,
+  CHAIN_ID_NUMBER,
+  EthereumAddress,
+  LRTDetails,
+  LRTSubgraphResponse,
+  TokenSymbol,
+  UnderlyingTokenDetails,
+  UnderlyingTokenSubgraphResponse
+} from './typings';
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
 import { CHAIN_ID } from '../../config';
@@ -127,6 +137,54 @@ export const dateFromTimestamp = (timestamp: number) => {
   const date = new Date(timestamp * 1000);
   const str = dayjs(date).format('MMMM D, YYYY');
   return str;
+};
+
+export const parseSubgraphAsset = (asset: AssetSubgraphResponse) =>
+  <AssetDetails>{
+    name: asset.name,
+    symbol: asset.symbol,
+    address: asset.address || zeroAddress,
+    logo: ASSET_LOGOS[asset.symbol],
+    decimals: asset.decimals ?? 18
+  };
+
+export const parseUnderlyingToken = (asset: UnderlyingTokenSubgraphResponse) =>
+  <UnderlyingTokenDetails>{
+    id: asset.id,
+    balance: asset.balance,
+    cashBalance: asset.cashBalance,
+    managedBalance: asset.managedBalance,
+    weight: asset.weight,
+    token: parseSubgraphAsset(asset.token)
+  };
+
+export const parseSubgraphLRT = (lrt: LRTSubgraphResponse) =>
+  <LRTDetails>{
+    ...parseSubgraphAsset({ ...lrt, decimals: 18 }),
+    totalSupply: lrt.totalSupply,
+    underlyingTokens: lrt.underlyingTokens.map(parseUnderlyingToken)
+  };
+
+export const parseSubgraphAssetList = (
+  data: AssetSubgraphResponse[]
+): AssetDetails[] => {
+  return JSON.parse(
+    JSON.stringify(data.map(parseSubgraphAsset))
+  ) as AssetDetails[];
+};
+
+export const parseSubgraphUnderlyingToken = (
+  data: UnderlyingTokenSubgraphResponse[]
+): UnderlyingTokenDetails[] => {
+  return JSON.parse(
+    JSON.stringify(data.map(parseUnderlyingToken))
+  ) as UnderlyingTokenDetails[];
+};
+
+export const parseSubgraphLRTList = (
+  data: LRTSubgraphResponse[]
+): LRTDetails[] => {
+  return JSON.parse(JSON.stringify(data.map(parseSubgraphLRT))) as LRTDetails[];
 };
 
 export const displayEthAmount = (amount: string) => {

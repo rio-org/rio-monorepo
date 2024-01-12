@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { statsData, emptyStatsData } from '../../../placeholder';
 import Stat from './Stat';
 import { motion } from 'framer-motion';
@@ -6,18 +6,15 @@ import IconSelectArrow from '../Icons/IconSelectArrow';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { useAccount } from 'wagmi';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 const Stats = () => {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const [isExpanded, setIsExpanded] = useState(true);
   const { address } = useAccount();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <>

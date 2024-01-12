@@ -5,18 +5,18 @@ export const reEthInUSD = 1942.52;
 export const statsData = [
   {
     label: 'Rewards',
-    value: '0.5992',
-    denominator: 'reETH'
+    value: 'TBD',
+    denominator: ''
   },
   {
     label: 'Restaking points',
-    value: '13290',
+    value: 'TBD',
     denominator: ''
   },
   {
     label: 'Average APY',
-    value: '5.38',
-    denominator: '%'
+    value: 'TBD',
+    denominator: ''
   }
 ];
 export const emptyStatsData = [

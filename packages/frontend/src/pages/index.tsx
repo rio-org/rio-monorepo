@@ -2,19 +2,19 @@ import type { NextPage } from 'next';
 import RestakeWrapper from '../components/Restake/RestakeWrapper';
 import Skeleton from 'react-loading-skeleton';
 import RestakeForm from '../components/Restake/RestakeForm';
-import { useState, useEffect } from 'react';
-import { useGetAssetsList } from '../hooks/useGetAssetsList';
-import { AssetDetails } from '../lib/typings';
+import { LRTDetails } from '../lib/typings';
 import { CHAIN_ID } from '../../config';
 import { Tooltip } from '@material-tailwind/react';
 import { apr, tvl } from '../../placeholder';
+import { useIsMounted } from '../hooks/useIsMounted';
+import { useGetLiquidRestakingTokens } from '../hooks/useGetLiquidRestakingTokens';
 
 type Props = {
-  assetsList: AssetDetails[];
+  lrtList: LRTDetails[];
 };
 
-const Home: NextPage<Props> = ({ assetsList }) => {
-  const [isMounted, setIsMounted] = useState(false);
+const Home: NextPage<Props> = ({ lrtList }) => {
+  const isMounted = useIsMounted();
 
   // TODO: replace these stats with real data
   const networkStats = {
@@ -36,9 +36,6 @@ const Home: NextPage<Props> = ({ assetsList }) => {
       <p>APY information TKTK</p>
     </>
   );
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <RestakeWrapper>
@@ -61,8 +58,8 @@ const Home: NextPage<Props> = ({ assetsList }) => {
             </Tooltip>
           </div>
         </div>
-        <div className="bg-white rounded-xl p-4 lg:p-6 w-full m-[2px]">
-          <RestakeForm assets={assetsList} />
+        <div className="bg-white rounded-xl p-4 lg:p-6 space-y-4 w-full m-[2px]">
+          <RestakeForm lrtList={lrtList} />
         </div>
       </div>
     </RestakeWrapper>
@@ -73,11 +70,10 @@ export default Home;
 
 export async function getStaticProps() {
   const chainId = CHAIN_ID;
-  const assetsList = await useGetAssetsList(chainId);
-
+  const lrtList = await useGetLiquidRestakingTokens(chainId);
   return {
     props: {
-      assetsList
+      lrtList
     }
   };
 }
