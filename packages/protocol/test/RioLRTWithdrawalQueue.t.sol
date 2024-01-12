@@ -8,7 +8,7 @@ import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 
-contract RioLRTCoordinatorTest is RioDeployer {
+contract RioLRTWithdrawalQueueTest is RioDeployer {
     IRioLRTIssuer.LRTDeployment public deployment;
     IRioLRTWithdrawalQueue public withdrawalQueue;
     IRioLRTCoordinator public coordinator;
@@ -24,43 +24,43 @@ contract RioLRTCoordinatorTest is RioDeployer {
         reETH = IERC20(deployment.token);
     }
 
-    function test_depositEtherViaNamedFunction() public {
+    function test_withdrawEtherPaidFromDepositPool() public {
         coordinator.depositETH{value: 1 ether}();
-
-        // The initial exchange rate is 1:1.
-        assertEq(reETH.balanceOf(address(this)), 1 ether);
-    }
-
-      function test_depositEtherViaReceiveFunction() public {
-        (bool success,) = address(coordinator).call{value: 1 ether}('');
-        assertTrue(success);
-
-        // The initial exchange rate is 1:1.
-        assertEq(reETH.balanceOf(address(this)), 1 ether);
-    }
-
-    function test_requestEtherWithdrawal() public {
-        coordinator.depositETH{value: 1 ether}();
-
         coordinator.requestWithdrawal(ETH_ADDRESS, 1 ether);
 
-        uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
+        uint256 withdrawalEpoch = withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
+
+        // Rebalance to settle the withdrawal.
+        coordinator.rebalance(ETH_ADDRESS);
+
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory summary = withdrawalQueue.getEpochWithdrawalSummary(
-            ETH_ADDRESS, currentEpoch
+            ETH_ADDRESS, withdrawalEpoch
         );
         IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
-            ETH_ADDRESS, currentEpoch, address(this)
+            ETH_ADDRESS, withdrawalEpoch, address(this)
         );
 
-        assertEq(reETH.balanceOf(address(this)), 0);
-        assertEq(withdrawalQueue.getSharesOwedInCurrentEpoch(ETH_ADDRESS), 1 ether);
+        // Ensure the reETH was burned.
+        assertEq(reETH.totalSupply(), 0);
 
-        assertFalse(summary.settled);
-        assertEq(summary.sharesOwed, 1 ether);
-        assertEq(summary.amountToBurnAtSettlement, 1 ether);
+        assertTrue(summary.settled);
+        assertEq(summary.assetsReceived, 1 ether);
+        assertEq(summary.shareValueOfAssetsReceived, 1 ether);
 
         assertFalse(withdrawal.claimed);
-        assertEq(withdrawal.sharesOwed, 1 ether);
+
+        uint256 balanceBefore = address(this).balance;
+
+        // Claim the withdrawal.
+        uint256 amountOut = withdrawalQueue.claimWithdrawal(
+            IRioLRTWithdrawalQueue.ClaimWithdrawalRequest({
+                asset: ETH_ADDRESS,
+                epoch: withdrawalEpoch
+            })
+        );
+
+        assertEq(amountOut, 1 ether);
+        assertEq(address(this).balance - balanceBefore, 1 ether);
     }
 
     receive() external payable {}

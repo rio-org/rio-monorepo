@@ -99,4 +99,9 @@ interface IRioLRTCoordinator {
     /// @param asset The asset being withdrawn.
     /// @param amountIn The amount of restaking tokens being redeemed.
     function requestWithdrawal(address asset, uint256 amountIn) external;
+
+    /// @notice Rebalances the provided `asset` by processing outstanding withdrawals and
+    /// depositing remaining assets into EigenLayer.
+    /// @param asset The asset to rebalance.
+    function rebalance(address asset) external;
 }

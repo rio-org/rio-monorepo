@@ -95,8 +95,8 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     }
 
     /// @notice Withdraws owed assets to the caller.
-    /// @param request The withdrawal request.
-    function withdraw(WithdrawalRequest calldata request) public {
+    /// @param request The withdrawal claim request.
+    function claimWithdrawal(ClaimWithdrawalRequest calldata request) public returns (uint256 amountOut) {
         address withdrawer = msg.sender;
         
         EpochWithdrawals storage epochWithdrawals = _getEpochWithdrawals(request.asset, request.epoch);
@@ -108,7 +108,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
         epochWithdrawals.users[withdrawer].claimed = true;
 
-        uint256 amountOut = userWithdrawal.sharesOwed.mulDiv(
+        amountOut = userWithdrawal.sharesOwed.mulDiv(
             epochWithdrawals.assetsReceived, epochWithdrawals.sharesOwed
         );
         request.asset.transferTo(withdrawer, amountOut);
@@ -117,11 +117,13 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     }
 
     /// @notice Withdraws owed assets owed to the caller from many withdrawal requests.
-    /// @param requests The withdrawal requests.
-    function withdrawMany(WithdrawalRequest[] calldata requests) external {
+    /// @param requests The withdrawal claim request.
+    function claimManyWithdrawals(ClaimWithdrawalRequest[] calldata requests) external returns (uint256[] memory amountsOut) {
         uint256 requestLength = requests.length;
+
+        amountsOut = new uint256[](requestLength);
         for (uint256 i; i < requestLength;) {
-            withdraw(requests[i]);
+            amountsOut[i] = claimWithdrawal(requests[i]);
 
             unchecked {
                 ++i;

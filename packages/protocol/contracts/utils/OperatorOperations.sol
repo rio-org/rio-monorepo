@@ -19,17 +19,12 @@ library OperatorOperations {
     /// @notice Thrown when the amount of shares received is not the expected amount.
     error INCORRECT_NUMBER_OF_SHARES_RECEIVED();
 
-    /// @notice Thrown when there is insufficient ETH to make at least one deposit.
-    error INSUFFICIENT_ETH_FOR_DEPOSIT();
-
     /// @dev Deposits ETH into EigenLayer through the operators that are returned from the registry.
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param amount The amount of ETH to deposit.
     function depositETH(IRioLRTOperatorRegistry operatorRegistry, uint256 amount) internal returns (uint256 depositAmount) {
         uint256 depositCount = amount / ETH_DEPOSIT_SIZE;
-        if (depositCount == 0) {
-            revert INSUFFICIENT_ETH_FOR_DEPOSIT();
-        }
+        if (depositCount == 0) return depositAmount;
 
         // forgefmt: disable-next-item
         (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = operatorRegistry.allocateETHDeposits(

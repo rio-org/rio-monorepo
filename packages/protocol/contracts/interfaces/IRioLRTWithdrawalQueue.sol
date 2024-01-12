@@ -50,8 +50,8 @@ interface IRioLRTWithdrawalQueue {
         uint256 amountToBurnAtSettlement;
     }
 
-    /// @notice A withdrawal request made by a user.
-    struct WithdrawalRequest {
+    /// @notice The information needed to claim am asset withdrawal for a given epoch.
+    struct ClaimWithdrawalRequest {
         address asset;
         uint256 epoch;
     }
@@ -150,6 +150,14 @@ interface IRioLRTWithdrawalQueue {
     /// @param sharesOwed The amount of shares owed to the withdrawer.
     /// @param amountIn The amount of restaking tokens pulled from the withdrawer.
     function queueWithdrawal(address withdrawer, address asset, uint256 sharesOwed, uint256 amountIn) external;
+
+    /// @notice Withdraws owed assets to the caller.
+    /// @param request The withdrawal claim request.
+    function claimWithdrawal(ClaimWithdrawalRequest calldata request) external returns (uint256 amountOut);
+
+    /// @notice Withdraws owed assets owed to the caller from many withdrawal requests.
+    /// @param requests The withdrawal claim request.
+    function claimManyWithdrawals(ClaimWithdrawalRequest[] calldata requests) external returns (uint256[] memory amountsOut);
 
     /// @notice Settle the current epoch for `asset` using `assetsPaid` from the deposit pool.
     /// @param asset The address of the withdrawal asset.

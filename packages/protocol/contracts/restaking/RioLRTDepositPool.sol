@@ -90,7 +90,8 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
 
         // If the deposit pool balance can cover the requested shares, transfer the equivalent assets.
         if (poolBalanceShareValue >= sharesRequested) {
-            uint256 assetsSent = assetRegistry.convertFromSharesToAsset(asset, sharesRequested);
+            address strategy = assetRegistry.getAssetStrategy(asset);
+            uint256 assetsSent = assetRegistry.convertFromSharesToAsset(strategy, sharesRequested);
             asset.transferTo(recipient, assetsSent);
 
             return (assetsSent, sharesRequested);
