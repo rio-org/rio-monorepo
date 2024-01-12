@@ -6,8 +6,8 @@ dataSources:
     name: RioLRTIssuer
     source:
       abi: RioLRTIssuer
-      address: "0x2A2fb9f94b92C957Df58dAD26f20fA51Cf45002C"
-      startBlock: 10204427
+      address: "0x87C00B995b0EEa62A8Ff287BAb3800559c6A5337"
+      startBlock: 10360668
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
