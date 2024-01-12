@@ -33,7 +33,7 @@ type LiquidRestakingToken @entity {
 type User @entity {
   id: ID!
   address: Bytes!
-  balance: BigDecimal! # TODO: This doesn't work for multiple LRTs
+  balance: BigDecimal!
   deposits: [Deposit!] @derivedFrom(field: "user")
   withdrawals: [Withdrawal!] @derivedFrom(field: "user")
 }
