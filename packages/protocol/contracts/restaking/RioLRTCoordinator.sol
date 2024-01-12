@@ -133,11 +133,11 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     function deposit(address token, uint256 amountIn) external payable onlyIfCapNotReached(token, amountIn) {
         if (!assetRegistry.isSupportedAsset(token)) revert ASSET_NOT_SUPPORTED(token);
 
-        // Pull tokens from the sender to the deposit pool.
-        IERC20(token).safeTransferFrom(msg.sender, address(depositPool), amountIn);
-
         // Convert deposited asset amount to restaking tokens.
         uint256 amountOut = convertFromAssetToRestakingTokens(token, amountIn);
+
+        // Pull tokens from the sender to the deposit pool.
+        IERC20(token).safeTransferFrom(msg.sender, address(depositPool), amountIn);
 
         // Mint restaking tokens to the caller.
         restakingToken.mint(msg.sender, amountOut);
@@ -255,11 +255,13 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     function _depositETH() internal onlyIfCapNotReached(ETH_ADDRESS, msg.value) {
         if (!assetRegistry.isSupportedAsset(ETH_ADDRESS)) revert ASSET_NOT_SUPPORTED(ETH_ADDRESS);
 
+        // Convert deposited ETH to restaking tokens and mint to the caller.
+        uint256 amountOut = convertFromUnitOfAccountToRestakingTokens(msg.value);
+
         // Forward ETH to the deposit pool.
         address(depositPool).transferETH(msg.value);
 
-        // Convert deposited ETH to restaking tokens and mint to the caller.
-        uint256 amountOut = convertFromUnitOfAccountToRestakingTokens(msg.value);
+        // Mint restaking tokens to the caller.
         restakingToken.mint(msg.sender, amountOut);
 
         emit Deposited(msg.sender, ETH_ADDRESS, msg.value, amountOut);
