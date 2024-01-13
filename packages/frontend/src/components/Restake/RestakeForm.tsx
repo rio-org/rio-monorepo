@@ -12,14 +12,10 @@ import { AssetDetails, EthereumAddress, LRTDetails } from '../../lib/typings';
 import HR from '../Shared/HR';
 import DepositButton from './DepositButton';
 import {
-  InputTokenExactInWithWrap,
-  JoinTokensExactInParams,
   LiquidRestakingTokenClient,
-  calcPriceImpact,
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
-import { ASSET_ADDRESS } from '../../lib/constants';
-import { displayEthAmount, truncDec } from '../../lib/utilities';
+import { displayEthAmount } from '../../lib/utilities';
 import { Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '../Shared/ApproveButtons';
 import { useIsMounted } from '../../hooks/useIsMounted';
@@ -27,17 +23,10 @@ import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
-  activeToken: AssetDetails,
   amount: bigint | null
-) => {
-  const query = await restakingToken?.queryJoinTokensExactIn({
-    tokensIn: [
-      {
-        address: ASSET_ADDRESS[activeToken.symbol] as string,
-        amount: amount || BigInt(0)
-      }
-    ],
-    slippage: 50
+): Promise<bigint | undefined> => {
+  const query = await restakingToken?.getEstimatedOutForETHDeposit({
+    amount: amount || BigInt(0)
   });
   return query;
 };
@@ -46,23 +35,21 @@ const RestakeForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
   // When more LRT products are available, we'll offer a way to switch these
   const [activeLrt] = useState<LRTDetails>(lrtList[0]);
   const assets = useMemo(() => {
-    return activeLrt.underlyingTokens.map((t) => t.token);
+    return activeLrt.underlyingAssets.map((t) => t.asset);
   }, [activeLrt]);
 
   const isMounted = useIsMounted();
   const [amount, setAmount] = useState<bigint | null>(null);
   const [accountTokenBalance, setAccountTokenBalance] = useState(BigInt(0));
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets[0]);
-  const [isJoinError, setIsJoinError] = useState(false);
-  const [isJoinLoading, setIsJoinLoading] = useState(false);
-  const [isJoinSuccess, setIsJoinSuccess] = useState(false);
-  const [joinTxHash, setJoinTxHash] = useState<Hash>();
+  const [isDepositError, setIsDepositError] = useState(false);
+  const [isDepositLoading, setIsDepositLoading] = useState(false);
+  const [isDepositSuccess, setIsDepositSuccess] = useState(false);
+  const [depositTxHash, setDepositTxHash] = useState<Hash>();
   const [allowanceTarget, setAllowanceTarget] = useState<EthereumAddress>();
   const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
-  const [tokensIn, setTokensIn] = useState<InputTokenExactInWithWrap[]>([]);
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(false);
-  const [priceImpact, setPriceImpact] = useState<number | null>(null);
   const restakingToken = useLiquidRestakingToken(activeLrt.address || '');
   const assetPriceUsd = useAssetPriceUsd(activeToken.address);
   const { address } = useAccount();
@@ -84,9 +71,9 @@ const RestakeForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
 
   const resetForm = () => {
     setAmount(null);
-    setIsJoinSuccess(false);
-    setIsJoinError(false);
-    setIsJoinLoading(false);
+    setIsDepositSuccess(false);
+    setIsDepositError(false);
+    setIsDepositLoading(false);
   };
 
   useEffect(() => {
@@ -125,8 +112,12 @@ const RestakeForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
       setAllowanceTarget(undefined);
       return;
     }
-    if (restakingToken?.token?.gateway) {
-      setAllowanceTarget(restakingToken.token.gateway as EthereumAddress);
+    try {
+      if (restakingToken?.allowanceTarget) {
+        setAllowanceTarget(restakingToken.allowanceTarget as EthereumAddress);
+      }
+    } catch (err) {
+      console.error('Error getting allowance target', err);
     }
   }, [restakingToken, activeToken]);
 
@@ -152,33 +143,17 @@ const RestakeForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
 
   useEffect(() => {
     if (restakingToken) {
-      queryTokens(restakingToken, activeToken, amount)
-        .then((res) => {
-          res && handleTokenQuery(res);
-        })
+      queryTokens(restakingToken, amount)
+        .then(handleTokenQuery)
         .catch((err) => {
           console.log('err', err);
         });
     }
   }, [amount, activeToken]);
 
-  const handleTokenQuery = (res: JoinTokensExactInParams) => {
-    if (!res) return;
-    setTokensIn(res.tokensIn);
-    setMinAmountOut(res.minAmountOut);
-    if (!!restakingToken?.token && typeof res?.minAmountOut === 'bigint') {
-      setPriceImpact(
-        truncDec(
-          calcPriceImpact(
-            restakingToken.token,
-            res.tokensIn.map((t) => t.amount.toString()),
-            res.minAmountOut.toString(),
-            true
-          ) * 100,
-          2
-        ) || 0
-      );
-    }
+  const handleTokenQuery = (estimatedOut?: bigint) => {
+    if (typeof estimatedOut === 'undefined') return;
+    setMinAmountOut(estimatedOut);
   };
 
   const {
@@ -186,62 +161,62 @@ const RestakeForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
     isError: isTxError,
     isLoading: isTxLoading
   } = useWaitForTransaction({
-    hash: joinTxHash,
-    enabled: !!joinTxHash
+    hash: depositTxHash,
+    enabled: !!depositTxHash
   });
 
   useEffect(() => {
     if (isTxLoading) {
-      setIsJoinLoading(true);
-      setIsJoinError(false);
-      setIsJoinSuccess(false);
+      setIsDepositLoading(true);
+      setIsDepositError(false);
+      setIsDepositSuccess(false);
       return;
     }
     if (isTxError) {
-      setIsJoinLoading(false);
-      setIsJoinError(true);
-      setIsJoinSuccess(false);
+      setIsDepositLoading(false);
+      setIsDepositError(true);
+      setIsDepositSuccess(false);
       return;
     }
     if (txData?.status === 'success') {
-      setIsJoinLoading(false);
-      setIsJoinError(false);
-      setIsJoinSuccess(true);
+      setIsDepositLoading(false);
+      setIsDepositError(false);
+      setIsDepositSuccess(true);
       setAmount(null);
       return;
     }
     if (txData?.status === 'reverted') {
-      setIsJoinLoading(false);
-      setIsJoinError(true);
-      setIsJoinSuccess(false);
+      setIsDepositLoading(false);
+      setIsDepositError(true);
+      setIsDepositSuccess(false);
       return;
     }
   }, [txData, isTxLoading, isTxError]);
 
   const handleJoin = async () => {
     await restakingToken
-      ?.joinTokensExactIn({
-        tokensIn: tokensIn,
-        minAmountOut: minAmountOut
+      ?.deposit({
+        tokenIn: activeToken.address,
+        amount: minAmountOut
       })
       .then((res) => {
-        setIsJoinSuccess(true);
-        setIsJoinLoading(false);
-        setJoinTxHash(res);
+        setIsDepositSuccess(true);
+        setIsDepositLoading(false);
+        setDepositTxHash(res);
         return res;
       })
       .catch((err) => {
         console.log('err', err);
-        setIsJoinError(true);
-        setIsJoinLoading(false);
+        setIsDepositError(true);
+        setIsDepositLoading(false);
       });
   };
 
   const handleExecute = () => {
-    setIsJoinLoading(true);
-    setIsJoinError(false);
-    setIsJoinSuccess(false);
-    setJoinTxHash(undefined);
+    setIsDepositLoading(true);
+    setIsDepositError(false);
+    setIsDepositSuccess(false);
+    setDepositTxHash(undefined);
     handleJoin().catch((e) => {
       console.error(e);
     });
@@ -263,7 +238,7 @@ const RestakeForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
             amount={amount}
             activeToken={activeToken}
             accountTokenBalance={accountTokenBalance}
-            isDisabled={isJoinLoading}
+            isDisabled={isDepositLoading}
             assets={assets}
             setAmount={setAmount}
             setActiveToken={setActiveToken}
@@ -277,12 +252,6 @@ const RestakeForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
                 <strong className="opacity-50">(${assetPriceUsd})</strong>
               </strong>
             </div>
-            {assets.length > 1 && (
-              <div className="flex justify-between text-[14px]">
-                <span className="text-black opacity-50">Price impact</span>
-                <strong className="text-right">{priceImpact ?? 0}%</strong>
-              </div>
-            )}
             <div className="flex justify-between text-[14px]">
               <span className="text-black opacity-50">Reward fee</span>
               <strong className="text-right">10%</strong>
@@ -304,13 +273,13 @@ const RestakeForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
             <DepositButton
               isValidAmount={isValidAmount}
               isEmpty={isEmpty}
-              isJoinLoading={isJoinLoading}
-              isJoinSuccess={isJoinSuccess}
-              isJoinError={isJoinError}
+              isDepositLoading={isDepositLoading}
+              isDepositSuccess={isDepositSuccess}
+              isDepositError={isDepositError}
               accountAddress={address}
-              joinTxHash={joinTxHash}
-              setIsJoinSuccess={setIsJoinSuccess}
-              setIsJoinError={setIsJoinError}
+              depositTxHash={depositTxHash}
+              setIsDepositSuccess={setIsDepositSuccess}
+              setIsDepositError={setIsDepositError}
               handleExecute={handleExecute}
             />
           )}

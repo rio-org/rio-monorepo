@@ -123,8 +123,8 @@ export const ASSETS: Asset = {
 
 // prettier-ignore
 export const PUBLIC_SUBGRAPH_URL = {
-  1: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-mainnet',
-  5: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-goerli',
+  1: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-mainnet-v2',
+  5: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-goerli-v2',
   11155111: '',
   10: '',
   420: '',

@@ -1,5 +1,4 @@
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
-import { ExitType } from '@rionetwork/sdk-react';
 import { StaticImageData } from 'next/image';
 import { Chain as WagmiChain } from 'wagmi';
 export type EthereumAddress = `0x${string}`;
@@ -80,13 +79,31 @@ export type Asset = {
   [key in TokenSymbol]: AssetDetails;
 };
 
-export interface AssetDetails {
+export interface AssetFinancials {
+  latestUSDPrice: NumberString | null;
+  latestUSDPriceTimestamp: number | null;
+}
+
+export interface LRTFinancials {
+  percentAPY: NumberString | null;
+  totalSupply: NumberString;
+  totalValueUSD: NumberString | null;
+  totalValueETH: NumberString | null;
+}
+
+export interface AssetDetailsBase {
   name: string;
   symbol: TokenSymbol;
   address: EthereumAddress;
   logo: StaticImageData;
   decimals: number;
 }
+
+export type AssetDetails<T extends AssetExtension.Financials | void = void> =
+  T extends void ? AssetDetailsBase : AssetDetailsBase & AssetFinancials;
+
+export type AssetDetailsWithFinancials =
+  AssetDetails<AssetExtension.Financials>;
 
 export interface AssetPrice {
   address: EthereumAddress;
@@ -137,7 +154,7 @@ export interface TransactionEvent {
 ///////////////////////////
 export interface ExitSubgraphResponse {
   id: string;
-  type: ExitType;
+  // type: ExitType;
   sender: EthereumAddress;
   tokensOut: {
     symbol: TokenSymbol;
@@ -152,48 +169,80 @@ export interface ExitSubgraphResponse {
   timestamp: string;
 }
 
-export interface AssetSubgraphResponse {
+export enum AssetExtension {
+  Financials = 'Financials'
+}
+
+export interface AssetSubgraphResponseBase {
   name: string;
   symbol: TokenSymbol;
   address: EthereumAddress | null;
   decimals: number;
 }
 
+export type AssetSubgraphResponse<
+  T extends AssetExtension.Financials | void = void
+> = T extends void
+  ? AssetSubgraphResponseBase
+  : AssetSubgraphResponseBase & AssetFinancials;
+export type AssetSubgraphResponseWithFinancials =
+  AssetSubgraphResponse<AssetExtension.Financials>;
+
 export type NumberString = `${number}`;
 
-export interface UnderlyingTokenSubgraphResponse {
+export interface UnderlyingAssetSubgraphResponse<
+  T extends AssetExtension.Financials | void = void
+> {
   id: string;
   balance: NumberString;
-  cashBalance: NumberString;
-  managedBalance: NumberString;
-  weight: NumberString;
-  token: AssetSubgraphResponse;
+  strategy: EthereumAddress;
+  asset: AssetSubgraphResponse<T>;
 }
+export type UnderlyingAssetSubgraphResponseWithFinancials =
+  UnderlyingAssetSubgraphResponse<AssetExtension.Financials>;
 
-export interface UnderlyingTokenDetails
-  extends Omit<UnderlyingTokenSubgraphResponse, 'id' | 'token'> {
-  token: AssetDetails;
+export interface UnderlyingAssetDetails<
+  T extends AssetExtension.Financials | void = void
+> extends Omit<UnderlyingAssetSubgraphResponse, 'id' | 'asset'> {
+  asset: AssetDetails<T>;
 }
+export type UnderlyingAssetDetailsWithFinancials =
+  UnderlyingAssetDetails<AssetExtension.Financials>;
 
-export interface LRTSubgraphResponse
-  extends Omit<AssetSubgraphResponse, 'decimals'> {
+export interface LRTSubgraphResponseBase<
+  T extends AssetExtension.Financials | void = void
+> {
   id: string;
   totalSupply: NumberString;
-  underlyingTokens: UnderlyingTokenSubgraphResponse[];
+  underlyingAssets: UnderlyingAssetSubgraphResponse<T>[];
 }
 
-export interface LRTDetails {
+export type LRTSubgraphResponse<
+  T extends AssetExtension.Financials | void = void
+> = Omit<AssetSubgraphResponse, 'decimals'> &
+  LRTSubgraphResponseBase<T> &
+  (T extends void ? void : LRTFinancials);
+export type LRTSubgraphResponseWithFinancials =
+  LRTSubgraphResponse<AssetExtension.Financials>;
+
+export interface LRTDetailsBase<
+  T extends AssetExtension.Financials | void = void
+> {
   name: string;
   symbol: TokenSymbol;
   address: EthereumAddress;
   logo: StaticImageData;
   decimals: number;
   totalSupply: NumberString;
-  underlyingTokens: UnderlyingTokenDetails[];
+  underlyingAssets: UnderlyingAssetDetails<T>[];
 }
 
+export type LRTDetails<T extends AssetExtension.Financials | void = void> =
+  T extends void ? LRTDetailsBase : LRTDetailsBase<T> & LRTFinancials;
+export type LRTDetailsWithFinancials = LRTDetails<AssetExtension.Financials>;
+
 export interface TransactionEventSubgraphResponse {
-  type: ExitType;
+  // type: ExitType;
   amountsOut: string[] | null;
   amountOut: string | null;
   amountIn: string;

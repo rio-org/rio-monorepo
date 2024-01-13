@@ -21,23 +21,48 @@ export const getAssetList = () => {
   `;
 };
 
+export const getLiquidRestakingTokenListWithFinancials = () => {
+  return gql`
+    query getLiquidRestakingTokenListWithFinancials {
+      liquidRestakingTokens {
+        id
+        symbol
+        name
+        address
+        percentAPY
+        totalSupply
+        totalValueUSD
+        totalValueETH
+        underlyingAssets {
+          strategy
+          balance
+          asset {
+            id
+            name
+            symbol
+            decimals
+            latestUSDPrice
+            latestUSDPriceTimestamp
+          }
+        }
+      }
+    }
+  `;
+};
+
 export const getLiquidRestakingTokenList = () => {
   return gql`
     query getLiquidRestakingTokenList {
       liquidRestakingTokens {
         id
-        address
-        name
         symbol
-        totalSupply
-        underlyingTokens {
+        name
+        address
+        underlyingAssets {
+          strategy
           balance
-          cashBalance
-          managedBalance
-          weight
-          token {
+          asset {
             id
-            address
             name
             symbol
             decimals

@@ -8,7 +8,7 @@ import { CHAIN_ID } from '../../../config';
 type Props = {
   isSuccess: boolean;
   isError: boolean;
-  joinTxHash?: `0x${string}`;
+  depositTxHash?: `0x${string}`;
   setIsSuccess: (isSuccess: boolean) => void;
   setIsError: (isError: boolean) => void;
 };
@@ -16,7 +16,7 @@ type Props = {
 const Alert = ({
   isSuccess,
   isError,
-  joinTxHash,
+  depositTxHash,
   setIsSuccess,
   setIsError
 }: Props) => {
@@ -41,7 +41,7 @@ const Alert = ({
         </motion.button>
       )}
       <AnimatePresence>
-        {isSuccess && joinTxHash && (
+        {isSuccess && depositTxHash && (
           <motion.div
             className="mt-2"
             initial={{ opacity: 0 }}
@@ -51,8 +51,8 @@ const Alert = ({
             <div>
               <a
                 href={
-                  joinTxHash
-                    ? linkToTxOnBlockExplorer(joinTxHash, CHAIN_ID)
+                  depositTxHash
+                    ? linkToTxOnBlockExplorer(depositTxHash, CHAIN_ID)
                     : ''
                 }
                 target="_blank"

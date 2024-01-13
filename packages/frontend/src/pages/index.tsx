@@ -15,6 +15,7 @@ type Props = {
 
 const Home: NextPage<Props> = ({ lrtList }) => {
   const isMounted = useIsMounted();
+  console.log(lrtList[0]);
 
   // TODO: replace these stats with real data
   const networkStats = {
