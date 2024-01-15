@@ -2,22 +2,18 @@ import { formatUnits, zeroAddress } from 'viem';
 import { ASSETS, ASSET_LOGOS } from './constants';
 import {
   AssetDetails,
-  AssetExtension,
   AssetSubgraphResponse,
-  AssetSubgraphResponseWithFinancials,
   CHAIN_ID_NUMBER,
   EthereumAddress,
   LRTDetails,
   LRTSubgraphResponse,
-  LRTSubgraphResponseWithFinancials,
   TokenSymbol,
   UnderlyingAssetDetails,
-  UnderlyingAssetSubgraphResponse,
-  UnderlyingAssetSubgraphResponseWithFinancials
+  UnderlyingAssetSubgraphResponse
 } from './typings';
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
-import { CHAIN_ID } from '../../config';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../../config';
 
 export const getChainName = (chainId: number) => {
   switch (chainId) {
@@ -143,116 +139,65 @@ export const dateFromTimestamp = (timestamp: number) => {
   return str;
 };
 
-export const parseSubgraphAsset = <
-  T extends AssetSubgraphResponse | AssetSubgraphResponseWithFinancials,
-  R extends
-    void | AssetExtension.Financials = T extends AssetSubgraphResponseWithFinancials
-    ? AssetExtension.Financials
-    : void
->(
-  asset: T
-) => {
-  const _asset = asset as AssetSubgraphResponseWithFinancials;
-  return <AssetDetails<R>>{
+export const parseSubgraphAsset = (asset: AssetSubgraphResponse) => {
+  return <AssetDetails>{
     name: asset.name,
     symbol: asset.symbol,
-    address: asset.address || zeroAddress,
+    address: asset.address || NATIVE_ETH_ADDRESS,
     logo: ASSET_LOGOS[asset.symbol],
     decimals: asset.decimals ?? 18,
-    ...(typeof _asset.latestUSDPriceTimestamp !== 'undefined' && {
-      latestUSDPrice: _asset.latestUSDPrice,
-      latestUSDPriceTimestamp: _asset.latestUSDPriceTimestamp
-    })
+    latestUSDPrice: asset.latestUSDPrice,
+    latestUSDPriceTimestamp: asset.latestUSDPriceTimestamp
   };
 };
 
-export const parseUnderlyingAsset = <
-  T extends
-    | UnderlyingAssetSubgraphResponse
-    | UnderlyingAssetSubgraphResponseWithFinancials,
-  R extends
-    void | AssetExtension.Financials = T extends UnderlyingAssetSubgraphResponseWithFinancials
-    ? AssetExtension.Financials
-    : void
->(
-  asset: T
+export const parseUnderlyingAsset = (
+  asset: UnderlyingAssetSubgraphResponse
 ) => {
-  return <UnderlyingAssetDetails<R>>{
+  asset;
+  return <UnderlyingAssetDetails>{
     id: asset.id,
-    balance: asset.balance,
+    balance: Number(asset.balance),
     strategy: asset.strategy,
     asset: parseSubgraphAsset(asset.asset)
   };
 };
 
-export const parseSubgraphLRT = <
-  T extends LRTSubgraphResponse | LRTSubgraphResponseWithFinancials,
-  R extends
-    void | AssetExtension.Financials = T extends LRTSubgraphResponseWithFinancials
-    ? AssetExtension.Financials
-    : void
->(
-  lrt: T
-) => {
-  const _lrt = lrt as LRTSubgraphResponseWithFinancials;
-  return <LRTDetails<R>>{
+export const parseSubgraphLRT = (lrt: LRTSubgraphResponse) => {
+  return <LRTDetails>{
     name: lrt.name,
     symbol: lrt.symbol,
     address: lrt.address || zeroAddress,
     logo: ASSET_LOGOS[lrt.symbol],
     decimals: /USD/i.test(lrt.symbol) ? 6 : 18,
-    underlyingAssets: lrt.underlyingAssets.map(parseUnderlyingAsset),
-    ...(typeof _lrt.totalSupply === 'string' && {
-      totalSupply: _lrt.totalSupply,
-      percentAPY: _lrt.percentAPY,
-      totalValueUSD: _lrt.totalValueUSD,
-      totalValueETH: _lrt.totalValueETH
-    })
+    totalSupply: Number(lrt.totalSupply),
+    percentAPY: Number(lrt.percentAPY),
+    totalValueUSD: Number(lrt.totalValueUSD),
+    totalValueETH: Number(lrt.totalValueETH),
+    underlyingAssets: lrt.underlyingAssets.map(parseUnderlyingAsset)
   };
 };
 
-export const parseSubgraphAssetList = <
-  T extends AssetSubgraphResponse | AssetSubgraphResponseWithFinancials,
-  R extends
-    void | AssetExtension.Financials = T extends AssetSubgraphResponseWithFinancials
-    ? AssetExtension.Financials
-    : void
->(
-  data: T[]
-): AssetDetails<R>[] => {
+export const parseSubgraphAssetList = (
+  data: AssetSubgraphResponse[]
+): AssetDetails[] => {
   return JSON.parse(
     JSON.stringify(data.map(parseSubgraphAsset))
-  ) as AssetDetails<R>[];
+  ) as AssetDetails[];
 };
 
-export const parseSubgraphUnderlyingAsset = <
-  T extends
-    | UnderlyingAssetSubgraphResponse
-    | UnderlyingAssetSubgraphResponseWithFinancials,
-  R extends
-    void | AssetExtension.Financials = T extends UnderlyingAssetSubgraphResponseWithFinancials
-    ? AssetExtension.Financials
-    : void
->(
-  data: T[]
-): UnderlyingAssetDetails<R>[] => {
+export const parseSubgraphUnderlyingAsset = (
+  data: UnderlyingAssetSubgraphResponse[]
+): UnderlyingAssetDetails[] => {
   return JSON.parse(
     JSON.stringify(data.map(parseUnderlyingAsset))
-  ) as UnderlyingAssetDetails<R>[];
+  ) as UnderlyingAssetDetails[];
 };
 
-export const parseSubgraphLRTList = <
-  T extends LRTSubgraphResponse | LRTSubgraphResponseWithFinancials,
-  R extends
-    void | AssetExtension.Financials = T extends LRTSubgraphResponseWithFinancials
-    ? AssetExtension.Financials
-    : void
->(
-  data: T[]
-): LRTDetails<R>[] => {
-  return JSON.parse(
-    JSON.stringify(data.map(parseSubgraphLRT))
-  ) as LRTDetails<R>[];
+export const parseSubgraphLRTList = (
+  data: LRTSubgraphResponse[]
+): LRTDetails[] => {
+  return JSON.parse(JSON.stringify(data.map(parseSubgraphLRT))) as LRTDetails[];
 };
 
 export const displayEthAmount = (amount: string) => {

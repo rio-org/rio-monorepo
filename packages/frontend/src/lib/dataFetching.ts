@@ -3,28 +3,30 @@ import {
   ApolloError,
   NormalizedCacheObject
 } from '@apollo/client';
-import { getLiquidRestakingTokenListWithFinancials } from '../lib/graphqlQueries';
+import { getLiquidRestakingTokenList } from '../lib/graphqlQueries';
 import {
   CHAIN_ID_NUMBER,
-  LRTDetailsWithFinancials,
-  LRTSubgraphResponseWithFinancials
+  LRTDetails,
+  LRTSubgraphResponse
 } from '../lib/typings';
 import subgraphClient from '../lib/subgraphClient';
 import { ALLOW_ALL_LSTS, ASSET_SYMBOLS_ALLOWED } from '../../config';
 import { parseSubgraphLRTList } from '../lib/utilities';
 
-export const useGetLRTsWithFinancials = async (chainId: CHAIN_ID_NUMBER) => {
+export const fetchLiquidRestakingTokens = async (chainId: CHAIN_ID_NUMBER) => {
   const client = subgraphClient(chainId);
   const getData = async (client: ApolloClient<NormalizedCacheObject>) => {
     const { data } = await client.query<{
-      liquidRestakingTokens: LRTSubgraphResponseWithFinancials[];
+      liquidRestakingTokens: LRTSubgraphResponse[];
     }>({
-      query: getLiquidRestakingTokenListWithFinancials()
+      query: getLiquidRestakingTokenList()
     });
     return data;
   };
 
-  const data: LRTDetailsWithFinancials[] | ApolloError = await getData(client)
+  let error: ApolloError | null = null;
+
+  const data: LRTDetails[] = await getData(client)
     .then((res) => {
       const lrtList = parseSubgraphLRTList(res.liquidRestakingTokens);
       return ALLOW_ALL_LSTS
@@ -38,8 +40,9 @@ export const useGetLRTsWithFinancials = async (chainId: CHAIN_ID_NUMBER) => {
     })
     .catch((err) => {
       console.log(err);
-      return err as ApolloError;
+      error = err as ApolloError;
+      return [];
     });
 
-  return data;
+  return { data, error };
 };

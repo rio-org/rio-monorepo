@@ -5,31 +5,41 @@ import RestakeForm from '../components/Restake/RestakeForm';
 import { LRTDetails } from '../lib/typings';
 import { CHAIN_ID } from '../../config';
 import { Tooltip } from '@material-tailwind/react';
-import { apr, tvl } from '../../placeholder';
 import { useIsMounted } from '../hooks/useIsMounted';
+import { useEffect, useState } from 'react';
+import { fetchLiquidRestakingTokens } from '../lib/dataFetching';
 import { useGetLiquidRestakingTokens } from '../hooks/useGetLiquidRestakingTokens';
 
 type Props = {
   lrtList: LRTDetails[];
 };
 
-const Home: NextPage<Props> = ({ lrtList }) => {
+const Home: NextPage<Props> = () => {
   const isMounted = useIsMounted();
-  console.log(lrtList[0]);
+  // When more LRT products are available, we'll offer a way to switch these
+  const { data: lrtList } = useGetLiquidRestakingTokens();
+  const [activeLrt, setActiveLrt] = useState<LRTDetails | undefined>(
+    lrtList?.[0]
+  );
+
+  useEffect(() => {
+    if (!lrtList?.length || activeLrt) return;
+    setActiveLrt(lrtList[0]);
+  }, [lrtList]);
 
   // TODO: replace these stats with real data
   const networkStats = {
-    tvl: Math.trunc(tvl),
-    apr: apr
+    tvl: activeLrt ? Math.trunc(activeLrt.totalSupply) : NaN,
+    apy: activeLrt ? activeLrt.percentAPY : NaN
   };
-  const tvlVal =
-    isMounted && networkStats?.tvl ? (
-      networkStats.tvl.toLocaleString() + ' ETH'
-    ) : (
-      <Skeleton width={40} />
-    );
-  const aprVal =
-    isMounted && networkStats?.apr ? networkStats?.apr : <Skeleton />;
+
+  const [tvlVal, apyVal] =
+    isMounted && networkStats
+      ? [
+          (networkStats.tvl ?? 0).toLocaleString() + ' ETH',
+          networkStats.apy ?? 0
+        ]
+      : [<Skeleton width={40} />, <Skeleton />];
 
   // TODO: Replace the tooltip content with real copy
   const tooltipContent = (
@@ -54,13 +64,13 @@ const Home: NextPage<Props> = ({ lrtList }) => {
                 rel="noreferrer"
                 className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4"
               >
-                {aprVal}% APY
+                {apyVal}% APY
               </a>
             </Tooltip>
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 lg:p-6 space-y-4 w-full m-[2px]">
-          <RestakeForm lrtList={lrtList} />
+          {activeLrt && <RestakeForm lrt={activeLrt} />}
         </div>
       </div>
     </RestakeWrapper>
@@ -71,10 +81,6 @@ export default Home;
 
 export async function getStaticProps() {
   const chainId = CHAIN_ID;
-  const lrtList = await useGetLiquidRestakingTokens(chainId);
-  return {
-    props: {
-      lrtList
-    }
-  };
+  const { data } = await fetchLiquidRestakingTokens(chainId);
+  return { props: { lrtList: data } };
 }

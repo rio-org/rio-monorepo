@@ -26,6 +26,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Layout from '../components/Layout';
 import { APP_TITLE, CHAIN_ID } from '../../config';
 import { theme } from '../lib/theme';
+import { ApolloProvider } from '@apollo/client';
+import subgraphClient from '../lib/subgraphClient';
 
 const chooseChain = (chainId: number) => {
   if (chainId === 1) {
@@ -78,17 +80,21 @@ const wagmiConfig = createConfig({
   webSocketPublicClient
 });
 
+const apolloSubgraphClient = subgraphClient(CHAIN_ID);
+
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider appInfo={appInfo} chains={chains}>
         <RioNetworkProvider>
-          <ThemeProvider value={theme}>
-            <CssBaseline />
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-          </ThemeProvider>
+          <ApolloProvider client={apolloSubgraphClient}>
+            <ThemeProvider value={theme}>
+              <CssBaseline />
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </ThemeProvider>
+          </ApolloProvider>
         </RioNetworkProvider>
       </RainbowKitProvider>
     </WagmiConfig>

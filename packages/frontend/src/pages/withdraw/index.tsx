@@ -4,7 +4,7 @@ import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
 import WithdrawForm from '../../components/Withdraw/WithdrawForm';
 import { CHAIN_ID } from '../../../config';
 import { LRTDetails } from '../../lib/typings';
-import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
+import { fetchLiquidRestakingTokens } from '../../lib/dataFetching';
 
 type Props = {
   lrtList: LRTDetails[];
@@ -22,7 +22,7 @@ export default Withdraw;
 
 export async function getStaticProps() {
   const chainId = CHAIN_ID;
-  const lrtList = await useGetLiquidRestakingTokens(chainId);
+  const lrtList = await fetchLiquidRestakingTokens(chainId);
   return {
     props: {
       lrtList

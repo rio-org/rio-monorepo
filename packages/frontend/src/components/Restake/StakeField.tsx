@@ -11,7 +11,7 @@ import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
 import { useIsMounted } from '../../hooks/useIsMounted';
 
 type Props = {
-  activeToken: AssetDetails;
+  activeToken?: AssetDetails;
   amount: bigint | null;
   accountTokenBalance: bigint;
   assets: AssetDetails[];
@@ -32,20 +32,17 @@ const StakeField = ({
   const isMounted = useIsMounted();
   const [isFocused, setIsFocused] = useState(false);
 
-  const assetPriceUsd = useAssetPriceUsd(activeToken.address);
+  const assetPriceUsd = useAssetPriceUsd(activeToken?.address);
   const usdAmount = useMemo(() => {
+    if (!activeToken || !assetPriceUsd) return 0;
     return amount
       ? +formatUnits(amount, activeToken.decimals) * assetPriceUsd
       : 0;
-  }, [amount, activeToken.decimals, assetPriceUsd]);
+  }, [amount, activeToken?.decimals, assetPriceUsd]);
 
   const handleValueChange = (value: string) => {
-    const parsedAmount = parseUnits(value, activeToken.decimals);
-    if (value === '') {
-      setAmount(null);
-      return;
-    }
-    setAmount(parsedAmount);
+    if (!activeToken || value === '') return setAmount(null);
+    setAmount(parseUnits(value, activeToken?.decimals));
   };
   const handleMaxBalance = (balanceAmount: bigint) => {
     setAmount(balanceAmount);
@@ -98,7 +95,11 @@ const StakeField = ({
             placeholder="0.00"
             autoFocus={isDesktopOrLaptop}
             min={0}
-            value={parseBigIntFieldAmount(amount, activeToken.decimals)}
+            value={
+              !activeToken
+                ? 0
+                : parseBigIntFieldAmount(amount, activeToken.decimals)
+            }
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
@@ -112,7 +113,7 @@ const StakeField = ({
             }}
           />
           <AssetSelector
-            activeTokenSymbol={activeToken.symbol}
+            activeTokenSymbol={activeToken?.symbol}
             assets={assets}
             isDisabled={isDisabled}
             setActiveToken={setActiveToken}
@@ -127,7 +128,7 @@ const StakeField = ({
           <div>
             {isMounted &&
             accountTokenBalance !== undefined &&
-            activeToken.symbol ? (
+            activeToken?.symbol ? (
               <>
                 <span className="opacity-50">
                   Balance:{' '}

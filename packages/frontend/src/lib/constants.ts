@@ -68,56 +68,72 @@ export const ASSETS: Asset = {
     symbol: '＊ETH',
     logo: allEthLogo,
     address: zeroAddress,
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   ETH: {
     name: 'Ether',
     symbol: 'ETH',
     logo: ethLogo,
     address: zeroAddress,
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   WETH: {
     name: 'Wrapped Ether',
     symbol: 'WETH',
     logo: ethLogo,
     address: zeroAddress,
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   stETH: {
     name: 'Lido Staked Ether',
     symbol: 'stETH',
     logo: stETHLogo,
     address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   rETH: {
     name: 'Rocketpool ETH',
     symbol: 'rETH',
     logo: rETHLogo,
     address: '0xae78736cd615f374d3085123a210448e74fc6393',
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   cbETH: {
     name: 'Coinbase Wrapped Staked ETH',
     symbol: 'cbETH',
     logo: cbETHLogo,
     address: '0xbe9895146f7af43049ca1c1ae358b0541ea49704',
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   wstETH: {
     name: 'Wrapped Staked ETH',
     symbol: 'wstETH',
     logo: wstETHLogo,
     address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   reETH: {
     name: 'reETH',
     symbol: 'reETH',
     logo: rETHLogo,
     address: '0x00000', // todo,
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   }
 };
 

@@ -11,7 +11,7 @@ type Props = {
   accountAddress: EthereumAddress;
   isValidAmount: boolean;
   amount: bigint;
-  token: AssetDetails;
+  token?: AssetDetails;
   refetchAllowance: () => void;
 };
 

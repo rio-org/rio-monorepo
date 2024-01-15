@@ -17,7 +17,7 @@ type Props = {
   accountAddress: EthereumAddress;
   isValidAmount: boolean;
   amount: bigint;
-  token: AssetDetails;
+  token?: AssetDetails;
   buttonLabel: string;
   isApprovalLoading: boolean;
   refetchAllowance: () => void;
@@ -45,7 +45,7 @@ const ApproveButton = ({
     error: prepareError,
     isError: isPrepareError
   } = usePrepareContractWrite({
-    address: token.address,
+    address: token?.address,
     abi: erc20ABI,
     functionName: 'approve',
     args: [allowanceTarget || zeroAddress, amount],

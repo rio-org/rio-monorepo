@@ -21,9 +21,9 @@ export const getAssetList = () => {
   `;
 };
 
-export const getLiquidRestakingTokenListWithFinancials = () => {
+export const getLiquidRestakingTokenList = () => {
   return gql`
-    query getLiquidRestakingTokenListWithFinancials {
+    query getLiquidRestakingTokenList {
       liquidRestakingTokens {
         id
         symbol
@@ -43,29 +43,6 @@ export const getLiquidRestakingTokenListWithFinancials = () => {
             decimals
             latestUSDPrice
             latestUSDPriceTimestamp
-          }
-        }
-      }
-    }
-  `;
-};
-
-export const getLiquidRestakingTokenList = () => {
-  return gql`
-    query getLiquidRestakingTokenList {
-      liquidRestakingTokens {
-        id
-        symbol
-        name
-        address
-        underlyingAssets {
-          strategy
-          balance
-          asset {
-            id
-            name
-            symbol
-            decimals
           }
         }
       }
