@@ -9,22 +9,27 @@ import {
   LiquidRestakingToken_Filter,
   LiquidRestakingToken_OrderBy,
   LiquidRestakingTokenFieldsFragment,
-  Withdrawal_OrderBy,
-  Withdrawal_Filter
+  WithdrawalRequest_OrderBy,
+  WithdrawalRequest_Filter,
+  WithdrawalClaim_OrderBy,
+  WithdrawalClaim_Filter
 } from './generated/graphql';
 import {
   IssuerQuery,
   LiquidRestakingTokenQuery,
   ManyDepositsQuery,
-  ManyWithdrawalsQuery,
+  ManyWithdrawalRequestsQuery,
+  ManyWithdrawalClaimsQuery,
   ManyLiquidRestakingTokensQuery
 } from './queries';
 import {
-  Withdrawal,
+  WithdrawalRequest,
   Issuer,
   Deposit,
   LiquidRestakingToken,
-  QueryConfig
+  QueryConfig,
+  WithdrawalEpochStatus,
+  WithdrawalClaim
 } from './types';
 import { GraphQLClient } from 'graphql-request';
 
@@ -145,20 +150,25 @@ export class SubgraphClient {
   }
 
   /**
-   * Get information about a one or more withdrawals.
+   * Get information about a one or more withdrawal requests.
    * @param config Filtering, pagination, and ordering configuration.
    */
-  public async getWithdrawals(
-    config: Partial<QueryConfig<Withdrawal_OrderBy, Withdrawal_Filter>> = {}
-  ): Promise<Withdrawal[]> {
-    const { withdrawals } = await this._gql.request(
-      ManyWithdrawalsQuery,
-      toPaginated(this.merge(getDefaultConfig(Withdrawal_OrderBy.Id), config))
+  public async getWithdrawalRequests(
+    config: Partial<
+      QueryConfig<WithdrawalRequest_OrderBy, WithdrawalRequest_Filter>
+    > = {}
+  ): Promise<WithdrawalRequest[]> {
+    const { withdrawalRequests } = await this._gql.request(
+      ManyWithdrawalRequestsQuery,
+      toPaginated(
+        this.merge(getDefaultConfig(WithdrawalRequest_OrderBy.Id), config)
+      )
     );
-    return withdrawals.map(
+    return withdrawalRequests.map(
       ({
         id,
         sender,
+        epoch,
         assetOut,
         sharesOwed,
         amountIn,
@@ -166,14 +176,14 @@ export class SubgraphClient {
         userBalanceAfter,
         timestamp,
         blockNumber,
-        requestTx,
-        isReadyToClaim,
+        tx,
         isClaimed,
-        amountOut,
-        claimTx
+        claim
       }) => ({
         id,
         sender,
+        epoch: epoch.epoch,
+        epochStatus: epoch.status,
         assetOut: assetOut.id,
         sharesOwed,
         amountIn,
@@ -181,11 +191,55 @@ export class SubgraphClient {
         userBalanceAfter,
         timestamp,
         blockNumber,
-        requestTx,
-        isReadyToClaim,
+        tx,
+
         isClaimed,
+        claimId: claim?.id,
+        claimTx: claim?.tx,
+        amountClaimed: claim?.amountOut,
+        isReadyToClaim: epoch.status === WithdrawalEpochStatus.Settled
+      })
+    );
+  }
+
+  /**
+   * Get information about a one or more withdrawal claims.
+   * @param config Filtering, pagination, and ordering configuration.
+   */
+  public async getWithdrawalClaims(
+    config: Partial<
+      QueryConfig<WithdrawalClaim_OrderBy, WithdrawalClaim_Filter>
+    > = {}
+  ): Promise<WithdrawalClaim[]> {
+    const { withdrawalClaims } = await this._gql.request(
+      ManyWithdrawalClaimsQuery,
+      toPaginated(
+        this.merge(getDefaultConfig(WithdrawalClaim_OrderBy.Id), config)
+      )
+    );
+    return withdrawalClaims.map(
+      ({
+        id,
+        sender,
+        epoch,
+        assetOut,
         amountOut,
-        claimTx
+        restakingToken,
+        requests,
+        timestamp,
+        blockNumber,
+        tx
+      }) => ({
+        id,
+        sender,
+        epoch: epoch.epoch,
+        assetOut: assetOut.id,
+        amountClaimed: amountOut,
+        restakingToken: restakingToken.id,
+        requestIds: requests?.map(({ id }) => id) ?? [],
+        timestamp,
+        blockNumber,
+        tx
       })
     );
   }

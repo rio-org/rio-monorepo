@@ -50,9 +50,17 @@ export interface Deposit {
   tx: string;
 }
 
-export interface Withdrawal {
+export enum WithdrawalEpochStatus {
+  Active = 'ACTIVE',
+  Queued = 'QUEUED',
+  Settled = 'SETTLED'
+}
+
+export interface WithdrawalRequest {
   id: string;
   sender: Address;
+  epoch: string;
+  epochStatus: WithdrawalEpochStatus;
   assetOut: Address;
   sharesOwed: string;
   amountIn: string;
@@ -60,12 +68,26 @@ export interface Withdrawal {
   userBalanceAfter: string;
   timestamp: string;
   blockNumber: string;
-  requestTx: string;
+  tx: string;
 
   isReadyToClaim: boolean;
   isClaimed: boolean;
-  amountOut?: string;
-  claimTx?: string;
+  claimId: string | undefined;
+  claimTx: string | undefined;
+  amountClaimed: string | undefined;
+}
+
+export interface WithdrawalClaim {
+  id: string;
+  sender: Address;
+  epoch: string;
+  assetOut: Address;
+  amountClaimed: string;
+  restakingToken: Address;
+  requestIds: string[];
+  timestamp: string;
+  blockNumber: string;
+  tx: string;
 }
 
 //#endregion

@@ -19,8 +19,10 @@ const documents = {
     types.LiquidRestakingTokenFieldsFragmentDoc,
   '\n  fragment DepositFields on Deposit {\n    id\n    sender\n    assetIn {\n      id\n    }\n    amountIn\n    amountOut\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n  }\n':
     types.DepositFieldsFragmentDoc,
-  '\n  fragment WithdrawalFields on Withdrawal {\n    id\n    sender\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    requestTx\n\n    isReadyToClaim\n    isClaimed\n    amountOut\n    claimTx\n  }\n':
-    types.WithdrawalFieldsFragmentDoc,
+  '\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      amountOut\n      tx\n    }\n  }\n':
+    types.WithdrawalRequestFieldsFragmentDoc,
+  '\n  fragment WithdrawalClaimFields on WithdrawalClaim {\n    id\n    sender\n    epoch {\n      epoch\n    }\n    assetOut {\n      id\n    }\n    amountOut\n    restakingToken {\n      id\n    }\n    requests {\n      id\n    }\n    timestamp\n    blockNumber\n    tx\n  }\n':
+    types.WithdrawalClaimFieldsFragmentDoc,
   '\n  query issuer($id: ID!) {\n    issuer(id: $id) {\n      ...IssuerFields\n    }\n  }\n':
     types.IssuerDocument,
   '\n  query liquidRestakingToken($id: ID!) {\n    liquidRestakingToken(id: $id) {\n      ...LiquidRestakingTokenFields\n    }\n  }\n':
@@ -29,8 +31,10 @@ const documents = {
     types.ManyLiquidRestakingTokensDocument,
   '\n  query manyDeposits(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Deposit_orderBy\n    $orderDirection: OrderDirection\n    $where: Deposit_filter\n  ) {\n    deposits(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...DepositFields\n    }\n  }\n':
     types.ManyDepositsDocument,
-  '\n  query manyWithdrawals(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Withdrawal_orderBy\n    $orderDirection: OrderDirection\n    $where: Withdrawal_filter\n  ) {\n    withdrawals(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalFields\n    }\n  }\n':
-    types.ManyWithdrawalsDocument
+  '\n  query manyWithdrawalRequests(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalRequest_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalRequest_filter\n  ) {\n    withdrawalRequests(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalRequestFields\n    }\n  }\n':
+    types.ManyWithdrawalRequestsDocument,
+  '\n  query manyWithdrawalClaims(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalClaim_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalClaim_filter\n  ) {\n    withdrawalClaims(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalClaimFields\n    }\n  }\n':
+    types.ManyWithdrawalClaimsDocument
 };
 
 /**
@@ -69,8 +73,14 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  fragment WithdrawalFields on Withdrawal {\n    id\n    sender\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    requestTx\n\n    isReadyToClaim\n    isClaimed\n    amountOut\n    claimTx\n  }\n'
-): (typeof documents)['\n  fragment WithdrawalFields on Withdrawal {\n    id\n    sender\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    requestTx\n\n    isReadyToClaim\n    isClaimed\n    amountOut\n    claimTx\n  }\n'];
+  source: '\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      amountOut\n      tx\n    }\n  }\n'
+): (typeof documents)['\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      amountOut\n      tx\n    }\n  }\n'];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  fragment WithdrawalClaimFields on WithdrawalClaim {\n    id\n    sender\n    epoch {\n      epoch\n    }\n    assetOut {\n      id\n    }\n    amountOut\n    restakingToken {\n      id\n    }\n    requests {\n      id\n    }\n    timestamp\n    blockNumber\n    tx\n  }\n'
+): (typeof documents)['\n  fragment WithdrawalClaimFields on WithdrawalClaim {\n    id\n    sender\n    epoch {\n      epoch\n    }\n    assetOut {\n      id\n    }\n    amountOut\n    restakingToken {\n      id\n    }\n    requests {\n      id\n    }\n    timestamp\n    blockNumber\n    tx\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -99,8 +109,14 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  query manyWithdrawals(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Withdrawal_orderBy\n    $orderDirection: OrderDirection\n    $where: Withdrawal_filter\n  ) {\n    withdrawals(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalFields\n    }\n  }\n'
-): (typeof documents)['\n  query manyWithdrawals(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Withdrawal_orderBy\n    $orderDirection: OrderDirection\n    $where: Withdrawal_filter\n  ) {\n    withdrawals(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalFields\n    }\n  }\n'];
+  source: '\n  query manyWithdrawalRequests(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalRequest_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalRequest_filter\n  ) {\n    withdrawalRequests(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalRequestFields\n    }\n  }\n'
+): (typeof documents)['\n  query manyWithdrawalRequests(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalRequest_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalRequest_filter\n  ) {\n    withdrawalRequests(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalRequestFields\n    }\n  }\n'];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  query manyWithdrawalClaims(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalClaim_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalClaim_filter\n  ) {\n    withdrawalClaims(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalClaimFields\n    }\n  }\n'
+): (typeof documents)['\n  query manyWithdrawalClaims(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalClaim_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalClaim_filter\n  ) {\n    withdrawalClaims(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalClaimFields\n    }\n  }\n'];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

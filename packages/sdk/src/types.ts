@@ -10,6 +10,17 @@ export interface EstimateOutDepositETHParams {
   amount: string | bigint;
 }
 
+export interface EstimateOutRequestWithdrawalParams {
+  /**
+   * The address of the asset to withdraw.
+   */
+  assetOut: Address;
+  /**
+   * The amount of restaking tokens to burn.
+   */
+  amountIn: string | bigint;
+}
+
 //#endregion
 
 //#region Write Functions

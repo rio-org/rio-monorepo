@@ -10,7 +10,8 @@ import {
   DepositParams,
   RequestWithdrawalParams,
   ClaimWithdrawalParams,
-  EstimateOutDepositETHParams
+  EstimateOutDepositETHParams,
+  EstimateOutRequestWithdrawalParams
 } from '../types';
 import {
   LiquidRestakingToken,
@@ -119,8 +120,7 @@ export class LiquidRestakingTokenClient {
   /**
    * Get the estimated amount of restaking tokens that will be minted
    * when depositing the specified amount of ETH.
-   * @param params The parameters required to query deposit ETH.
-   * @returns
+   * @param params The parameters required to get the estimated output amount.
    */
   public async getEstimatedOutForETHDeposit(
     params: EstimateOutDepositETHParams
@@ -150,6 +150,23 @@ export class LiquidRestakingTokenClient {
     if (tvl === 0n || totalSupply === 0n) return BigInt(params.amount);
 
     return (BigInt(params.amount) * totalSupply) / tvl;
+  }
+
+  /**
+   * Get the estimated quantity of the output asset expected to be received
+   * upon initiating a withdrawal of a specified quantity of restaking tokens.
+   * @param params The parameters required to get the estimated output amount.
+   */
+  public async getEstimatedOutForWithdrawalRequest(
+    params: EstimateOutRequestWithdrawalParams
+  ): Promise<bigint> {
+    if (!this._token) await this.populate();
+    return this._public.readContract({
+      address: this._token.coordinator as ViemAddress,
+      abi: RioLRTCoordinatorABI,
+      functionName: 'convertToAssetFromRestakingTokens',
+      args: [params.assetOut as ViemAddress, BigInt(params.amountIn)]
+    });
   }
 
   /**
@@ -218,12 +235,12 @@ export class LiquidRestakingTokenClient {
   }
 
   /**
-   * Claims a withdrawal of a single asset in the specified epoch,
-   * sending the asset to the user's wallet.
+   * Claims the full amount of the asset owed to the caller in the
+   * specified epoch.
    * @param params The parameters required to claim an ETH or ERC20
    * token withdrawal.
    */
-  public async claimWithdrawal(
+  public async claimWithdrawalsForEpoch(
     params: ClaimWithdrawalParams
   ): Promise<WriteContractReturnType> {
     if (!this._wallet) throw new Error('Wallet client is not available.');
@@ -234,7 +251,7 @@ export class LiquidRestakingTokenClient {
       account: this._wallet.account,
       address: this._token.coordinator as ViemAddress,
       abi: RioLRTWithdrawalQueueABI,
-      functionName: 'claimWithdrawal',
+      functionName: 'claimWithdrawalsForEpoch',
       args: [
         {
           asset: assetOut as ViemAddress,
@@ -246,12 +263,11 @@ export class LiquidRestakingTokenClient {
   }
 
   /**
-   * Claims many withdrawals, sending the assets to the user's wallet.
-   * of a single asset in the specified epoch,
-   * sending the asset to the user's wallet.
+   * Claims the full amount(s) of the asset(s) owed to the caller in the
+   * specified epoch(s).
    * @param params The parameters required to claim the withdrawal(s).
    */
-  public async claimManyWithdrawals(
+  public async claimWithdrawalsForManyEpochs(
     params: ClaimWithdrawalParams[]
   ): Promise<WriteContractReturnType> {
     if (!this._wallet) throw new Error('Wallet client is not available.');
@@ -261,7 +277,7 @@ export class LiquidRestakingTokenClient {
       account: this._wallet.account,
       address: this._token.coordinator as ViemAddress,
       abi: RioLRTWithdrawalQueueABI,
-      functionName: 'claimManyWithdrawals',
+      functionName: 'claimWithdrawalsForManyEpochs',
       args: [
         params.map(({ assetOut, epoch }) => ({
           asset: assetOut as ViemAddress,

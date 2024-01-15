@@ -6,7 +6,9 @@ export {
   UnderlyingAsset,
   LiquidRestakingToken,
   Deposit,
-  Withdrawal
+  WithdrawalEpochStatus,
+  WithdrawalRequest,
+  WithdrawalClaim
 } from './types';
 export {
   SUBGRAPH_URLS,

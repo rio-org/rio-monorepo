@@ -57,10 +57,14 @@ export const DepositFields = graphql(`
   }
 `);
 
-export const WithdrawalFields = graphql(`
-  fragment WithdrawalFields on Withdrawal {
+export const WithdrawalRequestFields = graphql(`
+  fragment WithdrawalRequestFields on WithdrawalRequest {
     id
     sender
+    epoch {
+      epoch
+      status
+    }
     assetOut {
       id
     }
@@ -72,12 +76,37 @@ export const WithdrawalFields = graphql(`
     userBalanceAfter
     timestamp
     blockNumber
-    requestTx
+    tx
 
-    isReadyToClaim
     isClaimed
+    claim {
+      id
+      amountOut
+      tx
+    }
+  }
+`);
+
+export const WithdrawalClaimFields = graphql(`
+  fragment WithdrawalClaimFields on WithdrawalClaim {
+    id
+    sender
+    epoch {
+      epoch
+    }
+    assetOut {
+      id
+    }
     amountOut
-    claimTx
+    restakingToken {
+      id
+    }
+    requests {
+      id
+    }
+    timestamp
+    blockNumber
+    tx
   }
 `);
 
@@ -145,22 +174,42 @@ export const ManyDepositsQuery = graphql(`
   }
 `);
 
-export const ManyWithdrawalsQuery = graphql(`
-  query manyWithdrawals(
+export const ManyWithdrawalRequestsQuery = graphql(`
+  query manyWithdrawalRequests(
     $first: Int!
     $skip: Int!
-    $orderBy: Withdrawal_orderBy
+    $orderBy: WithdrawalRequest_orderBy
     $orderDirection: OrderDirection
-    $where: Withdrawal_filter
+    $where: WithdrawalRequest_filter
   ) {
-    withdrawals(
+    withdrawalRequests(
       first: $first
       skip: $skip
       orderBy: $orderBy
       orderDirection: $orderDirection
       where: $where
     ) {
-      ...WithdrawalFields
+      ...WithdrawalRequestFields
+    }
+  }
+`);
+
+export const ManyWithdrawalClaimsQuery = graphql(`
+  query manyWithdrawalClaims(
+    $first: Int!
+    $skip: Int!
+    $orderBy: WithdrawalClaim_orderBy
+    $orderDirection: OrderDirection
+    $where: WithdrawalClaim_filter
+  ) {
+    withdrawalClaims(
+      first: $first
+      skip: $skip
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+      where: $where
+    ) {
+      ...WithdrawalClaimFields
     }
   }
 `);
