@@ -6,8 +6,8 @@ dataSources:
     name: RioLRTIssuer
     source:
       abi: RioLRTIssuer
-      address: "0x2e89AF154E09C53b4E891C8DD484e41fD5f1C341"
-      startBlock: 10360963
+      address: "0xD8030F4C269ae229C9Bf94c3139F3BF214789afD"
+      startBlock: 10375985
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -86,7 +86,8 @@ templates:
           handler: handleWithdrawalsClaimedForEpoch
         - event: EpochSettledFromDepositPool(indexed uint256,address,uint256)
           handler: handleEpochSettledFromDepositPool
-        - event: EpochQueuedForSettlementFromEigenLayer(indexed uint256,address,uint256,uint256,uint256,bytes32)
+        - event: EpochQueuedForSettlementFromEigenLayer(indexed
+            uint256,address,uint256,uint256,uint256,bytes32)
           handler: handleEpochQueuedForSettlementFromEigenLayer
         - event: EpochSettledFromEigenLayer(indexed uint256,address,uint256)
           handler: handleEpochSettledFromEigenLayer

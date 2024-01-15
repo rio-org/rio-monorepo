@@ -29,6 +29,7 @@ export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssu
   restakingToken.totalSupply = ZERO_BD;
 
   restakingToken.coordinator = coordinator.id;
+  restakingToken.withdrawalQueue = withdrawalQueue.id;
 
   for (let i = 0; i < event.params.config.assets.length; i++) {
     const assetConfig = event.params.config.assets[i];
