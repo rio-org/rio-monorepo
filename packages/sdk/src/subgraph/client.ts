@@ -32,6 +32,7 @@ import {
   WithdrawalClaim
 } from './types';
 import { GraphQLClient } from 'graphql-request';
+import BN from 'big.js';
 
 export class SubgraphClient {
   private readonly _gql: GraphQLClient;
@@ -182,7 +183,9 @@ export class SubgraphClient {
         claim
       }) => {
         const isReadyToClaim = (epoch.status as WithdrawalEpochStatus) === WithdrawalEpochStatus.Settled;
-        const amountOut = isReadyToClaim && BigInt(sharesOwed) * BigInt(epoch.assetsReceived) / BigInt(epoch.sharesOwed);
+        const amountOut = isReadyToClaim && BN(sharesOwed).mul(epoch.assetsReceived).div(epoch.sharesOwed).round(
+          18, BN.roundDown
+        );
         return {
           id,
           sender,
