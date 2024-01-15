@@ -19,7 +19,7 @@ const documents = {
     types.LiquidRestakingTokenFieldsFragmentDoc,
   '\n  fragment DepositFields on Deposit {\n    id\n    sender\n    assetIn {\n      id\n    }\n    amountIn\n    amountOut\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n  }\n':
     types.DepositFieldsFragmentDoc,
-  '\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      amountOut\n      tx\n    }\n  }\n':
+  '\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n      sharesOwed\n      assetsReceived\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      tx\n    }\n  }\n':
     types.WithdrawalRequestFieldsFragmentDoc,
   '\n  fragment WithdrawalClaimFields on WithdrawalClaim {\n    id\n    sender\n    epoch {\n      epoch\n    }\n    assetOut {\n      id\n    }\n    amountOut\n    restakingToken {\n      id\n    }\n    requests {\n      id\n    }\n    timestamp\n    blockNumber\n    tx\n  }\n':
     types.WithdrawalClaimFieldsFragmentDoc,
@@ -73,8 +73,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      amountOut\n      tx\n    }\n  }\n'
-): (typeof documents)['\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      amountOut\n      tx\n    }\n  }\n'];
+  source: '\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n      sharesOwed\n      assetsReceived\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      tx\n    }\n  }\n'
+): (typeof documents)['\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n      sharesOwed\n      assetsReceived\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      tx\n    }\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

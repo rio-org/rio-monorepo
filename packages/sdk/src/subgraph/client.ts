@@ -164,6 +164,7 @@ export class SubgraphClient {
         this.merge(getDefaultConfig(WithdrawalRequest_OrderBy.Id), config)
       )
     );
+    // prettier-ignore
     return withdrawalRequests.map(
       ({
         id,
@@ -179,28 +180,30 @@ export class SubgraphClient {
         tx,
         isClaimed,
         claim
-      }) => ({
-        id,
-        sender,
-        epoch: epoch.epoch,
-        epochStatus: epoch.status,
-        assetOut: assetOut.id,
-        sharesOwed,
-        amountIn,
-        restakingToken: restakingToken.id,
-        userBalanceAfter,
-        timestamp,
-        blockNumber,
-        tx,
-
-        isClaimed,
-        claimId: claim?.id,
-        claimTx: claim?.tx,
-        amountClaimed: claim?.amountOut,
-        // prettier-ignore
-        isReadyToClaim: (epoch.status as WithdrawalEpochStatus) === WithdrawalEpochStatus.Settled
-      })
-    );
+      }) => {
+        const isReadyToClaim = (epoch.status as WithdrawalEpochStatus) === WithdrawalEpochStatus.Settled;
+        const amountOut = isReadyToClaim && BigInt(sharesOwed) * BigInt(epoch.assetsReceived) / BigInt(epoch.sharesOwed);
+        return {
+          id,
+          sender,
+          epoch: epoch.epoch,
+          epochStatus: epoch.status,
+          assetOut: assetOut.id,
+          amountOut: (amountOut || undefined)?.toString(),
+          sharesOwed,
+          amountIn,
+          restakingToken: restakingToken.id,
+          userBalanceAfter,
+          timestamp,
+          blockNumber,
+          tx,
+  
+          isClaimed,
+          claimId: claim?.id,
+          claimTx: claim?.tx,
+          isReadyToClaim
+        }
+      });
   }
 
   /**

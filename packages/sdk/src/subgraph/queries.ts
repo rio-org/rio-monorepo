@@ -64,6 +64,8 @@ export const WithdrawalRequestFields = graphql(`
     epoch {
       epoch
       status
+      sharesOwed
+      assetsReceived
     }
     assetOut {
       id
@@ -81,7 +83,6 @@ export const WithdrawalRequestFields = graphql(`
     isClaimed
     claim {
       id
-      amountOut
       tx
     }
   }

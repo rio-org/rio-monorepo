@@ -62,6 +62,7 @@ export interface WithdrawalRequest {
   epoch: string;
   epochStatus: WithdrawalEpochStatus;
   assetOut: Address;
+  amountOut: string | undefined; // Populated on epoch settlement.
   sharesOwed: string;
   amountIn: string;
   restakingToken: Address;
@@ -70,11 +71,11 @@ export interface WithdrawalRequest {
   blockNumber: string;
   tx: string;
 
+  // Populated on withdrawal claim.
   isReadyToClaim: boolean;
   isClaimed: boolean;
   claimId: string | undefined;
   claimTx: string | undefined;
-  amountClaimed: string | undefined;
 }
 
 export interface WithdrawalClaim {

@@ -2438,15 +2438,12 @@ export type WithdrawalRequestFieldsFragment = {
     __typename?: 'WithdrawalEpoch';
     epoch: any;
     status: WithdrawalEpochStatus;
+    sharesOwed: any;
+    assetsReceived: any;
   };
   assetOut: { __typename?: 'Asset'; id: string };
   restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
-  claim?: {
-    __typename?: 'WithdrawalClaim';
-    id: string;
-    amountOut: any;
-    tx: any;
-  } | null;
+  claim?: { __typename?: 'WithdrawalClaim'; id: string; tx: any } | null;
 };
 
 export type WithdrawalClaimFieldsFragment = {
@@ -2586,15 +2583,12 @@ export type ManyWithdrawalRequestsQuery = {
       __typename?: 'WithdrawalEpoch';
       epoch: any;
       status: WithdrawalEpochStatus;
+      sharesOwed: any;
+      assetsReceived: any;
     };
     assetOut: { __typename?: 'Asset'; id: string };
     restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
-    claim?: {
-      __typename?: 'WithdrawalClaim';
-      id: string;
-      amountOut: any;
-      tx: any;
-    } | null;
+    claim?: { __typename?: 'WithdrawalClaim'; id: string; tx: any } | null;
   }>;
 };
 
@@ -2784,7 +2778,12 @@ export const WithdrawalRequestFieldsFragmentDoc = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'epoch' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'status' } }
+                { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'sharesOwed' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'assetsReceived' }
+                }
               ]
             }
           },
@@ -2822,7 +2821,6 @@ export const WithdrawalRequestFieldsFragmentDoc = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'amountOut' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
               ]
             }
@@ -3562,7 +3560,12 @@ export const ManyWithdrawalRequestsDocument = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'epoch' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'status' } }
+                { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'sharesOwed' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'assetsReceived' }
+                }
               ]
             }
           },
@@ -3600,7 +3603,6 @@ export const ManyWithdrawalRequestsDocument = {
               kind: 'SelectionSet',
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'amountOut' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
               ]
             }
