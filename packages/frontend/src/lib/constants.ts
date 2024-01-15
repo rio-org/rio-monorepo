@@ -6,7 +6,7 @@ import wstETHLogo from '../assets/wstETH-logo.png';
 import cbETHLogo from '../assets/cbETH-logo.png';
 import allEthLogo from '../assets/all-eth-logo.png';
 import { zeroAddress } from 'viem';
-import { CHAIN_ID } from '../../config';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../../config';
 
 export const NULL_ADDRESS =
   '0x0000000000000000000000000000000000000000' as AddressType;
@@ -76,7 +76,7 @@ export const ASSETS: Asset = {
     name: 'Ether',
     symbol: 'ETH',
     logo: ethLogo,
-    address: zeroAddress,
+    address: NATIVE_ETH_ADDRESS,
     decimals: 18,
     latestUSDPrice: null,
     latestUSDPriceTimestamp: null
@@ -85,7 +85,7 @@ export const ASSETS: Asset = {
     name: 'Wrapped Ether',
     symbol: 'WETH',
     logo: ethLogo,
-    address: zeroAddress,
+    address: NATIVE_ETH_ADDRESS,
     decimals: 18,
     latestUSDPrice: null,
     latestUSDPriceTimestamp: null

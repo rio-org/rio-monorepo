@@ -92,7 +92,7 @@ export interface LRTFinancials<T extends number | NumberString = number> {
   totalValueETH: T | null;
 }
 
-export interface AssetDetailsBase {
+export interface BaseAssetDetails {
   name: string;
   symbol: TokenSymbol;
   address: EthereumAddress;
@@ -101,7 +101,7 @@ export interface AssetDetailsBase {
 }
 
 export interface AssetDetails
-  extends AssetDetailsBase,
+  extends BaseAssetDetails,
     AssetFinancials<number> {}
 
 export interface UnderlyingAssetDetails {
@@ -111,7 +111,7 @@ export interface UnderlyingAssetDetails {
   asset: AssetDetails;
 }
 
-export interface LRTDetails extends AssetDetailsBase, LRTFinancials {
+export interface LRTDetails extends BaseAssetDetails, LRTFinancials {
   underlyingAssets: UnderlyingAssetDetails[];
 }
 
@@ -194,12 +194,16 @@ export interface TransactionEventSubgraphResponse {
   };
 }
 
-export interface AssetSubgraphResponse extends AssetFinancials<NumberString> {
+export interface BaseAssetSubgraphResponse {
   name: string;
   symbol: TokenSymbol;
   address: EthereumAddress | null;
   decimals: number;
 }
+
+export interface AssetSubgraphResponse
+  extends BaseAssetSubgraphResponse,
+    AssetFinancials<NumberString> {}
 
 export interface UnderlyingAssetSubgraphResponse {
   id: string;
@@ -207,8 +211,11 @@ export interface UnderlyingAssetSubgraphResponse {
   strategy: EthereumAddress;
   asset: AssetSubgraphResponse;
 }
+
+export interface BaseLRTSubgraphResponse
+  extends Omit<BaseAssetSubgraphResponse, 'decimals'> {}
 export interface LRTSubgraphResponse
-  extends Omit<AssetSubgraphResponse, 'decimals'>,
+  extends Omit<BaseAssetSubgraphResponse, 'decimals'>,
     LRTFinancials<NumberString> {
   underlyingAssets: UnderlyingAssetSubgraphResponse[];
 }

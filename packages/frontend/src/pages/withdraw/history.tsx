@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
-import Transaction from '../../components/History/Transaction';
+import WithdrawalRequestRow from '../../components/History/WithdrawalRequestRow';
 import ClaimButton from '../../components/Claim/ClaimButton';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { useGetAccountWithdrawals } from '../../hooks/useGetAccountWithdrawals';
 import { EthereumAddress } from '../../lib/typings';
@@ -60,17 +60,23 @@ const History: NextPage = () => {
               layoutId="withdraw-history"
             >
               <table className="min-w-full">
-                <motion.tbody
-                  initial={{ height: 0 }}
-                  animate={{ height: 'auto' }}
-                  transition={{
-                    duration: 0.2
-                  }}
-                >
-                  {accountWithdrawals.data?.map((item, index) => (
-                    <Transaction key={index} transaction={item} index={index} />
-                  ))}
-                </motion.tbody>
+                <AnimatePresence>
+                  <motion.tbody
+                    initial={{ height: 0 }}
+                    animate={{ height: 'auto' }}
+                    transition={{
+                      duration: 0.2
+                    }}
+                  >
+                    {accountWithdrawals.data?.map((item, index) => (
+                      <WithdrawalRequestRow
+                        key={index}
+                        transaction={item}
+                        index={index}
+                      />
+                    ))}
+                  </motion.tbody>
+                </AnimatePresence>
               </table>
               {isMounted && hasClaimAvailable && (
                 <div className="px-6 mt-2 mb-6">

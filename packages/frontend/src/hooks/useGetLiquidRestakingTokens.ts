@@ -9,7 +9,7 @@ export const useGetLiquidRestakingTokens = (opts?: OperationVariables) => {
     liquidRestakingTokens: LRTSubgraphResponse[];
   }>(getLiquidRestakingTokenList(), {
     ...opts,
-    pollInterval: opts?.pollInterval || 30000
+    pollInterval: opts?.pollInterval || 60000
   });
 
   const lrtDetails = useMemo(() => {

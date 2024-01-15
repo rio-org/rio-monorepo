@@ -3,6 +3,9 @@ import { ASSETS, ASSET_LOGOS } from './constants';
 import {
   AssetDetails,
   AssetSubgraphResponse,
+  BaseAssetDetails,
+  BaseAssetSubgraphResponse,
+  BaseLRTSubgraphResponse,
   CHAIN_ID_NUMBER,
   EthereumAddress,
   LRTDetails,
@@ -139,8 +142,10 @@ export const dateFromTimestamp = (timestamp: number) => {
   return str;
 };
 
-export const parseSubgraphAsset = (asset: AssetSubgraphResponse) => {
-  return <AssetDetails>{
+export const parseBaseSubgraphAsset = (
+  asset: BaseAssetSubgraphResponse | BaseLRTSubgraphResponse
+) => {
+  return <BaseAssetDetails>{
     name: asset.name,
     symbol: asset.symbol,
     address:
@@ -148,7 +153,13 @@ export const parseSubgraphAsset = (asset: AssetSubgraphResponse) => {
         ? NATIVE_ETH_ADDRESS
         : asset.address,
     logo: ASSET_LOGOS[asset.symbol],
-    decimals: asset.decimals ?? 18,
+    decimals: (asset as BaseAssetSubgraphResponse).decimals ?? 18
+  };
+};
+
+export const parseSubgraphAsset = (asset: AssetSubgraphResponse) => {
+  return <AssetDetails>{
+    ...parseBaseSubgraphAsset(asset),
     latestUSDPrice: asset.latestUSDPrice,
     latestUSDPriceTimestamp: asset.latestUSDPriceTimestamp
   };
@@ -168,10 +179,7 @@ export const parseUnderlyingAsset = (
 
 export const parseSubgraphLRT = (lrt: LRTSubgraphResponse) => {
   return <LRTDetails>{
-    name: lrt.name,
-    symbol: lrt.symbol,
-    address: lrt.address || zeroAddress,
-    logo: ASSET_LOGOS[lrt.symbol],
+    ...parseBaseSubgraphAsset(lrt),
     decimals: /USD/i.test(lrt.symbol) ? 6 : 18,
     totalSupply: Number(lrt.totalSupply),
     percentAPY: Number(lrt.percentAPY),
@@ -181,26 +189,36 @@ export const parseSubgraphLRT = (lrt: LRTSubgraphResponse) => {
   };
 };
 
-export const parseSubgraphAssetList = (
-  data: AssetSubgraphResponse[]
-): AssetDetails[] => {
+export const parseBaseSubgraphAssetList = (
+  data: Parameters<typeof parseBaseSubgraphAsset>[0][]
+) => {
   return JSON.parse(
-    JSON.stringify(data.map(parseSubgraphAsset))
-  ) as AssetDetails[];
+    JSON.stringify(data.map(parseBaseSubgraphAsset))
+  ) as ReturnType<typeof parseBaseSubgraphAsset>[];
+};
+
+export const parseSubgraphAssetList = (
+  data: Parameters<typeof parseSubgraphAsset>[0][]
+) => {
+  return JSON.parse(JSON.stringify(data.map(parseSubgraphAsset))) as ReturnType<
+    typeof parseSubgraphAsset
+  >[];
 };
 
 export const parseSubgraphUnderlyingAssetList = (
-  data: UnderlyingAssetSubgraphResponse[]
-): UnderlyingAssetDetails[] => {
+  data: Parameters<typeof parseUnderlyingAsset>[0][]
+) => {
   return JSON.parse(
     JSON.stringify(data.map(parseUnderlyingAsset))
-  ) as UnderlyingAssetDetails[];
+  ) as ReturnType<typeof parseUnderlyingAsset>[];
 };
 
 export const parseSubgraphLRTList = (
-  data: LRTSubgraphResponse[]
-): LRTDetails[] => {
-  return JSON.parse(JSON.stringify(data.map(parseSubgraphLRT))) as LRTDetails[];
+  data: Parameters<typeof parseSubgraphLRT>[0][]
+) => {
+  return JSON.parse(JSON.stringify(data.map(parseSubgraphLRT))) as ReturnType<
+    typeof parseSubgraphLRT
+  >[];
 };
 
 export const displayEthAmount = (amount: string) => {
