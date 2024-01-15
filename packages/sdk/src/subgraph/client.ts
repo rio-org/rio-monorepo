@@ -197,7 +197,8 @@ export class SubgraphClient {
         claimId: claim?.id,
         claimTx: claim?.tx,
         amountClaimed: claim?.amountOut,
-        isReadyToClaim: epoch.status === WithdrawalEpochStatus.Settled
+        // prettier-ignore
+        isReadyToClaim: (epoch.status as WithdrawalEpochStatus) === WithdrawalEpochStatus.Settled
       })
     );
   }
