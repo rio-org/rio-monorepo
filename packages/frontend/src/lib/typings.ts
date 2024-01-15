@@ -164,7 +164,7 @@ export interface TransactionEvent {
 ///////////////////////////
 export interface ExitSubgraphResponse {
   id: string;
-  // type: ExitType;
+  type: unknown;
   sender: EthereumAddress;
   tokensOut: {
     symbol: TokenSymbol;
@@ -177,6 +177,21 @@ export interface ExitSubgraphResponse {
   restakingToken: EthereumAddress;
   tx: string;
   timestamp: string;
+}
+
+export interface TransactionEventSubgraphResponse {
+  type: unknown;
+  amountsOut: string[] | null;
+  amountOut: string | null;
+  amountIn: string;
+  amountsIn: string[] | null;
+  valueUSD: string;
+  tx: string;
+  timestamp: string;
+  userBalanceAfter: string;
+  user: {
+    address: EthereumAddress;
+  };
 }
 
 export interface AssetSubgraphResponse extends AssetFinancials<NumberString> {
