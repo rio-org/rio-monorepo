@@ -63,6 +63,31 @@ templates:
       eventHandlers:
         - event: Deposited(indexed address,indexed address,uint256,uint256)
           handler: handleDeposited
-        - event: WithdrawalRequested(indexed address,indexed address,uint256,uint256)
-          handler: handleWithdrawalRequested
+    network: goerli
+  - name: WithdrawalQueue
+    kind: ethereum/contract
+    source:
+      abi: RioLRTWithdrawalQueue
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/withdrawal-queue.ts
+      entities:
+        - User
+        - Withdrawal
+      abis:
+        - name: RioLRTWithdrawalQueue
+          file: ./abis/RioLRTWithdrawalQueue.json
+      eventHandlers:
+        - event: WithdrawalQueued(indexed uint256,address,address,uint256,uint256)
+          handler: handleWithdrawalQueued
+        - event: WithdrawalsClaimedForEpoch(indexed uint256,address,address,uint256)
+          handler: handleWithdrawalsClaimedForEpoch
+        - event: EpochSettledFromDepositPool(indexed uint256,address,uint256)
+          handler: handleEpochSettledFromDepositPool
+        - event: EpochQueuedForSettlementFromEigenLayer(indexed uint256,address,uint256,uint256,uint256,bytes32)
+          handler: handleEpochQueuedForSettlementFromEigenLayer
+        - event: EpochSettledFromEigenLayer(indexed uint256,address,uint256)
+          handler: handleEpochSettledFromEigenLayer
     network: goerli

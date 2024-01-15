@@ -1,3 +1,4 @@
+# A liquid restaking token issuer instance.
 type Issuer @entity {
   id: ID!
   address: Bytes!
@@ -5,12 +6,21 @@ type Issuer @entity {
   tokens: [LiquidRestakingToken!] @derivedFrom(field: "issuer")
 }
 
+# The coordinator contract for a liquid restaking token.
 type Coordinator @entity {
   id: ID!
   address: Bytes!
   restakingToken: LiquidRestakingToken!
 }
 
+# The withdrawal queue contract for a liquid restaking token.
+type WithdrawalQueue @entity {
+  id: ID!
+  address: Bytes!
+  restakingToken: LiquidRestakingToken!
+}
+
+# A liquid restaking token.
 type LiquidRestakingToken @entity {
   id: ID!
 
@@ -18,7 +28,7 @@ type LiquidRestakingToken @entity {
   symbol: String!
   name: String!
 
-  createdTimestamp: Int!
+  createdTimestamp: BigInt!
   totalSupply: BigDecimal!
   totalValueETH: BigDecimal
   totalValueUSD: BigDecimal
@@ -26,18 +36,22 @@ type LiquidRestakingToken @entity {
 
   issuer: Issuer!
   coordinator: Coordinator!
+  withdrawalQueue: WithdrawalQueue!
 
   underlyingAssets: [UnderlyingAsset!] @derivedFrom(field: "restakingToken")
 }
 
+# A user who has interacted with a liquid restaking token.
 type User @entity {
   id: ID!
   address: Bytes!
   balance: BigDecimal!
   deposits: [Deposit!] @derivedFrom(field: "user")
-  withdrawals: [Withdrawal!] @derivedFrom(field: "user")
+  withdrawalRequests: [WithdrawalRequest!] @derivedFrom(field: "user")
+  withdrawalClaims: [WithdrawalClaim!] @derivedFrom(field: "user")
 }
 
+# A deposit made by a user.
 type Deposit @entity(immutable: true) {
   id: ID!
   user: User!
@@ -54,10 +68,12 @@ type Deposit @entity(immutable: true) {
   tx: Bytes!
 }
 
-type Withdrawal @entity {
+# A withdrawal request made by a user.
+type WithdrawalRequest @entity {
   id: ID!
   user: User!
   sender: Bytes!
+  epoch: WithdrawalEpoch!
   assetOut: Asset!
   sharesOwed: BigDecimal!
   amountIn: BigDecimal!
@@ -67,14 +83,66 @@ type Withdrawal @entity {
   valueUSD: BigDecimal
   timestamp: BigInt!
   blockNumber: BigInt!
-  requestTx: Bytes!
+  tx: Bytes!
+  logIndex: BigInt!
 
-  isReadyToClaim: Boolean!
   isClaimed: Boolean!
-  amountOut: BigDecimal # The exact output amount is unknown prior to epoch settlement.
-  claimTx: Bytes
+  claim: WithdrawalClaim
 }
 
+# A withdrawal claim made by a user. Multiple withdrawal requests from the same user in the
+# same epoch are claimed together.
+type WithdrawalClaim @entity {
+  id: ID!
+  user: User!
+  sender: Bytes!
+  epoch: WithdrawalEpoch!
+  assetOut: Asset!
+  amountOut: BigDecimal!
+  restakingToken: LiquidRestakingToken!
+  requests: [WithdrawalRequest!] @derivedFrom(field: "claim") # The withdrawal requests that were claimed.
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  tx: Bytes!
+}
+
+# A summary of a user's withdrawal requests in a given epoch.
+type WithdrawalEpochUserSummary @entity {
+  id: ID!
+  epoch: WithdrawalEpoch!
+  asset: Asset!
+  user: User!
+  requestCount: Int!
+}
+
+# All possible statuses for a withdrawal epoch.
+enum WithdrawalEpochStatus {
+  ACTIVE
+  QUEUED
+  SETTLED
+}
+
+# A withdrawal epoch for a given underlying asset.
+type WithdrawalEpoch @entity {
+  id: ID!
+  epoch: BigInt!
+  asset: Asset!
+  status: WithdrawalEpochStatus!
+  restakingToken: LiquidRestakingToken!
+  queuedTimestamp: BigInt
+  settledTimestamp: BigInt
+  sharesOwed: BigDecimal!
+  assetsReceived: BigDecimal!
+  shareValueOfAssetsReceived: BigDecimal!
+  amountToBurnAtSettlement: BigDecimal!
+  aggregateRoot: Bytes
+  requests: [WithdrawalRequest!] @derivedFrom(field: "epoch")
+  claims: [WithdrawalClaim!] @derivedFrom(field: "epoch")
+  requestCount: Int!
+  claimCount: Int!
+}
+
+# An underlying asset for a liquid restaking token.
 type UnderlyingAsset @entity {
   id: ID!
   address: Bytes!
@@ -89,6 +157,7 @@ type UnderlyingAsset @entity {
   balanceInEigenLayer: BigDecimal!
 }
 
+# Asset metadata.
 type Asset @entity {
   id: ID!
   symbol: String!

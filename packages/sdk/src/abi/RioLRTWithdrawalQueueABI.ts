@@ -42,12 +42,29 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'function',
-    name: 'claimManyWithdrawals',
+    name: 'claimWithdrawalsForEpoch',
+    inputs: [
+      {
+        name: 'request',
+        type: 'tuple',
+        internalType: 'struct IRioLRTWithdrawalQueue.ClaimRequest',
+        components: [
+          { name: 'asset', type: 'address', internalType: 'address' },
+          { name: 'epoch', type: 'uint256', internalType: 'uint256' }
+        ]
+      }
+    ],
+    outputs: [{ name: 'amountOut', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'nonpayable'
+  },
+  {
+    type: 'function',
+    name: 'claimWithdrawalsForManyEpochs',
     inputs: [
       {
         name: 'requests',
         type: 'tuple[]',
-        internalType: 'struct IRioLRTWithdrawalQueue.ClaimWithdrawalRequest[]',
+        internalType: 'struct IRioLRTWithdrawalQueue.ClaimRequest[]',
         components: [
           { name: 'asset', type: 'address', internalType: 'address' },
           { name: 'epoch', type: 'uint256', internalType: 'uint256' }
@@ -57,23 +74,6 @@ export const RioLRTWithdrawalQueueABI = [
     outputs: [
       { name: 'amountsOut', type: 'uint256[]', internalType: 'uint256[]' }
     ],
-    stateMutability: 'nonpayable'
-  },
-  {
-    type: 'function',
-    name: 'claimWithdrawal',
-    inputs: [
-      {
-        name: 'request',
-        type: 'tuple',
-        internalType: 'struct IRioLRTWithdrawalQueue.ClaimWithdrawalRequest',
-        components: [
-          { name: 'asset', type: 'address', internalType: 'address' },
-          { name: 'epoch', type: 'uint256', internalType: 'uint256' }
-        ]
-      }
-    ],
-    outputs: [{ name: 'amountOut', type: 'uint256', internalType: 'uint256' }],
     stateMutability: 'nonpayable'
   },
   {
@@ -140,7 +140,7 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'function',
-    name: 'getUserWithdrawal',
+    name: 'getUserWithdrawalSummary',
     inputs: [
       { name: 'asset', type: 'address', internalType: 'address' },
       { name: 'epoch', type: 'uint256', internalType: 'uint256' },
@@ -150,7 +150,7 @@ export const RioLRTWithdrawalQueueABI = [
       {
         name: '',
         type: 'tuple',
-        internalType: 'struct IRioLRTWithdrawalQueue.UserWithdrawal',
+        internalType: 'struct IRioLRTWithdrawalQueue.UserWithdrawalSummary',
         components: [
           { name: 'claimed', type: 'bool', internalType: 'bool' },
           { name: 'sharesOwed', type: 'uint120', internalType: 'uint120' }
@@ -293,6 +293,99 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'event',
+    name: 'EpochQueuedForSettlementFromEigenLayer',
+    inputs: [
+      {
+        name: 'epoch',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256'
+      },
+      {
+        name: 'asset',
+        type: 'address',
+        indexed: false,
+        internalType: 'address'
+      },
+      {
+        name: 'assetsReceived',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256'
+      },
+      {
+        name: 'shareValueOfAssetsReceived',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256'
+      },
+      {
+        name: 'restakingTokensBurned',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256'
+      },
+      {
+        name: 'aggregateRoot',
+        type: 'bytes32',
+        indexed: false,
+        internalType: 'bytes32'
+      }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
+    name: 'EpochSettledFromDepositPool',
+    inputs: [
+      {
+        name: 'epoch',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256'
+      },
+      {
+        name: 'asset',
+        type: 'address',
+        indexed: false,
+        internalType: 'address'
+      },
+      {
+        name: 'assetsReceived',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256'
+      }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
+    name: 'EpochSettledFromEigenLayer',
+    inputs: [
+      {
+        name: 'epoch',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256'
+      },
+      {
+        name: 'asset',
+        type: 'address',
+        indexed: false,
+        internalType: 'address'
+      },
+      {
+        name: 'assetsReceived',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256'
+      }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
     name: 'Initialized',
     inputs: [
       {
@@ -338,37 +431,6 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'event',
-    name: 'WithdrawalClaimed',
-    inputs: [
-      {
-        name: 'epoch',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256'
-      },
-      {
-        name: 'asset',
-        type: 'address',
-        indexed: false,
-        internalType: 'address'
-      },
-      {
-        name: 'withdrawer',
-        type: 'address',
-        indexed: false,
-        internalType: 'address'
-      },
-      {
-        name: 'amountOut',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256'
-      }
-    ],
-    anonymous: false
-  },
-  {
-    type: 'event',
     name: 'WithdrawalQueued',
     inputs: [
       {
@@ -406,7 +468,7 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'event',
-    name: 'WithdrawalsQueuedFromEigenLayer',
+    name: 'WithdrawalsClaimedForEpoch',
     inputs: [
       {
         name: 'epoch',
@@ -421,69 +483,13 @@ export const RioLRTWithdrawalQueueABI = [
         internalType: 'address'
       },
       {
-        name: 'assetsReceived',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256'
-      },
-      {
-        name: 'shareValueOfAssetsReceived',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256'
-      },
-      {
-        name: 'aggregateRoot',
-        type: 'bytes32',
-        indexed: false,
-        internalType: 'bytes32'
-      }
-    ],
-    anonymous: false
-  },
-  {
-    type: 'event',
-    name: 'WithdrawalsSettledFromDepositPool',
-    inputs: [
-      {
-        name: 'epoch',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256'
-      },
-      {
-        name: 'asset',
+        name: 'withdrawer',
         type: 'address',
         indexed: false,
         internalType: 'address'
       },
       {
-        name: 'assetsReceived',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256'
-      }
-    ],
-    anonymous: false
-  },
-  {
-    type: 'event',
-    name: 'WithdrawalsSettledFromEigenLayerForEpoch',
-    inputs: [
-      {
-        name: 'epoch',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256'
-      },
-      {
-        name: 'asset',
-        type: 'address',
-        indexed: false,
-        internalType: 'address'
-      },
-      {
-        name: 'assetsReceived',
+        name: 'amountOut',
         type: 'uint256',
         indexed: false,
         internalType: 'uint256'

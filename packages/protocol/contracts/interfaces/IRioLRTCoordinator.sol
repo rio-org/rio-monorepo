@@ -25,14 +25,9 @@ interface IRioLRTCoordinator {
     /// @param amountOut The amount of restaking tokens minted.
     event Deposited(address indexed user, address indexed asset, uint256 amountIn, uint256 amountOut);
 
-    /// @notice Emitted when a user requests a withdrawal from Rio.
-    /// @param user The address of the user.
+    /// @notice Emitted when an asset is rebalanced.
     /// @param asset The address of the asset.
-    /// @param sharesOwed The amount of EigenLayer shares owed to the user.
-    /// @param amountIn The amount of restaking tokens pulled from the user.
-    event WithdrawalRequested(
-        address indexed user, address indexed asset, uint256 sharesOwed, uint256 amountIn
-    );
+    event Rebalanced(address indexed asset);
 
     /// @notice Emitted when the rebalance delay is set.
     /// @param newRebalanceDelay The new rebalance delay.

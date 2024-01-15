@@ -168,8 +168,6 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
             revert INSUFFICIENT_SHARES_FOR_WITHDRAWAL();
         }
         withdrawalQueue.queueWithdrawal(msg.sender, asset, sharesOwed, amountIn);
-
-        emit WithdrawalRequested(msg.sender, asset, sharesOwed, amountIn);
     }
 
     /// @notice Rebalances the provided `asset` by processing outstanding withdrawals and
@@ -186,6 +184,8 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
 
         // Deposit remaining assets into EigenLayer.
         assetSharesHeld[asset] += depositPool.depositBalanceIntoEigenLayer(asset);
+
+        emit Rebalanced(asset);
     }
 
     /// @notice Sets the rebalance delay.

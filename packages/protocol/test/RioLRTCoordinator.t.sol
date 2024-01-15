@@ -45,22 +45,22 @@ contract RioLRTCoordinatorTest is RioDeployer {
         coordinator.requestWithdrawal(ETH_ADDRESS, 1 ether);
 
         uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
-        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory summary = withdrawalQueue.getEpochWithdrawalSummary(
+        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary = withdrawalQueue.getEpochWithdrawalSummary(
             ETH_ADDRESS, currentEpoch
         );
-        IRioLRTWithdrawalQueue.UserWithdrawal memory withdrawal = withdrawalQueue.getUserWithdrawal(
+        IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary = withdrawalQueue.getUserWithdrawalSummary(
             ETH_ADDRESS, currentEpoch, address(this)
         );
 
         assertEq(reETH.balanceOf(address(this)), 0);
         assertEq(withdrawalQueue.getSharesOwedInCurrentEpoch(ETH_ADDRESS), 1 ether);
 
-        assertFalse(summary.settled);
-        assertEq(summary.sharesOwed, 1 ether);
-        assertEq(summary.amountToBurnAtSettlement, 1 ether);
+        assertFalse(epochSummary.settled);
+        assertEq(epochSummary.sharesOwed, 1 ether);
+        assertEq(epochSummary.amountToBurnAtSettlement, 1 ether);
 
-        assertFalse(withdrawal.claimed);
-        assertEq(withdrawal.sharesOwed, 1 ether);
+        assertFalse(userSummary.claimed);
+        assertEq(userSummary.sharesOwed, 1 ether);
     }
 
     receive() external payable {}
