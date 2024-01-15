@@ -143,7 +143,10 @@ export const parseSubgraphAsset = (asset: AssetSubgraphResponse) => {
   return <AssetDetails>{
     name: asset.name,
     symbol: asset.symbol,
-    address: asset.address || NATIVE_ETH_ADDRESS,
+    address:
+      !asset.address || asset.address === zeroAddress
+        ? NATIVE_ETH_ADDRESS
+        : asset.address,
     logo: ASSET_LOGOS[asset.symbol],
     decimals: asset.decimals ?? 18,
     latestUSDPrice: asset.latestUSDPrice,
@@ -174,7 +177,7 @@ export const parseSubgraphLRT = (lrt: LRTSubgraphResponse) => {
     percentAPY: Number(lrt.percentAPY),
     totalValueUSD: Number(lrt.totalValueUSD),
     totalValueETH: Number(lrt.totalValueETH),
-    underlyingAssets: lrt.underlyingAssets.map(parseUnderlyingAsset)
+    underlyingAssets: parseSubgraphUnderlyingAssetList(lrt.underlyingAssets)
   };
 };
 
@@ -186,7 +189,7 @@ export const parseSubgraphAssetList = (
   ) as AssetDetails[];
 };
 
-export const parseSubgraphUnderlyingAsset = (
+export const parseSubgraphUnderlyingAssetList = (
   data: UnderlyingAssetSubgraphResponse[]
 ): UnderlyingAssetDetails[] => {
   return JSON.parse(

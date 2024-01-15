@@ -78,7 +78,7 @@ const DepositButton = ({
             <Alert
               isSuccess={isDepositSuccess}
               isError={isDepositError}
-              depositTxHash={depositTxHash}
+              txHash={depositTxHash}
               setIsSuccess={setIsDepositSuccess}
               setIsError={setIsDepositError}
             />

@@ -12,26 +12,26 @@ import { getChainName } from '../../lib/utilities';
 
 type Props = {
   isValid: boolean;
-  isExitLoading: boolean;
-  isExitSuccess: boolean;
-  isExitError: boolean;
+  isWithdrawalLoading: boolean;
+  isWithdrawalSuccess: boolean;
+  isWithdrawalError: boolean;
   accountAddress: EthereumAddress;
   exitTxHash?: Hash;
-  setIsExitSuccess: (isSuccess: boolean) => void;
-  setIsExitError: (isError: boolean) => void;
+  setIsWithdrawalSuccess: (isSuccess: boolean) => void;
+  setIsWithdrawalError: (isError: boolean) => void;
   handleExecute: () => void;
   clearForm: () => void;
 };
 
 const WithdrawButton = ({
   isValid,
-  isExitLoading,
-  isExitSuccess,
-  isExitError,
+  isWithdrawalLoading,
+  isWithdrawalSuccess,
+  isWithdrawalError,
   exitTxHash,
   handleExecute,
-  setIsExitSuccess,
-  setIsExitError
+  setIsWithdrawalSuccess,
+  setIsWithdrawalError
 }: Props) => {
   const { chain } = useNetwork();
   const { isLoading: isSwitchNetworkLoading, switchNetwork } =
@@ -39,7 +39,7 @@ const WithdrawButton = ({
   const wrongNetwork = chain?.id !== CHAIN_ID;
   return (
     <AnimatePresence>
-      {(isExitError || isExitSuccess) && (
+      {(isWithdrawalError || isWithdrawalSuccess) && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
@@ -48,11 +48,11 @@ const WithdrawButton = ({
         >
           <div className="mt-4">
             <Alert
-              isSuccess={isExitSuccess}
-              isError={isExitError}
-              joinTxHash={exitTxHash}
-              setIsSuccess={setIsExitSuccess}
-              setIsError={setIsExitError}
+              isSuccess={isWithdrawalSuccess}
+              isError={isWithdrawalError}
+              txHash={exitTxHash}
+              setIsSuccess={setIsWithdrawalSuccess}
+              setIsError={setIsWithdrawalError}
             />
           </div>
         </motion.div>
@@ -88,20 +88,20 @@ const WithdrawButton = ({
             !isValid && 'bg-opacity-20',
             isValid && 'hover:bg-[var(--color-dark-gray)]'
           )}
-          disabled={!isValid || isExitLoading}
+          disabled={!isValid || isWithdrawalLoading}
           onClick={() => {
             handleExecute();
           }}
           variants={TX_BUTTON_VARIANTS}
           key={'withdraw'}
         >
-          {isExitLoading && (
+          {isWithdrawalLoading && (
             <div className="w-full text-center flex items-center justify-center gap-2">
               <Spinner width={16} />
               <span className="opacity-40">Submitting request</span>
             </div>
           )}
-          {!isExitLoading && (
+          {!isWithdrawalLoading && (
             <span className={cx(!isValid && 'opacity-20 text-black')}>
               {isValid ? 'Request withdraw' : 'Enter an amount'}
             </span>

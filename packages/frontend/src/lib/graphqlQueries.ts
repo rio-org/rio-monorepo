@@ -10,7 +10,7 @@ export const getAssetList = () => {
         name
         symbol
       }
-      tokens {
+      assets {
         id
         address
         name
@@ -36,10 +36,12 @@ export const getLiquidRestakingTokenList = () => {
         underlyingAssets {
           strategy
           balance
+          address
           asset {
             id
             name
             symbol
+            address
             decimals
             latestUSDPrice
             latestUSDPriceTimestamp
@@ -53,7 +55,7 @@ export const getLiquidRestakingTokenList = () => {
 export const getLatestAssetUSDPrice = (tokenAddress: EthereumAddress) => {
   return gql`
     query getLatestAssetUSDPrice {
-      token(id: "${tokenAddress}") {
+      asset(id: "${tokenAddress}") {
         address
         symbol
         latestUSDPrice

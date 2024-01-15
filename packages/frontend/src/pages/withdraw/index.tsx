@@ -1,31 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
 import WithdrawForm from '../../components/Withdraw/WithdrawForm';
-import { CHAIN_ID } from '../../../config';
 import { LRTDetails } from '../../lib/typings';
-import { fetchLiquidRestakingTokens } from '../../lib/dataFetching';
+import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
 
-type Props = {
-  lrtList: LRTDetails[];
-};
+const Withdraw: NextPage = () => {
+  const { data: lrtList } = useGetLiquidRestakingTokens();
+  const [activeLrt, setActiveLrt] = useState<LRTDetails | undefined>(
+    lrtList?.[0]
+  );
 
-const Withdraw: NextPage<Props> = ({ lrtList }) => {
+  useEffect(() => {
+    setActiveLrt(lrtList?.[0]);
+  }, [lrtList]);
+
   return (
     <WithdrawWrapper>
-      <WithdrawForm lrtList={lrtList} />
+      {activeLrt && <WithdrawForm lrt={activeLrt} />}
     </WithdrawWrapper>
   );
 };
 
 export default Withdraw;
-
-export async function getStaticProps() {
-  const chainId = CHAIN_ID;
-  const lrtList = await fetchLiquidRestakingTokens(chainId);
-  return {
-    props: {
-      lrtList
-    }
-  };
-}

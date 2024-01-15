@@ -1,17 +1,24 @@
 import { OperationVariables, useQuery } from '@apollo/client';
-import { LRTDetails } from '../lib/typings';
+import { LRTSubgraphResponse } from '../lib/typings';
 import { getLiquidRestakingTokenList } from '../lib/graphqlQueries';
+import { useMemo } from 'react';
+import { parseSubgraphLRTList } from '../lib/utilities';
 
 export const useGetLiquidRestakingTokens = (opts?: OperationVariables) => {
   const { data, ...rest } = useQuery<{
-    liquidRestakingTokens: LRTDetails[];
+    liquidRestakingTokens: LRTSubgraphResponse[];
   }>(getLiquidRestakingTokenList(), {
     ...opts,
     pollInterval: opts?.pollInterval || 30000
   });
 
+  const lrtDetails = useMemo(() => {
+    if (!data?.liquidRestakingTokens) return undefined;
+    return parseSubgraphLRTList(data.liquidRestakingTokens);
+  }, [data?.liquidRestakingTokens]);
+
   return {
-    data: data?.liquidRestakingTokens,
+    data: lrtDetails,
     ...rest
   };
 };

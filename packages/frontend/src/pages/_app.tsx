@@ -47,7 +47,10 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
     alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID || '' }),
     infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
     publicProvider()
-  ]
+  ],
+  {
+    batch: { multicall: true }
+  }
 );
 
 const appInfo = {
@@ -86,16 +89,16 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider appInfo={appInfo} chains={chains}>
-        <RioNetworkProvider>
-          <ApolloProvider client={apolloSubgraphClient}>
+        <ApolloProvider client={apolloSubgraphClient}>
+          <RioNetworkProvider>
             <ThemeProvider value={theme}>
               <CssBaseline />
               <Layout>
                 <Component {...pageProps} />
               </Layout>
             </ThemeProvider>
-          </ApolloProvider>
-        </RioNetworkProvider>
+          </RioNetworkProvider>
+        </ApolloProvider>
       </RainbowKitProvider>
     </WagmiConfig>
   );

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { AssetDetails } from '../../lib/typings';
+import { LRTDetails } from '../../lib/typings';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
 import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
@@ -10,31 +10,28 @@ import { useIsMounted } from '../../hooks/useIsMounted';
 
 type Props = {
   amount: bigint | null;
-  accountReETHBalance: bigint;
-  reETHToken: AssetDetails;
+  restakingTokenBalance: bigint;
+  restakingToken: LRTDetails;
   setAmount: (amount: bigint | null) => void;
 };
 
 const WithdrawField = ({
   amount,
-  accountReETHBalance,
-  reETHToken,
+  restakingTokenBalance,
+  restakingToken,
   setAmount
 }: Props) => {
   const hasMounted = useIsMounted();
   const [isFocused, setIsFocused] = useState(false);
-  const handleValueChange = (value: string) => {
-    const parsedAmount = parseUnits(value, 18);
-    if (value === '') {
-      setAmount(null);
-      return;
-    }
-    setAmount(parsedAmount);
-  };
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
+
+  const handleValueChange = (value: string) => {
+    if (value === '') return setAmount(null);
+    setAmount(parseUnits(value, 18));
+  };
 
   const focusInput = () => {
     if (!inputRef.current) return;
@@ -48,12 +45,15 @@ const WithdrawField = ({
         <label htmlFor="amount" className="mb-1 font-medium">
           reETH Amount
         </label>
-        {hasMounted && accountReETHBalance !== undefined && reETHToken ? (
+        {hasMounted && restakingTokenBalance !== undefined && restakingToken ? (
           <>
             <span className="opacity-50 text-[12px] -tracking-tight">
               Balance:{' '}
               {displayEthAmount(
-                formatUnits(accountReETHBalance, reETHToken.decimals ?? 18)
+                formatUnits(
+                  restakingTokenBalance,
+                  restakingToken.decimals ?? 18
+                )
               )}{' '}
               reETH
             </span>{' '}
@@ -95,7 +95,7 @@ const WithdrawField = ({
           <button
             className="font-medium ml-2 px-3 py-2 bg-[var(--color-element-wrapper-bg)] rounded-xl hover:bg-black hover:bg-opacity-10 transition-colors duration-200"
             onClick={() => {
-              setAmount(accountReETHBalance);
+              setAmount(restakingTokenBalance);
             }}
           >
             Max

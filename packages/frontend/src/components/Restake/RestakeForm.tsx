@@ -3,7 +3,6 @@ import StakeField from './StakeField';
 import {
   erc20ABI,
   useAccount,
-  useBalance,
   useContractRead,
   useWaitForTransaction
 } from 'wagmi';
@@ -20,6 +19,7 @@ import { Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '../Shared/ApproveButtons';
 import { useIsMounted } from '../../hooks/useIsMounted';
 import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
+import { useAssetBalance } from '../../hooks/useAssetBalance';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -60,15 +60,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     isError,
     isLoading,
     refetch: refetchBalance
-  } = useBalance({
-    address: address,
-    staleTime: 60000,
-    token: activeToken?.address
-      ? activeToken.symbol === 'ETH'
-        ? undefined
-        : activeToken.address
-      : undefined
-  });
+  } = useAssetBalance(activeToken);
+
   const isValidAmount =
     !!amount && amount > BigInt(0) && amount <= accountTokenBalance;
   const isEmpty = !amount;

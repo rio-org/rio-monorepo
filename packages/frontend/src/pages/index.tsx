@@ -3,18 +3,12 @@ import RestakeWrapper from '../components/Restake/RestakeWrapper';
 import Skeleton from 'react-loading-skeleton';
 import RestakeForm from '../components/Restake/RestakeForm';
 import { LRTDetails } from '../lib/typings';
-import { CHAIN_ID } from '../../config';
 import { Tooltip } from '@material-tailwind/react';
 import { useIsMounted } from '../hooks/useIsMounted';
 import { useEffect, useState } from 'react';
-import { fetchLiquidRestakingTokens } from '../lib/dataFetching';
 import { useGetLiquidRestakingTokens } from '../hooks/useGetLiquidRestakingTokens';
 
-type Props = {
-  lrtList: LRTDetails[];
-};
-
-const Home: NextPage<Props> = () => {
+const Home: NextPage = () => {
   const isMounted = useIsMounted();
   // When more LRT products are available, we'll offer a way to switch these
   const { data: lrtList } = useGetLiquidRestakingTokens();
@@ -27,10 +21,9 @@ const Home: NextPage<Props> = () => {
     setActiveLrt(lrtList[0]);
   }, [lrtList]);
 
-  // TODO: replace these stats with real data
   const networkStats = {
-    tvl: activeLrt ? Math.trunc(activeLrt.totalSupply) : NaN,
-    apy: activeLrt ? activeLrt.percentAPY : NaN
+    tvl: activeLrt ? Math.trunc(activeLrt.totalValueETH ?? 0) : null,
+    apy: activeLrt ? activeLrt.percentAPY : null
   };
 
   const [tvlVal, apyVal] =
@@ -78,9 +71,3 @@ const Home: NextPage<Props> = () => {
 };
 
 export default Home;
-
-export async function getStaticProps() {
-  const chainId = CHAIN_ID;
-  const { data } = await fetchLiquidRestakingTokens(chainId);
-  return { props: { lrtList: data } };
-}
