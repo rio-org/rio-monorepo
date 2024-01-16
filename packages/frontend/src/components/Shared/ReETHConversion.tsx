@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import iconTransaction from '../../assets/icon-transaction.svg';
 import { motion } from 'framer-motion';
 import cx from 'classnames';
-import { LRTDetails } from '../../lib/typings';
-import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
+import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
 
 const styledAmount = (amount: number) => {
   const main = amount.toFixed();
@@ -21,16 +20,11 @@ type Props = {
   padded?: boolean;
 };
 const ReETHConversion = ({ padded }: Props) => {
-  const reEth = <>1 reETH</>;
   const [isReEth, setIsReEth] = useState<boolean>(true);
-  const [reEthToken, setReEthToken] = useState<LRTDetails | undefined>();
-
-  const { data: lrts, error } = useGetLiquidRestakingTokens();
-
-  useEffect(() => {
-    if (error || !lrts) return;
-    setReEthToken(lrts.find((lrt) => lrt.symbol === 'reETH'));
-  }, [lrts]);
+  const { data: exchangeRate } = useAssetExchangeRate({
+    asset: 'ETH',
+    lrt: 'reETH'
+  });
 
   const handleChange = () => {
     setIsReEth((prev) => !prev);
@@ -44,15 +38,14 @@ const ReETHConversion = ({ padded }: Props) => {
       )}
       onClick={() => handleChange()}
     >
-      {reEthToken?.exchangeRateUSD && (
+      {exchangeRate && (
         <span className="text-[var(--color-black-50)] group-hover:text-black">
-          {isReEth ? (
-            <>
-              {styledAmount(reEthToken?.exchangeRateUSD)} = {reEth}
-            </>
+          {!isReEth ? (
+            <>1 ETH = {exchangeRate.lrt.toLocaleString()} reETH</>
           ) : (
             <>
-              {reEth} = {styledAmount(reEthToken?.exchangeRateUSD)}
+              1 reETH ={' '}
+              {styledAmount(exchangeRate.usd * (1 / exchangeRate.lrt))}
             </>
           )}
         </span>

@@ -72,7 +72,7 @@ export const useAssetExchangeRate = ({
     } catch (error) {
       return { asset, eth, lrt, assetError: error as Error };
     }
-  }, [_asset, _lrt]);
+  }, [_asset, _lrt, lrtList]);
 
   const data = useMemo(
     () => ({
