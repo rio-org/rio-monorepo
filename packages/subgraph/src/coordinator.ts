@@ -16,6 +16,8 @@ export function handleDeposited(event: Deposited): void {
   const restakingToken = LiquidRestakingToken.load(coordinator.restakingToken)!;
   restakingToken.exchangeRateETH = getExchangeRateETH(assetIn, amountInUnits, amountOutUnits);
   restakingToken.exchangeRateUSD = getExchangeRateUSD(assetIn, restakingToken.exchangeRateETH, assetIn.latestUSDPrice);
+  restakingToken.totalValueETH = restakingToken.exchangeRateETH && restakingToken.totalSupply.times(restakingToken.exchangeRateETH!);
+  restakingToken.totalValueUSD = restakingToken.exchangeRateUSD && restakingToken.totalSupply.times(restakingToken.exchangeRateUSD!);
   restakingToken.save();
 
   const deposit = new Deposit(`${event.transaction.hash.toHex()}-${event.logIndex.toString()}`);
