@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
@@ -6,12 +6,13 @@ import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { EthereumAddress } from '../../lib/typings';
 import { Hash } from 'viem';
-import { useNetwork, useSwitchNetwork } from 'wagmi';
+import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi';
 import { CHAIN_ID } from '../../../config';
 import { getChainName } from '../../lib/utilities';
 
 type Props = {
-  isValid: boolean;
+  isValidAmount: boolean;
+  isEmpty: boolean;
   isWithdrawalLoading: boolean;
   isWithdrawalSuccess: boolean;
   isWithdrawalError: boolean;
@@ -24,7 +25,8 @@ type Props = {
 };
 
 const WithdrawButton = ({
-  isValid,
+  isValidAmount,
+  isEmpty,
   isWithdrawalLoading,
   isWithdrawalSuccess,
   isWithdrawalError,
@@ -33,10 +35,27 @@ const WithdrawButton = ({
   setIsWithdrawalSuccess,
   setIsWithdrawalError
 }: Props) => {
+  const { address } = useAccount();
   const { chain } = useNetwork();
   const { isLoading: isSwitchNetworkLoading, switchNetwork } =
     useSwitchNetwork();
   const wrongNetwork = chain?.id !== CHAIN_ID;
+
+  const buttonText = useMemo(() => {
+    if (!address) return 'Connect to withdraw';
+    if (wrongNetwork) return `Switch to ${getChainName(CHAIN_ID)}`;
+    if (isEmpty) return 'Enter an amount';
+    if (!isValidAmount && !isEmpty) return 'Insufficient balance';
+    return 'Request withdraw';
+  }, [isValidAmount, isEmpty, address, wrongNetwork]);
+
+  const isDisabled = wrongNetwork
+    ? isSwitchNetworkLoading
+    : !isValidAmount || isEmpty || isWithdrawalLoading;
+
+  const handleClick = () =>
+    wrongNetwork ? switchNetwork?.(CHAIN_ID) : handleExecute();
+
   return (
     <AnimatePresence>
       {(isWithdrawalError || isWithdrawalSuccess) && (
@@ -57,57 +76,30 @@ const WithdrawButton = ({
           </div>
         </motion.div>
       )}
-
-      {wrongNetwork && (
-        <motion.button
-          className={cx(
-            'rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
-            !isValid && 'bg-opacity-20',
-            isValid && 'hover:bg-[var(--color-dark-gray)]'
-          )}
-          onClick={() => {
-            switchNetwork?.(CHAIN_ID);
-          }}
-          variants={TX_BUTTON_VARIANTS}
-          key={'switchNetwork'}
-        >
-          {!isSwitchNetworkLoading && `Switch to ${getChainName(CHAIN_ID)}`}
-          {isSwitchNetworkLoading && (
-            <div className="w-full text-center flex items-center justify-center gap-2">
-              <Spinner width={16} />
-              <span className="opacity-40">Awaiting confirmation</span>
-            </div>
-          )}
-        </motion.button>
-      )}
-
-      {!wrongNetwork && (
-        <motion.button
-          className={cx(
-            'rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
-            !isValid && 'bg-opacity-20',
-            isValid && 'hover:bg-[var(--color-dark-gray)]'
-          )}
-          disabled={!isValid || isWithdrawalLoading}
-          onClick={() => {
-            handleExecute();
-          }}
-          variants={TX_BUTTON_VARIANTS}
-          key={'withdraw'}
-        >
-          {isWithdrawalLoading && (
-            <div className="w-full text-center flex items-center justify-center gap-2">
-              <Spinner width={16} />
-              <span className="opacity-40">Submitting request</span>
-            </div>
-          )}
-          {!isWithdrawalLoading && (
-            <span className={cx(!isValid && 'opacity-20 text-black')}>
-              {isValid ? 'Request withdraw' : 'Enter an amount'}
+      <motion.button
+        className={cx(
+          'rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
+          isDisabled ? 'bg-opacity-20' : 'hover:bg-[var(--color-dark-gray)]'
+        )}
+        disabled={isDisabled}
+        onClick={handleClick}
+        variants={TX_BUTTON_VARIANTS}
+      >
+        {isWithdrawalLoading || isSwitchNetworkLoading ? (
+          <div className="w-full text-center flex items-center justify-center gap-2">
+            <Spinner width={16} />
+            <span className="text-black opacity-20">
+              {isWithdrawalLoading
+                ? 'Submitting request'
+                : 'Awaiting confirmation'}
             </span>
-          )}
-        </motion.button>
-      )}
+          </div>
+        ) : (
+          <span className={cx(isDisabled && 'opacity-20 text-black')}>
+            {buttonText}
+          </span>
+        )}
+      </motion.button>
     </AnimatePresence>
   );
 };

@@ -28,6 +28,11 @@ import { APP_TITLE, CHAIN_ID } from '../../config';
 import { theme } from '../lib/theme';
 import { ApolloProvider } from '@apollo/client';
 import subgraphClient from '../lib/subgraphClient';
+import { QueryClient, QueryClientProvider } from 'react-query';
+
+// Create the cache clients
+const apolloSubgraphClient = subgraphClient(CHAIN_ID);
+const queryClient = new QueryClient();
 
 const chooseChain = (chainId: number) => {
   if (chainId === 1) {
@@ -48,9 +53,7 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
     infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
     publicProvider()
   ],
-  {
-    batch: { multicall: true }
-  }
+  { batch: { multicall: true } }
 );
 
 const appInfo = {
@@ -83,22 +86,22 @@ const wagmiConfig = createConfig({
   webSocketPublicClient
 });
 
-const apolloSubgraphClient = subgraphClient(CHAIN_ID);
-
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider appInfo={appInfo} chains={chains}>
-        <ApolloProvider client={apolloSubgraphClient}>
-          <RioNetworkProvider>
-            <ThemeProvider value={theme}>
-              <CssBaseline />
-              <Layout>
-                <Component {...pageProps} />
-              </Layout>
-            </ThemeProvider>
-          </RioNetworkProvider>
-        </ApolloProvider>
+        <QueryClientProvider client={queryClient}>
+          <ApolloProvider client={apolloSubgraphClient}>
+            <RioNetworkProvider>
+              <ThemeProvider value={theme}>
+                <CssBaseline />
+                <Layout>
+                  <Component {...pageProps} />
+                </Layout>
+              </ThemeProvider>
+            </RioNetworkProvider>
+          </ApolloProvider>
+        </QueryClientProvider>
       </RainbowKitProvider>
     </WagmiConfig>
   );

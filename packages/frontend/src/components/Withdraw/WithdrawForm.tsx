@@ -41,7 +41,7 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
   } = useAssetBalance(lrt);
 
   const isValidAmount =
-    !!amount && amount > BigInt(0) && amount <= restakingTokenBalance;
+    amount !== null && amount > BigInt(0) && amount <= restakingTokenBalance;
 
   const clearForm = () => {
     setAmount(null);
@@ -59,6 +59,10 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
     activeToken: AssetDetails,
     amount: bigint | null
   ): Promise<bigint | undefined> => {
+    if (amount === BigInt(0)) {
+      return BigInt(0);
+    }
+
     const query = await restakingToken?.getEstimatedOutForWithdrawalRequest({
       amountIn: amount || BigInt(0),
       assetOut: activeToken.address
@@ -76,8 +80,7 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
   });
 
   const handleTokenQuery = (res?: bigint | undefined) => {
-    if (!res) return;
-    console.log(res);
+    if (typeof res === 'undefined') return;
     setAmountIn(res);
   };
 
@@ -108,7 +111,8 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
   }, [txData]);
 
   const handleExitRequest = async () => {
-    if (!amount || !restakingToken) return;
+    if (!restakingToken || !amount) return;
+
     await restakingToken
       ?.requestWithdrawal({
         amountIn: amount,
@@ -171,7 +175,8 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
           />
           {address && (
             <WithdrawButton
-              isValid={isValidAmount}
+              isValidAmount={isValidAmount}
+              isEmpty={amount === null || amount === BigInt(0)}
               isWithdrawalLoading={isWithdrawalLoading}
               isWithdrawalSuccess={isWithdrawalSuccess}
               isWithdrawalError={isWithdrawalError}

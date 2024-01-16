@@ -8,6 +8,7 @@ import { CHAIN_ID } from '../../../config';
 type Props = {
   isSuccess: boolean;
   isError: boolean;
+  errorMessage?: string;
   txHash?: `0x${string}`;
   setIsSuccess: (isSuccess: boolean) => void;
   setIsError: (isError: boolean) => void;
@@ -16,6 +17,7 @@ type Props = {
 const Alert = ({
   isSuccess,
   isError,
+  errorMessage,
   txHash,
   setIsSuccess,
   setIsError
@@ -31,13 +33,15 @@ const Alert = ({
           <span className="font-medium">Success</span>
         </motion.div>
       )}
-      {isError && (
+      {(isError || errorMessage) && (
         <motion.button
           className="p-4 text-center text-[14px] rounded-lg w-full bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] hover:bg-[var(--color-yellow-bg-hover)]"
           variants={TX_BUTTON_VARIANTS}
           onClick={() => setIsError(false)}
         >
-          <span className="font-medium block">Error. Please try again.</span>
+          <span className="font-medium block">
+            {errorMessage || 'Error. Please try again.'}
+          </span>
         </motion.button>
       )}
       <AnimatePresence>

@@ -5,49 +5,62 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { useAccount } from 'wagmi';
+import {
+  ClaimWithdrawalParams,
+  useLiquidRestakingToken
+} from '@rionetwork/sdk-react';
+import { ContractError, LRTDetails } from '../../lib/typings';
+import { Hash } from 'viem';
 
 type Props = {
-  isValid: boolean;
+  lrt: LRTDetails;
+  claimWithdrawalParams: ClaimWithdrawalParams[];
+  onSuccess?: (txHash?: Hash) => void;
 };
 
-const ClaimButton = ({ isValid }: Props) => {
-  const [isError, setIsError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+const ClaimButton = ({ lrt, claimWithdrawalParams, onSuccess }: Props) => {
   const { address } = useAccount();
-  const fetchDummyData = async () => {
-    setIsLoading(true);
-    //  wait 1 second before setting isError to true
-    await new Promise((resolve) => setTimeout(resolve, 1000)).catch((err) => {
-      console.log(err);
-    });
-    setIsLoading(false);
+  const isValid = !!address && claimWithdrawalParams?.length > 0;
+  const lrtClient = useLiquidRestakingToken(lrt?.address);
 
-    // randomly set isSuccess to true or false
-    const random = Math.random();
-    if (random > 0.5) {
-      setIsSuccess(true);
-    } else {
-      setIsError(true);
-    }
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [claimTx, setClaimTx] = useState<Hash | undefined>(undefined);
+  const [error, setError] = useState<ContractError | undefined>(undefined);
+
+  const handleSuccess = (txHash: Hash) => {
+    setClaimTx(txHash);
+    onSuccess?.(txHash);
+  };
+
+  const handleClaim = async () => {
+    if (!lrtClient || !claimWithdrawalParams?.length) return;
+
+    const claim = () => {
+      setIsClaiming(true);
+      setClaimTx(undefined);
+      return claimWithdrawalParams.length !== 1
+        ? lrtClient.claimWithdrawalsForManyEpochs(claimWithdrawalParams)
+        : lrtClient.claimWithdrawalsForEpoch(claimWithdrawalParams[0]);
+    };
+
+    await claim()
+      .then(handleSuccess)
+      .catch(setError)
+      .finally(() => setIsClaiming(false));
   };
 
   return (
     <div className="mt-4">
       <AnimatePresence>
-        {!isSuccess && !isError && (
+        {!claimTx && !error && (
           <motion.button
             className={cx(
               'rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
               !isValid && 'bg-opacity-20',
-              isValid && !isLoading && 'hover:bg-[var(--color-dark-gray)]'
+              isValid && !isClaiming && 'hover:bg-[var(--color-dark-gray)]'
             )}
-            disabled={!isValid || isLoading}
-            onClick={() => {
-              fetchDummyData().catch(() => {
-                setIsError(true);
-              });
-            }}
+            disabled={!isValid || isClaiming}
+            onClick={() => void handleClaim()}
             variants={TX_BUTTON_VARIANTS}
             key={'claim'}
           >
@@ -56,13 +69,13 @@ const ClaimButton = ({ isValid }: Props) => {
                 Nothing available to claim
               </span>
             )}
-            {address && isLoading && (
+            {address && isClaiming && (
               <div className="w-full text-center flex items-center justify-center gap-2">
                 <Spinner width={16} />
                 <span className="opacity-40">Claiming</span>
               </div>
             )}
-            {address && !isLoading && !isError && (
+            {address && !isClaiming && !error && (
               <span className={cx(!isValid && 'opacity-20 text-black')}>
                 {isValid ? 'Claim' : 'Nothing available to claim'}
               </span>
@@ -71,10 +84,15 @@ const ClaimButton = ({ isValid }: Props) => {
         )}
 
         <Alert
-          isSuccess={isSuccess}
-          isError={isError}
-          setIsSuccess={setIsSuccess}
-          setIsError={setIsError}
+          isSuccess={!!claimTx}
+          errorMessage={error?.shortMessage || error?.message}
+          isError={!!error}
+          setIsSuccess={() => setClaimTx(undefined)}
+          setIsError={(_e: boolean) =>
+            setError((prev) =>
+              _e ? prev || new Error('An error occurred') : undefined
+            )
+          }
         />
       </AnimatePresence>
     </div>

@@ -37,6 +37,8 @@ export interface Chain extends WagmiChain {
   icon: string;
 }
 
+export type ContractError = Error & { shortMessage?: string };
+
 export interface ConnectButtonProps {
   account?: {
     address: string;
