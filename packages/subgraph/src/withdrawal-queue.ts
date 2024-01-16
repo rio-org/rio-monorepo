@@ -1,6 +1,6 @@
 import { EpochQueuedForSettlementFromEigenLayer, EpochSettledFromDepositPool, EpochSettledFromEigenLayer, WithdrawalQueued, WithdrawalsClaimedForEpoch } from '../generated/templates/WithdrawalQueue/RioLRTWithdrawalQueue';
 import { findOrCreateAsset, findOrCreateUser, findOrCreateWithdrawalEpoch, getWithdrawalClaimID, getWithdrawalEpochUserSummaryID, getWithdrawalRequestID, toUnits } from './helpers/utils';
-import { WithdrawalRequest, WithdrawalQueue, WithdrawalEpochUserSummary, WithdrawalClaim } from '../generated/schema';
+import { WithdrawalRequest, WithdrawalQueue, WithdrawalEpochUserSummary, WithdrawalClaim, LiquidRestakingToken } from '../generated/schema';
 import { WithdrawalEpochStatus } from './helpers/constants';
 import { Address, BigInt } from '@graphprotocol/graph-ts';
 
@@ -22,13 +22,15 @@ export function handleWithdrawalQueued(event: WithdrawalQueued): void {
   withdrawalEpoch.requestCount = withdrawalEpoch.requestCount + 1;
   withdrawalEpoch.save();
 
+  const restakingToken = LiquidRestakingToken.load(queue.restakingToken)!;
+
   const request = new WithdrawalRequest(
     getWithdrawalRequestID(queue.restakingToken, event.params.epoch, asset.id, user.id, userWithdrawalSummary.requestCount)
   );
   request.user = user.id;
   request.sender = event.params.withdrawer;
   request.epoch = withdrawalEpoch.id;
-  request.assetOut = event.params.asset.toHex();
+  request.assetOut = asset.id;
   request.sharesOwed = sharesOwedUnits;
   request.amountIn = amountInUnits;
   request.restakingToken = queue.restakingToken;
@@ -39,6 +41,10 @@ export function handleWithdrawalQueued(event: WithdrawalQueued): void {
   request.tx = event.transaction.hash;
   request.logIndex = event.logIndex;
   request.isClaimed = false;
+
+  if (restakingToken.exchangeRateUSD) {
+    request.valueUSD = restakingToken.exchangeRateUSD!.times(amountInUnits);
+  }
 
   user.balance = request.userBalanceAfter;
   user.save();
