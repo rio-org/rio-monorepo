@@ -220,6 +220,8 @@ export enum Coordinator_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
   RestakingTokenPercentApy = 'restakingToken__percentAPY',
@@ -418,6 +420,8 @@ export enum Deposit_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
   RestakingTokenPercentApy = 'restakingToken__percentAPY',
@@ -499,6 +503,8 @@ export type LiquidRestakingToken = {
   address: Scalars['Bytes']['output'];
   coordinator: Coordinator;
   createdTimestamp: Scalars['BigInt']['output'];
+  exchangeRateETH?: Maybe<Scalars['BigDecimal']['output']>;
+  exchangeRateUSD?: Maybe<Scalars['BigDecimal']['output']>;
   id: Scalars['ID']['output'];
   issuer: Issuer;
   name: Scalars['String']['output'];
@@ -562,6 +568,22 @@ export type LiquidRestakingToken_Filter = {
   createdTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  exchangeRateETH?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateETH_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateETH_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateETH_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  exchangeRateETH_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateETH_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateETH_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateETH_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  exchangeRateUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateUSD_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  exchangeRateUSD_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  exchangeRateUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -696,6 +718,8 @@ export enum LiquidRestakingToken_OrderBy {
   CoordinatorAddress = 'coordinator__address',
   CoordinatorId = 'coordinator__id',
   CreatedTimestamp = 'createdTimestamp',
+  ExchangeRateEth = 'exchangeRateETH',
+  ExchangeRateUsd = 'exchangeRateUSD',
   Id = 'id',
   Issuer = 'issuer',
   IssuerAddress = 'issuer__address',
@@ -719,6 +743,267 @@ export enum OrderDirection {
   Desc = 'desc'
 }
 
+export type PriceFeed = {
+  __typename?: 'PriceFeed';
+  address: Scalars['Bytes']['output'];
+  assetPair: Scalars['String']['output'];
+  baseAsset: Asset;
+  decimals: Scalars['Int']['output'];
+  description: Scalars['String']['output'];
+  feedType: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  lastUpdatedTimestamp?: Maybe<Scalars['BigInt']['output']>;
+  price?: Maybe<Scalars['BigDecimal']['output']>;
+  priceSource?: Maybe<PriceSource>;
+  quoteAssetSymbol: Scalars['String']['output'];
+};
+
+export type PriceFeed_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<PriceFeed_Filter>>>;
+  assetPair?: InputMaybe<Scalars['String']['input']>;
+  assetPair_contains?: InputMaybe<Scalars['String']['input']>;
+  assetPair_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  assetPair_ends_with?: InputMaybe<Scalars['String']['input']>;
+  assetPair_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  assetPair_gt?: InputMaybe<Scalars['String']['input']>;
+  assetPair_gte?: InputMaybe<Scalars['String']['input']>;
+  assetPair_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  assetPair_lt?: InputMaybe<Scalars['String']['input']>;
+  assetPair_lte?: InputMaybe<Scalars['String']['input']>;
+  assetPair_not?: InputMaybe<Scalars['String']['input']>;
+  assetPair_not_contains?: InputMaybe<Scalars['String']['input']>;
+  assetPair_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  assetPair_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  assetPair_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  assetPair_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  assetPair_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  assetPair_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  assetPair_starts_with?: InputMaybe<Scalars['String']['input']>;
+  assetPair_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  baseAsset?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_?: InputMaybe<Asset_Filter>;
+  baseAsset_contains?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_ends_with?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_gt?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_gte?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  baseAsset_lt?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_lte?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_not?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_not_contains?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  baseAsset_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_starts_with?: InputMaybe<Scalars['String']['input']>;
+  baseAsset_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  decimals?: InputMaybe<Scalars['Int']['input']>;
+  decimals_gt?: InputMaybe<Scalars['Int']['input']>;
+  decimals_gte?: InputMaybe<Scalars['Int']['input']>;
+  decimals_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  decimals_lt?: InputMaybe<Scalars['Int']['input']>;
+  decimals_lte?: InputMaybe<Scalars['Int']['input']>;
+  decimals_not?: InputMaybe<Scalars['Int']['input']>;
+  decimals_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  description_contains?: InputMaybe<Scalars['String']['input']>;
+  description_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_ends_with?: InputMaybe<Scalars['String']['input']>;
+  description_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_gt?: InputMaybe<Scalars['String']['input']>;
+  description_gte?: InputMaybe<Scalars['String']['input']>;
+  description_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  description_lt?: InputMaybe<Scalars['String']['input']>;
+  description_lte?: InputMaybe<Scalars['String']['input']>;
+  description_not?: InputMaybe<Scalars['String']['input']>;
+  description_not_contains?: InputMaybe<Scalars['String']['input']>;
+  description_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  description_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  description_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  description_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_starts_with?: InputMaybe<Scalars['String']['input']>;
+  description_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  feedType?: InputMaybe<Scalars['String']['input']>;
+  feedType_contains?: InputMaybe<Scalars['String']['input']>;
+  feedType_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  feedType_ends_with?: InputMaybe<Scalars['String']['input']>;
+  feedType_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  feedType_gt?: InputMaybe<Scalars['String']['input']>;
+  feedType_gte?: InputMaybe<Scalars['String']['input']>;
+  feedType_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  feedType_lt?: InputMaybe<Scalars['String']['input']>;
+  feedType_lte?: InputMaybe<Scalars['String']['input']>;
+  feedType_not?: InputMaybe<Scalars['String']['input']>;
+  feedType_not_contains?: InputMaybe<Scalars['String']['input']>;
+  feedType_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  feedType_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  feedType_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  feedType_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  feedType_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  feedType_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  feedType_starts_with?: InputMaybe<Scalars['String']['input']>;
+  feedType_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  lastUpdatedTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
+  lastUpdatedTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  lastUpdatedTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  lastUpdatedTimestamp_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  lastUpdatedTimestamp_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  lastUpdatedTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  lastUpdatedTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
+  lastUpdatedTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<PriceFeed_Filter>>>;
+  price?: InputMaybe<Scalars['BigDecimal']['input']>;
+  priceSource_?: InputMaybe<PriceSource_Filter>;
+  price_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  price_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  price_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  price_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  price_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  price_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  price_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  quoteAssetSymbol?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_contains?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_ends_with?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_gt?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_gte?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  quoteAssetSymbol_lt?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_lte?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_not?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_not_contains?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_not_ends_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  quoteAssetSymbol_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  quoteAssetSymbol_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_not_starts_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  quoteAssetSymbol_starts_with?: InputMaybe<Scalars['String']['input']>;
+  quoteAssetSymbol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum PriceFeed_OrderBy {
+  Address = 'address',
+  AssetPair = 'assetPair',
+  BaseAsset = 'baseAsset',
+  BaseAssetAddress = 'baseAsset__address',
+  BaseAssetDecimals = 'baseAsset__decimals',
+  BaseAssetId = 'baseAsset__id',
+  BaseAssetLatestUsdPrice = 'baseAsset__latestUSDPrice',
+  BaseAssetLatestUsdPriceTimestamp = 'baseAsset__latestUSDPriceTimestamp',
+  BaseAssetName = 'baseAsset__name',
+  BaseAssetSymbol = 'baseAsset__symbol',
+  Decimals = 'decimals',
+  Description = 'description',
+  FeedType = 'feedType',
+  Id = 'id',
+  LastUpdatedTimestamp = 'lastUpdatedTimestamp',
+  Price = 'price',
+  PriceSource = 'priceSource',
+  PriceSourceAddress = 'priceSource__address',
+  PriceSourceId = 'priceSource__id',
+  QuoteAssetSymbol = 'quoteAssetSymbol'
+}
+
+export type PriceSource = {
+  __typename?: 'PriceSource';
+  address: Scalars['Bytes']['output'];
+  id: Scalars['ID']['output'];
+  priceFeed: PriceFeed;
+};
+
+export type PriceSource_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<PriceSource_Filter>>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<PriceSource_Filter>>>;
+  priceFeed?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_?: InputMaybe<PriceFeed_Filter>;
+  priceFeed_contains?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_ends_with?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_gt?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_gte?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  priceFeed_lt?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_lte?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_contains?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  priceFeed_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_starts_with?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum PriceSource_OrderBy {
+  Address = 'address',
+  Id = 'id',
+  PriceFeed = 'priceFeed',
+  PriceFeedAddress = 'priceFeed__address',
+  PriceFeedAssetPair = 'priceFeed__assetPair',
+  PriceFeedDecimals = 'priceFeed__decimals',
+  PriceFeedDescription = 'priceFeed__description',
+  PriceFeedFeedType = 'priceFeed__feedType',
+  PriceFeedId = 'priceFeed__id',
+  PriceFeedLastUpdatedTimestamp = 'priceFeed__lastUpdatedTimestamp',
+  PriceFeedPrice = 'priceFeed__price',
+  PriceFeedQuoteAssetSymbol = 'priceFeed__quoteAssetSymbol'
+}
+
 export type Query = {
   __typename?: 'Query';
   /** Access to subgraph metadata */
@@ -733,6 +1018,10 @@ export type Query = {
   issuers: Array<Issuer>;
   liquidRestakingToken?: Maybe<LiquidRestakingToken>;
   liquidRestakingTokens: Array<LiquidRestakingToken>;
+  priceFeed?: Maybe<PriceFeed>;
+  priceFeeds: Array<PriceFeed>;
+  priceSource?: Maybe<PriceSource>;
+  priceSources: Array<PriceSource>;
   underlyingAsset?: Maybe<UnderlyingAsset>;
   underlyingAssets: Array<UnderlyingAsset>;
   user?: Maybe<User>;
@@ -831,6 +1120,38 @@ export type QueryLiquidRestakingTokensArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<LiquidRestakingToken_Filter>;
+};
+
+export type QueryPriceFeedArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryPriceFeedsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PriceFeed_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<PriceFeed_Filter>;
+};
+
+export type QueryPriceSourceArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryPriceSourcesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PriceSource_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<PriceSource_Filter>;
 };
 
 export type QueryUnderlyingAssetArgs = {
@@ -959,6 +1280,10 @@ export type Subscription = {
   issuers: Array<Issuer>;
   liquidRestakingToken?: Maybe<LiquidRestakingToken>;
   liquidRestakingTokens: Array<LiquidRestakingToken>;
+  priceFeed?: Maybe<PriceFeed>;
+  priceFeeds: Array<PriceFeed>;
+  priceSource?: Maybe<PriceSource>;
+  priceSources: Array<PriceSource>;
   underlyingAsset?: Maybe<UnderlyingAsset>;
   underlyingAssets: Array<UnderlyingAsset>;
   user?: Maybe<User>;
@@ -1057,6 +1382,38 @@ export type SubscriptionLiquidRestakingTokensArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<LiquidRestakingToken_Filter>;
+};
+
+export type SubscriptionPriceFeedArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionPriceFeedsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PriceFeed_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<PriceFeed_Filter>;
+};
+
+export type SubscriptionPriceSourceArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionPriceSourcesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PriceSource_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<PriceSource_Filter>;
 };
 
 export type SubscriptionUnderlyingAssetArgs = {
@@ -1180,7 +1537,7 @@ export type UnderlyingAsset = {
   balanceInEigenLayer: Scalars['BigDecimal']['output'];
   depositCap: Scalars['BigDecimal']['output'];
   id: Scalars['ID']['output'];
-  priceFeed: Scalars['Bytes']['output'];
+  priceFeed: PriceFeed;
   restakingToken: LiquidRestakingToken;
   strategy: Scalars['Bytes']['output'];
 };
@@ -1265,16 +1622,27 @@ export type UnderlyingAsset_Filter = {
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
   or?: InputMaybe<Array<InputMaybe<UnderlyingAsset_Filter>>>;
-  priceFeed?: InputMaybe<Scalars['Bytes']['input']>;
-  priceFeed_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  priceFeed_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  priceFeed_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  priceFeed_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  priceFeed_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  priceFeed_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  priceFeed_not?: InputMaybe<Scalars['Bytes']['input']>;
-  priceFeed_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  priceFeed_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  priceFeed?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_?: InputMaybe<PriceFeed_Filter>;
+  priceFeed_contains?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_ends_with?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_gt?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_gte?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  priceFeed_lt?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_lte?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_contains?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  priceFeed_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_starts_with?: InputMaybe<Scalars['String']['input']>;
+  priceFeed_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   restakingToken?: InputMaybe<Scalars['String']['input']>;
   restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
   restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
@@ -1326,9 +1694,20 @@ export enum UnderlyingAsset_OrderBy {
   DepositCap = 'depositCap',
   Id = 'id',
   PriceFeed = 'priceFeed',
+  PriceFeedAddress = 'priceFeed__address',
+  PriceFeedAssetPair = 'priceFeed__assetPair',
+  PriceFeedDecimals = 'priceFeed__decimals',
+  PriceFeedDescription = 'priceFeed__description',
+  PriceFeedFeedType = 'priceFeed__feedType',
+  PriceFeedId = 'priceFeed__id',
+  PriceFeedLastUpdatedTimestamp = 'priceFeed__lastUpdatedTimestamp',
+  PriceFeedPrice = 'priceFeed__price',
+  PriceFeedQuoteAssetSymbol = 'priceFeed__quoteAssetSymbol',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
   RestakingTokenPercentApy = 'restakingToken__percentAPY',
@@ -1431,6 +1810,7 @@ export type WithdrawalClaim = {
   timestamp: Scalars['BigInt']['output'];
   tx: Scalars['Bytes']['output'];
   user: User;
+  valueUSD?: Maybe<Scalars['BigDecimal']['output']>;
 };
 
 export type WithdrawalClaimRequestsArgs = {
@@ -1585,6 +1965,14 @@ export type WithdrawalClaim_Filter = {
   user_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   user_starts_with?: InputMaybe<Scalars['String']['input']>;
   user_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  valueUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  valueUSD_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
 };
 
 export enum WithdrawalClaim_OrderBy {
@@ -1616,6 +2004,8 @@ export enum WithdrawalClaim_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
   RestakingTokenPercentApy = 'restakingToken__percentAPY',
@@ -1629,7 +2019,8 @@ export enum WithdrawalClaim_OrderBy {
   User = 'user',
   UserAddress = 'user__address',
   UserBalance = 'user__balance',
-  UserId = 'user__id'
+  UserId = 'user__id',
+  ValueUsd = 'valueUSD'
 }
 
 export type WithdrawalEpoch = {
@@ -1976,6 +2367,8 @@ export enum WithdrawalEpoch_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
   RestakingTokenPercentApy = 'restakingToken__percentAPY',
@@ -2050,6 +2443,8 @@ export enum WithdrawalQueue_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
   RestakingTokenPercentApy = 'restakingToken__percentAPY',
@@ -2308,6 +2703,7 @@ export enum WithdrawalRequest_OrderBy {
   ClaimSender = 'claim__sender',
   ClaimTimestamp = 'claim__timestamp',
   ClaimTx = 'claim__tx',
+  ClaimValueUsd = 'claim__valueUSD',
   Epoch = 'epoch',
   EpochAggregateRoot = 'epoch__aggregateRoot',
   EpochAmountToBurnAtSettlement = 'epoch__amountToBurnAtSettlement',
@@ -2327,6 +2723,8 @@ export enum WithdrawalRequest_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
   RestakingTokenPercentApy = 'restakingToken__percentAPY',
@@ -2397,16 +2795,26 @@ export type LiquidRestakingTokenFieldsFragment = {
   name: string;
   createdTimestamp: any;
   totalSupply: any;
+  totalValueETH?: any | null;
+  totalValueUSD?: any | null;
+  exchangeRateETH?: any | null;
+  exchangeRateUSD?: any | null;
+  percentAPY?: any | null;
   coordinator: { __typename?: 'Coordinator'; id: string };
   withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
   underlyingAssets?: Array<{
     __typename?: 'UnderlyingAsset';
     address: any;
     strategy: any;
-    priceFeed: any;
     depositCap: any;
     balance: any;
-    asset: { __typename?: 'Asset'; symbol: string; name: string };
+    asset: {
+      __typename?: 'Asset';
+      latestUSDPrice?: any | null;
+      latestUSDPriceTimestamp?: any | null;
+      symbol: string;
+      name: string;
+    };
   }> | null;
 };
 
@@ -2417,6 +2825,7 @@ export type DepositFieldsFragment = {
   amountIn: any;
   amountOut: any;
   userBalanceAfter: any;
+  valueUSD?: any | null;
   timestamp: any;
   blockNumber: any;
   tx: any;
@@ -2431,6 +2840,7 @@ export type WithdrawalRequestFieldsFragment = {
   sharesOwed: any;
   amountIn: any;
   userBalanceAfter: any;
+  valueUSD?: any | null;
   timestamp: any;
   blockNumber: any;
   tx: any;
@@ -2452,6 +2862,7 @@ export type WithdrawalClaimFieldsFragment = {
   id: string;
   sender: any;
   amountOut: any;
+  valueUSD?: any | null;
   timestamp: any;
   blockNumber: any;
   tx: any;
@@ -2490,16 +2901,26 @@ export type LiquidRestakingTokenQuery = {
     name: string;
     createdTimestamp: any;
     totalSupply: any;
+    totalValueETH?: any | null;
+    totalValueUSD?: any | null;
+    exchangeRateETH?: any | null;
+    exchangeRateUSD?: any | null;
+    percentAPY?: any | null;
     coordinator: { __typename?: 'Coordinator'; id: string };
     withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
     underlyingAssets?: Array<{
       __typename?: 'UnderlyingAsset';
       address: any;
       strategy: any;
-      priceFeed: any;
       depositCap: any;
       balance: any;
-      asset: { __typename?: 'Asset'; symbol: string; name: string };
+      asset: {
+        __typename?: 'Asset';
+        latestUSDPrice?: any | null;
+        latestUSDPriceTimestamp?: any | null;
+        symbol: string;
+        name: string;
+      };
     }> | null;
   } | null;
 };
@@ -2522,16 +2943,26 @@ export type ManyLiquidRestakingTokensQuery = {
     name: string;
     createdTimestamp: any;
     totalSupply: any;
+    totalValueETH?: any | null;
+    totalValueUSD?: any | null;
+    exchangeRateETH?: any | null;
+    exchangeRateUSD?: any | null;
+    percentAPY?: any | null;
     coordinator: { __typename?: 'Coordinator'; id: string };
     withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
     underlyingAssets?: Array<{
       __typename?: 'UnderlyingAsset';
       address: any;
       strategy: any;
-      priceFeed: any;
       depositCap: any;
       balance: any;
-      asset: { __typename?: 'Asset'; symbol: string; name: string };
+      asset: {
+        __typename?: 'Asset';
+        latestUSDPrice?: any | null;
+        latestUSDPriceTimestamp?: any | null;
+        symbol: string;
+        name: string;
+      };
     }> | null;
   }>;
 };
@@ -2553,6 +2984,7 @@ export type ManyDepositsQuery = {
     amountIn: any;
     amountOut: any;
     userBalanceAfter: any;
+    valueUSD?: any | null;
     timestamp: any;
     blockNumber: any;
     tx: any;
@@ -2578,6 +3010,7 @@ export type ManyWithdrawalRequestsQuery = {
     sharesOwed: any;
     amountIn: any;
     userBalanceAfter: any;
+    valueUSD?: any | null;
     timestamp: any;
     blockNumber: any;
     tx: any;
@@ -2610,6 +3043,7 @@ export type ManyWithdrawalClaimsQuery = {
     id: string;
     sender: any;
     amountOut: any;
+    valueUSD?: any | null;
     timestamp: any;
     blockNumber: any;
     tx: any;
@@ -2670,6 +3104,11 @@ export const LiquidRestakingTokenFieldsFragmentDoc = {
           { kind: 'Field', name: { kind: 'Name', value: 'name' } },
           { kind: 'Field', name: { kind: 'Name', value: 'createdTimestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'totalSupply' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'totalValueETH' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'totalValueUSD' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateETH' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateUSD' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'percentAPY' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'coordinator' },
@@ -2705,6 +3144,14 @@ export const LiquidRestakingTokenFieldsFragmentDoc = {
                     selections: [
                       {
                         kind: 'Field',
+                        name: { kind: 'Name', value: 'latestUSDPrice' }
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'latestUSDPriceTimestamp' }
+                      },
+                      {
+                        kind: 'Field',
                         name: { kind: 'Name', value: 'symbol' }
                       },
                       { kind: 'Field', name: { kind: 'Name', value: 'name' } }
@@ -2712,7 +3159,6 @@ export const LiquidRestakingTokenFieldsFragmentDoc = {
                   }
                 },
                 { kind: 'Field', name: { kind: 'Name', value: 'strategy' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'priceFeed' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'depositCap' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'balance' } }
               ]
@@ -2761,6 +3207,7 @@ export const DepositFieldsFragmentDoc = {
             }
           },
           { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
@@ -2823,6 +3270,7 @@ export const WithdrawalRequestFieldsFragmentDoc = {
             }
           },
           { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } },
@@ -2899,6 +3347,7 @@ export const WithdrawalClaimFieldsFragmentDoc = {
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
@@ -3037,6 +3486,11 @@ export const LiquidRestakingTokenDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'name' } },
           { kind: 'Field', name: { kind: 'Name', value: 'createdTimestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'totalSupply' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'totalValueETH' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'totalValueUSD' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateETH' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateUSD' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'percentAPY' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'coordinator' },
@@ -3072,6 +3526,14 @@ export const LiquidRestakingTokenDocument = {
                     selections: [
                       {
                         kind: 'Field',
+                        name: { kind: 'Name', value: 'latestUSDPrice' }
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'latestUSDPriceTimestamp' }
+                      },
+                      {
+                        kind: 'Field',
                         name: { kind: 'Name', value: 'symbol' }
                       },
                       { kind: 'Field', name: { kind: 'Name', value: 'name' } }
@@ -3079,7 +3541,6 @@ export const LiquidRestakingTokenDocument = {
                   }
                 },
                 { kind: 'Field', name: { kind: 'Name', value: 'strategy' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'priceFeed' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'depositCap' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'balance' } }
               ]
@@ -3231,6 +3692,11 @@ export const ManyLiquidRestakingTokensDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'name' } },
           { kind: 'Field', name: { kind: 'Name', value: 'createdTimestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'totalSupply' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'totalValueETH' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'totalValueUSD' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateETH' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateUSD' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'percentAPY' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'coordinator' },
@@ -3266,6 +3732,14 @@ export const ManyLiquidRestakingTokensDocument = {
                     selections: [
                       {
                         kind: 'Field',
+                        name: { kind: 'Name', value: 'latestUSDPrice' }
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'latestUSDPriceTimestamp' }
+                      },
+                      {
+                        kind: 'Field',
                         name: { kind: 'Name', value: 'symbol' }
                       },
                       { kind: 'Field', name: { kind: 'Name', value: 'name' } }
@@ -3273,7 +3747,6 @@ export const ManyLiquidRestakingTokensDocument = {
                   }
                 },
                 { kind: 'Field', name: { kind: 'Name', value: 'strategy' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'priceFeed' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'depositCap' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'balance' } }
               ]
@@ -3444,6 +3917,7 @@ export const ManyDepositsDocument = {
             }
           },
           { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
@@ -3625,6 +4099,7 @@ export const ManyWithdrawalRequestsDocument = {
             }
           },
           { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } },
@@ -3823,6 +4298,7 @@ export const ManyWithdrawalClaimsDocument = {
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
           { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
           { kind: 'Field', name: { kind: 'Name', value: 'tx' } }

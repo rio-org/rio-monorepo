@@ -21,6 +21,11 @@ export const LiquidRestakingTokenFields = graphql(`
     name
     createdTimestamp
     totalSupply
+    totalValueETH
+    totalValueUSD
+    exchangeRateETH
+    exchangeRateUSD
+    percentAPY
     coordinator {
       id
     }
@@ -30,11 +35,12 @@ export const LiquidRestakingTokenFields = graphql(`
     underlyingAssets {
       address
       asset {
+        latestUSDPrice
+        latestUSDPriceTimestamp
         symbol
         name
       }
       strategy
-      priceFeed
       depositCap
       balance
     }
@@ -54,6 +60,7 @@ export const DepositFields = graphql(`
       id
     }
     userBalanceAfter
+    valueUSD
     timestamp
     blockNumber
     tx
@@ -79,6 +86,7 @@ export const WithdrawalRequestFields = graphql(`
       id
     }
     userBalanceAfter
+    valueUSD
     timestamp
     blockNumber
     tx
@@ -108,6 +116,7 @@ export const WithdrawalClaimFields = graphql(`
     requests {
       id
     }
+    valueUSD
     timestamp
     blockNumber
     tx
