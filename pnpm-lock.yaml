@@ -87,8 +87,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@1.18.8)(wagmi@1.4.5)
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.14
-        version: 0.1.0-alpha.14(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.15
+        version: 0.1.0-alpha.15(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
@@ -3099,14 +3099,14 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.14(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
-    resolution: {integrity: sha512-8AAdDDB3YNbxh+3oDDI4O5FXFUwIfxT1YwsAT2aukRvBeXzsSuf++wIgFdzbX36sVHgqoSPxw0EOX/ria74ruA==}
+  /@rionetwork/sdk-react@0.1.0-alpha.15(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
+    resolution: {integrity: sha512-D40sGhSiT/trheuMtJCChnYFk0MF1HR8dNh4BfY7KmXp9SSTrAoH2AgwY4eSP+LUnIS+WM8TN0LoC1TdgUlzFQ==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     peerDependencies:
       react: '>=16.13.1'
       wagmi: '>=1.2'
     dependencies:
-      '@rionetwork/sdk': 0.1.0-alpha.13(graphql@16.8.1)(typescript@5.2.2)
+      '@rionetwork/sdk': 0.1.0-alpha.14(graphql@16.8.1)(typescript@5.2.2)
       react: 18.2.0
       wagmi: 1.4.5(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
     transitivePeerDependencies:
@@ -3118,12 +3118,13 @@ packages:
       - zod
     dev: false
 
-  /@rionetwork/sdk@0.1.0-alpha.13(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-bobtBOMta6+7PLtXn6q7/NQiYP2M+n6mYVj8OEPoW4ArRPfCVKMQLx0ila6QLOTOqQ2PJMpBmgV8qhu+jWdyEw==}
+  /@rionetwork/sdk@0.1.0-alpha.14(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-gy/e5h/siikmBs0TYJHCfc59qO7PyP9mxzMG7opK7GOdZnimJsHpzX8A4s/K1Lxi0c0Dw7KvHnDdTFdXbH0NzA==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       abitype: 0.10.3(typescript@5.2.2)
+      big.js: 6.2.1
       cacheables: 1.2.2
       graphql-request: 6.1.0(graphql@16.8.1)
       viem: 1.19.9(typescript@5.2.2)
@@ -5101,6 +5102,10 @@ packages:
   /big-integer@1.6.52:
     resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
     engines: {node: '>=0.6'}
+    dev: false
+
+  /big.js@6.2.1:
+    resolution: {integrity: sha512-bCtHMwL9LeDIozFn+oNhhFoq+yQ3BNdnsLSASUxLciOb1vgvpHsIO1dsENiGMgbb4SkP5TrzWzRiLddn8ahVOQ==}
     dev: false
 
   /bigint-buffer@1.1.5:

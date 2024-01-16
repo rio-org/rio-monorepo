@@ -1,4 +1,4 @@
-import { formatUnits, zeroAddress } from 'viem';
+import { formatUnits, getAddress, zeroAddress } from 'viem';
 import { ASSETS, ASSET_LOGOS } from './constants';
 import {
   AssetDetails,
@@ -17,6 +17,7 @@ import {
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
 import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../../config';
+import { SubgraphClient } from '@rionetwork/sdk-react';
 
 export const getChainName = (chainId: number) => {
   switch (chainId) {
@@ -229,3 +230,30 @@ export const displayEthAmount = (amount: string) => {
     ).toFixed(decimalPlaces)
   );
 };
+
+export const isEqualAddress = (a: string, b: string) => {
+  try {
+    return getAddress(a) === getAddress(b);
+  } catch {
+    return false;
+  }
+};
+
+export const buildRioSdkRestakingKey = <
+  T extends
+    | Parameters<SubgraphClient['getLiquidRestakingTokens']>[0]
+    | Parameters<SubgraphClient['getDeposits']>[0]
+    | Parameters<SubgraphClient['getWithdrawalRequests']>[0]
+    | Parameters<SubgraphClient['getWithdrawalClaims']>[0]
+>(
+  name: string,
+  config: T
+) =>
+  [
+    name,
+    config?.orderBy,
+    config?.orderDirection,
+    config?.page,
+    config?.perPage,
+    JSON.stringify(config?.where)
+  ] as const;

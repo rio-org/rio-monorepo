@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
 import WithdrawalRequestRow from '../../components/History/WithdrawalRequestRow';
@@ -15,9 +15,8 @@ const History: NextPage = () => {
   const lrt = lrts?.[0];
 
   const isMounted = useIsMounted();
-  const [hasClaimAvailable, setHasClaimAvailable] = useState(false);
   const { address } = useAccount();
-  const { data, isLoading, refetch } = useGetAccountWithdrawals(
+  const { data, isLoading, refetch, isFetched } = useGetAccountWithdrawals(
     { where: { sender: address, restakingToken: lrt?.address } },
     { enabled: !!address && !!lrt?.address }
   );
@@ -28,16 +27,14 @@ const History: NextPage = () => {
     refetch().catch(console.error);
   }, [refetch]);
 
-  useEffect(() => {
-    setHasClaimAvailable(!!address && !!withdrawalParams?.length);
-  }, [address, withdrawalParams]);
+  const hasClaimAvailable = !!address && !!withdrawalParams?.length;
 
   return (
     <WithdrawWrapper noPadding>
       <h2 className="px-4 lg:px-6 pt-4 lg:pt-6 lg:pb-1 text-[14px] font-bold">
         Withdrawal history
       </h2>
-      {isLoading || !isMounted ? (
+      {isLoading || !isMounted || !isFetched ? (
         <motion.div
           className="bg-white w-full flex items-center justify-center border-t border-blue-gray-50 p-4 rounded-xl h-40"
           initial={{ opacity: 0 }}

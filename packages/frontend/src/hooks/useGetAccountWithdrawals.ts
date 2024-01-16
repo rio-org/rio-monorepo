@@ -5,95 +5,60 @@ import {
   WithdrawalRequest,
   useSubgraph
 } from '@rionetwork/sdk-react';
-import { BaseAssetDetails, TokenSymbol } from '../lib/typings';
+import { BaseAssetDetails, EthereumAddress, TokenSymbol } from '../lib/typings';
+import { buildRioSdkRestakingKey, isEqualAddress } from '../lib/utilities';
 import { useGetAssetsList } from './useGetAssetsList';
-import { getAddress } from 'viem';
-import { useCallback } from 'react';
-
-// export const useGetAccountWithdrawals = (
-//   config?: Parameters<SubgraphClient['getWithdrawalRequests']>[0] & {
-//     enabled?: boolean;
-//   }
-// ) => {
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [isError, setIsError] = useState<Error>();
-//   const [data, setData] = useState<WithdrawalRequest[]>();
-
-//   const subgraph = useSubgraph();
-
-//   const fetch = useCallback(() => {
-//     console.log(JSON.stringify(config || {}));
-//     if (config?.enabled === false) return;
-//     setIsLoading(true);
-//     subgraph
-//       .getWithdrawalRequests(config)
-//       .then(setData)
-//       .catch((e: Error) => (console.error(e), setIsError(e)))
-//       .finally(() => setIsLoading(false));
-//   }, [JSON.stringify(config || {})]);
-
-//   useEffect(fetch, [fetch]);
-
-//   return {
-//     data,
-//     isLoading,
-//     isError,
-//     refetch: fetch
-//   };
-// };
 
 interface UseGetAccountWithdrawalsReturn {
-  withdrawalRequests: WithdrawalRequest[];
+  withdrawalRequests?: WithdrawalRequest[];
   withdrawalParams: ClaimWithdrawalParams[];
   withdrawalAssets: { amount: number; symbol: TokenSymbol }[];
 }
 
-function getFetcher(subgraph: SubgraphClient, assets?: BaseAssetDetails[]) {
-  return (config?: Parameters<SubgraphClient['getWithdrawalRequests']>[0]) =>
-    subgraph
-      .getWithdrawalRequests(config)
-      .then((withdrawalRequests) => {
-        const withdrawalParams: ClaimWithdrawalParams[] = [];
-        const withdrawalAssets: { amount: number; symbol: TokenSymbol }[] = [
-          { amount: 0, symbol: 'ETH' }
-        ];
-        withdrawalRequests
-          ?.filter((r) => r.isReadyToClaim && !r.isClaimed)
-          .forEach((r) => {
-            const asset = assets?.find(
-              (a) => getAddress(a.address) === getAddress(r.assetOut)
-            );
-            if (!asset) return;
-            withdrawalParams.push({ assetOut: r.assetOut, epoch: r.epoch });
-            withdrawalAssets.push({
-              amount: parseFloat(r.amountClaimed ?? '0'),
-              symbol: asset.symbol
-            });
-          });
-        return {
-          withdrawalRequests,
-          withdrawalParams,
-          withdrawalAssets
-        } as UseGetAccountWithdrawalsReturn;
-      })
-      .catch((e: Error) => {
-        console.error(e);
-        throw e;
-      });
-}
-
-const buildQueryKey = (
+function buildFetcherAndParser(
+  subgraph: SubgraphClient,
+  assets?: BaseAssetDetails[],
   config?: Parameters<SubgraphClient['getWithdrawalRequests']>[0]
-) =>
-  [
-    'getWithdrawalRequests',
-    config?.orderBy,
-    config?.orderDirection,
-    config?.page,
-    config?.perPage,
-    config?.where?.sender,
-    config?.where?.restakingToken
-  ] as const;
+) {
+  return async () => {
+    const withdrawalRequests = await subgraph.getWithdrawalRequests(config);
+    // store a dictionary of assets to claim per epoch number
+    const byEpoch: Record<string, Record<EthereumAddress, true>> = {};
+    // store a dictionary of the amount to claim per asset symbol
+    const byAsset: Partial<Record<TokenSymbol, number>> = { ETH: 0 };
+
+    // Loop through each withdrawal request
+    withdrawalRequests?.forEach((r) => {
+      // Filter our requests that are not ready to claim or have already been claimed
+      if (!r.isReadyToClaim || r.isClaimed) return;
+      // Store each asset that is ready to claim in the epoch dictionary
+      byEpoch[r.epoch] = { ...byEpoch[r.epoch], [r.assetOut]: true };
+      // Find the symbol for the asset
+      const a = assets?.find((a) => isEqualAddress(a.address, r.assetOut));
+      // If we don't have the asset in our list (UI only, won't affect claim), skip it
+      if (!a) return;
+      // Add the amount to the asset
+      byAsset[a.symbol] =
+        (byAsset[a.symbol] || 0) + parseFloat(r.amountOut ?? '0');
+    });
+
+    // Return the withdrawal requests, the withdrawal params, and the withdrawal assets
+    return <UseGetAccountWithdrawalsReturn>{
+      withdrawalRequests,
+      // Flatten the epoch dictionary into an array of withdrawal params
+      withdrawalParams: Object.entries(byEpoch)
+        .map(([epoch, assetLookup]) =>
+          Object.keys(assetLookup).map((assetOut) => ({ epoch, assetOut }))
+        )
+        .flat(),
+      // Flatten the asset dictionary into an array of withdrawal assets
+      withdrawalAssets: Object.entries(byAsset).map(([symbol, amount]) => ({
+        symbol,
+        amount
+      }))
+    };
+  };
+}
 
 export function useGetAccountWithdrawals(
   config?: Parameters<SubgraphClient['getWithdrawalRequests']>[0],
@@ -101,17 +66,12 @@ export function useGetAccountWithdrawals(
 ) {
   const subgraph = useSubgraph();
   const { data: assets } = useGetAssetsList();
-  const fetcher = useCallback(
-    () => getFetcher(subgraph, assets)(config),
-    [assets, config]
-  );
   return useQuery<UseGetAccountWithdrawalsReturn, Error>(
-    buildQueryKey(config),
-    fetcher,
+    buildRioSdkRestakingKey('getWithdrawalRequests', config),
+    buildFetcherAndParser(subgraph, assets, config),
     {
       staleTime: 30 * 1000,
       placeholderData: {
-        withdrawalRequests: [],
         withdrawalParams: [],
         withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
       },

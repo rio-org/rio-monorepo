@@ -58,12 +58,14 @@ const WithdrawalRequestRow = ({ transaction, index }: Props) => {
               </div>
             )}
             <div className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
-              <div className="flex items-center gap-0 font-medium">
-                <span className="mr-2">
-                  {displayEthAmount(transaction.sharesOwed)}
-                </span>
-                <SymbolPill symbol={asset?.symbol} />
-              </div>
+              {transaction.amountOut && (
+                <div className="flex items-center gap-0 font-medium">
+                  <span className="mr-2">
+                    {displayEthAmount(transaction.amountOut)}
+                  </span>
+                  <SymbolPill symbol={asset?.symbol} />
+                </div>
+              )}
             </div>
           </div>
         </td>

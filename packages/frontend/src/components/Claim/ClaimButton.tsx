@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 import { Spinner } from '@material-tailwind/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
-import { useAccount } from 'wagmi';
+import { useAccount, useWaitForTransaction } from 'wagmi';
 import {
   ClaimWithdrawalParams,
   useLiquidRestakingToken
@@ -19,35 +19,60 @@ type Props = {
 };
 
 const ClaimButton = ({ lrt, claimWithdrawalParams, onSuccess }: Props) => {
-  const { address } = useAccount();
-  const isValid = !!address && claimWithdrawalParams?.length > 0;
   const lrtClient = useLiquidRestakingToken(lrt?.address);
+  const { address } = useAccount();
 
-  const [isClaiming, setIsClaiming] = useState(false);
   const [claimTx, setClaimTx] = useState<Hash | undefined>(undefined);
-  const [error, setError] = useState<ContractError | undefined>(undefined);
+  const [{ isClaiming, error, success }, setTxState] = useState<{
+    isClaiming: boolean;
+    error: ContractError | null;
+    success: boolean;
+  }>({
+    isClaiming: false,
+    error: null,
+    success: false
+  });
 
-  const handleSuccess = (txHash: Hash) => {
-    setClaimTx(txHash);
-    onSuccess?.(txHash);
-  };
+  const handleSuccess = useCallback(() => {
+    onSuccess?.(claimTx);
+  }, [claimTx]);
 
   const handleClaim = async () => {
     if (!lrtClient || !claimWithdrawalParams?.length) return;
 
     const claim = () => {
-      setIsClaiming(true);
-      setClaimTx(undefined);
       return claimWithdrawalParams.length !== 1
         ? lrtClient.claimWithdrawalsForManyEpochs(claimWithdrawalParams)
         : lrtClient.claimWithdrawalsForEpoch(claimWithdrawalParams[0]);
     };
 
     await claim()
-      .then(handleSuccess)
-      .catch(setError)
-      .finally(() => setIsClaiming(false));
+      .then(setClaimTx)
+      .catch((error) => setTxState((prev) => ({ ...prev, error })));
   };
+
+  const {
+    data: txData,
+    error: txError,
+    isLoading: isTxLoading,
+    isSuccess: isTxSuccess
+  } = useWaitForTransaction({ hash: claimTx });
+
+  useEffect(() => {
+    setTxState((prev) => ({
+      ...prev,
+      isClaiming: isTxLoading,
+      error: txError,
+      success: isTxSuccess
+    }));
+  }, [txData, txError, isTxLoading, isTxSuccess]);
+
+  useEffect(() => {
+    if (!success) return;
+    handleSuccess();
+  }, [success, handleSuccess]);
+
+  const isValid = !!address && claimWithdrawalParams?.length > 0;
 
   return (
     <div className="mt-4">
@@ -84,14 +109,23 @@ const ClaimButton = ({ lrt, claimWithdrawalParams, onSuccess }: Props) => {
         )}
 
         <Alert
-          isSuccess={!!claimTx}
+          isSuccess={success}
           errorMessage={error?.shortMessage || error?.message}
           isError={!!error}
-          setIsSuccess={() => setClaimTx(undefined)}
+          setIsSuccess={() => {
+            setClaimTx(undefined);
+            setTxState({
+              isClaiming: false,
+              error: null,
+              success: false
+            });
+          }}
           setIsError={(_e: boolean) =>
-            setError((prev) =>
-              _e ? prev || new Error('An error occurred') : undefined
-            )
+            setTxState((prev) => ({
+              isClaiming: false,
+              error: _e ? prev.error || new Error('An error occurred') : null,
+              success: false
+            }))
           }
         />
       </AnimatePresence>
