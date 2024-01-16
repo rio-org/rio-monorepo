@@ -5,8 +5,11 @@ import {IChainlinkAggregatorV3} from 'contracts/interfaces/oracle/IChainlinkAggr
 import {IPriceFeed} from 'contracts/interfaces/oracle/IPriceFeed.sol';
 
 contract ChainlinkPriceFeed is IPriceFeed {
-    /// @notice The Chainlink aggregator used by the price feed.
-    IChainlinkAggregatorV3 public immutable aggregator;
+    /// @notice The type of the price feed.
+    string public constant FEED_TYPE = 'CHAINLINK';
+
+    /// @notice The address of the price feed source (Chainlink Aggregator).
+    address public immutable source;
 
     /// @notice The amount of time after which an asset price is considered stale.
     uint256 public immutable stalePriceDelay;
@@ -17,19 +20,19 @@ contract ChainlinkPriceFeed is IPriceFeed {
     /// @notice The description of the price feed.
     string public description;
 
-    /// @param aggregator_ The Chainlink aggregator used by the price feed.
+    /// @param source_ The address of the price feed source (Chainlink Aggregator).
     /// @param stalePriceDelay_ The amount of time after which an asset price is considered stale.
-    constructor(address aggregator_, uint256 stalePriceDelay_) {
-        aggregator = IChainlinkAggregatorV3(aggregator_);
+    constructor(address source_, uint256 stalePriceDelay_) {
+        source = source_;
         stalePriceDelay = stalePriceDelay_;
 
-        decimals = aggregator.decimals();
-        description = aggregator.description();
+        decimals = IChainlinkAggregatorV3(source_).decimals();
+        description = IChainlinkAggregatorV3(source_).description();
     }
 
     /// @notice Get the current price.
-    function getPrice() external view override returns (uint256) {
-        (, int256 price,, uint256 updatedAt,) = aggregator.latestRoundData();
+    function getPrice() external view returns (uint256) {
+        (, int256 price,, uint256 updatedAt,) = IChainlinkAggregatorV3(source).latestRoundData();
         if (block.timestamp > updatedAt + stalePriceDelay) revert STALE_PRICE();
         if (price <= 0) revert BAD_PRICE();
 

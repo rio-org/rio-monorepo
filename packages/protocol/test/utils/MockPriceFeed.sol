@@ -10,6 +10,12 @@ contract MockPriceFeed is IPriceFeed {
        _price = price;
     }
 
+    string public constant FEED_TYPE = 'MOCK';
+
+    function source() external view returns (address) {
+        return address(this);
+    }
+
     function decimals() external pure override returns (uint8) {
         return 18;
     }

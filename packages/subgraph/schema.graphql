@@ -150,7 +150,7 @@ type UnderlyingAsset @entity {
   asset: Asset!
   strategy: Bytes!
   depositCap: BigDecimal!
-  priceFeed: Bytes!
+  priceFeed: PriceFeed!
 
   balance: BigDecimal!
   balanceInDepositPool: BigDecimal!
@@ -164,6 +164,28 @@ type Asset @entity {
   name: String!
   decimals: Int!
   address: Bytes!
-  latestUSDPrice: BigDecimal # Latest price of asset in USD, updated on deposit/withdrawal.
+  latestUSDPrice: BigDecimal # Latest price of asset in USD.
   latestUSDPriceTimestamp: BigInt # Timestamp at which the `latestUSDPrice` was updated.
+}
+
+# The underlying source of a Rio price feed.
+type PriceSource @entity {
+  id: ID!
+  address: Bytes!
+  priceFeed: PriceFeed!
+}
+
+# A Rio price feed for an asset.
+type PriceFeed @entity {
+  id: ID!
+  address: Bytes!
+  priceSource: PriceSource @derivedFrom(field: "priceFeed")
+  feedType: String!
+  description: String!
+  decimals: Int!
+  baseAsset: Asset!
+  quoteAssetSymbol: String!
+  assetPair: String!
+  price: BigDecimal
+  lastUpdatedTimestamp: BigInt
 }
