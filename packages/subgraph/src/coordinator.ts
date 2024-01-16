@@ -1,8 +1,8 @@
 import { Deposited } from '../generated/templates/Coordinator/RioLRTCoordinator';
 import { Asset, Coordinator, Deposit, LiquidRestakingToken } from '../generated/schema';
+import { ETH_ADDRESS, ZERO_BD } from './helpers/constants';
 import { findOrCreateUser, toUnits } from './helpers/utils';
 import { BigDecimal } from '@graphprotocol/graph-ts';
-import { ETH_ADDRESS } from './helpers/constants';
 
 export function handleDeposited(event: Deposited): void {
   const coordinator = Coordinator.load(event.address.toHex())!;
@@ -18,6 +18,7 @@ export function handleDeposited(event: Deposited): void {
   restakingToken.exchangeRateUSD = getExchangeRateUSD(assetIn, restakingToken.exchangeRateETH, assetIn.latestUSDPrice);
   restakingToken.totalValueETH = restakingToken.exchangeRateETH && restakingToken.totalSupply.times(restakingToken.exchangeRateETH!);
   restakingToken.totalValueUSD = restakingToken.exchangeRateUSD && restakingToken.totalSupply.times(restakingToken.exchangeRateUSD!);
+  restakingToken.percentAPY = ZERO_BD;
   restakingToken.save();
 
   const deposit = new Deposit(`${event.transaction.hash.toHex()}-${event.logIndex.toString()}`);
