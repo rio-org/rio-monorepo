@@ -1,27 +1,33 @@
-import { WithdrawalClaim, useSubgraph } from '@rionetwork/sdk-react';
-import { EthereumAddress } from '../lib/typings';
-import { useEffect, useState } from 'react';
+import { buildRioSdkRestakingKey } from '../lib/utilities';
+import { useQuery, UseQueryOptions } from 'react-query';
+import {
+  SubgraphClient,
+  WithdrawalClaim,
+  useSubgraph
+} from '@rionetwork/sdk-react';
 
-export const useGetWithdrawalClaims = (address?: EthereumAddress) => {
-  const subgraph = useSubgraph();
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState<Error>();
-  const [data, setData] = useState<WithdrawalClaim[]>();
-
-  useEffect(() => {
-    if (!address) return;
-    setIsLoading(true);
-    subgraph
-      .getWithdrawalClaims({ where: { sender: address } })
-      .then(setData)
-      .catch((e: Error) => (console.error(e), setIsError(e)))
-      .finally(() => setIsLoading(false));
-  }, [address]);
-
-  return {
-    data,
-    isLoading,
-    isError
+function buildFetcherAndParser(
+  subgraph: SubgraphClient,
+  config?: Parameters<SubgraphClient['getWithdrawalClaims']>[0]
+) {
+  return async (): Promise<WithdrawalClaim[]> => {
+    const withdrawalClaims = await subgraph.getWithdrawalClaims(config);
+    return withdrawalClaims;
   };
-};
+}
+
+export function useGetWithdrawalClaims(
+  config?: Parameters<SubgraphClient['getWithdrawalClaims']>[0],
+  queryConfig?: UseQueryOptions<WithdrawalClaim[], Error>
+) {
+  const subgraph = useSubgraph();
+  return useQuery<WithdrawalClaim[], Error>(
+    buildRioSdkRestakingKey('getWithdrawalClaims', config),
+    buildFetcherAndParser(subgraph, config),
+    {
+      staleTime: 30 * 1000,
+      ...queryConfig,
+      enabled: queryConfig?.enabled !== false
+    }
+  );
+}

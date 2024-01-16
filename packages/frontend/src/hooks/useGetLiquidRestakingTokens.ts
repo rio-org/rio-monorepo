@@ -1,24 +1,29 @@
-import { OperationVariables, useQuery } from '@apollo/client';
-import { LRTSubgraphResponse } from '../lib/typings';
+import { LRTDetails, LRTSubgraphResponse } from '../lib/typings';
 import { getLiquidRestakingTokenList } from '../lib/graphqlQueries';
-import { useMemo } from 'react';
 import { parseSubgraphLRTList } from '../lib/utilities';
+import subgraphClient from '../lib/subgraphClient';
+import { CHAIN_ID } from '../../config';
+import { useQuery, UseQueryOptions } from 'react-query';
 
-export const useGetLiquidRestakingTokens = (opts?: OperationVariables) => {
-  const { data, ...rest } = useQuery<{
+const fetcher = async () => {
+  const client = subgraphClient(CHAIN_ID);
+  const { data } = await client.query<{
     liquidRestakingTokens: LRTSubgraphResponse[];
-  }>(getLiquidRestakingTokenList(), {
-    ...opts,
-    pollInterval: opts?.pollInterval || 60000
-  });
+  }>({ query: getLiquidRestakingTokenList() });
 
-  const lrtDetails = useMemo(() => {
-    if (!data?.liquidRestakingTokens) return undefined;
-    return parseSubgraphLRTList(data.liquidRestakingTokens);
-  }, [data?.liquidRestakingTokens]);
-
-  return {
-    data: lrtDetails,
-    ...rest
-  };
+  return parseSubgraphLRTList(data?.liquidRestakingTokens || []);
 };
+
+export function useGetLiquidRestakingTokens(
+  queryConfig?: UseQueryOptions<LRTDetails[], Error>
+) {
+  return useQuery<LRTDetails[], Error>(
+    ['useGetLiquidRestakingTokens', CHAIN_ID] as const,
+    fetcher,
+    {
+      staleTime: 60 * 1000,
+      ...queryConfig,
+      enabled: queryConfig?.enabled !== false
+    }
+  );
+}

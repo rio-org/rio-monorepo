@@ -26,12 +26,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Layout from '../components/Layout';
 import { APP_TITLE, CHAIN_ID } from '../../config';
 import { theme } from '../lib/theme';
-import { ApolloProvider } from '@apollo/client';
-import subgraphClient from '../lib/subgraphClient';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
-// Create the cache clients
-const apolloSubgraphClient = subgraphClient(CHAIN_ID);
+// Create the cache client
 const queryClient = new QueryClient();
 
 const chooseChain = (chainId: number) => {
@@ -91,16 +88,14 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider appInfo={appInfo} chains={chains}>
         <QueryClientProvider client={queryClient}>
-          <ApolloProvider client={apolloSubgraphClient}>
-            <RioNetworkProvider>
-              <ThemeProvider value={theme}>
-                <CssBaseline />
-                <Layout>
-                  <Component {...pageProps} />
-                </Layout>
-              </ThemeProvider>
-            </RioNetworkProvider>
-          </ApolloProvider>
+          <RioNetworkProvider>
+            <ThemeProvider value={theme}>
+              <CssBaseline />
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </ThemeProvider>
+          </RioNetworkProvider>
         </QueryClientProvider>
       </RainbowKitProvider>
     </WagmiConfig>

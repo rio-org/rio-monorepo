@@ -4,6 +4,10 @@ import cx from 'classnames';
 import { WITHDRAW_NAV_ITEMS } from '../../../config';
 import { useRouter } from 'next/router';
 
+const buildHref = (baseUrlSegment: string, slug: string) => {
+  return `/${[baseUrlSegment, slug].filter(Boolean).join('/')}`;
+};
+
 const WithdrawTabs = () => {
   const router = useRouter();
   const baseUrlSegment = router.pathname.split('/')[1];
@@ -16,7 +20,7 @@ const WithdrawTabs = () => {
     <div className="flex w-full text-center content-center lg:justify-center gap-4">
       {WITHDRAW_NAV_ITEMS.map(({ label, slug }) => (
         <Link
-          href={`/${baseUrlSegment}/${slug}`}
+          href={buildHref(baseUrlSegment, slug)}
           key={slug}
           scroll={false}
           passHref

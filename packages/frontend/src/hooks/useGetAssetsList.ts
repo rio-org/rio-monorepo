@@ -1,26 +1,32 @@
-import { OperationVariables, useQuery } from '@apollo/client';
 import { getAssetList } from '../lib/graphqlQueries';
 import { BaseAssetDetails, BaseLRTSubgraphResponse } from '../lib/typings';
-import { useMemo } from 'react';
 import { parseBaseSubgraphAssetList } from '../lib/utilities';
+import { UseQueryOptions, useQuery } from 'react-query';
+import subgraphClient from '../lib/subgraphClient';
+import { CHAIN_ID } from '../../config';
 
-export const useGetAssetsList = (opts?: OperationVariables) => {
-  const { data, ...rest } = useQuery<{
+const fetcher = async () => {
+  const client = subgraphClient(CHAIN_ID);
+  const { data } = await client.query<{
     assets: BaseAssetDetails[];
     liquidRestakingTokens: BaseLRTSubgraphResponse[];
-  }>(getAssetList(), {
-    ...opts,
-    pollInterval: opts?.pollInterval || 60000 * 60
-  });
+  }>({ query: getAssetList() });
 
-  const baseAssetDetails = useMemo(() => {
-    const { liquidRestakingTokens, assets } = data || {};
-    if (!liquidRestakingTokens || !assets) return;
-    return parseBaseSubgraphAssetList([...assets, ...liquidRestakingTokens]);
-  }, [data?.liquidRestakingTokens, data?.assets]);
-
-  return {
-    data: baseAssetDetails,
-    ...rest
-  };
+  return parseBaseSubgraphAssetList(
+    [data?.assets, data?.liquidRestakingTokens].filter(Boolean).flat()
+  );
 };
+
+export function useGetAssetsList(
+  queryConfig?: UseQueryOptions<BaseAssetDetails[], Error>
+) {
+  return useQuery<BaseAssetDetails[], Error>(
+    ['useGetAssetsList', CHAIN_ID] as const,
+    fetcher,
+    {
+      staleTime: 60 * 1000,
+      ...queryConfig,
+      enabled: queryConfig?.enabled !== false
+    }
+  );
+}
