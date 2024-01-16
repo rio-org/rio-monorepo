@@ -32,12 +32,15 @@ type LiquidRestakingToken @entity {
   totalSupply: BigDecimal!
   totalValueETH: BigDecimal
   totalValueUSD: BigDecimal
+  exchangeRateETH: BigDecimal
+  exchangeRateUSD: BigDecimal
   percentAPY: BigDecimal # APY based on a 14-day moving average.
 
   issuer: Issuer!
   coordinator: Coordinator!
   withdrawalQueue: WithdrawalQueue!
 
+  priceFeeds: [PriceFeed!] @derivedFrom(field: "usedBy")
   underlyingAssets: [UnderlyingAsset!] @derivedFrom(field: "restakingToken")
 }
 
@@ -101,6 +104,7 @@ type WithdrawalClaim @entity {
   amountOut: BigDecimal!
   restakingToken: LiquidRestakingToken!
   requests: [WithdrawalRequest!] @derivedFrom(field: "claim") # The withdrawal requests that were claimed.
+  valueUSD: BigDecimal
   timestamp: BigInt!
   blockNumber: BigInt!
   tx: Bytes!
@@ -150,7 +154,7 @@ type UnderlyingAsset @entity {
   asset: Asset!
   strategy: Bytes!
   depositCap: BigDecimal!
-  priceFeed: Bytes!
+  priceFeed: PriceFeed!
 
   balance: BigDecimal!
   balanceInDepositPool: BigDecimal!
@@ -164,6 +168,29 @@ type Asset @entity {
   name: String!
   decimals: Int!
   address: Bytes!
-  latestUSDPrice: BigDecimal # Latest price of asset in USD, updated on deposit/withdrawal.
+  latestUSDPrice: BigDecimal # Latest price of asset in USD.
   latestUSDPriceTimestamp: BigInt # Timestamp at which the `latestUSDPrice` was updated.
+}
+
+# The underlying source of a Rio price feed.
+type PriceSource @entity {
+  id: ID!
+  address: Bytes!
+  priceFeed: PriceFeed!
+}
+
+# A Rio price feed for an asset.
+type PriceFeed @entity {
+  id: ID!
+  address: Bytes!
+  priceSource: PriceSource @derivedFrom(field: "priceFeed")
+  feedType: String!
+  description: String!
+  decimals: Int!
+  usedBy: [LiquidRestakingToken!]!
+  baseAsset: Asset!
+  quoteAssetSymbol: String!
+  assetPair: String!
+  price: BigDecimal
+  lastUpdatedTimestamp: BigInt
 }

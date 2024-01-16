@@ -249,7 +249,7 @@ export class LiquidRestakingTokenClient {
     const { assetOut, epoch } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
-      address: this._token.coordinator as ViemAddress,
+      address: this._token.withdrawalQueue as ViemAddress,
       abi: RioLRTWithdrawalQueueABI,
       functionName: 'claimWithdrawalsForEpoch',
       args: [
@@ -275,7 +275,7 @@ export class LiquidRestakingTokenClient {
 
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
-      address: this._token.coordinator as ViemAddress,
+      address: this._token.withdrawalQueue as ViemAddress,
       abi: RioLRTWithdrawalQueueABI,
       functionName: 'claimWithdrawalsForManyEpochs',
       args: [

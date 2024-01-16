@@ -21,6 +21,8 @@ dataSources:
           file: ./abis/RioLRTIssuer.json
         - name: ERC20Token
           file: ./abis/ERC20Token.json
+        - name: PriceFeed
+          file: ./abis/PriceFeed.json
       eventHandlers:
         - event: LiquidRestakingTokenIssued(string,string,((address,uint96,address,address)[],uint8,address,address),(address,address,address,address,address,address,address,address))
           handler: handleLiquidRestakingTokenIssued
@@ -91,4 +93,22 @@ templates:
           handler: handleEpochQueuedForSettlementFromEigenLayer
         - event: EpochSettledFromEigenLayer(indexed uint256,address,uint256)
           handler: handleEpochSettledFromEigenLayer
+    network: goerli
+  - name: PriceSource
+    kind: ethereum/contract
+    source:
+      abi: PriceSource
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/price.ts
+      entities:
+        - PriceSource
+      abis:
+        - name: PriceSource
+          file: ./abis/PriceSource.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
     network: goerli

@@ -4,7 +4,7 @@ import {
   WithdrawalQueue as WithdrawalQueueTemplate,
 } from '../generated/templates';
 import { Coordinator, Issuer, LiquidRestakingToken, UnderlyingAsset, WithdrawalQueue } from '../generated/schema';
-import { findOrCreateAsset, findOrCreateWithdrawalEpoch, toUnits } from './helpers/utils';
+import { findOrCreateAsset, findOrCreatePriceFeed, findOrCreateWithdrawalEpoch, toUnits } from './helpers/utils';
 import { LiquidRestakingTokenIssued } from '../generated/RioLRTIssuer/RioLRTIssuer';
 import { ZERO_BD, ZERO_BI } from './helpers/constants';
 import { Address } from '@graphprotocol/graph-ts';
@@ -37,6 +37,8 @@ export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssu
     const asset = findOrCreateAsset(assetConfig.asset, true);
     findOrCreateWithdrawalEpoch(restakingToken.id, ZERO_BI, asset, true);
 
+    const priceFeed = findOrCreatePriceFeed(restakingToken.address, assetConfig.priceFeed, asset, true);
+
     const underlyingAsset = new UnderlyingAsset(`${restakingToken.id}-${asset.id}`);
     
     underlyingAsset.address = asset.address;
@@ -44,7 +46,7 @@ export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssu
     underlyingAsset.asset = asset.id;
     underlyingAsset.strategy = assetConfig.strategy;
     underlyingAsset.depositCap = toUnits(assetConfig.depositCap.toBigDecimal(), asset.decimals as u8);
-    underlyingAsset.priceFeed = assetConfig.priceFeed;
+    underlyingAsset.priceFeed = priceFeed.id;
     underlyingAsset.balance = ZERO_BD;
     underlyingAsset.balanceInDepositPool = ZERO_BD;
     underlyingAsset.balanceInEigenLayer = ZERO_BD;

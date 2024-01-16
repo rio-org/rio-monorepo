@@ -21,9 +21,10 @@ export interface UnderlyingAsset {
   address: Address;
   symbol: string;
   name: string;
+  latestUSDPrice: string | null;
+  latestUSDPriceTimestamp: string | null;
   strategy: Address;
   depositCap: string;
-  priceFeed: Address;
   balance: string;
 }
 
@@ -31,9 +32,15 @@ export interface LiquidRestakingToken {
   address: Address;
   symbol: string;
   name: string;
-  createdTimestamp: number;
+  createdTimestamp: string;
   totalSupply: string;
+  totalValueETH: string | null;
+  totalValueUSD: string | null;
+  exchangeRateETH: string | null;
+  exchangeRateUSD: string | null;
+  percentAPY: string | null;
   coordinator: Address;
+  withdrawalQueue: Address;
   underlyingAssets: UnderlyingAsset[];
 }
 
@@ -43,6 +50,7 @@ export interface Deposit {
   assetIn: Address;
   amountIn: string;
   amountOut: string;
+  valueUSD: string | null;
   timestamp: string;
   blockNumber: string;
   restakingToken: Address;
@@ -62,19 +70,21 @@ export interface WithdrawalRequest {
   epoch: string;
   epochStatus: WithdrawalEpochStatus;
   assetOut: Address;
+  amountOut: string | null; // Populated on epoch settlement.
   sharesOwed: string;
   amountIn: string;
+  valueUSD: string | null;
   restakingToken: Address;
   userBalanceAfter: string;
   timestamp: string;
   blockNumber: string;
   tx: string;
 
+  // Populated on withdrawal claim.
   isReadyToClaim: boolean;
   isClaimed: boolean;
-  claimId: string | undefined;
-  claimTx: string | undefined;
-  amountClaimed: string | undefined;
+  claimId: string | null;
+  claimTx: string | null;
 }
 
 export interface WithdrawalClaim {
@@ -85,6 +95,7 @@ export interface WithdrawalClaim {
   amountClaimed: string;
   restakingToken: Address;
   requestIds: string[];
+  valueUSD: string | null;
   timestamp: string;
   blockNumber: string;
   tx: string;

@@ -8,6 +8,14 @@ export const ZERO_BI = BigInt.fromString('0');
 
 export const ZERO_BD = BigDecimal.fromString('0');
 
+export const USD_PRICE_FEED_DECIMALS: u8 = 8;
+
+export const CHAINLINK_FEED_TYPE = 'CHAINLINK';
+
+export const ETH_USD_CHAINLINK_FEEDS = new Map<string,string>();
+ETH_USD_CHAINLINK_FEEDS.set('mainnet', '0xE62B71cf983019BFf55bC83B48601ce8419650CC');
+ETH_USD_CHAINLINK_FEEDS.set('goerli', '0x9b0FC4bb9981e5333689d69BdBF66351B9861E62');
+
 // String enums are not yet supported by AssemblyScript
 export namespace WithdrawalEpochStatus {
   export const ACTIVE = 'ACTIVE';

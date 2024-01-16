@@ -16,6 +16,10 @@ module.exports = {
       'error',
       path.join(__dirname, 'packages/frontend')
     ],
+    '@typescript-eslint/no-unsafe-argument': [
+      'off',
+      path.join(__dirname, 'packages/sdk')
+    ],
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off'
   },

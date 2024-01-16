@@ -8,6 +8,12 @@ interface IPriceFeed {
     /// @dev Thrown when the oracle price is stale.
     error STALE_PRICE();
 
+    /// @notice The type of the price feed.
+    function FEED_TYPE() external view returns (string memory);
+
+    /// @notice Get the address of the price feed source.
+    function source() external view returns (address);
+
     /// @notice Get the number of decimals used by the price feed.
     function decimals() external view returns (uint8);
 

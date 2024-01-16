@@ -1,6 +1,8 @@
-import { Address, BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts';
-import { Asset, LiquidRestakingToken, User, WithdrawalEpoch } from '../../generated/schema';
-import { ETH_ADDRESS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD, ZERO_BI } from './constants';
+import { Address, BigDecimal, BigInt, Bytes, dataSource } from '@graphprotocol/graph-ts';
+import { Asset, PriceFeed, PriceSource, User, WithdrawalEpoch } from '../../generated/schema';
+import { CHAINLINK_FEED_TYPE, ETH_ADDRESS, ETH_USD_CHAINLINK_FEEDS, USD_PRICE_FEED_DECIMALS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD } from './constants';
+import { PriceFeed as PriceFeedContract } from '../../generated/RioLRTIssuer/PriceFeed';
+import { PriceSource as PriceSourceTemplate } from '../../generated/templates';
 import { ERC20Token } from '../../generated/RioLRTIssuer/ERC20Token';
 
 /**
@@ -90,6 +92,120 @@ export function findOrCreateWithdrawalEpoch(restakingToken: string, epoch: BigIn
   if (save) withdrawalEpoch.save();
 
   return withdrawalEpoch;
+}
+
+/**
+ * Find or create a price feed.
+ * @param restakingToken The address of the restaking token that added the price feed.
+ * @param address The address of the price feed.
+ * @param asset The address of the base asset.
+ * @param save Whether to save the price feed.
+ */
+export function findOrCreatePriceFeed(restakingToken: Bytes, address: Address, asset: Asset, save: boolean = false): PriceFeed {
+  let priceFeed: PriceFeed | null = PriceFeed.load(address.toHex());
+  if (priceFeed != null) {
+    if (!priceFeed.usedBy.includes(restakingToken.toHex())) {
+      // Assignment required to update the array.
+      const usedBy = priceFeed.usedBy;
+      usedBy.push(restakingToken.toHex());
+
+      priceFeed.usedBy = usedBy;
+      priceFeed.save();
+    }
+    return priceFeed;
+  }
+
+  // If ETH is provided, we use a pseudo address as it's not used onchain.
+  if (asset.id == ETH_ADDRESS) {
+    priceFeed = new PriceFeed(ZERO_ADDRESS);
+    priceFeed.address = Bytes.fromHexString(ZERO_ADDRESS);
+    priceFeed.feedType = CHAINLINK_FEED_TYPE;
+    priceFeed.description = 'ETH / USD';
+    priceFeed.decimals = USD_PRICE_FEED_DECIMALS as i32;
+    priceFeed.baseAsset = asset.id;
+    priceFeed.quoteAssetSymbol = getQuoteAssetSymbol(USD_PRICE_FEED_DECIMALS);
+    priceFeed.assetPair = getAssetPair(asset, USD_PRICE_FEED_DECIMALS);
+    priceFeed.usedBy = [restakingToken.toHex()];
+
+    if (save) priceFeed.save();
+
+    // Ensure the price source is created.
+    const priceSource = Bytes.fromHexString(ETH_USD_CHAINLINK_FEEDS.get(dataSource.network()));
+    findOrCreatePriceSource(changetype<Address>(priceSource), priceFeed, true);
+
+    return priceFeed;
+  }
+
+  const contract = PriceFeedContract.bind(address);
+  const priceSource = contract.source();
+
+  priceFeed = new PriceFeed(address.toHex());
+  priceFeed.address = address;
+  priceFeed.feedType = contract.FEED_TYPE();
+  priceFeed.description = contract.description();
+  priceFeed.decimals = contract.decimals();
+  priceFeed.baseAsset = asset.id;
+  priceFeed.quoteAssetSymbol = getQuoteAssetSymbol(priceFeed.decimals as u8);
+  priceFeed.assetPair = getAssetPair(asset, priceFeed.decimals as u8);
+  priceFeed.usedBy = [restakingToken.toHex()];
+
+  if (save) priceFeed.save();
+
+  // Ensure the price source is created.
+  findOrCreatePriceSource(priceSource, priceFeed, true);
+
+  return priceFeed;
+}
+
+/**
+ * Find or create a price source.
+ * @param address The address of the underlying price source.
+ * @param priceFeed The price feed.
+ * @param save Whether to save the price source.
+ */
+function findOrCreatePriceSource(address: Address, priceFeed: PriceFeed, save: boolean = false): PriceSource {
+  let priceSource: PriceSource | null = PriceSource.load(address.toHex());
+  if (priceSource != null) return priceSource;
+
+  priceSource = new PriceSource(address.toHex());
+  priceSource.address = address;
+  priceSource.priceFeed = priceFeed.id;
+
+  if (save) priceSource.save();
+
+  PriceSourceTemplate.create(address);
+
+  return priceSource;
+}
+
+/**
+ * Get the liquid restaking token to USD exchange rate.
+ * @param asset The quote asset address.
+ * @param exchangeRateETH The exchange rate to ETH.
+ * @param price The price of the provided asset.
+ */
+export function getExchangeRateUSD(asset: Asset, exchangeRateETH: BigDecimal | null, price: BigDecimal | null): BigDecimal | null {
+  if (asset.id == ETH_ADDRESS && exchangeRateETH && price) {
+    return exchangeRateETH.times(price); 
+  }
+  return null;
+}
+
+/**
+ * Get the asset pair in the format of BASE-QUOTE.
+ * @param asset The address of the asset.
+ * @param priceFeedDecimals The number of decimals for the price feed.
+ */
+function getAssetPair(asset: Asset, priceFeedDecimals: u8): string {
+  return `${asset.symbol}-${getQuoteAssetSymbol(priceFeedDecimals)}`;
+}
+
+/**
+ * Get the quote asset symbol.
+ * @param priceFeedDecimals The number of decimals for the price feed.
+ */
+function getQuoteAssetSymbol(priceFeedDecimals: u8): string {
+  return priceFeedDecimals == 18 ? 'ETH' : 'USD'
 }
 
 /**

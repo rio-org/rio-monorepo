@@ -32,6 +32,7 @@ import {
   WithdrawalClaim
 } from './types';
 import { GraphQLClient } from 'graphql-request';
+import BN from 'big.js';
 
 export class SubgraphClient {
   private readonly _gql: GraphQLClient;
@@ -129,6 +130,7 @@ export class SubgraphClient {
         assetIn,
         amountIn,
         amountOut,
+        valueUSD,
         restakingToken,
         userBalanceAfter,
         timestamp,
@@ -140,6 +142,7 @@ export class SubgraphClient {
         assetIn: assetIn.id,
         amountIn,
         amountOut,
+        valueUSD,
         restakingToken: restakingToken.id,
         userBalanceAfter,
         timestamp,
@@ -164,6 +167,7 @@ export class SubgraphClient {
         this.merge(getDefaultConfig(WithdrawalRequest_OrderBy.Id), config)
       )
     );
+    // prettier-ignore
     return withdrawalRequests.map(
       ({
         id,
@@ -174,33 +178,39 @@ export class SubgraphClient {
         amountIn,
         restakingToken,
         userBalanceAfter,
+        valueUSD,
         timestamp,
         blockNumber,
         tx,
         isClaimed,
         claim
-      }) => ({
-        id,
-        sender,
-        epoch: epoch.epoch,
-        epochStatus: epoch.status,
-        assetOut: assetOut.id,
-        sharesOwed,
-        amountIn,
-        restakingToken: restakingToken.id,
-        userBalanceAfter,
-        timestamp,
-        blockNumber,
-        tx,
-
-        isClaimed,
-        claimId: claim?.id,
-        claimTx: claim?.tx,
-        amountClaimed: claim?.amountOut,
-        // prettier-ignore
-        isReadyToClaim: (epoch.status as WithdrawalEpochStatus) === WithdrawalEpochStatus.Settled
-      })
-    );
+      }) => {
+        const isReadyToClaim = (epoch.status as WithdrawalEpochStatus) === WithdrawalEpochStatus.Settled;
+        const amountOut = isReadyToClaim && BN(sharesOwed).mul(epoch.assetsReceived).div(epoch.sharesOwed).round(
+          18, BN.roundDown
+        )?.toString() || null;
+        return {
+          id,
+          sender,
+          epoch: epoch.epoch,
+          epochStatus: epoch.status,
+          assetOut: assetOut.id,
+          amountOut,
+          sharesOwed,
+          amountIn,
+          valueUSD,
+          restakingToken: restakingToken.id,
+          userBalanceAfter,
+          timestamp,
+          blockNumber,
+          tx,
+  
+          isClaimed,
+          claimId: claim?.id ?? null,
+          claimTx: claim?.tx ?? null,
+          isReadyToClaim
+        }
+      });
   }
 
   /**
@@ -225,6 +235,7 @@ export class SubgraphClient {
         epoch,
         assetOut,
         amountOut,
+        valueUSD,
         restakingToken,
         requests,
         timestamp,
@@ -236,6 +247,7 @@ export class SubgraphClient {
         epoch: epoch.epoch,
         assetOut: assetOut.id,
         amountClaimed: amountOut,
+        valueUSD,
         restakingToken: restakingToken.id,
         requestIds: requests?.map(({ id }) => id) ?? [],
         timestamp,
@@ -258,7 +270,13 @@ export class SubgraphClient {
       name,
       createdTimestamp,
       totalSupply,
+      totalValueETH,
+      totalValueUSD,
+      exchangeRateETH,
+      exchangeRateUSD,
+      percentAPY,
       coordinator,
+      withdrawalQueue,
       underlyingAssets
     } = raw;
     return {
@@ -267,23 +285,29 @@ export class SubgraphClient {
       name,
       createdTimestamp,
       totalSupply,
+      totalValueETH,
+      totalValueUSD,
+      exchangeRateETH,
+      exchangeRateUSD,
+      percentAPY,
       coordinator: coordinator.id,
+      withdrawalQueue: withdrawalQueue.id,
       underlyingAssets:
         underlyingAssets?.map(
           ({
             address,
             strategy,
             depositCap,
-            priceFeed,
             balance,
-            asset: { symbol, name }
+            asset: { symbol, name, latestUSDPrice, latestUSDPriceTimestamp }
           }) => ({
             address,
             symbol,
             name,
             strategy,
             depositCap,
-            priceFeed,
+            latestUSDPrice,
+            latestUSDPriceTimestamp,
             balance
           })
         ) ?? []

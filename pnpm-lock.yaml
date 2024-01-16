@@ -164,6 +164,9 @@ importers:
       abitype:
         specifier: ^0.10.3
         version: 0.10.3(typescript@5.1.6)
+      big.js:
+        specifier: ^6.2.1
+        version: 6.2.1
       cacheables:
         specifier: ^1.2.2
         version: 1.2.2
@@ -180,12 +183,15 @@ importers:
       '@graphql-codegen/client-preset':
         specifier: ^4.1.0
         version: 4.1.0(graphql@16.8.1)
+      '@types/big.js':
+        specifier: ^6.2.2
+        version: 6.2.2
 
   packages/sdk-react:
     dependencies:
       '@rionetwork/sdk':
-        specifier: 0.1.0-alpha.13
-        version: 0.1.0-alpha.13(graphql@16.8.1)(typescript@5.2.2)
+        specifier: 0.1.0-alpha.15
+        version: 0.1.0-alpha.15(graphql@16.8.1)(typescript@5.2.2)
     devDependencies:
       '@types/react':
         specifier: ^18.2.37
@@ -3084,12 +3090,13 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk@0.1.0-alpha.13(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-bobtBOMta6+7PLtXn6q7/NQiYP2M+n6mYVj8OEPoW4ArRPfCVKMQLx0ila6QLOTOqQ2PJMpBmgV8qhu+jWdyEw==}
+  /@rionetwork/sdk@0.1.0-alpha.15(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-o76z5Xn/cIJXXP6ZXzYRABCQGsx/YCiG6CmA1HBzia4KdOtLYD61d+GjYrlczdiboBdkUQ9ETUIvCG9gg3XmXg==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       abitype: 0.10.3(typescript@5.2.2)
+      big.js: 6.2.1
       cacheables: 1.2.2
       graphql-request: 6.1.0(graphql@16.8.1)
       viem: 1.19.9(typescript@5.2.2)
@@ -3505,6 +3512,10 @@ packages:
     resolution: {integrity: sha512-MitHFXnhtgwsGZWtT68URpOvLN4EREih1u3QtQiN4VdAxWKRVvGCSvw/Qth0M0Qq3pJpnGOu5JaM/ydK7OGbqg==}
     dependencies:
       '@babel/types': 7.22.5
+    dev: true
+
+  /@types/big.js@6.2.2:
+    resolution: {integrity: sha512-e2cOW9YlVzFY2iScnGBBkplKsrn2CsObHQ2Hiw4V1sSyiGbgWL8IyqE3zFi1Pt5o1pdAtYkDAIsF3KKUPjdzaA==}
     dev: true
 
   /@types/bn.js@5.1.5:
@@ -5062,6 +5073,10 @@ packages:
     resolution: {integrity: sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==}
     dependencies:
       tweetnacl: 0.14.5
+    dev: false
+
+  /big.js@6.2.1:
+    resolution: {integrity: sha512-bCtHMwL9LeDIozFn+oNhhFoq+yQ3BNdnsLSASUxLciOb1vgvpHsIO1dsENiGMgbb4SkP5TrzWzRiLddn8ahVOQ==}
     dev: false
 
   /bigint-buffer@1.1.5:
