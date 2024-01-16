@@ -66,7 +66,7 @@ export const useAssetExchangeRate = ({
         if (asset && eth && lrt) break;
         lrt ||= findAsset(_lrt, [item]);
         asset ||= findAsset(_asset, item.underlyingAssets, accessor)?.asset;
-        eth = findAsset('ETH', item.underlyingAssets, accessor)?.asset;
+        eth ||= findAsset('ETH', item.underlyingAssets, accessor)?.asset;
       }
       return { asset, eth, lrt, assetError: null };
     } catch (error) {
@@ -109,11 +109,10 @@ function findAsset<
 ) {
   const identifier =
     typeof searchParam === 'string' ? searchParam : searchParam.address;
-  const accessor = itemAccessor || ((a: T | R) => a as T);
+  const accessor = itemAccessor || ((a) => a as T);
   return list?.find((a) => {
-    const item = accessor(a as unknown as R);
     return /^0x/.test(identifier)
-      ? isEqualAddress(item.address, identifier)
-      : item.symbol === identifier;
+      ? isEqualAddress(accessor(a).address, identifier)
+      : accessor(a).symbol === identifier;
   });
 }
