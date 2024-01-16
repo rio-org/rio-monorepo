@@ -24,6 +24,10 @@ export function handleDeposited(event: Deposited): void {
   deposit.blockNumber = event.block.number;
   deposit.tx = event.transaction.hash;
 
+  if (assetIn.latestUSDPrice) {
+    deposit.valueUSD = assetIn.latestUSDPrice!.times(amountInUnits).truncate(2);
+  }
+
   user.balance = deposit.userBalanceAfter;
   user.save();
 

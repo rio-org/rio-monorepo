@@ -32,6 +32,8 @@ type LiquidRestakingToken @entity {
   totalSupply: BigDecimal!
   totalValueETH: BigDecimal
   totalValueUSD: BigDecimal
+  exchangeRateETH: BigDecimal
+  exchangeRateUSD: BigDecimal
   percentAPY: BigDecimal # APY based on a 14-day moving average.
 
   issuer: Issuer!
