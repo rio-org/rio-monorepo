@@ -103,6 +103,7 @@ type WithdrawalClaim @entity {
   amountOut: BigDecimal!
   restakingToken: LiquidRestakingToken!
   requests: [WithdrawalRequest!] @derivedFrom(field: "claim") # The withdrawal requests that were claimed.
+  valueUSD: BigDecimal
   timestamp: BigInt!
   blockNumber: BigInt!
   tx: Bytes!

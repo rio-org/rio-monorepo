@@ -77,6 +77,10 @@ export function handleWithdrawalsClaimedForEpoch(event: WithdrawalsClaimedForEpo
   claim.timestamp = event.block.timestamp;
   claim.blockNumber = event.block.number;
   claim.tx = event.transaction.hash;
+
+  if (asset.latestUSDPrice) {
+    claim.valueUSD = asset.latestUSDPrice!.times(claim.amountOut).truncate(2);
+  }
   claim.save();
 
   for (let i = 0; i < userWithdrawalSummary.requestCount; i++) {
