@@ -2398,6 +2398,7 @@ export type LiquidRestakingTokenFieldsFragment = {
   createdTimestamp: any;
   totalSupply: any;
   coordinator: { __typename?: 'Coordinator'; id: string };
+  withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
   underlyingAssets?: Array<{
     __typename?: 'UnderlyingAsset';
     address: any;
@@ -2490,6 +2491,7 @@ export type LiquidRestakingTokenQuery = {
     createdTimestamp: any;
     totalSupply: any;
     coordinator: { __typename?: 'Coordinator'; id: string };
+    withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
     underlyingAssets?: Array<{
       __typename?: 'UnderlyingAsset';
       address: any;
@@ -2521,6 +2523,7 @@ export type ManyLiquidRestakingTokensQuery = {
     createdTimestamp: any;
     totalSupply: any;
     coordinator: { __typename?: 'Coordinator'; id: string };
+    withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
     underlyingAssets?: Array<{
       __typename?: 'UnderlyingAsset';
       address: any;
@@ -2670,6 +2673,16 @@ export const LiquidRestakingTokenFieldsFragmentDoc = {
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'coordinator' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'withdrawalQueue' },
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
@@ -3036,6 +3049,16 @@ export const LiquidRestakingTokenDocument = {
           },
           {
             kind: 'Field',
+            name: { kind: 'Name', value: 'withdrawalQueue' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
             name: { kind: 'Name', value: 'underlyingAssets' },
             selectionSet: {
               kind: 'SelectionSet',
@@ -3211,6 +3234,16 @@ export const ManyLiquidRestakingTokensDocument = {
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'coordinator' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'withdrawalQueue' },
             selectionSet: {
               kind: 'SelectionSet',
               selections: [

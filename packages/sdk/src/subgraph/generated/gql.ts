@@ -15,7 +15,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
   '\n  fragment IssuerFields on Issuer {\n    id\n    address\n    tokensIssued\n    tokens {\n      id\n    }\n  }\n':
     types.IssuerFieldsFragmentDoc,
-  '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    coordinator {\n      id\n    }\n    underlyingAssets {\n      address\n      asset {\n        symbol\n        name\n      }\n      strategy\n      priceFeed\n      depositCap\n      balance\n    }\n  }\n':
+  '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    coordinator {\n      id\n    }\n    withdrawalQueue {\n      id\n    }\n    underlyingAssets {\n      address\n      asset {\n        symbol\n        name\n      }\n      strategy\n      priceFeed\n      depositCap\n      balance\n    }\n  }\n':
     types.LiquidRestakingTokenFieldsFragmentDoc,
   '\n  fragment DepositFields on Deposit {\n    id\n    sender\n    assetIn {\n      id\n    }\n    amountIn\n    amountOut\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    timestamp\n    blockNumber\n    tx\n  }\n':
     types.DepositFieldsFragmentDoc,
@@ -61,8 +61,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    coordinator {\n      id\n    }\n    underlyingAssets {\n      address\n      asset {\n        symbol\n        name\n      }\n      strategy\n      priceFeed\n      depositCap\n      balance\n    }\n  }\n'
-): (typeof documents)['\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    coordinator {\n      id\n    }\n    underlyingAssets {\n      address\n      asset {\n        symbol\n        name\n      }\n      strategy\n      priceFeed\n      depositCap\n      balance\n    }\n  }\n'];
+  source: '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    coordinator {\n      id\n    }\n    withdrawalQueue {\n      id\n    }\n    underlyingAssets {\n      address\n      asset {\n        symbol\n        name\n      }\n      strategy\n      priceFeed\n      depositCap\n      balance\n    }\n  }\n'
+): (typeof documents)['\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    coordinator {\n      id\n    }\n    withdrawalQueue {\n      id\n    }\n    underlyingAssets {\n      address\n      asset {\n        symbol\n        name\n      }\n      strategy\n      priceFeed\n      depositCap\n      balance\n    }\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

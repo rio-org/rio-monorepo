@@ -265,6 +265,7 @@ export class SubgraphClient {
       createdTimestamp,
       totalSupply,
       coordinator,
+      withdrawalQueue,
       underlyingAssets
     } = raw;
     return {
@@ -274,6 +275,7 @@ export class SubgraphClient {
       createdTimestamp,
       totalSupply,
       coordinator: coordinator.id,
+      withdrawalQueue: withdrawalQueue.id,
       underlyingAssets:
         underlyingAssets?.map(
           ({

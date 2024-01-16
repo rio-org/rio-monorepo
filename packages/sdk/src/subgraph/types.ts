@@ -34,6 +34,7 @@ export interface LiquidRestakingToken {
   createdTimestamp: number;
   totalSupply: string;
   coordinator: Address;
+  withdrawalQueue: Address;
   underlyingAssets: UnderlyingAsset[];
 }
 

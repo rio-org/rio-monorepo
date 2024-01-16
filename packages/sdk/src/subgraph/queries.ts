@@ -24,6 +24,9 @@ export const LiquidRestakingTokenFields = graphql(`
     coordinator {
       id
     }
+    withdrawalQueue {
+      id
+    }
     underlyingAssets {
       address
       asset {
