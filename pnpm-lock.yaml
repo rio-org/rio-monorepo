@@ -190,8 +190,8 @@ importers:
   packages/sdk-react:
     dependencies:
       '@rionetwork/sdk':
-        specifier: 0.1.0-alpha.14
-        version: 0.1.0-alpha.14(graphql@16.8.1)(typescript@5.2.2)
+        specifier: 0.1.0-alpha.15
+        version: 0.1.0-alpha.15(graphql@16.8.1)(typescript@5.2.2)
     devDependencies:
       '@types/react':
         specifier: ^18.2.37
@@ -3090,8 +3090,8 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk@0.1.0-alpha.14(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-gy/e5h/siikmBs0TYJHCfc59qO7PyP9mxzMG7opK7GOdZnimJsHpzX8A4s/K1Lxi0c0Dw7KvHnDdTFdXbH0NzA==}
+  /@rionetwork/sdk@0.1.0-alpha.15(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-o76z5Xn/cIJXXP6ZXzYRABCQGsx/YCiG6CmA1HBzia4KdOtLYD61d+GjYrlczdiboBdkUQ9ETUIvCG9gg3XmXg==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
