@@ -1,7 +1,7 @@
 import { Deposited } from '../generated/templates/Coordinator/RioLRTCoordinator';
 import { Asset, Coordinator, Deposit, LiquidRestakingToken } from '../generated/schema';
+import { findOrCreateUser, getExchangeRateUSD, toUnits } from './helpers/utils';
 import { ETH_ADDRESS, ZERO_BD } from './helpers/constants';
-import { findOrCreateUser, toUnits } from './helpers/utils';
 import { BigDecimal } from '@graphprotocol/graph-ts';
 
 export function handleDeposited(event: Deposited): void {
@@ -47,13 +47,6 @@ export function handleDeposited(event: Deposited): void {
 function getExchangeRateETH(asset: Asset, amountIn: BigDecimal, amountOut: BigDecimal): BigDecimal | null {
   if (asset.id == ETH_ADDRESS) {
     return amountIn.div(amountOut);
-  }
-  return null;
-}
-
-function getExchangeRateUSD(asset: Asset, exchangeRateETH: BigDecimal | null, price: BigDecimal | null): BigDecimal | null {
-  if (asset.id == ETH_ADDRESS && exchangeRateETH && price) {
-    return exchangeRateETH.times(price); 
   }
   return null;
 }

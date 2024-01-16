@@ -40,6 +40,7 @@ type LiquidRestakingToken @entity {
   coordinator: Coordinator!
   withdrawalQueue: WithdrawalQueue!
 
+  priceFeeds: [PriceFeed!] @derivedFrom(field: "usedBy")
   underlyingAssets: [UnderlyingAsset!] @derivedFrom(field: "restakingToken")
 }
 
@@ -186,6 +187,7 @@ type PriceFeed @entity {
   feedType: String!
   description: String!
   decimals: Int!
+  usedBy: [LiquidRestakingToken!]!
   baseAsset: Asset!
   quoteAssetSymbol: String!
   assetPair: String!

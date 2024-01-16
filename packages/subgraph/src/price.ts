@@ -1,8 +1,8 @@
 import { AnswerUpdated } from '../generated/templates/PriceSource/PriceSource';
 import { USD_PRICE_FEED_DECIMALS, ZERO_ADDRESS } from './helpers/constants';
-import { Asset, PriceFeed, PriceSource } from '../generated/schema';
+import { Asset, LiquidRestakingToken, PriceFeed, PriceSource } from '../generated/schema';
 import { BigDecimal, log } from '@graphprotocol/graph-ts';
-import { toUnits } from './helpers/utils';
+import { getExchangeRateUSD, toUnits } from './helpers/utils';
 
 export function handleAnswerUpdated(event: AnswerUpdated): void {
   const priceSource = PriceSource.load(event.address.toHex());
@@ -21,6 +21,13 @@ export function handleAnswerUpdated(event: AnswerUpdated): void {
   asset.latestUSDPrice = getUSDPrice(priceFeed.price!, priceFeed.decimals as u8);
   asset.latestUSDPriceTimestamp = event.params.updatedAt;
   asset.save();
+
+  for (let i = 0; i < priceFeed.usedBy.length; i++) {
+    const restakingToken = LiquidRestakingToken.load(priceFeed.usedBy[i])!;
+    restakingToken.exchangeRateUSD = getExchangeRateUSD(asset, restakingToken.exchangeRateETH, asset.latestUSDPrice);
+    restakingToken.totalValueUSD = restakingToken.exchangeRateUSD && restakingToken.totalSupply.times(restakingToken.exchangeRateUSD!);
+    restakingToken.save();
+  }
 }
 
 function getUSDPrice(price: BigDecimal, priceFeedDecimals: u8): BigDecimal | null {

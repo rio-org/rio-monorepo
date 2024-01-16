@@ -1,6 +1,6 @@
 import { Address, BigDecimal, BigInt, Bytes, dataSource } from '@graphprotocol/graph-ts';
 import { Asset, PriceFeed, PriceSource, User, WithdrawalEpoch } from '../../generated/schema';
-import { CHAINLINK_FEED_TYPE, ETH_ADDRESS, ETH_USD_CHAINLINK_FEEDS, USD_PRICE_FEED_DECIMALS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD, ZERO_BI } from './constants';
+import { CHAINLINK_FEED_TYPE, ETH_ADDRESS, ETH_USD_CHAINLINK_FEEDS, USD_PRICE_FEED_DECIMALS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD } from './constants';
 import { PriceFeed as PriceFeedContract } from '../../generated/RioLRTIssuer/PriceFeed';
 import { PriceSource as PriceSourceTemplate } from '../../generated/templates';
 import { ERC20Token } from '../../generated/RioLRTIssuer/ERC20Token';
@@ -96,13 +96,24 @@ export function findOrCreateWithdrawalEpoch(restakingToken: string, epoch: BigIn
 
 /**
  * Find or create a price feed.
+ * @param restakingToken The address of the restaking token that added the price feed.
  * @param address The address of the price feed.
  * @param asset The address of the base asset.
  * @param save Whether to save the price feed.
  */
-export function findOrCreatePriceFeed(address: Address, asset: Asset, save: boolean = false): PriceFeed {
+export function findOrCreatePriceFeed(restakingToken: Bytes, address: Address, asset: Asset, save: boolean = false): PriceFeed {
   let priceFeed: PriceFeed | null = PriceFeed.load(address.toHex());
-  if (priceFeed != null) return priceFeed;
+  if (priceFeed != null) {
+    if (!priceFeed.usedBy.includes(restakingToken.toHex())) {
+      // Assignment required to update the array.
+      const usedBy = priceFeed.usedBy;
+      usedBy.push(restakingToken.toHex());
+
+      priceFeed.usedBy = usedBy;
+      priceFeed.save();
+    }
+    return priceFeed;
+  }
 
   // If ETH is provided, we use a pseudo address as it's not used onchain.
   if (asset.id == ETH_ADDRESS) {
@@ -114,6 +125,7 @@ export function findOrCreatePriceFeed(address: Address, asset: Asset, save: bool
     priceFeed.baseAsset = asset.id;
     priceFeed.quoteAssetSymbol = getQuoteAssetSymbol(USD_PRICE_FEED_DECIMALS);
     priceFeed.assetPair = getAssetPair(asset, USD_PRICE_FEED_DECIMALS);
+    priceFeed.usedBy = [restakingToken.toHex()];
 
     if (save) priceFeed.save();
 
@@ -135,6 +147,7 @@ export function findOrCreatePriceFeed(address: Address, asset: Asset, save: bool
   priceFeed.baseAsset = asset.id;
   priceFeed.quoteAssetSymbol = getQuoteAssetSymbol(priceFeed.decimals as u8);
   priceFeed.assetPair = getAssetPair(asset, priceFeed.decimals as u8);
+  priceFeed.usedBy = [restakingToken.toHex()];
 
   if (save) priceFeed.save();
 
@@ -163,6 +176,19 @@ function findOrCreatePriceSource(address: Address, priceFeed: PriceFeed, save: b
   PriceSourceTemplate.create(address);
 
   return priceSource;
+}
+
+/**
+ * Get the liquid restaking token to USD exchange rate.
+ * @param asset The quote asset address.
+ * @param exchangeRateETH The exchange rate to ETH.
+ * @param price The price of the provided asset.
+ */
+export function getExchangeRateUSD(asset: Asset, exchangeRateETH: BigDecimal | null, price: BigDecimal | null): BigDecimal | null {
+  if (asset.id == ETH_ADDRESS && exchangeRateETH && price) {
+    return exchangeRateETH.times(price); 
+  }
+  return null;
 }
 
 /**

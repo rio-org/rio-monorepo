@@ -37,7 +37,7 @@ export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssu
     const asset = findOrCreateAsset(assetConfig.asset, true);
     findOrCreateWithdrawalEpoch(restakingToken.id, ZERO_BI, asset, true);
 
-    const priceFeed = findOrCreatePriceFeed(assetConfig.priceFeed, asset, true);
+    const priceFeed = findOrCreatePriceFeed(restakingToken.address, assetConfig.priceFeed, asset, true);
 
     const underlyingAsset = new UnderlyingAsset(`${restakingToken.id}-${asset.id}`);
     
