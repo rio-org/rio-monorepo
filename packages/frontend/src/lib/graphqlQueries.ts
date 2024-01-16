@@ -33,6 +33,8 @@ export const getLiquidRestakingTokenList = () => {
         totalSupply
         totalValueUSD
         totalValueETH
+        exchangeRateETH
+        exchangeRateUSD
         underlyingAssets {
           strategy
           balance

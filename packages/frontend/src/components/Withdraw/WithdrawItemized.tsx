@@ -1,25 +1,30 @@
 import React from 'react';
 import HR from '../Shared/HR';
-import { AssetDetails } from '../../lib/typings';
+import { AssetDetails, LRTDetails } from '../../lib/typings';
 import { formatUnits } from 'viem';
 import { displayEthAmount } from '../../lib/utilities';
 import { twJoin } from 'tailwind-merge';
 import Image from 'next/image';
-import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
+import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
+import Skeleton from 'react-loading-skeleton';
 
 type Props = {
   activeToken: AssetDetails;
+  restakingToken?: LRTDetails;
   amount: bigint | null | undefined;
   assets: AssetDetails[];
 };
 
-const WithdrawItemized = ({ assets, amount, activeToken }: Props) => {
-  // const [isExpanded, setIsExpanded] = React.useState(true);
-  // const assets = buildAssetList(activeToken.symbol);
-  const assetPriceUsd = useAssetPriceUsd(activeToken.address);
-
-  // TODO: Get actual exchange rate
-  const lrtAssetExchangeRate = 1.02;
+const WithdrawItemized = ({
+  assets,
+  amount,
+  restakingToken,
+  activeToken
+}: Props) => {
+  const { data: exchangeRate } = useAssetExchangeRate({
+    asset: activeToken,
+    lrt: restakingToken
+  });
 
   const onlySingleAsset = assets.length === 1;
 
@@ -44,16 +49,19 @@ const WithdrawItemized = ({ assets, amount, activeToken }: Props) => {
       <div className="flex flex-col gap-2">
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Exchange rate</span>
-          <strong className="text-right">
-            1.00 reETH = {lrtAssetExchangeRate} {activeToken.symbol}{' '}
-            <span className="text-right font-bold opacity-50">
-              ($
-              {assetPriceUsd
-                ? (assetPriceUsd * lrtAssetExchangeRate)?.toLocaleString()
-                : '0.00'}
-              )
-            </span>
-          </strong>
+          {!exchangeRate ? (
+            <Skeleton height="0.875rem" width={80} />
+          ) : (
+            <strong className="text-right">
+              1.00 reETH = {(1 / exchangeRate?.lrt).toLocaleString()}{' '}
+              {activeToken.symbol}{' '}
+              <span className="text-right font-bold opacity-50">
+                ($
+                {(exchangeRate.usd * (1 / exchangeRate?.lrt))?.toLocaleString()}
+                )
+              </span>
+            </strong>
+          )}
         </div>
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Fees</span>

@@ -92,6 +92,8 @@ export interface LRTFinancials<T extends number | NumberString = number> {
   totalSupply: T;
   totalValueUSD: T | null;
   totalValueETH: T | null;
+  exchangeRateUSD: T | null;
+  exchangeRateETH: T | null;
 }
 
 export interface BaseAssetDetails {

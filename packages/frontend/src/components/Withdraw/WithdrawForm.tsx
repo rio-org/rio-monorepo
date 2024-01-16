@@ -24,7 +24,7 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
   const [restakingTokenBalance, setAccountRestakingTokenBalance] = useState(
     BigInt(0)
   );
-  const [amountIn, setAmountIn] = useState<bigint>(BigInt(0));
+  const [amountOut, setAmountOut] = useState<bigint>(BigInt(0));
   const [isWithdrawalError, setIsWithdrawalError] = useState(false);
   const [isWithdrawalLoading, setIsWithdrawalLoading] = useState(false);
   const [isWithdrawalSuccess, setIsWithdrawalSuccess] = useState(false);
@@ -81,7 +81,7 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
 
   const handleTokenQuery = (res?: bigint | undefined) => {
     if (typeof res === 'undefined') return;
-    setAmountIn(res);
+    setAmountOut(res);
   };
 
   useEffect(() => {
@@ -99,7 +99,7 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
     if (txData?.status === 'success') {
       setIsWithdrawalLoading(isTxLoading);
       setIsWithdrawalSuccess(true);
-      amountIn && setAmountIn(BigInt(0));
+      amountOut && setAmountOut(BigInt(0));
       setAmount(null);
     }
     if (txData?.status === 'reverted') {
@@ -170,7 +170,8 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
           )}
           <WithdrawItemized
             assets={assets}
-            amount={amountIn}
+            restakingToken={lrt}
+            amount={amountOut}
             activeToken={activeToken}
           />
           {address && (

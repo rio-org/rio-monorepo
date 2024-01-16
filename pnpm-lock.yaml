@@ -87,8 +87,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@1.18.8)(wagmi@1.4.5)
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.15
-        version: 0.1.0-alpha.15(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.16
+        version: 0.1.0-alpha.16(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
@@ -3099,14 +3099,14 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.15(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
-    resolution: {integrity: sha512-D40sGhSiT/trheuMtJCChnYFk0MF1HR8dNh4BfY7KmXp9SSTrAoH2AgwY4eSP+LUnIS+WM8TN0LoC1TdgUlzFQ==}
+  /@rionetwork/sdk-react@0.1.0-alpha.16(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
+    resolution: {integrity: sha512-INo+/ToiKwz5CmoBFZ+TOIteAAUegH3yt8rkV0BNbGoMPS7hin/B59CYiC1wdx680WuS29+mWMhIeA7IGz+CjQ==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     peerDependencies:
       react: '>=16.13.1'
       wagmi: '>=1.2'
     dependencies:
-      '@rionetwork/sdk': 0.1.0-alpha.14(graphql@16.8.1)(typescript@5.2.2)
+      '@rionetwork/sdk': 0.1.0-alpha.15(graphql@16.8.1)(typescript@5.2.2)
       react: 18.2.0
       wagmi: 1.4.5(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)(viem@1.18.8)
     transitivePeerDependencies:
@@ -3118,8 +3118,8 @@ packages:
       - zod
     dev: false
 
-  /@rionetwork/sdk@0.1.0-alpha.14(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-gy/e5h/siikmBs0TYJHCfc59qO7PyP9mxzMG7opK7GOdZnimJsHpzX8A4s/K1Lxi0c0Dw7KvHnDdTFdXbH0NzA==}
+  /@rionetwork/sdk@0.1.0-alpha.15(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-o76z5Xn/cIJXXP6ZXzYRABCQGsx/YCiG6CmA1HBzia4KdOtLYD61d+GjYrlczdiboBdkUQ9ETUIvCG9gg3XmXg==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)

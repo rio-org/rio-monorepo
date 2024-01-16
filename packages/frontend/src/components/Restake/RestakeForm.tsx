@@ -18,8 +18,9 @@ import { displayEthAmount } from '../../lib/utilities';
 import { Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '../Shared/ApproveButtons';
 import { useIsMounted } from '../../hooks/useIsMounted';
-import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
+import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
 import { useAssetBalance } from '../../hooks/useAssetBalance';
+import Skeleton from 'react-loading-skeleton';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -49,11 +50,11 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(false);
   const restakingToken = useLiquidRestakingToken(lrt?.address || '');
-  const assetPriceUsd = useAssetPriceUsd(activeToken?.address);
+  const { data: exchangeRate } = useAssetExchangeRate({
+    asset: activeToken,
+    lrt
+  });
   const { address } = useAccount();
-
-  // TODO: Get actual exchange rate
-  const lrtAssetExchangeRate = 1.02;
 
   const {
     data,
@@ -259,17 +260,24 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
             accountTokenBalance={accountTokenBalance}
             isDisabled={isDepositLoading}
             assets={assets}
+            lrt={lrt}
             setAmount={setAmount}
             setActiveToken={setActiveToken}
           />
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex justify-between text-[14px]">
               <span className="text-black opacity-50">Exchange rate</span>
-              <strong className="text-right">
-                1.00 {activeToken?.symbol} ={' '}
-                {(1 / lrtAssetExchangeRate).toLocaleString()} {lrt?.symbol}{' '}
-                <strong className="opacity-50">(${assetPriceUsd})</strong>
-              </strong>
+              {!exchangeRate ? (
+                <Skeleton height="0.875rem" width={80} />
+              ) : (
+                <strong className="text-right">
+                  1.00 {activeToken?.symbol} ={' '}
+                  {exchangeRate.lrt.toLocaleString()} {lrt?.symbol}{' '}
+                  <strong className="opacity-50">
+                    (${exchangeRate.usd.toLocaleString()})
+                  </strong>
+                </strong>
+              )}
             </div>
             <div className="flex justify-between text-[14px]">
               <span className="text-black opacity-50">Reward fee</span>

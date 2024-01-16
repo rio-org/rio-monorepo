@@ -186,6 +186,8 @@ export const parseSubgraphLRT = (lrt: LRTSubgraphResponse) => {
     percentAPY: Number(lrt.percentAPY),
     totalValueUSD: Number(lrt.totalValueUSD),
     totalValueETH: Number(lrt.totalValueETH),
+    exchangeRateUSD: Number(lrt.exchangeRateUSD),
+    exchangeRateETH: Number(lrt.exchangeRateETH),
     underlyingAssets: parseSubgraphUnderlyingAssetList(lrt.underlyingAssets)
   };
 };

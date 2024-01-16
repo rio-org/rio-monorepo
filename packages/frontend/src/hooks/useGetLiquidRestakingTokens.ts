@@ -6,11 +6,9 @@ import { CHAIN_ID } from '../../config';
 import { useQuery, UseQueryOptions } from 'react-query';
 
 const fetcher = async () => {
-  const client = subgraphClient(CHAIN_ID);
-  const { data } = await client.query<{
+  const { data } = await subgraphClient(CHAIN_ID).query<{
     liquidRestakingTokens: LRTSubgraphResponse[];
   }>({ query: getLiquidRestakingTokenList() });
-
   return parseSubgraphLRTList(data?.liquidRestakingTokens || []);
 };
 

@@ -3,7 +3,6 @@ import Image from 'next/image';
 import iconTransaction from '../../assets/icon-transaction.svg';
 import { motion } from 'framer-motion';
 import cx from 'classnames';
-import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
 import { LRTDetails } from '../../lib/typings';
 import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
 
@@ -24,9 +23,7 @@ type Props = {
 const ReETHConversion = ({ padded }: Props) => {
   const reEth = <>1 reETH</>;
   const [isReEth, setIsReEth] = useState<boolean>(true);
-  const [reEthInUSD, setReEthInUSD] = useState<number>(0);
   const [reEthToken, setReEthToken] = useState<LRTDetails | undefined>();
-  const assetPriceUsd = useAssetPriceUsd(reEthToken?.address);
 
   const { data: lrts, error } = useGetLiquidRestakingTokens();
 
@@ -34,10 +31,6 @@ const ReETHConversion = ({ padded }: Props) => {
     if (error || !lrts) return;
     setReEthToken(lrts.find((lrt) => lrt.symbol === 'reETH'));
   }, [lrts]);
-
-  useEffect(() => {
-    setReEthInUSD(assetPriceUsd);
-  }, [assetPriceUsd]);
 
   const handleChange = () => {
     setIsReEth((prev) => !prev);
@@ -51,17 +44,19 @@ const ReETHConversion = ({ padded }: Props) => {
       )}
       onClick={() => handleChange()}
     >
-      <span className="text-[var(--color-black-50)] group-hover:text-black">
-        {isReEth ? (
-          <>
-            {styledAmount(reEthInUSD)} = {reEth}
-          </>
-        ) : (
-          <>
-            {reEth} = {styledAmount(reEthInUSD)}
-          </>
-        )}
-      </span>
+      {reEthToken?.exchangeRateUSD && (
+        <span className="text-[var(--color-black-50)] group-hover:text-black">
+          {isReEth ? (
+            <>
+              {styledAmount(reEthToken?.exchangeRateUSD)} = {reEth}
+            </>
+          ) : (
+            <>
+              {reEth} = {styledAmount(reEthToken?.exchangeRateUSD)}
+            </>
+          )}
+        </span>
+      )}
       <motion.div
         animate={{ rotate: isReEth ? 180 : -180 }}
         transition={{ duration: 0.2 }}
