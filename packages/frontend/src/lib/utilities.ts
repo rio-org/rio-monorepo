@@ -1,19 +1,22 @@
-import { formatUnits, zeroAddress } from 'viem';
+import { Address, formatUnits, getAddress, zeroAddress } from 'viem';
 import { ASSETS, ASSET_LOGOS } from './constants';
 import {
   AssetDetails,
   AssetSubgraphResponse,
+  BaseAssetDetails,
+  BaseAssetSubgraphResponse,
+  BaseLRTSubgraphResponse,
   CHAIN_ID_NUMBER,
-  EthereumAddress,
   LRTDetails,
   LRTSubgraphResponse,
   TokenSymbol,
-  UnderlyingTokenDetails,
-  UnderlyingTokenSubgraphResponse
+  UnderlyingAssetDetails,
+  UnderlyingAssetSubgraphResponse
 } from './typings';
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
-import { CHAIN_ID } from '../../config';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../../config';
+import { SubgraphClient } from '@rionetwork/sdk-react';
 
 export const getChainName = (chainId: number) => {
   switch (chainId) {
@@ -68,7 +71,7 @@ export const getAlchemyChainLabel = (chainId: CHAIN_ID_NUMBER) => {
 };
 
 export const linkToAddressOnBlockExplorer = (
-  address: EthereumAddress,
+  address: Address,
   chainId: number
 ) => {
   const chainName = getChainName(chainId);
@@ -81,10 +84,7 @@ export const linkToAddressOnBlockExplorer = (
   return `https://${subdomain}etherscan.io/address/${address}`;
 };
 
-export const linkToTxOnBlockExplorer = (
-  address: EthereumAddress,
-  chainId: number
-) => {
+export const linkToTxOnBlockExplorer = (address: Address, chainId: number) => {
   const chainName = getChainName(chainId);
   const subdomain =
     chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';
@@ -139,52 +139,85 @@ export const dateFromTimestamp = (timestamp: number) => {
   return str;
 };
 
-export const parseSubgraphAsset = (asset: AssetSubgraphResponse) =>
-  <AssetDetails>{
+export const parseBaseSubgraphAsset = (
+  asset: BaseAssetSubgraphResponse | BaseLRTSubgraphResponse
+) => {
+  return <BaseAssetDetails>{
     name: asset.name,
     symbol: asset.symbol,
-    address: asset.address || zeroAddress,
+    address:
+      !asset.address || asset.address === zeroAddress
+        ? NATIVE_ETH_ADDRESS
+        : asset.address,
     logo: ASSET_LOGOS[asset.symbol],
-    decimals: asset.decimals ?? 18
+    decimals: (asset as BaseAssetSubgraphResponse).decimals ?? 18
   };
-
-export const parseUnderlyingToken = (asset: UnderlyingTokenSubgraphResponse) =>
-  <UnderlyingTokenDetails>{
-    id: asset.id,
-    balance: asset.balance,
-    cashBalance: asset.cashBalance,
-    managedBalance: asset.managedBalance,
-    weight: asset.weight,
-    token: parseSubgraphAsset(asset.token)
-  };
-
-export const parseSubgraphLRT = (lrt: LRTSubgraphResponse) =>
-  <LRTDetails>{
-    ...parseSubgraphAsset({ ...lrt, decimals: 18 }),
-    totalSupply: lrt.totalSupply,
-    underlyingTokens: lrt.underlyingTokens.map(parseUnderlyingToken)
-  };
-
-export const parseSubgraphAssetList = (
-  data: AssetSubgraphResponse[]
-): AssetDetails[] => {
-  return JSON.parse(
-    JSON.stringify(data.map(parseSubgraphAsset))
-  ) as AssetDetails[];
 };
 
-export const parseSubgraphUnderlyingToken = (
-  data: UnderlyingTokenSubgraphResponse[]
-): UnderlyingTokenDetails[] => {
+export const parseSubgraphAsset = (asset: AssetSubgraphResponse) => {
+  return <AssetDetails>{
+    ...parseBaseSubgraphAsset(asset),
+    latestUSDPrice: asset.latestUSDPrice,
+    latestUSDPriceTimestamp: asset.latestUSDPriceTimestamp
+  };
+};
+
+export const parseUnderlyingAsset = (
+  asset: UnderlyingAssetSubgraphResponse
+) => {
+  asset;
+  return <UnderlyingAssetDetails>{
+    id: asset.id,
+    balance: Number(asset.balance),
+    strategy: asset.strategy,
+    asset: parseSubgraphAsset(asset.asset)
+  };
+};
+
+export const parseSubgraphLRT = (lrt: LRTSubgraphResponse) => {
+  return <LRTDetails>{
+    ...parseBaseSubgraphAsset(lrt),
+    decimals: /USD/i.test(lrt.symbol) ? 6 : 18,
+    totalSupply: Number(lrt.totalSupply),
+    percentAPY: Number(lrt.percentAPY),
+    totalValueUSD: Number(lrt.totalValueUSD),
+    totalValueETH: Number(lrt.totalValueETH),
+    exchangeRateUSD: Number(lrt.exchangeRateUSD),
+    exchangeRateETH: Number(lrt.exchangeRateETH),
+    underlyingAssets: parseSubgraphUnderlyingAssetList(lrt.underlyingAssets)
+  };
+};
+
+export const parseBaseSubgraphAssetList = (
+  data: Parameters<typeof parseBaseSubgraphAsset>[0][]
+) => {
   return JSON.parse(
-    JSON.stringify(data.map(parseUnderlyingToken))
-  ) as UnderlyingTokenDetails[];
+    JSON.stringify(data.map(parseBaseSubgraphAsset))
+  ) as ReturnType<typeof parseBaseSubgraphAsset>[];
+};
+
+export const parseSubgraphAssetList = (
+  data: Parameters<typeof parseSubgraphAsset>[0][]
+) => {
+  return JSON.parse(JSON.stringify(data.map(parseSubgraphAsset))) as ReturnType<
+    typeof parseSubgraphAsset
+  >[];
+};
+
+export const parseSubgraphUnderlyingAssetList = (
+  data: Parameters<typeof parseUnderlyingAsset>[0][]
+) => {
+  return JSON.parse(
+    JSON.stringify(data.map(parseUnderlyingAsset))
+  ) as ReturnType<typeof parseUnderlyingAsset>[];
 };
 
 export const parseSubgraphLRTList = (
-  data: LRTSubgraphResponse[]
-): LRTDetails[] => {
-  return JSON.parse(JSON.stringify(data.map(parseSubgraphLRT))) as LRTDetails[];
+  data: Parameters<typeof parseSubgraphLRT>[0][]
+) => {
+  return JSON.parse(JSON.stringify(data.map(parseSubgraphLRT))) as ReturnType<
+    typeof parseSubgraphLRT
+  >[];
 };
 
 export const displayEthAmount = (amount: string) => {
@@ -195,3 +228,30 @@ export const displayEthAmount = (amount: string) => {
     ).toFixed(decimalPlaces)
   );
 };
+
+export const isEqualAddress = (a: string, b: string) => {
+  try {
+    return getAddress(a) === getAddress(b);
+  } catch {
+    return false;
+  }
+};
+
+export const buildRioSdkRestakingKey = <
+  T extends
+    | Parameters<SubgraphClient['getLiquidRestakingTokens']>[0]
+    | Parameters<SubgraphClient['getDeposits']>[0]
+    | Parameters<SubgraphClient['getWithdrawalRequests']>[0]
+    | Parameters<SubgraphClient['getWithdrawalClaims']>[0]
+>(
+  name: string,
+  config: T
+) =>
+  [
+    name,
+    config?.orderBy,
+    config?.orderDirection,
+    config?.page,
+    config?.perPage,
+    JSON.stringify(config?.where)
+  ] as const;

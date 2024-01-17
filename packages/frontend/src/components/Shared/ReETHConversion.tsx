@@ -1,12 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import iconTransaction from '../../assets/icon-transaction.svg';
 import { motion } from 'framer-motion';
 import cx from 'classnames';
-import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
-import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
-import { CHAIN_ID } from '../../../config';
-import { LRTDetails } from '../../lib/typings';
+import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
 
 const styledAmount = (amount: number) => {
   const main = amount.toFixed();
@@ -23,28 +20,11 @@ type Props = {
   padded?: boolean;
 };
 const ReETHConversion = ({ padded }: Props) => {
-  const reEth = <>1 reETH</>;
   const [isReEth, setIsReEth] = useState<boolean>(true);
-  const [reEthInUSD, setReEthInUSD] = useState<number>(0);
-  const [reEthToken, setReEthToken] = useState<LRTDetails | null>(null);
-  const assetPriceUsd = useAssetPriceUsd(reEthToken?.address);
-
-  useEffect(() => {
-    useGetLiquidRestakingTokens(CHAIN_ID)
-      .then((lrts) => {
-        if (!Array.isArray(lrts)) return;
-        const reEth = lrts.find((lrt) => lrt.symbol === 'reETH');
-        if (!reEth) return;
-        setReEthToken(reEth);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, []);
-
-  useEffect(() => {
-    setReEthInUSD(assetPriceUsd);
-  }, [assetPriceUsd]);
+  const { data: exchangeRate } = useAssetExchangeRate({
+    asset: 'ETH',
+    lrt: 'reETH'
+  });
 
   const handleChange = () => {
     setIsReEth((prev) => !prev);
@@ -58,17 +38,18 @@ const ReETHConversion = ({ padded }: Props) => {
       )}
       onClick={() => handleChange()}
     >
-      <span className="text-[var(--color-black-50)] group-hover:text-black">
-        {isReEth ? (
-          <>
-            {styledAmount(reEthInUSD)} = {reEth}
-          </>
-        ) : (
-          <>
-            {reEth} = {styledAmount(reEthInUSD)}
-          </>
-        )}
-      </span>
+      {exchangeRate && (
+        <span className="text-[var(--color-black-50)] group-hover:text-black">
+          {!isReEth ? (
+            <>1 ETH = {exchangeRate.lrt.toLocaleString()} reETH</>
+          ) : (
+            <>
+              1 reETH ={' '}
+              {styledAmount(exchangeRate.usd * (1 / exchangeRate.lrt))}
+            </>
+          )}
+        </span>
+      )}
       <motion.div
         animate={{ rotate: isReEth ? 180 : -180 }}
         transition={{ duration: 0.2 }}

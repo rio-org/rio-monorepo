@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { AssetDetails } from '../../lib/typings';
+import { AssetDetails, LRTDetails } from '../../lib/typings';
 import AssetSelector from './AssetSelector';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
@@ -7,15 +7,16 @@ import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
-import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
+import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
 import { useIsMounted } from '../../hooks/useIsMounted';
 
 type Props = {
-  activeToken: AssetDetails;
+  activeToken?: AssetDetails;
   amount: bigint | null;
   accountTokenBalance: bigint;
   assets: AssetDetails[];
   isDisabled: boolean;
+  lrt?: LRTDetails;
   setAmount: (amount: bigint | null) => void;
   setActiveToken: (asset: AssetDetails) => void;
 };
@@ -26,26 +27,27 @@ const StakeField = ({
   accountTokenBalance,
   assets,
   isDisabled,
+  lrt,
   setAmount,
   setActiveToken
 }: Props) => {
   const isMounted = useIsMounted();
   const [isFocused, setIsFocused] = useState(false);
 
-  const assetPriceUsd = useAssetPriceUsd(activeToken.address);
+  const { data: exchangeRate } = useAssetExchangeRate({
+    asset: activeToken?.address,
+    lrt
+  });
   const usdAmount = useMemo(() => {
+    if (!activeToken || !exchangeRate?.usd) return 0;
     return amount
-      ? +formatUnits(amount, activeToken.decimals) * assetPriceUsd
+      ? +formatUnits(amount, activeToken.decimals) * exchangeRate.usd
       : 0;
-  }, [amount, activeToken.decimals, assetPriceUsd]);
+  }, [amount, activeToken?.decimals, exchangeRate?.usd]);
 
   const handleValueChange = (value: string) => {
-    const parsedAmount = parseUnits(value, activeToken.decimals);
-    if (value === '') {
-      setAmount(null);
-      return;
-    }
-    setAmount(parsedAmount);
+    if (!activeToken || value === '') return setAmount(null);
+    setAmount(parseUnits(value, activeToken?.decimals));
   };
   const handleMaxBalance = (balanceAmount: bigint) => {
     setAmount(balanceAmount);
@@ -98,7 +100,11 @@ const StakeField = ({
             placeholder="0.00"
             autoFocus={isDesktopOrLaptop}
             min={0}
-            value={parseBigIntFieldAmount(amount, activeToken.decimals)}
+            value={
+              !activeToken
+                ? 0
+                : parseBigIntFieldAmount(amount, activeToken.decimals)
+            }
             step="0.1"
             ref={inputRef}
             onChange={(e) => {
@@ -112,7 +118,7 @@ const StakeField = ({
             }}
           />
           <AssetSelector
-            activeTokenSymbol={activeToken.symbol}
+            activeTokenSymbol={activeToken?.symbol}
             assets={assets}
             isDisabled={isDisabled}
             setActiveToken={setActiveToken}
@@ -127,7 +133,7 @@ const StakeField = ({
           <div>
             {isMounted &&
             accountTokenBalance !== undefined &&
-            activeToken.symbol ? (
+            activeToken?.symbol ? (
               <>
                 <span className="opacity-50">
                   Balance:{' '}

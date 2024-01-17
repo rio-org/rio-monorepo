@@ -3,12 +3,15 @@ import type { NextPage } from 'next';
 import Stats from '../components/Rewards/Stats';
 import TransactionHistoryTable from '../components/Rewards/TransactionHistoryTable';
 import RestakeWrapper from '../components/Restake/RestakeWrapper';
+import { useGetLiquidRestakingTokens } from '../hooks/useGetLiquidRestakingTokens';
 
 const Rewards: NextPage = () => {
+  const { data: lrtList } = useGetLiquidRestakingTokens();
+  const activeLrt = lrtList?.[0];
   return (
     <RestakeWrapper isWide={true}>
-      <Stats />
-      <TransactionHistoryTable />
+      <Stats lrt={activeLrt} />
+      <TransactionHistoryTable lrt={activeLrt} />
     </RestakeWrapper>
   );
 };

@@ -6,7 +6,7 @@ import wstETHLogo from '../assets/wstETH-logo.png';
 import cbETHLogo from '../assets/cbETH-logo.png';
 import allEthLogo from '../assets/all-eth-logo.png';
 import { zeroAddress } from 'viem';
-import { CHAIN_ID } from '../../config';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../../config';
 
 export const NULL_ADDRESS =
   '0x0000000000000000000000000000000000000000' as AddressType;
@@ -68,63 +68,79 @@ export const ASSETS: Asset = {
     symbol: '＊ETH',
     logo: allEthLogo,
     address: zeroAddress,
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   ETH: {
     name: 'Ether',
     symbol: 'ETH',
     logo: ethLogo,
-    address: zeroAddress,
-    decimals: 18
+    address: NATIVE_ETH_ADDRESS,
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   WETH: {
     name: 'Wrapped Ether',
     symbol: 'WETH',
     logo: ethLogo,
-    address: zeroAddress,
-    decimals: 18
+    address: NATIVE_ETH_ADDRESS,
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   stETH: {
     name: 'Lido Staked Ether',
     symbol: 'stETH',
     logo: stETHLogo,
     address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   rETH: {
     name: 'Rocketpool ETH',
     symbol: 'rETH',
     logo: rETHLogo,
     address: '0xae78736cd615f374d3085123a210448e74fc6393',
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   cbETH: {
     name: 'Coinbase Wrapped Staked ETH',
     symbol: 'cbETH',
     logo: cbETHLogo,
     address: '0xbe9895146f7af43049ca1c1ae358b0541ea49704',
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   wstETH: {
     name: 'Wrapped Staked ETH',
     symbol: 'wstETH',
     logo: wstETHLogo,
     address: '0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0',
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   },
   reETH: {
     name: 'reETH',
     symbol: 'reETH',
     logo: rETHLogo,
     address: '0x00000', // todo,
-    decimals: 18
+    decimals: 18,
+    latestUSDPrice: null,
+    latestUSDPriceTimestamp: null
   }
 };
 
 // prettier-ignore
 export const PUBLIC_SUBGRAPH_URL = {
-  1: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-mainnet',
-  5: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-goerli',
+  1: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-mainnet-v2',
+  5: 'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-goerli-v2',
   11155111: '',
   10: '',
   420: '',

@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client';
-import { EthereumAddress } from './typings';
+import { Address } from 'viem';
 
 export const getAssetList = () => {
   return gql`
@@ -10,7 +10,7 @@ export const getAssetList = () => {
         name
         symbol
       }
-      tokens {
+      assets {
         id
         address
         name
@@ -26,21 +26,27 @@ export const getLiquidRestakingTokenList = () => {
     query getLiquidRestakingTokenList {
       liquidRestakingTokens {
         id
-        address
-        name
         symbol
+        name
+        address
+        percentAPY
         totalSupply
-        underlyingTokens {
+        totalValueUSD
+        totalValueETH
+        exchangeRateETH
+        exchangeRateUSD
+        underlyingAssets {
+          strategy
           balance
-          cashBalance
-          managedBalance
-          weight
-          token {
+          address
+          asset {
             id
-            address
             name
             symbol
+            address
             decimals
+            latestUSDPrice
+            latestUSDPriceTimestamp
           }
         }
       }
@@ -48,10 +54,10 @@ export const getLiquidRestakingTokenList = () => {
   `;
 };
 
-export const getLatestAssetUSDPrice = (tokenAddress: EthereumAddress) => {
+export const getLatestAssetUSDPrice = (tokenAddress: Address) => {
   return gql`
     query getLatestAssetUSDPrice {
-      token(id: "${tokenAddress}") {
+      asset(id: "${tokenAddress}") {
         address
         symbol
         latestUSDPrice
@@ -61,7 +67,7 @@ export const getLatestAssetUSDPrice = (tokenAddress: EthereumAddress) => {
   `;
 };
 
-export const getUserExits = (address: EthereumAddress) => {
+export const getUserExits = (address: Address) => {
   return gql`
     query getUserExits {
       exits(
@@ -85,7 +91,7 @@ export const getUserExits = (address: EthereumAddress) => {
   `;
 };
 
-export const getUserTxHistory = (address: EthereumAddress) => {
+export const getUserTxHistory = (address: Address) => {
   return gql`
     query getUserTxHistory {
       joins(

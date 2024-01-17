@@ -9,15 +9,15 @@ import {
   useWaitForTransaction
 } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
-import { zeroAddress } from 'viem';
-import { AssetDetails, EthereumAddress } from '../../lib/typings';
+import { Address, zeroAddress } from 'viem';
+import { AssetDetails } from '../../lib/typings';
 
 type Props = {
-  allowanceTarget?: EthereumAddress;
-  accountAddress: EthereumAddress;
+  allowanceTarget?: Address;
+  accountAddress: Address;
   isValidAmount: boolean;
   amount: bigint;
-  token: AssetDetails;
+  token?: AssetDetails;
   buttonLabel: string;
   isApprovalLoading: boolean;
   refetchAllowance: () => void;
@@ -45,7 +45,7 @@ const ApproveButton = ({
     error: prepareError,
     isError: isPrepareError
   } = usePrepareContractWrite({
-    address: token.address,
+    address: token?.address,
     abi: erc20ABI,
     functionName: 'approve',
     args: [allowanceTarget || zeroAddress, amount],

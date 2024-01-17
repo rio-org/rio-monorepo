@@ -1,37 +1,37 @@
 import React from 'react';
 import HR from '../Shared/HR';
-import { AssetDetails } from '../../lib/typings';
+import { AssetDetails, LRTDetails } from '../../lib/typings';
 import { formatUnits } from 'viem';
 import { displayEthAmount } from '../../lib/utilities';
 import { twJoin } from 'tailwind-merge';
 import Image from 'next/image';
-import { useAssetPriceUsd } from '../../hooks/useAssetPriceUsd';
+import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
+import Skeleton from 'react-loading-skeleton';
 
 type Props = {
   activeToken: AssetDetails;
-  amount: bigint | null;
+  restakingToken?: LRTDetails;
+  amount: bigint | null | undefined;
   assets: AssetDetails[];
 };
 
-const WithdrawItemized = ({ assets, amount, activeToken }: Props) => {
-  // const [isExpanded, setIsExpanded] = React.useState(true);
-  // const assets = buildAssetList(activeToken.symbol);
-  const assetPriceUsd = useAssetPriceUsd(activeToken.address);
-
-  // TODO: Get actual exchange rate
-  const lrtAssetExchangeRate = 1.02;
+const WithdrawItemized = ({
+  assets,
+  amount,
+  restakingToken,
+  activeToken
+}: Props) => {
+  const { data: exchangeRate } = useAssetExchangeRate({
+    asset: activeToken,
+    lrt: restakingToken
+  });
 
   const onlySingleAsset = assets.length === 1;
 
   const totalOut = (
     <strong className="flex flex-row gap-2 items-center">
       {amount
-        ? displayEthAmount(
-            String(
-              Number(formatUnits(amount, activeToken.decimals)) /
-                lrtAssetExchangeRate
-            )
-          )
+        ? displayEthAmount(formatUnits(amount, activeToken.decimals))
         : displayEthAmount(formatUnits(BigInt(0), activeToken.decimals))}
       <span
         className={twJoin(
@@ -49,55 +49,25 @@ const WithdrawItemized = ({ assets, amount, activeToken }: Props) => {
       <div className="flex flex-col gap-2">
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Exchange rate</span>
-          <strong className="text-right">
-            1.00 reETH = {lrtAssetExchangeRate} {activeToken.symbol}{' '}
-            <span className="text-right font-bold opacity-50">
-              ($
-              {assetPriceUsd
-                ? (assetPriceUsd * lrtAssetExchangeRate)?.toLocaleString()
-                : '0.00'}
-              )
-            </span>
-          </strong>
+          {!exchangeRate ? (
+            <Skeleton height="0.875rem" width={80} />
+          ) : (
+            <strong className="text-right">
+              1.00 reETH = {(1 / exchangeRate?.lrt).toLocaleString()}{' '}
+              {activeToken.symbol}{' '}
+              <span className="text-right font-bold opacity-50">
+                ($
+                {(exchangeRate.usd * (1 / exchangeRate?.lrt))?.toLocaleString()}
+                )
+              </span>
+            </strong>
+          )}
         </div>
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Fees</span>
           <strong>Free</strong>
         </div>
       </div>
-      {/* TODO: */}
-      {/* commented out the distributed list below and vars above until multiple-token withdrawals are active */}
-      {/* <HR />
-      <div
-        className="flex justify-between items-center text-[14px]"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <span className="text-black opacity-50">You will receive</span>
-        <span className="lg:hidden">
-          <IconSelectArrow direction={isExpanded ? 'up' : 'down'} />
-        </span>
-      </div>
-      <motion.div
-        initial={{ height: 0 }}
-        animate={{ height: isExpanded ? 'auto' : 0 }}
-        transition={{ duration: 0.2 }}
-        className="overflow-hidden"
-      >
-        <div className="flex flex-col gap-3 mt-2 mb-4">
-          {assets.map((asset) => {
-            return (
-              <ItemizedAsset
-                key={asset.symbol}
-                asset={asset}
-                isActiveToken={false}
-                isLoading={false}
-                isError={false}
-                amount={amountNum / 5}
-              />
-            );
-          })}
-        </div>
-      </motion.div> */}
       <HR />
       {onlySingleAsset ? (
         <div className="text-[14px] space-y-2 mt-4">

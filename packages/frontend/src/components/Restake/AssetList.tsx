@@ -3,7 +3,7 @@ import DepositAssetItem from '../Assets/DepositAssetItem';
 import { AssetDetails, TokenSymbol } from '../../lib/typings';
 
 type Props = {
-  activeTokenSymbol: TokenSymbol;
+  activeTokenSymbol?: TokenSymbol;
   assets: AssetDetails[];
   setActiveToken: (asset: AssetDetails) => void;
   setIsListOpen: (isOpen: boolean) => void;

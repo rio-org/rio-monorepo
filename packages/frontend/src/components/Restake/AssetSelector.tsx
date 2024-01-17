@@ -10,9 +10,10 @@ import AssetList from './AssetList';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { useIsMounted } from '../../hooks/useIsMounted';
+import Skeleton from 'react-loading-skeleton';
 
 type Props = {
-  activeTokenSymbol: TokenSymbol;
+  activeTokenSymbol?: TokenSymbol;
   assets: AssetDetails[];
   isDisabled?: boolean;
   setActiveToken: (asset: AssetDetails) => void;
@@ -71,12 +72,16 @@ const AssetSelector = ({
   const buttonInternal = useMemo(
     () => (
       <>
-        <Image
-          src={ASSETS[activeTokenSymbol].logo}
-          alt={`${ASSETS[activeTokenSymbol].name} logo`}
-          width={24}
-          height={24}
-        />
+        {activeTokenSymbol ? (
+          <Image
+            src={ASSETS[activeTokenSymbol].logo}
+            alt={`${ASSETS[activeTokenSymbol].name} logo`}
+            width={24}
+            height={24}
+          />
+        ) : (
+          <Skeleton width={24} height={24} />
+        )}
         <span className="pr-2">{activeTokenSymbol}</span>
       </>
     ),

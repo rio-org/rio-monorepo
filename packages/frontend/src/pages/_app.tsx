@@ -26,6 +26,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Layout from '../components/Layout';
 import { APP_TITLE, CHAIN_ID } from '../../config';
 import { theme } from '../lib/theme';
+import { QueryClient, QueryClientProvider } from 'react-query';
+
+// Create the cache client
+const queryClient = new QueryClient();
 
 const chooseChain = (chainId: number) => {
   if (chainId === 1) {
@@ -45,7 +49,8 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
     alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID || '' }),
     infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
     publicProvider()
-  ]
+  ],
+  { batch: { multicall: true } }
 );
 
 const appInfo = {
@@ -82,14 +87,16 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider appInfo={appInfo} chains={chains}>
-        <RioNetworkProvider>
-          <ThemeProvider value={theme}>
-            <CssBaseline />
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
-          </ThemeProvider>
-        </RioNetworkProvider>
+        <QueryClientProvider client={queryClient}>
+          <RioNetworkProvider>
+            <ThemeProvider value={theme}>
+              <CssBaseline />
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </ThemeProvider>
+          </RioNetworkProvider>
+        </QueryClientProvider>
       </RainbowKitProvider>
     </WagmiConfig>
   );

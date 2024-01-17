@@ -1,8 +1,8 @@
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
-import { ExitType } from '@rionetwork/sdk-react';
 import { StaticImageData } from 'next/image';
+import { Address, Hash } from 'viem';
 import { Chain as WagmiChain } from 'wagmi';
-export type EthereumAddress = `0x${string}`;
+export type NumberString = `${number}`;
 export type EthereumTransactionHash = `0x${string}`;
 export type EthereumCalldata = string;
 export type IPFSAddress = string;
@@ -36,6 +36,8 @@ export interface Chain extends WagmiChain {
   slug: string;
   icon: string;
 }
+
+export type ContractError = Error & { shortMessage?: string };
 
 export interface ConnectButtonProps {
   account?: {
@@ -80,16 +82,45 @@ export type Asset = {
   [key in TokenSymbol]: AssetDetails;
 };
 
-export interface AssetDetails {
+export interface AssetFinancials<T extends number | NumberString = number> {
+  latestUSDPrice: T | null;
+  latestUSDPriceTimestamp: T | null;
+}
+
+export interface LRTFinancials<T extends number | NumberString = number> {
+  percentAPY: T | null;
+  totalSupply: T;
+  totalValueUSD: T | null;
+  totalValueETH: T | null;
+  exchangeRateUSD: T | null;
+  exchangeRateETH: T | null;
+}
+
+export interface BaseAssetDetails {
   name: string;
   symbol: TokenSymbol;
-  address: EthereumAddress;
+  address: Address;
   logo: StaticImageData;
   decimals: number;
 }
 
+export interface AssetDetails
+  extends BaseAssetDetails,
+    AssetFinancials<number> {}
+
+export interface UnderlyingAssetDetails {
+  id: string;
+  balance: number;
+  strategy: Address;
+  asset: AssetDetails;
+}
+
+export interface LRTDetails extends BaseAssetDetails, LRTFinancials {
+  underlyingAssets: UnderlyingAssetDetails[];
+}
+
 export interface AssetPrice {
-  address: EthereumAddress;
+  address: Address;
   symbol: TokenSymbol;
   latestUSDPrice: number;
   latestUSDPriceTimestamp: number;
@@ -113,7 +144,11 @@ export type AssetAddress = {
 // transaction types
 ///////////////////////////
 
-export type TransactionType = 'Deposit' | 'Withdrawal';
+export enum TransactionType {
+  Deposit = 'Deposit',
+  Request = 'Withdrawal Request',
+  Claim = 'Claim'
+}
 export type TransactionStatus = 'Pending' | 'Available' | 'Claimed' | 'None';
 export interface WithdrawEvent {
   date: string;
@@ -124,12 +159,14 @@ export interface WithdrawEvent {
 }
 
 export interface TransactionEvent {
-  date: string;
   type: TransactionType;
-  tx: string;
-  historicalReEthPrice: number;
-  amountReEth: string;
-  balance: string;
+  date: string;
+  address: Address;
+  valueUSD: number;
+  amountChange: number;
+  restakingToken: BaseAssetDetails;
+  userBalanceAfter: number;
+  tx: Hash;
 }
 
 ///////////////////////////
@@ -137,8 +174,8 @@ export interface TransactionEvent {
 ///////////////////////////
 export interface ExitSubgraphResponse {
   id: string;
-  type: ExitType;
-  sender: EthereumAddress;
+  type: unknown;
+  sender: Address;
   tokensOut: {
     symbol: TokenSymbol;
     latestUSDPrice: string;
@@ -147,53 +184,13 @@ export interface ExitSubgraphResponse {
   amountsOut: string[];
   sharesOwed: string[];
   amountIn: string;
-  restakingToken: EthereumAddress;
+  restakingToken: Address;
   tx: string;
   timestamp: string;
 }
 
-export interface AssetSubgraphResponse {
-  name: string;
-  symbol: TokenSymbol;
-  address: EthereumAddress | null;
-  decimals: number;
-}
-
-export type NumberString = `${number}`;
-
-export interface UnderlyingTokenSubgraphResponse {
-  id: string;
-  balance: NumberString;
-  cashBalance: NumberString;
-  managedBalance: NumberString;
-  weight: NumberString;
-  token: AssetSubgraphResponse;
-}
-
-export interface UnderlyingTokenDetails
-  extends Omit<UnderlyingTokenSubgraphResponse, 'id' | 'token'> {
-  token: AssetDetails;
-}
-
-export interface LRTSubgraphResponse
-  extends Omit<AssetSubgraphResponse, 'decimals'> {
-  id: string;
-  totalSupply: NumberString;
-  underlyingTokens: UnderlyingTokenSubgraphResponse[];
-}
-
-export interface LRTDetails {
-  name: string;
-  symbol: TokenSymbol;
-  address: EthereumAddress;
-  logo: StaticImageData;
-  decimals: number;
-  totalSupply: NumberString;
-  underlyingTokens: UnderlyingTokenDetails[];
-}
-
 export interface TransactionEventSubgraphResponse {
-  type: ExitType;
+  type: unknown;
   amountsOut: string[] | null;
   amountOut: string | null;
   amountIn: string;
@@ -203,6 +200,32 @@ export interface TransactionEventSubgraphResponse {
   timestamp: string;
   userBalanceAfter: string;
   user: {
-    address: EthereumAddress;
+    address: Address;
   };
+}
+
+export interface BaseAssetSubgraphResponse {
+  name: string;
+  symbol: TokenSymbol;
+  address: Address | null;
+  decimals: number;
+}
+
+export interface AssetSubgraphResponse
+  extends BaseAssetSubgraphResponse,
+    AssetFinancials<NumberString> {}
+
+export interface UnderlyingAssetSubgraphResponse {
+  id: string;
+  balance: NumberString;
+  strategy: Address;
+  asset: AssetSubgraphResponse;
+}
+
+export interface BaseLRTSubgraphResponse
+  extends Omit<BaseAssetSubgraphResponse, 'decimals'> {}
+export interface LRTSubgraphResponse
+  extends Omit<BaseAssetSubgraphResponse, 'decimals'>,
+    LRTFinancials<NumberString> {
+  underlyingAssets: UnderlyingAssetSubgraphResponse[];
 }

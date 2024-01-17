@@ -4,12 +4,13 @@ import {
   NormalizedCacheObject
 } from '@apollo/client';
 import { getLatestAssetUSDPrice } from '../lib/graphqlQueries';
-import { AssetPrice, CHAIN_ID_NUMBER, EthereumAddress } from '../lib/typings';
+import { AssetPrice, CHAIN_ID_NUMBER } from '../lib/typings';
 import { useEffect, useState } from 'react';
 import subgraphClient from '../lib/subgraphClient';
+import { Address } from 'viem';
 
 export const useGetLatestAssetPrice = (
-  tokenAddress: EthereumAddress,
+  tokenAddress: Address,
   chainId: CHAIN_ID_NUMBER
 ) => {
   const client = subgraphClient(chainId);

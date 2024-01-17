@@ -1,68 +1,91 @@
+import { UseQueryOptions, useQuery } from 'react-query';
 import {
-  ApolloClient,
-  ApolloError,
-  NormalizedCacheObject
-} from '@apollo/client';
-import { getUserExits } from '../lib/graphqlQueries';
-import {
-  EthereumAddress,
-  ExitSubgraphResponse,
-  TransactionStatus,
-  WithdrawEvent
-} from '../lib/typings';
-import subgraphClient from '../lib/subgraphClient';
-import { CHAIN_ID } from '../../config';
-import { useEffect, useState } from 'react';
-import { dateFromTimestamp } from '../lib/utilities';
+  ClaimWithdrawalParams,
+  SubgraphClient,
+  WithdrawalRequest,
+  useSubgraph
+} from '@rionetwork/sdk-react';
+import { BaseAssetDetails, TokenSymbol } from '../lib/typings';
+import { buildRioSdkRestakingKey, isEqualAddress } from '../lib/utilities';
+import { useGetAssetsList } from './useGetAssetsList';
+import { Address } from 'viem';
 
-const parseExits = (data: ExitSubgraphResponse[]): WithdrawEvent[] => {
-  const sorted = [...data].sort((a, b) => {
-    return +b.timestamp - +a.timestamp;
-  });
-  return sorted.map((event) => {
-    return {
-      date: dateFromTimestamp(+event.timestamp),
-      status: 'Claimed' as TransactionStatus, // TODO: "Claimed" hardcoded for now. need to adjust when request > claim > available process is supported
-      symbol: event.tokensOut[0].symbol,
-      amount: +event.amountsOut[0], // TODO: need to adjust when multiple tokens are supported
-      tx: event.tx
-    };
-  });
-};
+interface UseGetAccountWithdrawalsReturn {
+  withdrawalRequests?: WithdrawalRequest[];
+  withdrawalParams: ClaimWithdrawalParams[];
+  withdrawalAssets: { amount: number; symbol: TokenSymbol }[];
+}
 
-export const useGetAccountWithdrawals = (address: EthereumAddress) => {
-  const chainId = CHAIN_ID;
-  const client = subgraphClient(chainId);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState<ApolloError>();
-  const [data, setData] = useState<WithdrawEvent[]>();
-  const getData = async (client: ApolloClient<NormalizedCacheObject>) => {
-    const { data } = await client.query<{
-      exits: ExitSubgraphResponse[];
-    }>({
-      query: getUserExits(address)
+function buildFetcherAndParser(
+  subgraph: SubgraphClient,
+  assets?: BaseAssetDetails[],
+  config?: Parameters<SubgraphClient['getWithdrawalRequests']>[0]
+) {
+  return async () => {
+    const withdrawalRequests = await subgraph.getWithdrawalRequests(config);
+    // store a dictionary of assets to claim per epoch number
+    const byEpoch: Record<string, Record<Address, true>> = {};
+    // store a dictionary of the amount to claim per asset symbol
+    const byAsset: Partial<Record<TokenSymbol, number>> = { ETH: 0 };
+
+    // Loop through each withdrawal request
+    withdrawalRequests?.forEach((r) => {
+      // Filter our requests that are not ready to claim or have already been claimed
+      if (!r.isReadyToClaim || r.isClaimed) return;
+      // Store each asset that is ready to claim in the epoch dictionary
+      byEpoch[r.epoch] = { ...byEpoch[r.epoch], [r.assetOut]: true };
+      // Find the symbol for the asset
+      const a = assets?.find((a) => isEqualAddress(a.address, r.assetOut));
+      // If we don't have the asset in our list (UI only, won't affect claim), skip it
+      if (!a) return;
+      // Add the amount to the asset
+      byAsset[a.symbol] =
+        (byAsset[a.symbol] || 0) + parseFloat(r.amountOut ?? '0');
     });
-    return data;
-  };
 
-  useEffect(() => {
-    if (!chainId) return;
-    getData(client)
-      .then((data) => {
-        if (!data) return;
-        setIsLoading(false);
-        setData(parseExits(data.exits));
-      })
-      .catch((error: ApolloError) => {
-        if (!error) return;
-        setIsError(error);
-        setIsLoading(false);
-      });
-  }, [chainId]);
+    // Return the withdrawal requests, the withdrawal params, and the withdrawal assets
+    return <UseGetAccountWithdrawalsReturn>{
+      withdrawalRequests,
+      // Flatten the epoch dictionary into an array of withdrawal params
+      withdrawalParams: Object.entries(byEpoch)
+        .map(([epoch, assetLookup]) =>
+          Object.keys(assetLookup).map((assetOut) => ({ epoch, assetOut }))
+        )
+        .flat(),
+      // Flatten the asset dictionary into an array of withdrawal assets
+      withdrawalAssets: Object.entries(byAsset).map(([symbol, amount]) => ({
+        symbol,
+        amount
+      }))
+    };
+  };
+}
+
+export function useGetAccountWithdrawals(
+  config?: Parameters<SubgraphClient['getWithdrawalRequests']>[0],
+  queryConfig?: UseQueryOptions<UseGetAccountWithdrawalsReturn, Error>
+) {
+  const subgraph = useSubgraph();
+  const { data: assets } = useGetAssetsList();
+  const { data, ...rest } = useQuery<UseGetAccountWithdrawalsReturn, Error>(
+    buildRioSdkRestakingKey('getWithdrawalRequests', config),
+    buildFetcherAndParser(subgraph, assets, config),
+    {
+      staleTime: 30 * 1000,
+      placeholderData: {
+        withdrawalParams: [],
+        withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
+      },
+      ...queryConfig,
+      enabled: !!assets?.length && queryConfig?.enabled !== false
+    }
+  );
 
   return {
-    data,
-    isLoading,
-    isError
+    data: data || {
+      withdrawalParams: [],
+      withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
+    },
+    ...rest
   };
-};
+}

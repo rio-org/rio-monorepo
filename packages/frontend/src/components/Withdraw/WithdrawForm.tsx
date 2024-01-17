@@ -1,6 +1,6 @@
 import { Alert, Spinner } from '@material-tailwind/react';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAccount, useBalance, useWaitForTransaction } from 'wagmi';
+import { useAccount, useWaitForTransaction } from 'wagmi';
 import { AssetDetails, LRTDetails } from '../../lib/typings';
 import WithdrawAssetSelector from './WithdrawAssetSelector';
 import WithdrawButton from './WithdrawButton';
@@ -8,62 +8,66 @@ import WithdrawField from './WithdrawField';
 import WithdrawItemized from './WithdrawItemized';
 import {
   useLiquidRestakingToken,
-  LiquidRestakingTokenClient,
-  ExitTokenExactInParams,
-  OutputTokenMinOutWithUnwrap
+  LiquidRestakingTokenClient
 } from '@rionetwork/sdk-react';
 import { Hash } from 'viem';
+import { useAssetBalance } from '../../hooks/useAssetBalance';
 
-const WithdrawForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
-  // When more LRT products are available, we'll offer a way to switch these
-  const [activeLrt] = useState<LRTDetails>(lrtList[0]);
+const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
   const assets = useMemo(() => {
-    return activeLrt.underlyingTokens.map((t) => t.token);
-  }, [activeLrt]);
+    return lrt?.underlyingAssets.map((t) => t.asset) || [];
+  }, [lrt]);
 
   const [isMounted, setIsMounted] = useState(false);
   const [amount, setAmount] = useState<bigint | null>(null);
-  const [activeToken, setActiveToken] = useState<AssetDetails>(assets[0]);
-  const [accountReETHBalance, setAccountReETHBalance] = useState(BigInt(0));
-  const [tokenOut, setTokenOut] = useState<OutputTokenMinOutWithUnwrap>();
-  const [amountIn, setAmountIn] = useState<string | bigint>(BigInt(0));
-  const [isExitError, setIsExitError] = useState(false);
-  const [isExitLoading, setIsExitLoading] = useState(false);
-  const [isExitSuccess, setIsExitSuccess] = useState(false);
+  const [activeToken, setActiveToken] = useState<AssetDetails>(assets?.[0]);
+  const [restakingTokenBalance, setAccountRestakingTokenBalance] = useState(
+    BigInt(0)
+  );
+  const [amountOut, setAmountOut] = useState<bigint>(BigInt(0));
+  const [isWithdrawalError, setIsWithdrawalError] = useState(false);
+  const [isWithdrawalLoading, setIsWithdrawalLoading] = useState(false);
+  const [isWithdrawalSuccess, setIsWithdrawalSuccess] = useState(false);
   const [exitTxHash, setExitTxHash] = useState<Hash>();
 
   const { address } = useAccount();
-  const { data, isError, isLoading } = useBalance({
-    address: address,
-    token: activeLrt ? activeLrt.address : undefined
-  });
+
+  const { refetch: refetchAssetBalance } = useAssetBalance(activeToken);
+  const {
+    data,
+    isError,
+    isLoading,
+    refetch: refetchLrtBalance
+  } = useAssetBalance(lrt);
+
   const isValidAmount =
-    amount && amount > BigInt(0) && amount <= accountReETHBalance
-      ? true
-      : false;
+    amount !== null && amount > BigInt(0) && amount <= restakingTokenBalance;
+
   const clearForm = () => {
     setAmount(null);
-    setActiveToken(assets[0]);
+    assets[0] && setActiveToken(assets[0]);
   };
 
   useEffect(() => {
-    if (data) {
-      setAccountReETHBalance(data?.value);
-    }
+    if (!data) return;
+    setAccountRestakingTokenBalance(data?.value);
   }, [data]);
 
-  const restakingToken = useLiquidRestakingToken(activeLrt?.address as string);
+  const restakingToken = useLiquidRestakingToken(lrt?.address as string);
   const queryTokens = async (
     restakingToken: LiquidRestakingTokenClient | null,
     activeToken: AssetDetails,
     amount: bigint | null
-  ) => {
-    const query = await restakingToken?.queryRequestExitTokenExactIn({
+  ): Promise<bigint | undefined> => {
+    if (amount === BigInt(0)) {
+      return BigInt(0);
+    }
+
+    const query = await restakingToken?.getEstimatedOutForWithdrawalRequest({
       amountIn: amount || BigInt(0),
-      tokenOut: activeToken.address,
-      slippage: 50
+      assetOut: activeToken.address
     });
-    return query;
+    return query as bigint;
   };
 
   const {
@@ -75,10 +79,9 @@ const WithdrawForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
     enabled: !!exitTxHash
   });
 
-  const handleTokenQuery = (res?: ExitTokenExactInParams) => {
-    if (!res) return;
-    setAmountIn(res.amountIn);
-    setTokenOut(res.tokenOut);
+  const handleTokenQuery = (res?: bigint | undefined) => {
+    if (typeof res === 'undefined') return;
+    setAmountOut(res);
   };
 
   useEffect(() => {
@@ -86,76 +89,75 @@ const WithdrawForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
   }, []);
 
   useEffect(() => {
-    if (restakingToken) {
-      queryTokens(restakingToken, activeToken, amount)
-        .then((res) => {
-          handleTokenQuery(res);
-        })
-        .catch((err) => {
-          console.log('err', err);
-        });
-    }
+    if (!restakingToken) return;
+    queryTokens(restakingToken, activeToken, amount)
+      .then(handleTokenQuery)
+      .catch(console.error);
   }, [amount, activeToken]);
 
   useEffect(() => {
     if (txData?.status === 'success') {
-      setIsExitLoading(isTxLoading);
-      setIsExitSuccess(true);
-      amountIn && setAmountIn(BigInt(0));
-      tokenOut && setTokenOut(undefined);
+      setIsWithdrawalLoading(isTxLoading);
+      setIsWithdrawalSuccess(true);
+      amountOut && setAmountOut(BigInt(0));
       setAmount(null);
     }
     if (txData?.status === 'reverted') {
-      setIsExitLoading(isTxLoading);
-      setIsExitError(isTxError);
+      setIsWithdrawalLoading(isTxLoading);
+      setIsWithdrawalError(isTxError);
     }
+    refetchLrtBalance().catch(console.error);
+    refetchAssetBalance().catch(console.error);
   }, [txData]);
 
   const handleExitRequest = async () => {
-    if (!amount || !tokenOut || !restakingToken) return;
+    if (!restakingToken || !amount) return;
+
     await restakingToken
-      ?.requestExitTokenExactIn({
-        amountIn: amountIn,
-        tokenOut: tokenOut
+      ?.requestWithdrawal({
+        amountIn: amount,
+        assetOut: activeToken.address
       })
       .then((res) => {
         setExitTxHash(res);
         return res;
       })
       .catch((err) => {
-        console.log('handleExitRequest err', err);
-        setIsExitError(true);
-        setIsExitLoading(false);
+        console.error('handleExitRequest err', err);
+        setIsWithdrawalError(true);
+        setIsWithdrawalLoading(false);
       });
   };
 
   const handleExecute = () => {
-    setIsExitLoading(true);
-    setIsExitError(false);
-    setIsExitSuccess(false);
+    setIsWithdrawalLoading(true);
+    setIsWithdrawalError(false);
+    setIsWithdrawalSuccess(false);
     setExitTxHash(undefined);
-    handleExitRequest().catch((e) => {
-      console.error(e);
-    });
+    handleExitRequest().catch(console.error);
   };
 
-  if (isError) return <Alert color="red">Error loading account balance.</Alert>;
-  if (isLoading)
+  if (isError) {
+    return <Alert color="red">Error loading account balance.</Alert>;
+  }
+
+  if (isLoading) {
     return (
       <div className="w-full text-center min-h-[100px] flex items-center justify-center">
         <Spinner />
       </div>
     );
+  }
 
   return (
     <>
       {isMounted && !isLoading && (
         <>
-          {!!activeLrt && (
+          {!!lrt && (
             <WithdrawField
               amount={amount}
-              accountReETHBalance={accountReETHBalance}
-              reETHToken={activeLrt}
+              restakingTokenBalance={restakingTokenBalance}
+              restakingToken={lrt}
               setAmount={setAmount}
             />
           )}
@@ -168,19 +170,21 @@ const WithdrawForm = ({ lrtList }: { lrtList: LRTDetails[] }) => {
           )}
           <WithdrawItemized
             assets={assets}
-            amount={amount}
+            restakingToken={lrt}
+            amount={amountOut}
             activeToken={activeToken}
           />
           {address && (
             <WithdrawButton
-              isValid={isValidAmount}
-              isExitLoading={isExitLoading}
-              isExitSuccess={isExitSuccess}
-              isExitError={isExitError}
+              isValidAmount={isValidAmount}
+              isEmpty={amount === null || amount === BigInt(0)}
+              isWithdrawalLoading={isWithdrawalLoading}
+              isWithdrawalSuccess={isWithdrawalSuccess}
+              isWithdrawalError={isWithdrawalError}
               accountAddress={address}
               exitTxHash={exitTxHash}
-              setIsExitSuccess={setIsExitSuccess}
-              setIsExitError={setIsExitError}
+              setIsWithdrawalSuccess={setIsWithdrawalSuccess}
+              setIsWithdrawalError={setIsWithdrawalError}
               handleExecute={handleExecute}
               clearForm={clearForm}
             />

@@ -1,6 +1,5 @@
-import React from 'react';
-import { EthereumAddress, WithdrawEvent } from '../../lib/typings';
-import cx from 'classnames';
+import React, { useMemo } from 'react';
+import { TransactionStatus } from '../../lib/typings';
 import IconExternal from '../Icons/IconExternal';
 import { IconClock } from '../Icons/IconClock';
 import dayjs from 'dayjs';
@@ -8,9 +7,15 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
 import { CHAIN_ID } from '../../../config';
+import {
+  WithdrawalEpochStatus,
+  WithdrawalRequest
+} from '@rionetwork/sdk-react';
+import { twJoin, twMerge } from 'tailwind-merge';
+import { Hash } from 'viem';
 
 type Props = {
-  transaction: WithdrawEvent;
+  transaction: WithdrawalRequest;
 };
 
 const TransactionStatusLabel = ({ transaction }: Props) => {
@@ -55,33 +60,57 @@ const TransactionStatusLabel = ({ transaction }: Props) => {
   const endDateTime = today.setDate(today.getDate() + 7) / 1000;
   const timeLeft = dayjs.unix(endDateTime);
 
+  const status = useMemo<TransactionStatus>(() => {
+    if (transaction.claimTx) return 'Claimed';
+    if (transaction.epochStatus === WithdrawalEpochStatus.Settled) {
+      return 'Available';
+    }
+    return 'Pending';
+  }, [transaction.claimTx, transaction.epochStatus]);
+
+  const extendedClassName = useMemo(() => {
+    switch (status) {
+      case 'Claimed':
+        return twJoin(
+          'bg-[var(--color-blue-bg)] text-[var(--color-blue)]',
+          'hover:bg-[var(--color-blue-bg-hover)]'
+        );
+      case 'Available':
+        return twJoin(
+          'bg-[var(--color-green-bg)] text-[var(--color-green)]',
+          'hover:bg-[var(--color-green-bg-hover)]'
+        );
+      case 'Pending':
+      default:
+        return twJoin(
+          'bg-[var(--color-yellow-bg)] text-[var(--color-yellow)]',
+          'hover:bg-[var(--color-yellow-bg-hover)]'
+        );
+    }
+  }, [status]);
+
   return (
     <div className="w-full">
       <a
         href={linkToTxOnBlockExplorer(
-          transaction.tx as EthereumAddress,
+          (transaction.claimTx || transaction.tx) as Hash,
           CHAIN_ID
         )}
         target="_blank"
         rel="noreferrer"
-        className={cx(
+        className={twMerge(
           `px-[8px] py-[4px] whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200`,
-          transaction.status === 'Pending' &&
-            'bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] hover:bg-[var(--color-yellow-bg-hover)]',
-          transaction.status === 'Available' &&
-            'bg-[var(--color-green-bg)] text-[var(--color-green)] hover:bg-[var(--color-green-bg-hover)]',
-          transaction.status === 'Claimed' &&
-            'bg-[var(--color-blue-bg)] text-[var(--color-blue)] hover:bg-[var(--color-blue-bg-hover)]'
+          extendedClassName
         )}
       >
-        {transaction.status === 'Pending' && (
+        {status === 'Pending' && (
           <div className="flex flex-row gap-1 items-center">
             <IconClock />
             {timeLeft.fromNow(true)}
           </div>
         )}
-        <span>{transaction.status}</span>
-        <IconExternal transactionStatus={transaction.status} />
+        <span>{status}</span>
+        <IconExternal transactionStatus={status} />
       </a>
     </div>
   );
