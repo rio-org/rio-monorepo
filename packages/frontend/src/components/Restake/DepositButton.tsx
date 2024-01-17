@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { Spinner } from '@material-tailwind/react';
-import { EthereumAddress } from '../../lib/typings';
 import { CHAIN_ID } from '../../../config';
+import type { Address } from 'viem';
 import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { getChainName } from '../../lib/utilities';
 
@@ -16,7 +16,7 @@ type Props = {
   isDepositSuccess: boolean;
   isDepositError: boolean;
   depositTxHash?: `0x${string}`;
-  accountAddress?: EthereumAddress;
+  accountAddress?: Address;
   setIsDepositSuccess: (isSuccess: boolean) => void;
   setIsDepositError: (isError: boolean) => void;
   handleExecute: () => void;

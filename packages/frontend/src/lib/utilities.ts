@@ -1,4 +1,4 @@
-import { formatUnits, getAddress, zeroAddress } from 'viem';
+import { Address, formatUnits, getAddress, zeroAddress } from 'viem';
 import { ASSETS, ASSET_LOGOS } from './constants';
 import {
   AssetDetails,
@@ -7,7 +7,6 @@ import {
   BaseAssetSubgraphResponse,
   BaseLRTSubgraphResponse,
   CHAIN_ID_NUMBER,
-  EthereumAddress,
   LRTDetails,
   LRTSubgraphResponse,
   TokenSymbol,
@@ -72,7 +71,7 @@ export const getAlchemyChainLabel = (chainId: CHAIN_ID_NUMBER) => {
 };
 
 export const linkToAddressOnBlockExplorer = (
-  address: EthereumAddress,
+  address: Address,
   chainId: number
 ) => {
   const chainName = getChainName(chainId);
@@ -85,10 +84,7 @@ export const linkToAddressOnBlockExplorer = (
   return `https://${subdomain}etherscan.io/address/${address}`;
 };
 
-export const linkToTxOnBlockExplorer = (
-  address: EthereumAddress,
-  chainId: number
-) => {
+export const linkToTxOnBlockExplorer = (address: Address, chainId: number) => {
   const chainName = getChainName(chainId);
   const subdomain =
     chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';

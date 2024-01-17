@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { EthereumAddress, TransactionStatus } from '../../lib/typings';
+import { TransactionStatus } from '../../lib/typings';
 import IconExternal from '../Icons/IconExternal';
 import { IconClock } from '../Icons/IconClock';
 import dayjs from 'dayjs';
@@ -12,6 +12,7 @@ import {
   WithdrawalRequest
 } from '@rionetwork/sdk-react';
 import { twJoin, twMerge } from 'tailwind-merge';
+import { Hash } from 'viem';
 
 type Props = {
   transaction: WithdrawalRequest;
@@ -92,7 +93,7 @@ const TransactionStatusLabel = ({ transaction }: Props) => {
     <div className="w-full">
       <a
         href={linkToTxOnBlockExplorer(
-          (transaction.claimTx || transaction.tx) as EthereumAddress,
+          (transaction.claimTx || transaction.tx) as Hash,
           CHAIN_ID
         )}
         target="_blank"

@@ -5,9 +5,10 @@ import {
   WithdrawalRequest,
   useSubgraph
 } from '@rionetwork/sdk-react';
-import { BaseAssetDetails, EthereumAddress, TokenSymbol } from '../lib/typings';
+import { BaseAssetDetails, TokenSymbol } from '../lib/typings';
 import { buildRioSdkRestakingKey, isEqualAddress } from '../lib/utilities';
 import { useGetAssetsList } from './useGetAssetsList';
+import { Address } from 'viem';
 
 interface UseGetAccountWithdrawalsReturn {
   withdrawalRequests?: WithdrawalRequest[];
@@ -23,7 +24,7 @@ function buildFetcherAndParser(
   return async () => {
     const withdrawalRequests = await subgraph.getWithdrawalRequests(config);
     // store a dictionary of assets to claim per epoch number
-    const byEpoch: Record<string, Record<EthereumAddress, true>> = {};
+    const byEpoch: Record<string, Record<Address, true>> = {};
     // store a dictionary of the amount to claim per asset symbol
     const byAsset: Partial<Record<TokenSymbol, number>> = { ETH: 0 };
 
@@ -66,7 +67,7 @@ export function useGetAccountWithdrawals(
 ) {
   const subgraph = useSubgraph();
   const { data: assets } = useGetAssetsList();
-  return useQuery<UseGetAccountWithdrawalsReturn, Error>(
+  const { data, ...rest } = useQuery<UseGetAccountWithdrawalsReturn, Error>(
     buildRioSdkRestakingKey('getWithdrawalRequests', config),
     buildFetcherAndParser(subgraph, assets, config),
     {
@@ -79,4 +80,12 @@ export function useGetAccountWithdrawals(
       enabled: !!assets?.length && queryConfig?.enabled !== false
     }
   );
+
+  return {
+    data: data || {
+      withdrawalParams: [],
+      withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
+    },
+    ...rest
+  };
 }

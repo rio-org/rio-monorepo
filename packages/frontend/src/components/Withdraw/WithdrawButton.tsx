@@ -4,8 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
 import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
-import { EthereumAddress } from '../../lib/typings';
-import { Hash } from 'viem';
+import { Hash, Address } from 'viem';
 import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi';
 import { CHAIN_ID } from '../../../config';
 import { getChainName } from '../../lib/utilities';
@@ -16,7 +15,7 @@ type Props = {
   isWithdrawalLoading: boolean;
   isWithdrawalSuccess: boolean;
   isWithdrawalError: boolean;
-  accountAddress: EthereumAddress;
+  accountAddress: Address;
   exitTxHash?: Hash;
   setIsWithdrawalSuccess: (isSuccess: boolean) => void;
   setIsWithdrawalError: (isError: boolean) => void;

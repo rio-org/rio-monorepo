@@ -3,7 +3,6 @@ import {
   AssetDetails,
   AssetFinancials,
   BaseAssetDetails,
-  EthereumAddress,
   LRTDetails,
   LRTFinancials,
   TokenSymbol,
@@ -11,6 +10,7 @@ import {
 } from '../lib/typings';
 import { isEqualAddress } from '../lib/utilities';
 import { useGetLiquidRestakingTokens } from './useGetLiquidRestakingTokens';
+import { Address } from 'viem';
 
 interface UseAssetExchangeRateReturn {
   data: {
@@ -29,7 +29,7 @@ export const useAssetExchangeRate = ({
   asset: _asset,
   lrt: _lrt
 }: {
-  asset: EthereumAddress | TokenSymbol | BaseAssetDetails | null | undefined;
+  asset: Address | TokenSymbol | BaseAssetDetails | null | undefined;
   lrt: LRTDetails | TokenSymbol | null | undefined;
 }): UseAssetExchangeRateReturn => {
   if (!_asset || !_lrt) {
@@ -61,7 +61,6 @@ export const useAssetExchangeRate = ({
     let asset: AssetFinancials | undefined = undefined;
     let eth: AssetFinancials | undefined = undefined;
     try {
-      const accessor = (a: unknown) => (a as UnderlyingAssetDetails).asset;
       for (const item of lrtList || []) {
         if (asset && eth && lrt) break;
         lrt ||= findAsset(_lrt, [item]);
@@ -95,15 +94,19 @@ export const useAssetExchangeRate = ({
   }, [data, isLrtListLoading, isLrtListError, assetError]);
 };
 
-//////////
-// helper
-//////////
+///////////
+// helpers
+///////////
+
+function accessor(a: unknown) {
+  return (a as UnderlyingAssetDetails).asset;
+}
 
 function findAsset<
   T extends LRTDetails | AssetDetails | BaseAssetDetails,
   R extends LRTDetails | UnderlyingAssetDetails
 >(
-  searchParam: EthereumAddress | TokenSymbol | T,
+  searchParam: Address | TokenSymbol | T,
   list?: R[],
   itemAccessor?: (item: unknown) => AssetDetails
 ) {

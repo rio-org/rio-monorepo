@@ -9,12 +9,12 @@ import {
   useWaitForTransaction
 } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
-import { zeroAddress } from 'viem';
-import { AssetDetails, EthereumAddress } from '../../lib/typings';
+import { Address, zeroAddress } from 'viem';
+import { AssetDetails } from '../../lib/typings';
 
 type Props = {
-  allowanceTarget?: EthereumAddress;
-  accountAddress: EthereumAddress;
+  allowanceTarget?: Address;
+  accountAddress: Address;
   isValidAmount: boolean;
   amount: bigint;
   token?: AssetDetails;

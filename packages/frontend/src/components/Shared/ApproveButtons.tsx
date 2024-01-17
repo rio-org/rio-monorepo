@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Alert from '../Shared/Alert';
 import { TOKEN_CAP_MAX } from '../../lib/constants';
-import { parseUnits } from 'viem';
-import { AssetDetails, EthereumAddress } from '../../lib/typings';
+import { parseUnits, Address } from 'viem';
+import { AssetDetails } from '../../lib/typings';
 import ApproveButton from './ApproveButton';
 
 type Props = {
-  allowanceTarget?: EthereumAddress;
-  accountAddress: EthereumAddress;
+  allowanceTarget?: Address;
+  accountAddress: Address;
   isValidAmount: boolean;
   amount: bigint;
   token?: AssetDetails;

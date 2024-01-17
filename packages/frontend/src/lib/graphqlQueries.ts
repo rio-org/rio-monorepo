@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client';
-import { EthereumAddress } from './typings';
+import { Address } from 'viem';
 
 export const getAssetList = () => {
   return gql`
@@ -54,7 +54,7 @@ export const getLiquidRestakingTokenList = () => {
   `;
 };
 
-export const getLatestAssetUSDPrice = (tokenAddress: EthereumAddress) => {
+export const getLatestAssetUSDPrice = (tokenAddress: Address) => {
   return gql`
     query getLatestAssetUSDPrice {
       asset(id: "${tokenAddress}") {
@@ -67,7 +67,7 @@ export const getLatestAssetUSDPrice = (tokenAddress: EthereumAddress) => {
   `;
 };
 
-export const getUserExits = (address: EthereumAddress) => {
+export const getUserExits = (address: Address) => {
   return gql`
     query getUserExits {
       exits(
@@ -91,7 +91,7 @@ export const getUserExits = (address: EthereumAddress) => {
   `;
 };
 
-export const getUserTxHistory = (address: EthereumAddress) => {
+export const getUserTxHistory = (address: Address) => {
   return gql`
     query getUserTxHistory {
       joins(

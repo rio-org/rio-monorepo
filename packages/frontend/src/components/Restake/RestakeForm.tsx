@@ -7,7 +7,7 @@ import {
   useWaitForTransaction
 } from 'wagmi';
 import { Alert, Spinner } from '@material-tailwind/react';
-import { AssetDetails, EthereumAddress, LRTDetails } from '../../lib/typings';
+import { AssetDetails, LRTDetails } from '../../lib/typings';
 import HR from '../Shared/HR';
 import DepositButton from './DepositButton';
 import {
@@ -15,7 +15,7 @@ import {
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
 import { displayEthAmount } from '../../lib/utilities';
-import { Hash, formatUnits, zeroAddress } from 'viem';
+import { Address, Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '../Shared/ApproveButtons';
 import { useIsMounted } from '../../hooks/useIsMounted';
 import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
@@ -45,7 +45,7 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   const [isDepositLoading, setIsDepositLoading] = useState(false);
   const [isDepositSuccess, setIsDepositSuccess] = useState(false);
   const [depositTxHash, setDepositTxHash] = useState<Hash>();
-  const [allowanceTarget, setAllowanceTarget] = useState<EthereumAddress>();
+  const [allowanceTarget, setAllowanceTarget] = useState<Address>();
   const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(false);
@@ -115,7 +115,7 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     }
     try {
       if (restakingToken?.allowanceTarget) {
-        setAllowanceTarget(restakingToken.allowanceTarget as EthereumAddress);
+        setAllowanceTarget(restakingToken.allowanceTarget as Address);
       }
     } catch (err) {
       console.error('Error getting allowance target', err);

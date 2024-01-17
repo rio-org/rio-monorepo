@@ -1,7 +1,7 @@
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
 import { StaticImageData } from 'next/image';
+import { Address, Hash } from 'viem';
 import { Chain as WagmiChain } from 'wagmi';
-export type EthereumAddress = `0x${string}`;
 export type NumberString = `${number}`;
 export type EthereumTransactionHash = `0x${string}`;
 export type EthereumCalldata = string;
@@ -99,7 +99,7 @@ export interface LRTFinancials<T extends number | NumberString = number> {
 export interface BaseAssetDetails {
   name: string;
   symbol: TokenSymbol;
-  address: EthereumAddress;
+  address: Address;
   logo: StaticImageData;
   decimals: number;
 }
@@ -111,7 +111,7 @@ export interface AssetDetails
 export interface UnderlyingAssetDetails {
   id: string;
   balance: number;
-  strategy: EthereumAddress;
+  strategy: Address;
   asset: AssetDetails;
 }
 
@@ -120,7 +120,7 @@ export interface LRTDetails extends BaseAssetDetails, LRTFinancials {
 }
 
 export interface AssetPrice {
-  address: EthereumAddress;
+  address: Address;
   symbol: TokenSymbol;
   latestUSDPrice: number;
   latestUSDPriceTimestamp: number;
@@ -144,7 +144,11 @@ export type AssetAddress = {
 // transaction types
 ///////////////////////////
 
-export type TransactionType = 'Deposit' | 'Withdrawal';
+export enum TransactionType {
+  Deposit = 'Deposit',
+  Request = 'Withdrawal Request',
+  Claim = 'Claim'
+}
 export type TransactionStatus = 'Pending' | 'Available' | 'Claimed' | 'None';
 export interface WithdrawEvent {
   date: string;
@@ -155,12 +159,14 @@ export interface WithdrawEvent {
 }
 
 export interface TransactionEvent {
-  date: string;
   type: TransactionType;
-  tx: string;
-  historicalReEthPrice: number;
-  amountReEth: string;
-  balance: string;
+  date: string;
+  address: Address;
+  valueUSD: number;
+  amountChange: number;
+  restakingToken: BaseAssetDetails;
+  userBalanceAfter: number;
+  tx: Hash;
 }
 
 ///////////////////////////
@@ -169,7 +175,7 @@ export interface TransactionEvent {
 export interface ExitSubgraphResponse {
   id: string;
   type: unknown;
-  sender: EthereumAddress;
+  sender: Address;
   tokensOut: {
     symbol: TokenSymbol;
     latestUSDPrice: string;
@@ -178,7 +184,7 @@ export interface ExitSubgraphResponse {
   amountsOut: string[];
   sharesOwed: string[];
   amountIn: string;
-  restakingToken: EthereumAddress;
+  restakingToken: Address;
   tx: string;
   timestamp: string;
 }
@@ -194,14 +200,14 @@ export interface TransactionEventSubgraphResponse {
   timestamp: string;
   userBalanceAfter: string;
   user: {
-    address: EthereumAddress;
+    address: Address;
   };
 }
 
 export interface BaseAssetSubgraphResponse {
   name: string;
   symbol: TokenSymbol;
-  address: EthereumAddress | null;
+  address: Address | null;
   decimals: number;
 }
 
@@ -212,7 +218,7 @@ export interface AssetSubgraphResponse
 export interface UnderlyingAssetSubgraphResponse {
   id: string;
   balance: NumberString;
-  strategy: EthereumAddress;
+  strategy: Address;
   asset: AssetSubgraphResponse;
 }
 

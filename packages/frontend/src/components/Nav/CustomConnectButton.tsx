@@ -1,5 +1,5 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { ConnectButtonProps, EthereumAddress } from '../../lib/typings';
+import { ConnectButtonProps } from '../../lib/typings';
 import {
   Menu,
   MenuHandler,
@@ -16,7 +16,7 @@ import { DESKTOP_MQ } from '../../lib/constants';
 import cx from 'classnames';
 import { mainNavConnectVariants } from '../../lib/motion';
 import { motion } from 'framer-motion';
-import { formatEther, formatUnits } from 'viem';
+import { Address, formatEther, formatUnits } from 'viem';
 import { displayEthAmount } from '../../lib/utilities';
 import { useIsMounted } from '../../hooks/useIsMounted';
 import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
@@ -56,7 +56,7 @@ export const CustomConnectButton = () => {
         });
 
         const { data: reEthBalance } = useBalance({
-          address: account?.address as EthereumAddress,
+          address: account?.address as Address,
           token: lrts?.find((t) => /^reETH/i.test(t.symbol))?.address
         });
 

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import cx from 'classnames';
 import TableRow from './TableRow';
 import { useMediaQuery } from 'react-responsive';
@@ -7,48 +6,39 @@ import {
   TX_HISTORY_TABLE_HEADER_LABELS
 } from '../../lib/constants';
 import { useAccount } from 'wagmi';
-import { useGetAccountTxHistory } from '../../hooks/useGetAccountTxHistory';
-import { EthereumAddress } from '../../lib/typings';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
 import Pagination from './Pagination';
 import { useIsMounted } from '../../hooks/useIsMounted';
+import { useTransactionHistory } from '../../hooks/useUserHistory';
+import { LRTDetails } from '../../lib/typings';
+import { usePagination } from '../../hooks/usePagination';
 
-const TransactionHistoryTable = () => {
-  const isMounted = useIsMounted();
-  const [page, setPage] = useState(0);
+interface Props {
+  lrt?: LRTDetails;
+}
+
+const TransactionHistoryTable = ({ lrt }: Props) => {
+  const isDesktopOrLaptop = useMediaQuery({ query: DESKTOP_MQ });
   const { address } = useAccount();
-  const isDesktopOrLaptop = useMediaQuery({
-    query: DESKTOP_MQ
+  const isMounted = useIsMounted();
+
+  const { data: txHistory, isLoading } = useTransactionHistory({
+    where: { sender: address, restakingToken: lrt?.address }
   });
-  const resultsPerPage = 10;
-  const txHistory = useGetAccountTxHistory(
-    address as EthereumAddress,
-    resultsPerPage,
-    page
-  );
-  const pages = Array.from(Array(txHistory.pageCount).keys());
 
-  const handlePageNum = (pageNum: number) => {
-    if (pageNum < 0 || pageNum >= txHistory.pageCount) return;
-    setPage(pageNum);
-  };
-  const handleNextPage = () => {
-    if (page === txHistory.pageCount - 1) return;
-    setPage(page + 1);
-  };
-
-  const handlePreviousPage = () => {
-    if (page === 0) return;
-    setPage(page - 1);
-  };
+  const pagination = usePagination({
+    items: txHistory?.concat(txHistory),
+    resultsPerPage: 10
+  });
 
   return (
     <div>
       <h1 className="text-2xl mb-5 font-medium">Transaction History</h1>
       <AnimatePresence mode="wait">
-        {(txHistory.isLoading || !isMounted) && (
+        {(isLoading || !isMounted) && (
           <motion.div
+            key="loading"
             className="bg-white w-full flex items-center justify-center border-t border-blue-gray-50 p-4 rounded-xl h-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -58,26 +48,22 @@ const TransactionHistoryTable = () => {
             <Spinner color="blue" />
           </motion.div>
         )}
-      </AnimatePresence>
-      {isMounted && (
-        <>
-          {address ? (
-            <AnimatePresence mode="wait">
+        {isMounted && !isLoading && (
+          <>
+            {address && txHistory ? (
               <motion.div
                 className="bg-[var(--color-element-wrapper-bg)] p-[2px] rounded-t-2xl rounded-b-xl relative"
                 layout
-                key={page}
+                key={pagination.currentPage}
                 initial={false}
-                transition={{
-                  duration: 0.05
-                }}
+                transition={{ duration: 0.05 }}
                 layoutId="table-wrapper"
               >
-                {txHistory.data.length > 0 && (
-                  <table
+                {!!txHistory?.length && (
+                  <motion.table
                     className={cx(
                       'w-full min-w-fit table-auto text-left',
-                      txHistory.pageCount < 2 && 'rounded-b-xl overflow-hidden'
+                      pagination.pageCount < 2 && 'rounded-b-xl overflow-hidden'
                     )}
                   >
                     {isMounted && isDesktopOrLaptop && (
@@ -109,42 +95,37 @@ const TransactionHistoryTable = () => {
                         duration: 0.075
                       }}
                     >
-                      {txHistory.data.map((event, i) => {
-                        return (
-                          <TableRow
-                            key={i}
-                            event={event}
-                            isFirst={i === 0}
-                            index={i}
-                          />
-                        );
-                      })}
+                      {pagination.currentPageItems?.map((event, i) => (
+                        <TableRow
+                          key={i}
+                          event={event}
+                          isFirst={i === 0}
+                          index={i}
+                        />
+                      ))}
                     </motion.tbody>
-                  </table>
+                  </motion.table>
                 )}
-                {txHistory.pageCount > 1 && (
-                  <Pagination
-                    page={page}
-                    pages={pages}
-                    hasNextPage={txHistory.hasNextPage}
-                    handleNextPage={handleNextPage}
-                    handlePreviousPage={handlePreviousPage}
-                    handlePageNum={handlePageNum}
-                  />
+                {pagination.pageCount > 1 && (
+                  <Pagination {...pagination} className="" />
                 )}
               </motion.div>
-            </AnimatePresence>
-          ) : (
-            <div className="bg-[var(--color-element-wrapper-bg)] p-[2px] rounded-2xl">
-              <div className="bg-white w-full flex items-center justify-between border-t border-blue-gray-50 p-4 rounded-xl">
-                <p className="opacity-50 text-center w-full">
-                  Connect to see your transactions
-                </p>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+            ) : (
+              <motion.div
+                key="empty"
+                className="bg-[var(--color-element-wrapper-bg)] p-[2px] rounded-2xl"
+              >
+                <div className="bg-white w-full flex items-center justify-between border-t border-blue-gray-50 p-4 rounded-xl">
+                  <p className="opacity-50 text-center w-full">
+                    {!address && 'Connect to see your transactions'}
+                    {!!address && !txHistory && 'No transaction history'}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
