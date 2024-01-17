@@ -74,6 +74,12 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice A mapping of operator ids to their detailed information.
     mapping(uint8 => OperatorDetails) internal operatorDetails;
 
+    /// @notice Require that the caller is the coordinator.
+    modifier onlyCoordinator() {
+        if (msg.sender != address(coordinator)) revert ONLY_COORDINATOR();
+        _;
+    }
+
     /// @notice Require that the caller is the deposit pool.
     modifier onlyDepositPool() {
         if (msg.sender != depositPool) revert ONLY_DEPOSIT_POOL();
@@ -695,7 +701,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice Deallocates a specified amount of shares for the provided strategy from the operators with the highest utilization.
     /// @param strategy The strategy to deallocate the shares from.
     /// @param sharesToDeallocate The amount of shares to deallocate.
-    function deallocateStrategyShares(address strategy, uint256 sharesToDeallocate) external onlyDepositPool returns (uint256 sharesDeallocated, OperatorStrategyDeallocation[] memory deallocations) {        
+    function deallocateStrategyShares(address strategy, uint256 sharesToDeallocate) external onlyCoordinator returns (uint256 sharesDeallocated, OperatorStrategyDeallocation[] memory deallocations) {        
         deallocations = new OperatorStrategyDeallocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForStrategy(strategy);
@@ -745,7 +751,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     // forgefmt: disable-next-item
     /// @notice Deallocates a specified amount of ETH deposits from the operators with the highest utilization.
     /// @param depositsToDeallocate The amount of deposits to deallocate (32 ETH each)
-    function deallocateETHDeposits(uint256 depositsToDeallocate) external onlyDepositPool returns (uint256 depositsDeallocated, OperatorETHDeallocation[] memory deallocations) {
+    function deallocateETHDeposits(uint256 depositsToDeallocate) external onlyCoordinator returns (uint256 depositsDeallocated, OperatorETHDeallocation[] memory deallocations) {
         deallocations = new OperatorETHDeallocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForETH();

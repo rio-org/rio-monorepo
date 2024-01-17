@@ -120,6 +120,9 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when the caller is not the operator's manager or OR the security daemon.
     error ONLY_OPERATOR_MANAGER_OR_SECURITY_DAEMON();
 
+    /// @notice Thrown when the caller is not the coordinator.
+    error ONLY_COORDINATOR();
+
     /// @notice Thrown when the caller is not the deposit pool.
     error ONLY_DEPOSIT_POOL();
 
