@@ -6,12 +6,12 @@ import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import {RioLRTOperatorRegistry} from 'contracts/restaking/RioLRTOperatorRegistry.sol';
 import {RioLRTRewardDistributor} from 'contracts/restaking/RioLRTRewardDistributor.sol';
+import {RioLRTOperatorDelegator} from 'contracts/restaking/RioLRTOperatorDelegator.sol';
 import {RioLRTWithdrawalQueue} from 'contracts/restaking/RioLRTWithdrawalQueue.sol';
 import {RioLRTAssetRegistry} from 'contracts/restaking/RioLRTAssetRegistry.sol';
 import {RioLRTCoordinator} from 'contracts/restaking/RioLRTCoordinator.sol';
 import {RioLRTAVSRegistry} from 'contracts/restaking/RioLRTAVSRegistry.sol';
 import {RioLRTDepositPool} from 'contracts/restaking/RioLRTDepositPool.sol';
-import {RioLRTOperator} from 'contracts/restaking/RioLRTOperator.sol';
 import {RioLRTIssuer} from 'contracts/restaking/RioLRTIssuer.sol';
 import {RioLRT} from 'contracts/restaking/RioLRT.sol';
 
@@ -50,14 +50,7 @@ contract DeployRioIssuerBase is Script {
                     new RioLRTOperatorRegistry(
                         vm.addr(deployerKey),
                         address(
-                            new RioLRTOperator(
-                                strategyManager,
-                                eigenPodManager,
-                                delegationManager,
-                                blsPublicKeyCompendium,
-                                slasher,
-                                address(0)
-                            )
+                            new RioLRTOperatorDelegator(strategyManager, eigenPodManager, delegationManager)
                         )
                     )
                 ),

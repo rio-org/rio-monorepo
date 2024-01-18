@@ -4,19 +4,18 @@ pragma solidity 0.8.21;
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {Initializable} from '@openzeppelin/contracts/proxy/utils/Initializable.sol';
+import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
-import {IBLSPublicKeyCompendium} from 'contracts/interfaces/eigenlayer/IBLSPublicKeyCompendium.sol';
-import {IRegistryCoordinator} from 'contracts/interfaces/eigenlayer/IRegistryCoordinator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
 import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager.sol';
-import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
+import {ISignatureUtils} from 'contracts/interfaces/eigenlayer/ISignatureUtils.sol';
 import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
-import {ISlasher} from 'contracts/interfaces/eigenlayer/ISlasher.sol';
 import {Memory} from 'contracts/utils/Memory.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
-contract RioLRTOperator is IRioLRTOperator, Initializable {
+contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     using SafeERC20 for IERC20;
     using Array for *;
 
@@ -44,15 +43,6 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
 
     /// @notice The primary delegation contract for EigenLayer.
     IDelegationManager public immutable delegationManager;
-
-    /// @notice A contract for EigenLayer operators to register their BLS public keys.
-    IBLSPublicKeyCompendium public immutable blsPublicKeyCompendium;
-
-    /// @notice The primary 'slashing' contract for EigenLayer.
-    ISlasher public immutable slasher;
-
-    /// @notice The address that verifies staker delegation signatures and control forced undelegations.
-    address public immutable delegationApprover;
 
     /// @notice The address of the LRT operator registry.
     address public operatorRegistry;
@@ -90,48 +80,38 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @param strategyManager_ The primary entry and exit-point for funds into and out of EigenLayer.
     /// @param eigenPodManager_ The contract used for creating and managing EigenPods.
     /// @param delegationManager_ The primary delegation contract for EigenLayer.
-    /// @param blsPublicKeyCompendium_ A contract for EigenLayer operators to register their BLS public keys.
-    /// @param slasher_ The primary 'slashing' contract for EigenLayer.
-    /// @param delegationApprover_ Address to verify staker delegation signatures and control forced undelegations.
-    constructor(
-        address strategyManager_,
-        address eigenPodManager_,
-        address delegationManager_,
-        address blsPublicKeyCompendium_,
-        address slasher_,
-        address delegationApprover_
-    ) {
+    constructor(address strategyManager_, address eigenPodManager_, address delegationManager_) {
         _disableInitializers();
 
         strategyManager = IStrategyManager(strategyManager_);
         eigenPodManager = IEigenPodManager(eigenPodManager_);
         delegationManager = IDelegationManager(delegationManager_);
-        blsPublicKeyCompendium = IBLSPublicKeyCompendium(blsPublicKeyCompendium_);
-        slasher = ISlasher(slasher_);
-
-        delegationApprover = delegationApprover_;
     }
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract by registering the operator with EigenLayer.
     /// @param depositPool_ The LRT deposit pool.
     /// @param rewardDistributor The LRT reward distributor.
-    /// @param initialMetadataURI The initial metadata URI.
-    /// @param blsDetails The operator's BLS public key registration information.
+    /// @param operator The operator's address.
     function initialize(
         address depositPool_,
         address rewardDistributor,
-        string calldata initialMetadataURI,
-        BLSRegistrationDetails calldata blsDetails
+        address operator
     ) external initializer {
         operatorRegistry = msg.sender;
         depositPool = depositPool_;
 
-        delegationManager.registerAsOperator(
-            IDelegationManager.OperatorDetails(rewardDistributor, delegationApprover, 0), initialMetadataURI
-        );
-        blsPublicKeyCompendium.registerBLSPublicKey(
-            blsDetails.signedMessageHash, blsDetails.pubkeyG1, blsDetails.pubkeyG2
+        IRioLRTOperatorRegistry registry = IRioLRTOperatorRegistry(msg.sender);
+
+        IDelegationManager.OperatorDetails memory operatorDetails = delegationManager.operatorDetails(operator);
+        if (operatorDetails.earningsReceiver != rewardDistributor) revert INVALID_EARNINGS_RECEIVER();
+        if (operatorDetails.delegationApprover != address(0)) revert INVALID_DELEGATION_APPROVER();
+        if (operatorDetails.stakerOptOutWindowBlocks < registry.minStakerOptOutBlocks()) revert INVALID_STAKER_OPT_OUT_BLOCKS();
+
+        delegationManager.delegateTo(
+            operator,
+            ISignatureUtils.SignatureWithExpiry(new bytes(0), 0),
+            bytes32(0)
         );
 
         // Deploy an EigenPod and set the withdrawal credentials to its address.
@@ -144,12 +124,6 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
     /// @notice Returns the number of shares in the operator's EigenPod.
     function getEigenPodShares() external view returns (int256) {
         return eigenPodManager.podOwnerShares(address(this));
-    }
-
-    /// @notice Sets the operator's metadata URI.
-    /// @param newMetadataURI The new metadata URI.
-    function setMetadataURI(string calldata newMetadataURI) external onlyOperatorRegistry {
-        delegationManager.updateOperatorMetadataURI(newMetadataURI);
     }
 
     /// @notice Verifies withdrawal credentials of validator(s) owned by this operator.
@@ -169,36 +143,6 @@ contract RioLRTOperator is IRioLRTOperator, Initializable {
         eigenPod.verifyWithdrawalCredentials(
             oracleTimestamp, stateRootProof, validatorIndices, validatorFieldsProofs, validatorFields
         );
-    }
-
-    /// @notice Gives the `slashingContract` permission to slash this operator.
-    /// @param slashingContract The address of the contract to give permission to.
-    function optIntoSlashing(address slashingContract) external onlyOperatorRegistry {
-        slasher.optIntoSlashing(slashingContract);
-    }
-
-    /// @notice Registers this operator for the given quorum numbers on `registryContract`.
-    /// @param registryContract The address of the registry contract.
-    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registering for.
-    /// @param registrationData The data that is decoded to get the operator's registration information.
-    function registerOperatorWithCoordinator(
-        address registryContract,
-        bytes memory quorumNumbers,
-        bytes calldata registrationData
-    ) external onlyOperatorRegistry {
-        IRegistryCoordinator(registryContract).registerOperatorWithCoordinator(quorumNumbers, registrationData);
-    }
-
-    /// @notice Deregisters this operator from the given quorum numbers on `registryContract`.
-    /// @param registryContract The address of the registry contract.
-    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registered for.
-    /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
-    function deregisterOperatorWithCoordinator(
-        address registryContract,
-        bytes calldata quorumNumbers,
-        bytes calldata deregistrationData
-    ) external onlyOperatorRegistry {
-        IRegistryCoordinator(registryContract).deregisterOperatorWithCoordinator(quorumNumbers, deregistrationData);
     }
 
     /// @notice Scrapes ETH sitting in the operator's EigenPod to the reward distributor.
