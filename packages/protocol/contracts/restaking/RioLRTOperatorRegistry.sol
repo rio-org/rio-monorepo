@@ -2,19 +2,18 @@
 pragma solidity 0.8.21;
 
 import {LibMap} from '@solady/utils/LibMap.sol';
-import {Create2} from '@openzeppelin/contracts/utils/Create2.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {BeaconProxy} from '@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol';
 import {UpgradeableBeacon} from '@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {IRioLRTAVSRegistry} from 'contracts/interfaces/IRioLRTAVSRegistry.sol';
-import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 import {BEACON_CHAIN_STRATEGY} from 'contracts/utils/Constants.sol';
@@ -61,6 +60,10 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
     /// @notice The number of active operators in the registry.
     uint8 public activeOperatorCount;
+
+    /// @notice The minimum acceptable delay between an operator signaling intent to register
+    // for an AVS and completing registration.
+    uint24 public minStakerOptOutBlocks;
 
     /// @notice The amount of time (in seconds) before uploaded validator keys are considered "vetted".
     uint24 public validatorKeyReviewPeriod;
@@ -138,7 +141,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         OperatorDetails storage operator = operatorDetails[operatorId];
         return OperatorPublicDetails(
             operator.active,
-            operator.operatorContract,
+            operator.delegator,
             operator.manager,
             operator.pendingManager,
             operator.earningsReceiver,
@@ -154,37 +157,24 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         return operatorDetails[operatorId].shareDetails[strategy];
     }
 
-    /// @notice Get the expected contract address of an operator created with the provided salt.
-    /// @param salt The salt used to generate the operator's address.
-    function predictOperatorAddress(bytes32 salt) external view returns (address operator) {
-        operator = Create2.computeAddress(
-            salt, keccak256(abi.encodePacked(type(BeaconProxy).creationCode, abi.encode(operatorBeaconImpl, '')))
-        );
-    }
 
     /// @notice Creates and registers a new operator.
+    /// @param operator The operator's address.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
-    /// @param initialMetadataURI The initial metadata URI.
-    /// @param blsDetails The operator's BLS public key registration information.
     /// @param strategyShareCaps The maximum number of shares that can be allocated to
     /// the operator for each strategy.
     /// @param validatorCap The maximum number of active validators allowed.
-    /// @param salt The salt used to generate the operator's proxy address. It's important
-    /// that this value is unique for each operator AND corresponds to the address signed
-    /// by the operator's BLS key.
     function createOperator(
+        address operator,
         address initialManager,
         address initialEarningsReceiver,
-        string calldata initialMetadataURI,
-        IRioLRTOperator.BLSRegistrationDetails calldata blsDetails,
         StrategyShareCap[] calldata strategyShareCaps,
-        uint40 validatorCap,
-        bytes32 salt
-    ) external onlyOwner returns (uint8 operatorId, address operatorContract) {
+        uint40 validatorCap
+    ) external onlyOwner returns (uint8 operatorId, address delegator) {
+        if (operator == address(0)) revert INVALID_OPERATOR();
         if (initialManager == address(0)) revert INVALID_MANAGER();
         if (initialEarningsReceiver == address(0)) revert INVALID_EARNINGS_RECEIVER();
-        if (bytes(initialMetadataURI).length == 0) revert INVALID_METADATA_URI();
 
         if (operatorCount == MAX_OPERATOR_COUNT) revert MAX_OPERATOR_COUNT_EXCEEDED();
         if (activeOperatorCount == MAX_ACTIVE_OPERATOR_COUNT) revert MAX_ACTIVE_OPERATOR_COUNT_EXCEEDED();
@@ -194,16 +184,16 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         activeOperatorCount += 1;
 
         // Create the operator with the provided salt and initialize it.
-        operatorContract = address(new BeaconProxy{salt: salt}(operatorBeaconImpl, ''));
-        IRioLRTOperator(operatorContract).initialize(depositPool, rewardDistributor, initialMetadataURI, blsDetails);
+        delegator = address(new BeaconProxy(operatorBeaconImpl, ''));
+        IRioLRTOperatorDelegator(delegator).initialize(depositPool, rewardDistributor, operator);
 
-        OperatorDetails storage operator = operatorDetails[operatorId];
-        operator.active = true;
-        operator.manager = initialManager;
-        operator.earningsReceiver = initialEarningsReceiver;
-        operator.operatorContract = operatorContract;
+        OperatorDetails storage _operator = operatorDetails[operatorId];
+        _operator.active = true;
+        _operator.manager = initialManager;
+        _operator.earningsReceiver = initialEarningsReceiver;
+        _operator.delegator = delegator;
 
-        emit OperatorCreated(operatorId, operatorContract, initialManager, initialEarningsReceiver, initialMetadataURI);
+        emit OperatorCreated(operatorId, delegator, delegator, initialManager, initialEarningsReceiver);
 
         StrategyShareCap memory shareCap;
         OperatorUtilizationHeap.Data memory heap;
@@ -213,7 +203,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
             shareCap = strategyShareCaps[i];
             if (shareCap.cap == 0) continue;
 
-            operator.shareDetails[shareCap.strategy].cap = shareCap.cap;
+            _operator.shareDetails[shareCap.strategy].cap = shareCap.cap;
 
             heap = _getOperatorUtilizationHeapForStrategy(shareCap.strategy);
             heap.insert(OperatorUtilizationHeap.Operator(operatorId, 0));
@@ -224,7 +214,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
         // Populate the validator cap for the operator, if applicable.
         if (validatorCap > 0) {
-            operator.validatorDetails.cap = validatorCap;
+            _operator.validatorDetails.cap = validatorCap;
 
             heap = _getOperatorUtilizationHeapForETH();
             heap.insert(OperatorUtilizationHeap.Operator(operatorId, 0));
@@ -239,7 +229,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     function activateOperator(uint8 operatorId) external onlyOwner {
         OperatorDetails storage operator = operatorDetails[operatorId];
 
-        if (operator.manager == address(0)) revert INVALID_OPERATOR();
+        if (operator.manager == address(0)) revert INVALID_OPERATOR_DELEGATOR();
         if (operator.active) revert OPERATOR_ALREADY_ACTIVE();
 
         operator.active = true;
@@ -268,7 +258,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     function deactivateOperator(uint8 operatorId) external onlyOwner {
         OperatorDetails storage operator = operatorDetails[operatorId];
 
-        if (operator.manager == address(0)) revert INVALID_OPERATOR();
+        if (operator.manager == address(0)) revert INVALID_OPERATOR_DELEGATOR();
         if (!operator.active) revert OPERATOR_ALREADY_INACTIVE();
 
         address[] memory strategies = assetRegistry.getAssetStrategies();
@@ -296,7 +286,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param newStrategyShareCaps The new strategy share allocation caps.
     function setOperatorStrategyShareCaps(uint8 operatorId, StrategyShareCap[] calldata newStrategyShareCaps) external onlyOwner {
         OperatorDetails storage operator = operatorDetails[operatorId];
-        if (operator.manager == address(0)) revert INVALID_OPERATOR();
+        if (operator.manager == address(0)) revert INVALID_OPERATOR_DELEGATOR();
 
         for (uint256 i = 0; i < newStrategyShareCaps.length; ++i) {
             StrategyShareCap memory incoming = newStrategyShareCaps[i];
@@ -331,7 +321,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param newValidatorCap The new maximum active validator cap.
     function setOperatorValidatorCap(uint8 operatorId, uint40 newValidatorCap) external onlyOwner {
         OperatorDetails storage operator = operatorDetails[operatorId];
-        if (operator.manager == address(0)) revert INVALID_OPERATOR();
+        if (operator.manager == address(0)) revert INVALID_OPERATOR_DELEGATOR();
 
         OperatorValidatorDetails memory validators = operator.validatorDetails;
         if (validators.cap == newValidatorCap) return; // No change
@@ -367,6 +357,15 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         emit SecurityDaemonSet(newSecurityDaemon);
     }
 
+    /// @notice Sets the minimum acceptable delay between an operator signaling intent to register
+    // for an AVS and completing registration.
+    /// @param newMinStakerOptOutBlocks The new min staker opt out blocks.
+    function setMinStakerOptOutBlocks(uint24 newMinStakerOptOutBlocks) external onlyOwner {
+        minStakerOptOutBlocks = newMinStakerOptOutBlocks;
+
+        emit MinStakerOptOutBlocksSet(newMinStakerOptOutBlocks);
+    }
+
     /// @notice Sets the amount of time (in seconds) before uploaded validator keys are considered "vetted".
     /// @param newValidatorKeyReviewPeriod The new validator key review period.
     function setValidatorKeyReviewPeriod(uint24 newValidatorKeyReviewPeriod) external onlyOwner {
@@ -383,18 +382,6 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         operatorDetails[operatorId].earningsReceiver = newEarningsReceiver;
 
         emit OperatorEarningsReceiverSet(operatorId, newEarningsReceiver);
-    }
-
-    // forgefmt: disable-next-item
-    /// @notice Sets the operator's metadata URI.
-    /// @param operatorId The operator's ID.
-    /// @param metadataURI The new metadata URI.
-    function setOperatorMetadataURI(uint8 operatorId, string calldata metadataURI) external onlyOperatorManager(operatorId) {
-        if (bytes(metadataURI).length == 0) revert INVALID_METADATA_URI();
-
-        IRioLRTOperator(operatorDetails[operatorId].operatorContract).setMetadataURI(metadataURI);
-
-        emit OperatorMetadataURISet(operatorId, metadataURI);
     }
 
     // forgefmt: disable-next-item
@@ -423,71 +410,6 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         emit OperatorManagerSet(operatorId, sender);
     }
 
-    /// @notice Registers an operator with an AVS coordinator for the given quorum numbers.
-    /// @param operatorId The operator's ID.
-    /// @param avsId The AVS's ID.
-    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registering for.
-    /// @param registrationData The data that is decoded to get the operator's registration information.
-    /// @dev Only active operators can register with an AVS coordinator.
-    function registerOperatorWithAVSCoordinator(
-        uint8 operatorId,
-        uint128 avsId,
-        bytes calldata quorumNumbers,
-        bytes calldata registrationData
-    ) external onlyOperatorManager(operatorId) {
-        OperatorDetails storage operator = operatorDetails[operatorId];
-        if (!operator.active) revert OPERATOR_NOT_ACTIVE();
-
-        IRioLRTAVSRegistry.AVS memory avs = avsRegistry.getAVS(avsId);
-        if (!avs.active) revert AVS_NOT_ACTIVE();
-
-        IRioLRTOperator(operator.operatorContract).registerOperatorWithCoordinator(
-            avs.registryContract, quorumNumbers, registrationData
-        );
-
-        emit OperatorRegisteredWithAVSCoordinator(operatorId, avsId, quorumNumbers, registrationData);
-    }
-
-    /// @notice Deregisters an operator with an AVS coordinator for the given quorum numbers.
-    /// @param operatorId The operator's ID.
-    /// @param avsId The AVS's ID.
-    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registered for.
-    /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
-    function deregisterOperatorWithAVSCoordinator(
-        uint8 operatorId,
-        uint128 avsId,
-        bytes calldata quorumNumbers,
-        bytes calldata deregistrationData
-    ) external onlyOperatorManager(operatorId) {
-        OperatorDetails storage operator = operatorDetails[operatorId];
-
-        IRioLRTAVSRegistry.AVS memory avs = avsRegistry.getAVS(avsId);
-        if (avs.registryContract == address(0)) revert AVS_NOT_REGISTERED();
-
-        IRioLRTOperator(operator.operatorContract).deregisterOperatorWithCoordinator(
-            avs.registryContract, quorumNumbers, deregistrationData
-        );
-
-        emit OperatorDeregisteredWithAVSCoordinator(operatorId, avsId, quorumNumbers, deregistrationData);
-    }
-
-    /// @notice Gives an AVS slashing contract permission to slash an operator.
-    /// @param operatorId The operator's ID.
-    /// @param avsId The AVS's ID.
-    /// @dev Only active operators can opt into slashing.
-    function optIntoSlashingForAVS(uint8 operatorId, uint128 avsId) external onlyOperatorManager(operatorId) {
-        OperatorDetails storage operator = operatorDetails[operatorId];
-        if (!operator.active) revert OPERATOR_NOT_ACTIVE();
-
-        IRioLRTAVSRegistry.AVS memory avs = avsRegistry.getAVS(avsId);
-        if (!avs.active) revert AVS_NOT_ACTIVE();
-        if (avs.slashingContract == address(0)) revert NO_SLASHING_CONTRACT_FOR_AVS();
-
-        IRioLRTOperator(operator.operatorContract).optIntoSlashing(avs.slashingContract);
-
-        emit OperatorOptedIntoSlashingForAVS(operatorId, avsId);
-    }
-
     /// @notice Verifies withdrawal credentials of validator(s) owned by the provided
     /// operator's EigenPod. It also verifies the effective balance of the validator(s).
     /// @param operatorId The operator's ID.
@@ -505,7 +427,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         bytes32[][] calldata validatorFields
     ) external onlyOperatorManager(operatorId) {
         OperatorDetails storage operator = operatorDetails[operatorId];
-        IRioLRTOperator(operator.operatorContract).verifyWithdrawalCredentials(
+        IRioLRTOperatorDelegator(operator.delegator).verifyWithdrawalCredentials(
             oracleTimestamp, stateRootProof, validatorIndices, validatorFieldsProofs, validatorFields
         );
         emit OperatorWithdrawalCredentialsVerified(operatorId, oracleTimestamp, validatorIndices);
@@ -586,7 +508,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
             uint256 newShareAllocation = FixedPointMathLib.min(operatorShares.cap - operatorShares.allocation, remainingShares);
             uint256 newTokenAllocation = IStrategy(strategy).sharesToUnderlyingView(newShareAllocation);
             allocations[allocationIndex] = OperatorStrategyAllocation(
-                operator.operatorContract,
+                operator.delegator,
                 newShareAllocation,
                 newTokenAllocation
             );
@@ -669,7 +591,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
                 );
                 operator.validatorDetails.deposited += uint40(newDepositAllocation);
 
-                allocations[allocationIndex] = OperatorETHAllocation(operator.operatorContract, newDepositAllocation, pubKeyBatch, signatureBatch);
+                allocations[allocationIndex] = OperatorETHAllocation(operator.delegator, newDepositAllocation, pubKeyBatch, signatureBatch);
                 remainingDeposits -= newDepositAllocation;
 
                 updatedAllocation = activeDeposits + newDepositAllocation;
@@ -721,7 +643,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
             uint256 newShareDeallocation = FixedPointMathLib.min(operatorShares.allocation, remainingShares);
             uint256 newTokenDeallocation = IStrategy(strategy).sharesToUnderlyingView(newShareDeallocation);
             deallocations[deallocationIndex] = OperatorStrategyDeallocation(
-                operator.operatorContract,
+                operator.delegator,
                 newShareDeallocation,
                 newTokenDeallocation
             );
@@ -777,7 +699,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
             operator.validatorDetails.exited += uint40(newDepositDeallocation);
 
-            deallocations[deallocationIndex] = OperatorETHDeallocation(operator.operatorContract, newDepositDeallocation);
+            deallocations[deallocationIndex] = OperatorETHDeallocation(operator.delegator, newDepositDeallocation);
             remainingDeposits -= newDepositDeallocation;
 
             uint256 updatedAllocation = activeDeposits - newDepositDeallocation;
@@ -813,17 +735,17 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param operator The operator that's exiting.
     /// @param strategy The strategy to exit.
     function _queueOperatorStrategyExit(uint8 operatorId, OperatorDetails storage operator, address strategy) internal {
-        IRioLRTOperator operatorContract = IRioLRTOperator(operator.operatorContract);
+        IRioLRTOperatorDelegator delegator = IRioLRTOperatorDelegator(operator.delegator);
 
         uint256 sharesToExit;
         if (strategy == BEACON_CHAIN_STRATEGY) {
-            sharesToExit = uint256(operatorContract.getEigenPodShares());
+            sharesToExit = uint256(delegator.getEigenPodShares());
         } else {
             sharesToExit = operator.shareDetails[strategy].allocation;
         }
         if (sharesToExit == 0) revert CANNOT_EXIT_ZERO_SHARES();
 
-        operatorContract.queueWithdrawal(strategy, sharesToExit, depositPool);
+        delegator.queueWithdrawal(strategy, sharesToExit, depositPool);
 
         emit OperatorStrategyExitQueued(operatorId, strategy, sharesToExit);
     }

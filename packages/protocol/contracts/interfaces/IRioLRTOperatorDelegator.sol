@@ -1,17 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IBLSPublicKeyCompendium} from 'contracts/interfaces/eigenlayer/IBLSPublicKeyCompendium.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 
-interface IRioLRTOperator {
-    /// @notice The operator's BLS public key registration information.
-    struct BLSRegistrationDetails {
-        IBLSPublicKeyCompendium.G1Point signedMessageHash;
-        IBLSPublicKeyCompendium.G1Point pubkeyG1;
-        IBLSPublicKeyCompendium.G2Point pubkeyG2;
-    }
-
+interface IRioLRTOperatorDelegator {
     /// @notice Thrown when the caller is not the operator registry.
     error ONLY_OPERATOR_REGISTRY();
 
@@ -21,6 +13,15 @@ interface IRioLRTOperator {
     /// @notice Thrown when the caller is not the deposit pool
     /// or the operator registry.
     error ONLY_DEPOSIT_POOL_OR_OPERATOR_REGISTRY();
+
+    /// @notice Thrown when the earnings receiver is not set to the reward distributor.
+    error INVALID_EARNINGS_RECEIVER();
+
+    /// @notice Thrown when the delegation approver is not the zero address.
+    error INVALID_DELEGATION_APPROVER();
+
+    /// @notice Thrown when the operator's staker opt out blocks is below the minimum.
+    error INVALID_STAKER_OPT_OUT_BLOCKS();
 
     /// @notice Thrown when the validator count is `0` or does not match the provided ETH value.
     error INVALID_VALIDATOR_COUNT();
@@ -35,48 +36,14 @@ interface IRioLRTOperator {
     /// @param expected The expected length of the batch.
     error INVALID_SIGNATURES_BATCH_LENGTH(uint256 actual, uint256 expected);
 
-    /// @notice Initializes the contract by registering the operator with EigenLayer.
+    /// @notice Initializes the contract by delegating to the provided EigenLayer operator.
     /// @param depositPool The LRT deposit pool.
     /// @param rewardDistributor The LRT reward distributor.
-    /// @param initialMetadataURI The initial metadata URI.
-    /// @param blsDetails The operator's BLS public key registration information.
-    function initialize(
-        address depositPool,
-        address rewardDistributor,
-        string calldata initialMetadataURI,
-        BLSRegistrationDetails calldata blsDetails
-    ) external;
+    /// @param operator The operator's address.
+    function initialize(address depositPool, address rewardDistributor, address operator) external;
 
-    /// @notice Returns the number of shares in the operator's EigenPod.
+    /// @notice Returns the number of shares in the operator delegator's EigenPod.
     function getEigenPodShares() external view returns (int256);
-
-    /// @notice Sets the operator's metadata URI.
-    /// @param newMetadataURI The new metadata URI.
-    function setMetadataURI(string calldata newMetadataURI) external;
-
-    /// @notice Gives the `slashingContract` permission to slash this operator.
-    /// @param slashingContract The address of the contract to give permission to.
-    function optIntoSlashing(address slashingContract) external;
-
-    /// @notice Registers this operator for the given quorum numbers on `registryContract`.
-    /// @param registryContract The address of the registry contract.
-    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registering for.
-    /// @param registrationData The data that is decoded to get the operator's registration information.
-    function registerOperatorWithCoordinator(
-        address registryContract,
-        bytes memory quorumNumbers,
-        bytes calldata registrationData
-    ) external;
-
-    /// @notice Deregisters this operator from the given quorum numbers on `registryContract`.
-    /// @param registryContract The address of the registry contract.
-    /// @param quorumNumbers The bytes representing the quorum numbers that the operator is registered for.
-    /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
-    function deregisterOperatorWithCoordinator(
-        address registryContract,
-        bytes calldata quorumNumbers,
-        bytes calldata deregistrationData
-    ) external;
 
     /// @notice Verifies withdrawal credentials of validator(s) owned by this operator.
     /// It also verifies the effective balance of the validator(s).

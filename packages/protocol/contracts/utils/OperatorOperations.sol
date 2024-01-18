@@ -5,8 +5,8 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {BEACON_CHAIN_STRATEGY, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
-import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
 
 library OperatorOperations {
     using FixedPointMathLib for uint256;
@@ -35,7 +35,7 @@ library OperatorOperations {
         for (uint256 i = 0; i < allocations.length;) {
             uint256 deposits = allocations[i].deposits;
 
-            IRioLRTOperator(allocations[i].operator).stakeETH{value: deposits * ETH_DEPOSIT_SIZE}(
+            IRioLRTOperatorDelegator(allocations[i].operator).stakeETH{value: deposits * ETH_DEPOSIT_SIZE}(
                 deposits, allocations[i].pubKeyBatch, allocations[i].signatureBatch
             );
             unchecked {
@@ -59,7 +59,7 @@ library OperatorOperations {
             IRioLRTOperatorRegistry.OperatorStrategyAllocation memory allocation = allocations[i];
 
             IERC20(token).safeTransfer(allocation.operator, allocation.tokens);
-            sharesReceived += IRioLRTOperator(allocation.operator).stakeERC20(strategy, token, allocation.tokens);
+            sharesReceived += IRioLRTOperatorDelegator(allocation.operator).stakeERC20(strategy, token, allocation.tokens);
             unchecked {
                 ++i;
             }
@@ -94,7 +94,7 @@ library OperatorOperations {
             address operator = operatorDepositDeallocations[i].operator;
 
             uint256 sharesToWithdraw = operatorDepositDeallocations[i].deposits * ETH_DEPOSIT_SIZE;
-            roots[i] = IRioLRTOperator(operator).queueWithdrawal(BEACON_CHAIN_STRATEGY, sharesToWithdraw, withdrawalQueue);
+            roots[i] = IRioLRTOperatorDelegator(operator).queueWithdrawal(BEACON_CHAIN_STRATEGY, sharesToWithdraw, withdrawalQueue);
 
             unchecked {
                 ++i;
@@ -120,7 +120,7 @@ library OperatorOperations {
             uint256 shares = operatorDeallocations[i].shares;
 
             sharesQueued += shares;
-            roots[i] = IRioLRTOperator(operator).queueWithdrawal(strategy, shares, address(withdrawalQueue));
+            roots[i] = IRioLRTOperatorDelegator(operator).queueWithdrawal(strategy, shares, address(withdrawalQueue));
 
             unchecked {
                 ++i;

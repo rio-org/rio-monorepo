@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IRioLRTOperator} from 'contracts/interfaces/IRioLRTOperator.sol';
-
 interface IRioLRTOperatorRegistry {
     /// @dev Configuration used to track the maximum number of shares that can be
     /// allocated to an operator for a given strategy.
@@ -44,8 +42,8 @@ interface IRioLRTOperatorRegistry {
     struct OperatorDetails {
         /// @dev Flag indicating if the operator can participate in further staking and reward distribution.
         bool active;
-        /// @dev The operator's contract address.
-        address operatorContract;
+        /// @dev The staker contract that delegates to the operator.
+        address delegator;
         /// @dev The address that manages the operator.
         address manager;
         /// @dev The address that will manage the operator once confirmed.
@@ -98,7 +96,7 @@ interface IRioLRTOperatorRegistry {
 
     /// @notice An operator address and strategy share deallocation.
     struct OperatorStrategyDeallocation {
-        /// @dev The operator's contract address.
+        /// @dev The operator delegator's contract address.
         address operator;
         /// @dev The amount of shares deallocated from the operator.
         uint256 shares;
@@ -129,14 +127,14 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when the caller is not the operator's pending manager.
     error ONLY_OPERATOR_PENDING_MANAGER();
 
-    /// @notice Thrown when the operator's metadata URI is empty.
-    error INVALID_METADATA_URI();
-
     /// @notice Thrown when the maximum number of operators has been reached.
     error MAX_OPERATOR_COUNT_EXCEEDED();
 
     /// @notice Thrown when the maximum number of active operators has been reached.
     error MAX_ACTIVE_OPERATOR_COUNT_EXCEEDED();
+
+    /// @notice Thrown when the operator is `address(0)`.
+    error INVALID_OPERATOR();
 
     /// @notice Thrown when the manager is `address(0)`.
     error INVALID_MANAGER();
@@ -147,8 +145,8 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when the operator's earnings receiver is `address(0)`.
     error INVALID_EARNINGS_RECEIVER();
 
-    /// @notice Thrown when an invalid (non-existent) operator contract address is provided.
-    error INVALID_OPERATOR();
+    /// @notice Thrown when an invalid (non-existent) operator delegator contract address is provided.
+    error INVALID_OPERATOR_DELEGATOR();
 
     /// @notice Thrown when the provided validator count is invalid (zero).
     error INVALID_VALIDATOR_COUNT();
@@ -190,15 +188,15 @@ interface IRioLRTOperatorRegistry {
     /// @notice Emitted when an operator is created.
     /// @param operatorId The operator's ID.
     /// @param operator The operator's contract address.
+    /// @param delegator The operator's delegator contract address.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
-    /// @param initialMetadataURI The initial metadata URI.
     event OperatorCreated(
         uint8 indexed operatorId,
         address indexed operator,
+        address indexed delegator,
         address initialManager,
-        address initialEarningsReceiver,
-        string initialMetadataURI
+        address initialEarningsReceiver
     );
 
     /// @notice Emitted when an operator is activated.
@@ -224,6 +222,9 @@ interface IRioLRTOperatorRegistry {
     /// @param securityDaemon The new security daemon.
     event SecurityDaemonSet(address securityDaemon);
 
+    /// @notice Emitted when the min staker opt out blocks is set.
+    event MinStakerOptOutBlocksSet(uint24 minStakerOptOutBlocks);
+
     /// @notice Emitted when the validator key review period is set.
     /// @param validatorKeyReviewPeriod The new validator key review period.
     event ValidatorKeyReviewPeriodSet(uint24 validatorKeyReviewPeriod);
@@ -232,11 +233,6 @@ interface IRioLRTOperatorRegistry {
     /// @param operatorId The operator's ID.
     /// @param earningsReceiver The new earnings receiver for the operator.
     event OperatorEarningsReceiverSet(uint8 indexed operatorId, address earningsReceiver);
-
-    /// @notice Emitted when an operator's metadata URI is set.
-    /// @param operatorId The operator's ID.
-    /// @param metadataURI The new metadata URI of the operator.
-    event OperatorMetadataURISet(uint8 indexed operatorId, string metadataURI);
 
     /// @notice Emitted when an operator's pending manager is set.
     /// @param operatorId The operator's ID.
@@ -247,29 +243,6 @@ interface IRioLRTOperatorRegistry {
     /// @param operatorId The operator's ID.
     /// @param manager The new manager of the operator.
     event OperatorManagerSet(uint8 indexed operatorId, address manager);
-
-    /// @notice Emitted when an operator registers with an AVS coordinator.
-    /// @param operatorId The operator's ID.
-    /// @param avsId The AVS's ID.
-    /// @param quorumNumbers The quorum numbers the operator registered for.
-    /// @param registrationData The data that is decoded to get the operator's registration information.
-    event OperatorRegisteredWithAVSCoordinator(
-        uint8 indexed operatorId, uint128 indexed avsId, bytes quorumNumbers, bytes registrationData
-    );
-
-    /// @notice Emitted when an operator deregisters with an AVS coordinator.
-    /// @param operatorId The operator's ID.
-    /// @param avsId The AVS's ID.
-    /// @param quorumNumbers The quorum numbers the operator deregistered from.
-    /// @param deregistrationData The data that is decoded to get the operator's deregistration information.
-    event OperatorDeregisteredWithAVSCoordinator(
-        uint8 indexed operatorId, uint128 indexed avsId, bytes quorumNumbers, bytes deregistrationData
-    );
-
-    /// @notice Emitted when an operator opts into slashing for an AVS.
-    /// @param operatorId The operator's ID.
-    /// @param avsId The AVS's ID.
-    event OperatorOptedIntoSlashingForAVS(uint8 indexed operatorId, uint128 indexed avsId);
 
     /// @notice Emitted following the verification of withdrawal credentials for one or more validators.
     /// @param operatorId The operator's ID.
@@ -323,33 +296,27 @@ interface IRioLRTOperatorRegistry {
     /// @notice Returns the total number of active operators in the registry.
     function activeOperatorCount() external view returns (uint8);
 
+    /// @notice The minimum acceptable delay between an operator signaling intent to register
+    // for an AVS and completing registration.
+    function minStakerOptOutBlocks() external view returns (uint24);
+
     /// @notice The amount of time (in seconds) before uploaded validator keys are considered "vetted".
     function validatorKeyReviewPeriod() external view returns (uint24);
 
-    /// @notice Get the expected contract address of an operator created with the provided salt.
-    /// @param salt The salt used to generate the operator's address.
-    function predictOperatorAddress(bytes32 salt) external view returns (address operator);
-
     /// @notice Creates and registers a new operator.
+    /// @param operator The operator's address.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
-    /// @param initialMetadataURI The initial metadata URI.
-    /// @param blsDetails The operator's BLS public key registration information.
     /// @param strategyShareCaps The maximum number of shares that can be allocated to
     /// the operator for each strategy.
     /// @param validatorCap The maximum number of active validators allowed.
-    /// @param salt The salt used to generate the operator's proxy address. It's important
-    /// that this value is unique for each operator AND corresponds to the address signed
-    /// by the operator's BLS key.
     function createOperator(
+        address operator,
         address initialManager,
         address initialEarningsReceiver,
-        string calldata initialMetadataURI,
-        IRioLRTOperator.BLSRegistrationDetails calldata blsDetails,
         StrategyShareCap[] calldata strategyShareCaps,
-        uint40 validatorCap,
-        bytes32 salt
-    ) external returns (uint8 operatorId, address operator);
+        uint40 validatorCap
+    ) external returns (uint8 operatorId, address operatorContract);
 
     /// @notice Activates an operator.
     /// @param operatorId The operator's ID.
