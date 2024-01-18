@@ -13,19 +13,6 @@ export const IssuerFields = graphql(`
   }
 `);
 
-export const TokenWrapperFields = graphql(`
-  fragment TokenWrapperFields on TokenWrapper {
-    id
-    address
-    wrappedToken {
-      id
-    }
-    unwrappedToken {
-      id
-    }
-  }
-`);
-
 export const LiquidRestakingTokenFields = graphql(`
   fragment LiquidRestakingTokenFields on LiquidRestakingToken {
     id
@@ -34,62 +21,102 @@ export const LiquidRestakingTokenFields = graphql(`
     name
     createdTimestamp
     totalSupply
-    gateway {
+    totalValueETH
+    totalValueUSD
+    exchangeRateETH
+    exchangeRateUSD
+    percentAPY
+    coordinator {
       id
     }
-    poolId
-    underlyingTokens(orderBy: index, orderDirection: asc) {
+    withdrawalQueue {
+      id
+    }
+    underlyingAssets {
       address
-      token {
+      asset {
+        latestUSDPrice
+        latestUSDPriceTimestamp
         symbol
         name
-        wrapper {
-          ...TokenWrapperFields
-        }
       }
-      index
       strategy
-      weight
+      depositCap
       balance
     }
   }
 `);
 
-export const JoinFields = graphql(`
-  fragment JoinFields on Join {
+export const DepositFields = graphql(`
+  fragment DepositFields on Deposit {
     id
-    type
     sender
-    tokensIn {
+    assetIn {
       id
     }
-    amountsIn
+    amountIn
     amountOut
     restakingToken {
       id
     }
     userBalanceAfter
+    valueUSD
     timestamp
     blockNumber
     tx
   }
 `);
 
-export const ExitFields = graphql(`
-  fragment ExitFields on Exit {
+export const WithdrawalRequestFields = graphql(`
+  fragment WithdrawalRequestFields on WithdrawalRequest {
     id
-    type
     sender
-    tokensOut {
+    epoch {
+      epoch
+      status
+      sharesOwed
+      assetsReceived
+    }
+    assetOut {
       id
     }
-    amountsOut
     sharesOwed
     amountIn
     restakingToken {
       id
     }
     userBalanceAfter
+    valueUSD
+    timestamp
+    blockNumber
+    tx
+
+    isClaimed
+    claim {
+      id
+      tx
+    }
+  }
+`);
+
+export const WithdrawalClaimFields = graphql(`
+  fragment WithdrawalClaimFields on WithdrawalClaim {
+    id
+    sender
+    epoch {
+      epoch
+    }
+    assetOut {
+      id
+    }
+    amountOut
+    restakingToken {
+      id
+    }
+    requests {
+      id
+    }
+    valueUSD
     timestamp
     blockNumber
     tx
@@ -112,14 +139,6 @@ export const LiquidRestakingTokenQuery = graphql(`
   query liquidRestakingToken($id: ID!) {
     liquidRestakingToken(id: $id) {
       ...LiquidRestakingTokenFields
-    }
-  }
-`);
-
-export const TokenWrapperQuery = graphql(`
-  query tokenWrapper($id: ID!) {
-    tokenWrapper(id: $id) {
-      ...TokenWrapperFields
     }
   }
 `);
@@ -148,62 +167,62 @@ export const ManyLiquidRestakingTokensQuery = graphql(`
   }
 `);
 
-export const ManyTokenWrappers = graphql(`
-  query manyTokenWrappers(
+export const ManyDepositsQuery = graphql(`
+  query manyDeposits(
     $first: Int!
     $skip: Int!
-    $orderBy: TokenWrapper_orderBy
+    $orderBy: Deposit_orderBy
     $orderDirection: OrderDirection
-    $where: TokenWrapper_filter
+    $where: Deposit_filter
   ) {
-    tokenWrappers(
+    deposits(
       first: $first
       skip: $skip
       orderBy: $orderBy
       orderDirection: $orderDirection
       where: $where
     ) {
-      ...TokenWrapperFields
+      ...DepositFields
     }
   }
 `);
 
-export const ManyJoinsQuery = graphql(`
-  query manyJoins(
+export const ManyWithdrawalRequestsQuery = graphql(`
+  query manyWithdrawalRequests(
     $first: Int!
     $skip: Int!
-    $orderBy: Join_orderBy
+    $orderBy: WithdrawalRequest_orderBy
     $orderDirection: OrderDirection
-    $where: Join_filter
+    $where: WithdrawalRequest_filter
   ) {
-    joins(
+    withdrawalRequests(
       first: $first
       skip: $skip
       orderBy: $orderBy
       orderDirection: $orderDirection
       where: $where
     ) {
-      ...JoinFields
+      ...WithdrawalRequestFields
     }
   }
 `);
 
-export const ManyExitsQuery = graphql(`
-  query manyExits(
+export const ManyWithdrawalClaimsQuery = graphql(`
+  query manyWithdrawalClaims(
     $first: Int!
     $skip: Int!
-    $orderBy: Exit_orderBy
+    $orderBy: WithdrawalClaim_orderBy
     $orderDirection: OrderDirection
-    $where: Exit_filter
+    $where: WithdrawalClaim_filter
   ) {
-    exits(
+    withdrawalClaims(
       first: $first
       skip: $skip
       orderBy: $orderBy
       orderDirection: $orderDirection
       where: $where
     ) {
-      ...ExitFields
+      ...WithdrawalClaimFields
     }
   }
 `);

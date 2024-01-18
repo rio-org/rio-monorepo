@@ -6,8 +6,8 @@ dataSources:
     name: RioLRTIssuer
     source:
       abi: RioLRTIssuer
-      address: "0x2A2fb9f94b92C957Df58dAD26f20fA51Cf45002C"
-      startBlock: 10204427
+      address: "0xD8030F4C269ae229C9Bf94c3139F3BF214789afD"
+      startBlock: 10375985
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -21,32 +21,11 @@ dataSources:
           file: ./abis/RioLRTIssuer.json
         - name: ERC20Token
           file: ./abis/ERC20Token.json
+        - name: PriceFeed
+          file: ./abis/PriceFeed.json
       eventHandlers:
-        - event: LiquidRestakingTokenIssued(string,string,bytes32,(address[],address[],uint256[],uint256[],uint64[],uint256,uint256,bool,address),(address,address,address,address,address,address))
+        - event: LiquidRestakingTokenIssued(string,string,((address,uint96,address,address)[],uint8,address,address),(address,address,address,address,address,address,address,address))
           handler: handleLiquidRestakingTokenIssued
-    network: goerli
-  - kind: ethereum/contract
-    name: TokenWrapperFactory
-    source:
-      abi: TokenWrapperFactory
-      address: "0x9751Ee0CE7D683BbAce6fCbf16c645Fa5874E29e"
-      startBlock: 10204427
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      file: ./src/token-wrapper-factory.ts
-      entities:
-        - TokenWrapperFactory
-        - TokenWrapper
-      abis:
-        - name: TokenWrapperFactory
-          file: ./abis/TokenWrapperFactory.json
-        - name: ERC20Token
-          file: ./abis/ERC20Token.json
-      eventHandlers:
-        - event: WrappersDeployed(indexed address,indexed address,address[2])
-          handler: handleWrappersDeployed
     network: goerli
 templates:
   - name: LiquidRestakingToken
@@ -67,25 +46,69 @@ templates:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleLiquidRestakingTokenTransfer
     network: goerli
-  - name: Gateway
+  - name: Coordinator
     kind: ethereum/contract
     source:
-      abi: RioLRTGateway
+      abi: RioLRTCoordinator
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
-      file: ./src/gateway.ts
+      file: ./src/coordinator.ts
       entities:
-        - Join
         - User
+        - Deposit
+        - Withdrawal
       abis:
-        - name: RioLRTGateway
-          file: ./abis/RioLRTGateway.json
+        - name: RioLRTCoordinator
+          file: ./abis/RioLRTCoordinator.json
       eventHandlers:
-        - event: JoinedTokensExactIn(indexed address,address[],uint256[],uint256)
-          handler: handleJoinedTokensExactIn
-        - event: RequestedExitTokenExactIn(indexed
-            address,address,uint256,uint256,uint256)
-          handler: handleRequestedExitTokenExactIn
+        - event: Deposited(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposited
+    network: goerli
+  - name: WithdrawalQueue
+    kind: ethereum/contract
+    source:
+      abi: RioLRTWithdrawalQueue
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/withdrawal-queue.ts
+      entities:
+        - User
+        - Withdrawal
+      abis:
+        - name: RioLRTWithdrawalQueue
+          file: ./abis/RioLRTWithdrawalQueue.json
+      eventHandlers:
+        - event: WithdrawalQueued(indexed uint256,address,address,uint256,uint256)
+          handler: handleWithdrawalQueued
+        - event: WithdrawalsClaimedForEpoch(indexed uint256,address,address,uint256)
+          handler: handleWithdrawalsClaimedForEpoch
+        - event: EpochSettledFromDepositPool(indexed uint256,address,uint256)
+          handler: handleEpochSettledFromDepositPool
+        - event: EpochQueuedForSettlementFromEigenLayer(indexed
+            uint256,address,uint256,uint256,uint256,bytes32)
+          handler: handleEpochQueuedForSettlementFromEigenLayer
+        - event: EpochSettledFromEigenLayer(indexed uint256,address,uint256)
+          handler: handleEpochSettledFromEigenLayer
+    network: goerli
+  - name: PriceSource
+    kind: ethereum/contract
+    source:
+      abi: PriceSource
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/price.ts
+      entities:
+        - PriceSource
+      abis:
+        - name: PriceSource
+          file: ./abis/PriceSource.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
     network: goerli

@@ -3,89 +3,66 @@ import { Address as ViemAddress } from 'viem';
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type Address = ViemAddress | string;
 
-export interface InputTokenExactIn {
+export interface EstimateOutDepositETHParams {
   /**
-   * The address of the input token.
-   */
-  address: Address;
-  /**
-   * The exact amount of the input token to send.
+   * The amount of ETH to deposit.
    */
   amount: string | bigint;
 }
 
-export interface OutputTokenMinOut {
+export interface EstimateOutRequestWithdrawalParams {
   /**
-   * The address of the output token.
+   * The address of the asset to withdraw.
    */
-  address: Address;
+  assetOut: Address;
   /**
-   * The minimum acceptable amount of the output token to receive.
-   */
-  minAmount: string | bigint;
-}
-
-export interface InputTokenExactInWithWrap extends InputTokenExactIn {
-  requiresWrap?: boolean;
-}
-
-export interface OutputTokenMinOutWithUnwrap extends OutputTokenMinOut {
-  requiresUnwrap?: boolean;
-}
-
-//#region Query Functions
-
-export interface QueryJoinTokensExactInParams {
-  /**
-   * The tokens to join with.
-   */
-  tokensIn: InputTokenExactIn[];
-  /**
-   * The slippage value in BPT - i.e. 50 = 0.5%
-   */
-  slippage: string | number;
-}
-
-export interface QueryExitTokenExactInParams {
-  /**
-   * The amount of LRT to exit with.
+   * The amount of restaking tokens to burn.
    */
   amountIn: string | bigint;
-  /**
-   * The token to exit to.
-   */
-  tokenOut: Address;
-  /**
-   * The slippage value in BPT - i.e. 50 = 0.5%
-   */
-  slippage: string | number;
 }
 
 //#endregion
 
 //#region Write Functions
 
-export interface JoinTokensExactInParams {
+export interface DepositParams {
   /**
-   * The tokens to join with, including information about whether or not
-   * they need to be wrapped.
+   * The address of the token to deposit.
    */
-  tokensIn: InputTokenExactInWithWrap[];
+  tokenIn: Address;
   /**
-   * The minimum acceptable amount of LRT to receive.
+   * The amount of the asset to deposit.
    */
-  minAmountOut: string | bigint;
+  amount: string | bigint;
 }
 
-export interface ExitTokenExactInParams {
+export interface DepositETHParams {
   /**
-   * The amount of LRT to exit with.
+   * The amount of ETH to deposit.
+   */
+  amount: string | bigint;
+}
+
+export interface RequestWithdrawalParams {
+  /**
+   * The address of the asset to withdraw.
+   */
+  assetOut: Address;
+  /**
+   * The amount of restaking tokens to burn.
    */
   amountIn: string | bigint;
+}
+
+export interface ClaimWithdrawalParams {
   /**
-   * The token to exit to.
+   * The address of the asset to withdraw.
    */
-  tokenOut: OutputTokenMinOutWithUnwrap;
+  assetOut: Address;
+  /**
+   * The withdrawal epoch.
+   */
+  epoch: string | bigint;
 }
 
 //#endregion

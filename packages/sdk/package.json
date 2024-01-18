@@ -1,6 +1,6 @@
 {
   "name": "@rionetwork/sdk",
-  "version": "0.1.0-alpha.11",
+  "version": "0.1.0-alpha.16",
   "description": "Utilities that simplify interaction with the Rio Network protocol",
   "license": "GPL-3.0",
   "publishConfig": {
@@ -27,11 +27,14 @@
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
     "abitype": "^0.10.3",
+    "big.js": "^6.2.1",
+    "cacheables": "^1.2.2",
     "graphql-request": "^6.1.0",
     "viem": "^1.18.8"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.0",
-    "@graphql-codegen/client-preset": "^4.1.0"
+    "@graphql-codegen/client-preset": "^4.1.0",
+    "@types/big.js": "^6.2.2"
   }
 }

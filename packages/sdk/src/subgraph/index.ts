@@ -3,13 +3,12 @@ export { SubgraphClient } from './client';
 export {
   QueryConfig,
   Issuer,
-  UnderlyingToken,
+  UnderlyingAsset,
   LiquidRestakingToken,
-  TokenWrapper,
-  Join,
-  JoinType,
-  Exit,
-  ExitType
+  Deposit,
+  WithdrawalEpochStatus,
+  WithdrawalRequest,
+  WithdrawalClaim
 } from './types';
 export {
   SUBGRAPH_URLS,

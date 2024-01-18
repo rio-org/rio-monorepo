@@ -17,70 +17,85 @@ export interface Issuer {
   tokens: Address[];
 }
 
-export interface TokenWrapper {
-  address: Address;
-  wrappedToken: Address;
-  unwrappedToken: Address;
-}
-
-export interface UnderlyingToken {
+export interface UnderlyingAsset {
   address: Address;
   symbol: string;
   name: string;
-  index: number;
+  latestUSDPrice: string | null;
+  latestUSDPriceTimestamp: string | null;
   strategy: Address;
-  weight: string;
+  depositCap: string;
   balance: string;
-  wrapper?: TokenWrapper;
 }
 
 export interface LiquidRestakingToken {
   address: Address;
   symbol: string;
   name: string;
-  createdTimestamp: number;
+  createdTimestamp: string;
   totalSupply: string;
-  gateway: Address;
-  poolId: string;
-  underlyingTokens: UnderlyingToken[];
+  totalValueETH: string | null;
+  totalValueUSD: string | null;
+  exchangeRateETH: string | null;
+  exchangeRateUSD: string | null;
+  percentAPY: string | null;
+  coordinator: Address;
+  withdrawalQueue: Address;
+  underlyingAssets: UnderlyingAsset[];
 }
 
-export enum JoinType {
-  AllTokensExactOut = 'ALL_TOKENS_EXACT_OUT',
-  TokensExactIn = 'TOKENS_EXACT_IN',
-  TokenExactOut = 'TOKEN_EXACT_OUT'
-}
-
-export enum ExitType {
-  TokenExactIn = 'TOKEN_EXACT_IN',
-  AllTokensExactIn = 'ALL_TOKENS_EXACT_IN',
-  TokensExactOut = 'TOKENS_EXACT_OUT'
-}
-
-export interface Join {
+export interface Deposit {
   id: string;
-  type: JoinType;
   sender: Address;
-  amountsIn: string[];
+  assetIn: Address;
+  amountIn: string;
   amountOut: string;
+  valueUSD: string | null;
+  timestamp: string;
+  blockNumber: string;
+  restakingToken: Address;
+  userBalanceAfter: string;
+  tx: string;
+}
+
+export enum WithdrawalEpochStatus {
+  Active = 'ACTIVE',
+  Queued = 'QUEUED',
+  Settled = 'SETTLED'
+}
+
+export interface WithdrawalRequest {
+  id: string;
+  sender: Address;
+  epoch: string;
+  epochStatus: WithdrawalEpochStatus;
+  assetOut: Address;
+  amountOut: string | null; // Populated on epoch settlement.
+  sharesOwed: string;
+  amountIn: string;
+  valueUSD: string | null;
+  restakingToken: Address;
+  userBalanceAfter: string;
   timestamp: string;
   blockNumber: string;
   tx: string;
-  tokensIn: Address[];
-  restakingToken: Address;
-  userBalanceAfter: string;
+
+  // Populated on withdrawal claim.
+  isReadyToClaim: boolean;
+  isClaimed: boolean;
+  claimId: string | null;
+  claimTx: string | null;
 }
 
-export interface Exit {
+export interface WithdrawalClaim {
   id: string;
-  type: ExitType;
   sender: Address;
-  tokensOut: Address[];
-  amountsOut: string[];
-  sharesOwed: string[];
-  amountIn: string;
+  epoch: string;
+  assetOut: Address;
+  amountClaimed: string;
   restakingToken: Address;
-  userBalanceAfter: string;
+  requestIds: string[];
+  valueUSD: string | null;
   timestamp: string;
   blockNumber: string;
   tx: string;

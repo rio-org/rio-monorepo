@@ -181,7 +181,7 @@ library OperatorUtilizationHeap {
     /// @notice Returns the maximum operator from the heap.
     /// @param self The heap.
     function getMax(Data memory self) internal pure returns (Operator memory) {
-        if (isEmpty(self)) revert HEAP_UNDERFLOW();
+        if (self.isEmpty()) revert HEAP_UNDERFLOW();
 
         // If the heap only contains one element, it's both the min and max.
         if (self.count == 1) {

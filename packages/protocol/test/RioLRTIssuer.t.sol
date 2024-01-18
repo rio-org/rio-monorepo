@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
+import {MockPriceFeed} from 'test/utils/MockPriceFeed.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
-import {MockERC20} from 'test/utils/MockERC20.sol';
 
 contract RioLRTIssuerTest is RioDeployer {
     function setUp() public {
@@ -12,55 +12,50 @@ contract RioLRTIssuerTest is RioDeployer {
     }
 
     function test_issuesLRTWithValidParams() public {
-        address tokenA = address(new MockERC20('Token A', 'A'));
-        address tokenB = address(new MockERC20('Token B', 'B'));
+        address _rETH = address(rETH);
+        address _stETH = address(stETH);
 
-        address[] memory tokens = new address[](2);
-        tokens[0] = tokenA < tokenB ? tokenA : tokenB;
-        tokens[1] = tokenA < tokenB ? tokenB : tokenA;
+        address rETHPriceFeed = address(new MockPriceFeed(1.09 ether));
+        address stETHPriceFeed = address(new MockPriceFeed(1 ether));
 
-        address[] memory strategies = new address[](2);
-        strategies[0] = address(1);
-        strategies[1] = address(1);
-
-        uint256[] memory amountsIn = new uint256[](2);
-        amountsIn[0] = 100e18;
-        amountsIn[1] = 101e18;
-
-        uint256[] memory normalizedWeights = new uint256[](2);
-        normalizedWeights[0] = 0.3e18;
-        normalizedWeights[1] = 0.7e18;
-
-        uint64[] memory targetAUMPercentages = new uint64[](2);
-        targetAUMPercentages[0] = 0.95e18;
-        targetAUMPercentages[1] = 0.95e18;
-
-        // Allow the issuer to pull the tokens.
-        IERC20(tokens[0]).approve(address(issuer), amountsIn[0]);
-        IERC20(tokens[1]).approve(address(issuer), amountsIn[1]);
+        IRioLRTAssetRegistry.AssetConfig[] memory assets = new IRioLRTAssetRegistry.AssetConfig[](2);
+        assets[0] = IRioLRTAssetRegistry.AssetConfig({
+            asset: _rETH,
+            depositCap: 1_000_000 ether,
+            strategy: RETH_STRATEGY,
+            priceFeed: rETHPriceFeed
+        });
+        assets[1] = IRioLRTAssetRegistry.AssetConfig({
+            asset: _stETH,
+            depositCap: 2_000_000 ether,
+            strategy: STETH_STRATEGY,
+            priceFeed: stETHPriceFeed
+        });
 
         IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
-            'Restaked Ether',
-            'reETH',
+            'Restaked LSTs',
+            'reST',
             IRioLRTIssuer.LRTConfig({
-                tokens: tokens,
-                strategies: strategies,
-                amountsIn: amountsIn,
-                normalizedWeights: normalizedWeights,
-                targetAUMPercentages: targetAUMPercentages,
-                swapFeePercentage: MIN_SWAP_FEE,
-                managementAumFeePercentage: 0,
-                swapEnabledOnStart: true,
-                securityCouncil: SECURITY_COUNCIL
+                assets: assets,
+                priceFeedDecimals: 18,
+                operatorRewardPool: address(this),
+                treasury: address(this)
             })
         );
         assertNotEq(deployment.token, address(0));
-        assertNotEq(deployment.assetManager, address(0));
-        assertNotEq(deployment.gateway, address(0));
-        assertNotEq(deployment.rewardDistributor, address(0));
+        assertNotEq(deployment.coordinator, address(0));
+        assertNotEq(deployment.assetRegistry, address(0));
         assertNotEq(deployment.operatorRegistry, address(0));
+        assertNotEq(deployment.avsRegistry, address(0));
+        assertNotEq(deployment.depositPool, address(0));
         assertNotEq(deployment.withdrawalQueue, address(0));
+        assertNotEq(deployment.rewardDistributor, address(0));
 
-        assertGt(IERC20(deployment.token).balanceOf(address(this)), 0);
+        IRioLRTAssetRegistry assetRegistry = IRioLRTAssetRegistry(deployment.assetRegistry);
+        address[] memory supportedAssets = assetRegistry.getSupportedAssets();
+        assertEq(supportedAssets.length, 2);
+
+        assertEq(supportedAssets[0], _rETH);
+        assertEq(supportedAssets[1], _stETH);
     }
 }

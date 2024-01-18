@@ -1,59 +1,58 @@
 import {
   LiquidRestakingToken as LiquidRestakingTokenTemplate,
-  Gateway as GatewayTemplate,
+  Coordinator as CoordinatorTemplate,
+  WithdrawalQueue as WithdrawalQueueTemplate,
 } from '../generated/templates';
-import { Gateway, Issuer, LiquidRestakingToken, Token, UnderlyingToken } from '../generated/schema';
+import { Coordinator, Issuer, LiquidRestakingToken, UnderlyingAsset, WithdrawalQueue } from '../generated/schema';
+import { findOrCreateAsset, findOrCreatePriceFeed, findOrCreateWithdrawalEpoch, toUnits } from './helpers/utils';
 import { LiquidRestakingTokenIssued } from '../generated/RioLRTIssuer/RioLRTIssuer';
-import { ERC20Token } from '../generated/RioLRTIssuer/ERC20Token';
-import { ZERO_ADDRESS, ZERO_BD } from './helpers/constants';
-import { Address, Bytes } from '@graphprotocol/graph-ts';
-import { toUnits } from './helpers/utils';
+import { ZERO_BD, ZERO_BI } from './helpers/constants';
+import { Address } from '@graphprotocol/graph-ts';
 
 export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssued): void {
   const restakingToken = new LiquidRestakingToken(event.params.deployment.token.toHex());
 
-  const gateway = new Gateway(event.params.deployment.gateway.toHex());
-  gateway.address = event.params.deployment.gateway;
-  gateway.restakingToken = restakingToken.id;
-  gateway.save();
+  const coordinator = new Coordinator(event.params.deployment.coordinator.toHex());
+  coordinator.address = event.params.deployment.coordinator;
+  coordinator.restakingToken = restakingToken.id;
+  coordinator.save();
+
+  const withdrawalQueue = new WithdrawalQueue(event.params.deployment.withdrawalQueue.toHex());
+  withdrawalQueue.address = event.params.deployment.withdrawalQueue;
+  withdrawalQueue.restakingToken = restakingToken.id;
+  withdrawalQueue.save();
   
+  restakingToken.address = event.params.deployment.token;
   restakingToken.symbol = event.params.symbol;
   restakingToken.name = event.params.name;
-  restakingToken.address = event.params.deployment.token;
-  restakingToken.createdTimestamp = event.block.timestamp.toI32();
-  restakingToken.gateway = gateway.id;
-  restakingToken.poolId = event.params.poolId.toHex();
+  restakingToken.createdTimestamp = event.block.timestamp;
   restakingToken.totalSupply = ZERO_BD;
 
-  for (let i = 0; i < event.params.config.tokens.length; i++) {
-    const token = findOrCreateToken(event.params.config.tokens[i], true);
-    const underlyingToken = new UnderlyingToken(`${restakingToken.id}-${token.id}`);
+  restakingToken.coordinator = coordinator.id;
+  restakingToken.withdrawalQueue = withdrawalQueue.id;
+
+  for (let i = 0; i < event.params.config.assets.length; i++) {
+    const assetConfig = event.params.config.assets[i];
+
+    const asset = findOrCreateAsset(assetConfig.asset, true);
+    findOrCreateWithdrawalEpoch(restakingToken.id, ZERO_BI, asset, true);
+
+    const priceFeed = findOrCreatePriceFeed(restakingToken.address, assetConfig.priceFeed, asset, true);
+
+    const underlyingAsset = new UnderlyingAsset(`${restakingToken.id}-${asset.id}`);
     
-    underlyingToken.address = token.address;
-    underlyingToken.restakingToken = restakingToken.id;
-    underlyingToken.token = token.id;
-    underlyingToken.index = i + 1; // Account for BPT at index 0.
-    underlyingToken.weight = toUnits(
-      event.params.config.normalizedWeights[i].toBigDecimal()
-    );
-    underlyingToken.balance = toUnits(
-      event.params.config.amountsIn[i].toBigDecimal(), token.decimals as u8,
-    );
-    underlyingToken.cashBalance = underlyingToken.balance;
-    underlyingToken.managedBalance = ZERO_BD;
+    underlyingAsset.address = asset.address;
+    underlyingAsset.restakingToken = restakingToken.id;
+    underlyingAsset.asset = asset.id;
+    underlyingAsset.strategy = assetConfig.strategy;
+    underlyingAsset.depositCap = toUnits(assetConfig.depositCap.toBigDecimal(), asset.decimals as u8);
+    underlyingAsset.priceFeed = priceFeed.id;
+    underlyingAsset.balance = ZERO_BD;
+    underlyingAsset.balanceInDepositPool = ZERO_BD;
+    underlyingAsset.balanceInEigenLayer = ZERO_BD;
 
-    underlyingToken.strategy = event.params.config.strategies[i];
-
-    underlyingToken.save();
+    underlyingAsset.save();
   }
-  
-  // Create ETH as a token.
-  const eth = new Token(ZERO_ADDRESS);
-  eth.symbol = 'ETH';
-  eth.name = 'Ether';
-  eth.decimals = 18;
-  eth.address = Bytes.fromHexString(ZERO_ADDRESS);
-  eth.save();
 
   const issuer = findOrCreateIssuer(event.address);
   issuer.tokensIssued += 1;
@@ -61,7 +60,8 @@ export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssu
 
   restakingToken.issuer = issuer.id;
   LiquidRestakingTokenTemplate.create(event.params.deployment.token);
-  GatewayTemplate.create(event.params.deployment.gateway);
+  CoordinatorTemplate.create(event.params.deployment.coordinator);
+  WithdrawalQueueTemplate.create(event.params.deployment.withdrawalQueue);
 
   restakingToken.save();
 }
@@ -78,21 +78,4 @@ function findOrCreateIssuer(address: Address, save: boolean = false): Issuer {
   if (save) issuer.save();
 
   return issuer;
-}
-
-function findOrCreateToken(address: Address, save: boolean = false): Token {
-  let token: Token | null = Token.load(address.toHex());
-  if (token != null) return token;
-
-  const contract = ERC20Token.bind(address);
-
-  token = new Token(address.toHex());
-  token.symbol = contract.symbol();
-  token.name = contract.name();
-  token.decimals = contract.decimals();
-  token.address = address;
-
-  if (save) token.save();
-
-  return token;
 }
