@@ -157,15 +157,14 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         return operatorDetails[operatorId].shareDetails[strategy];
     }
 
-
-    /// @notice Creates and registers a new operator.
+    /// @notice Deploys an operator delegator contract and delegates to the provided `operator`.
     /// @param operator The operator's address.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
     /// @param strategyShareCaps The maximum number of shares that can be allocated to
     /// the operator for each strategy.
     /// @param validatorCap The maximum number of active validators allowed.
-    function createOperator(
+    function createOperatorDelegator(
         address operator,
         address initialManager,
         address initialEarningsReceiver,
