@@ -1,17 +1,129 @@
 import { gql } from '@apollo/client';
-import { EthereumAddress } from './typings';
+import { Address } from 'viem';
 
-// Demo Query
-export const getProposalsByDao = (
-  collectionAddress: EthereumAddress,
-  amount: number
-) => {
+export const getAssetList = () => {
   return gql`
-  query getProposal {
-    proposals(where: {dao: "${collectionAddress}"}, first: ${amount}) {
-      id
-      title
-      description
+    query getAssetList {
+      liquidRestakingTokens {
+        id
+        address
+        name
+        symbol
+      }
+      assets {
+        id
+        address
+        name
+        symbol
+        decimals
+      }
     }
-  }`;
+  `;
+};
+
+export const getLiquidRestakingTokenList = () => {
+  return gql`
+    query getLiquidRestakingTokenList {
+      liquidRestakingTokens {
+        id
+        symbol
+        name
+        address
+        percentAPY
+        totalSupply
+        totalValueUSD
+        totalValueETH
+        exchangeRateETH
+        exchangeRateUSD
+        underlyingAssets {
+          strategy
+          balance
+          address
+          asset {
+            id
+            name
+            symbol
+            address
+            decimals
+            latestUSDPrice
+            latestUSDPriceTimestamp
+          }
+        }
+      }
+    }
+  `;
+};
+
+export const getLatestAssetUSDPrice = (tokenAddress: Address) => {
+  return gql`
+    query getLatestAssetUSDPrice {
+      asset(id: "${tokenAddress}") {
+        address
+        symbol
+        latestUSDPrice
+        latestUSDPriceTimestamp
+      }
+    }
+  `;
+};
+
+export const getUserExits = (address: Address) => {
+  return gql`
+    query getUserExits {
+      exits(
+        first: 1000
+        where: {user:  "${address.toLowerCase()}"}) {
+          type
+          sharesOwed
+          id
+          amountIn
+          amountsOut
+          tx
+          valueUSD
+          timestamp
+          tokensOut {
+            symbol
+            latestUSDPrice
+            latestUSDPriceTimestamp
+          }
+      }
+    }
+  `;
+};
+
+export const getUserTxHistory = (address: Address) => {
+  return gql`
+    query getUserTxHistory {
+      joins(
+        first: 1000
+        where: {user: "${address.toLowerCase()}"}
+      ) {
+        amountOut
+        amountsIn
+        tx
+        timestamp
+        type
+        valueUSD
+        userBalanceAfter
+        user {
+          address
+        }
+      }
+      exits(
+        first: 1000
+        where: {user: "${address.toLowerCase()}"}
+      ) {
+
+        amountIn
+        tx
+        timestamp
+        type
+        valueUSD
+        userBalanceAfter
+        user {
+          address
+        }
+      }
+    }
+  `;
 };

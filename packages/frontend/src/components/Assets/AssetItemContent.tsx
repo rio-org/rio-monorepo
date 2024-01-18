@@ -8,6 +8,8 @@ import BestRateLabel from './BestRateLabel';
 import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
+import { useGetLatestAssetPrice } from '../../hooks/useGetLatestAssetPrice';
+import { CHAIN_ID } from '../../../config';
 
 type Props = {
   asset: AssetDetails;
@@ -28,6 +30,7 @@ const AssetItemContent = ({
   amount,
   isSelectorDisplay
 }: Props) => {
+  useGetLatestAssetPrice(asset.address, CHAIN_ID);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });

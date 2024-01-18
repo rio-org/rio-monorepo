@@ -1,9 +1,9 @@
-import React, { ReactNode, useState } from 'react';
-import { reEthInUSD } from '../../../placeholder';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import iconTransaction from '../../assets/icon-transaction.svg';
 import { motion } from 'framer-motion';
 import cx from 'classnames';
+import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
 
 const styledAmount = (amount: number) => {
   const main = amount.toFixed();
@@ -20,21 +20,14 @@ type Props = {
   padded?: boolean;
 };
 const ReETHConversion = ({ padded }: Props) => {
-  const reEth = <>1 reETH</>;
   const [isReEth, setIsReEth] = useState<boolean>(true);
-  const [first, setFirst] = useState<ReactNode>(reEth);
-  const [second, setSecond] = useState<ReactNode>(styledAmount(reEthInUSD));
+  const { data: exchangeRate } = useAssetExchangeRate({
+    asset: 'ETH',
+    lrt: 'reETH'
+  });
 
   const handleChange = () => {
-    if (isReEth) {
-      setFirst(styledAmount(reEthInUSD));
-      setSecond(reEth);
-      setIsReEth(false);
-    } else {
-      setFirst(reEth);
-      setSecond(styledAmount(reEthInUSD));
-      setIsReEth(true);
-    }
+    setIsReEth((prev) => !prev);
   };
 
   return (
@@ -45,9 +38,18 @@ const ReETHConversion = ({ padded }: Props) => {
       )}
       onClick={() => handleChange()}
     >
-      <span className="text-[var(--color-black-50)] group-hover:text-black">
-        {first} = {second}
-      </span>
+      {exchangeRate && (
+        <span className="text-[var(--color-black-50)] group-hover:text-black">
+          {!isReEth ? (
+            <>1 ETH = {exchangeRate.lrt.toLocaleString()} reETH</>
+          ) : (
+            <>
+              1 reETH ={' '}
+              {styledAmount(exchangeRate.usd * (1 / exchangeRate.lrt))}
+            </>
+          )}
+        </span>
+      )}
       <motion.div
         animate={{ rotate: isReEth ? 180 : -180 }}
         transition={{ duration: 0.2 }}

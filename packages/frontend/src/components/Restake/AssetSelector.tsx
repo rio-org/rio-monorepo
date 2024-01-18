@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { TokenSymbol } from '../../lib/typings';
+import React, { useMemo, useState } from 'react';
+import { AssetDetails, TokenSymbol } from '../../lib/typings';
 import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
 import Image from 'next/image';
 import IconSelectArrow from '../Icons/IconSelectArrow';
@@ -7,68 +7,125 @@ import cx from 'classnames';
 import { Drawer } from '@material-tailwind/react';
 import { useMediaQuery } from 'react-responsive';
 import AssetList from './AssetList';
+import { useOutsideClick } from '../../hooks/useOutsideClick';
+import { twJoin, twMerge } from 'tailwind-merge';
+import { useIsMounted } from '../../hooks/useIsMounted';
+import Skeleton from 'react-loading-skeleton';
 
 type Props = {
-  activeTokenSymbol: TokenSymbol;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  activeTokenSymbol?: TokenSymbol;
+  assets: AssetDetails[];
+  isDisabled?: boolean;
+  setActiveToken: (asset: AssetDetails) => void;
   setIsFocused: (isFocused: boolean) => void;
   unFocusInput: () => void;
 };
 
 const AssetSelector = ({
   activeTokenSymbol,
-  setActiveTokenSymbol,
+  assets,
+  isDisabled,
+  setActiveToken,
   unFocusInput
 }: Props) => {
   const [isListOpen, setIsListOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const isMounted = useIsMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const eligibleAssets = useMemo(() => {
+    return assets.filter((asset) => asset.symbol !== 'reETH');
+  }, [assets]);
 
   const handleClick = () => {
     if (!isDesktopOrLaptop && !isListOpen) {
       unFocusInput();
       setIsListOpen(true);
     } else {
-      setIsListOpen(!isListOpen);
+      if (isListOpen) {
+        setIsListOpen(false);
+      }
+      if (!isListOpen) {
+        setIsListOpen(true);
+      }
     }
   };
 
+  const listRef = useOutsideClick(() => {
+    setIsListOpen(false);
+  }, isButtonHovered);
+
+  const isDropdown = eligibleAssets.length > 1;
+
+  const buttonClassName = useMemo(() => {
+    return twMerge(
+      'flex flex-row gap-1 justify-center items-center',
+      'py-1 pl-1 pr-2 rounded-full bg-[var(--color-element-wrapper-bg-light)]',
+      isDropdown
+        ? 'duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors'
+        : 'pr-0'
+    );
+  }, [isDropdown]);
+
+  const buttonInternal = useMemo(
+    () => (
+      <>
+        {activeTokenSymbol ? (
+          <Image
+            src={ASSETS[activeTokenSymbol].logo}
+            alt={`${ASSETS[activeTokenSymbol].name} logo`}
+            width={24}
+            height={24}
+          />
+        ) : (
+          <Skeleton width={24} height={24} />
+        )}
+        <span className="pr-2">{activeTokenSymbol}</span>
+      </>
+    ),
+    [activeTokenSymbol]
+  );
+
   return (
     <>
-      <button
-        onClick={() => handleClick()}
-        className={cx(
-          'flex flex-row gap-1 justify-center items-center py-1 pl-1 pr-2 rounded-full bg-[var(--color-element-wrapper-bg-light)] duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors',
-          isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
-        )}
-      >
-        <Image
-          src={ASSETS[activeTokenSymbol].logo}
-          alt={`${ASSETS[activeTokenSymbol].name} logo`}
-          width={24}
-          height={24}
-        />
-        <span className="pr-2">{activeTokenSymbol}</span>
-        <div className="w-fit flex-none">
-          <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />
-        </div>
-      </button>
-      {isDesktopOrLaptop && isListOpen && (
-        <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
+      {isDropdown ? (
+        <button
+          onClick={() => !isDisabled && handleClick()}
+          className={cx(
+            buttonClassName,
+            isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
+          )}
+          disabled={isDisabled}
+          onMouseEnter={() => setIsButtonHovered(true)}
+          onMouseLeave={() => setIsButtonHovered(false)}
+        >
+          {buttonInternal}
+          <div className="w-fit flex-none">
+            <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />
+          </div>
+        </button>
+      ) : (
+        <div className={buttonClassName}>{buttonInternal}</div>
+      )}
+      {isDropdown && isDesktopOrLaptop && isListOpen && (
+        <div
+          ref={listRef}
+          className={twJoin(
+            'absolute top-[calc(100%+10px)] left-0 w-full',
+            'bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit'
+          )}
+        >
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            assets={eligibleAssets}
+            setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />
         </div>
       )}
-      {isMounted && !isDesktopOrLaptop && isListOpen && (
+      {isDropdown && isMounted && !isDesktopOrLaptop && isListOpen && (
         <Drawer
           placement="bottom"
           size={330}
@@ -78,7 +135,8 @@ const AssetSelector = ({
         >
           <AssetList
             activeTokenSymbol={activeTokenSymbol}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            assets={eligibleAssets}
+            setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
           />
         </Drawer>

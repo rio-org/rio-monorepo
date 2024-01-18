@@ -1,40 +1,44 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TokenSymbol } from '../../lib/typings';
-import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
+import { AssetDetails } from '../../lib/typings';
+import { DESKTOP_MQ } from '../../lib/constants';
 import AssetItemContent from '../Assets/AssetItemContent';
 import WithdrawAssetItem from '../Assets/WithdrawAssetItem';
 import IconSelectArrow from '../Icons/IconSelectArrow';
 import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import { Drawer } from '@material-tailwind/react';
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 
 type Props = {
-  activeTokenSymbol: TokenSymbol;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  assetsList: AssetDetails[];
+  activeToken: AssetDetails;
+  setActiveToken: (token: AssetDetails) => void;
 };
 
 const List = ({
+  assetsList,
   setIsListOpen,
-  activeTokenSymbol,
-  setActiveTokenSymbol
+  activeToken,
+  setActiveToken
 }: {
+  assetsList: AssetDetails[];
   setIsListOpen: (isListOpen: boolean) => void;
-  activeTokenSymbol: TokenSymbol;
-  setActiveTokenSymbol: (symbol: TokenSymbol) => void;
+  activeToken: AssetDetails;
+  setActiveToken: (token: AssetDetails) => void;
 }) => {
   return (
     <>
-      {Object.values(ASSETS).map((asset) => {
+      {assetsList.map((asset) => {
         // don't display reETH in the asset selector
         if (asset.symbol === 'reETH') return null;
         return (
           <WithdrawAssetItem
-            asset={asset}
+            token={asset}
             key={asset.symbol}
-            isActiveToken={asset.symbol === activeTokenSymbol}
-            setActiveTokenSymbol={setActiveTokenSymbol}
+            isActiveToken={asset.symbol === activeToken.symbol}
+            setActiveToken={setActiveToken}
             setIsListOpen={setIsListOpen}
-            isBestRate={asset.symbol === '＊ETH' ? true : false} // todo: make dynamic
+            isBestRate={asset.symbol === '＊ETH' ? true : false} // todo: make dynamic when "best rate" data is made available
           />
         );
       })}
@@ -43,15 +47,21 @@ const List = ({
 };
 
 const WithdrawAssetSelector = ({
-  activeTokenSymbol,
-  setActiveTokenSymbol
+  assetsList,
+  activeToken,
+  setActiveToken
 }: Props) => {
-  const [isMounted, setIsMounted] = useState(false);
   const [isListOpen, setIsListOpen] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
   const drawerContentRef = useRef<HTMLDivElement>(null);
+  const listRef = useOutsideClick(() => {
+    setIsListOpen(false);
+  }, isButtonHovered);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -60,7 +70,12 @@ const WithdrawAssetSelector = ({
     <>
       <div className="relative">
         <div>
-          <label htmlFor="asset" className="block mb-1 font-medium">
+          <label
+            htmlFor="asset"
+            className="block mb-1 font-medium"
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
+          >
             Select asset
           </label>
           <button
@@ -70,27 +85,31 @@ const WithdrawAssetSelector = ({
             )}
             id="asset"
             onClick={() => setIsListOpen(!isListOpen)}
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
           >
             <AssetItemContent
-              asset={ASSETS[activeTokenSymbol]}
+              asset={activeToken}
               isActiveToken={false}
               isLoading={false}
               isError={false}
               isSelectorDisplay={true}
-              isBestRate={
-                ASSETS[activeTokenSymbol].symbol === '＊ETH' ? true : false
-              }
+              isBestRate={activeToken.symbol === '＊ETH' ? true : false}
               amount={<></>}
             />
             <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />
           </button>
         </div>
         {isDesktopOrLaptop && isListOpen && (
-          <div className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit">
+          <div
+            ref={listRef}
+            className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit"
+          >
             <List
+              assetsList={assetsList}
               setIsListOpen={setIsListOpen}
-              activeTokenSymbol={activeTokenSymbol}
-              setActiveTokenSymbol={setActiveTokenSymbol}
+              activeToken={activeToken}
+              setActiveToken={setActiveToken}
             />
           </div>
         )}
@@ -100,16 +119,16 @@ const WithdrawAssetSelector = ({
         <Drawer
           placement="bottom"
           size={470}
-          // size={drawerContentRef.current?.offsetHeight} // todo
           open={isListOpen}
           onClose={() => setIsListOpen(false)}
           className="rounded-t-2xl p-4"
         >
           <div ref={drawerContentRef}>
             <List
+              assetsList={assetsList}
               setIsListOpen={setIsListOpen}
-              activeTokenSymbol={activeTokenSymbol}
-              setActiveTokenSymbol={setActiveTokenSymbol}
+              activeToken={activeToken}
+              setActiveToken={setActiveToken}
             />
           </div>
         </Drawer>

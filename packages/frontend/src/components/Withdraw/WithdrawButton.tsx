@@ -1,80 +1,104 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
 import Alert from '../Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
+import { Hash, Address } from 'viem';
+import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi';
+import { CHAIN_ID } from '../../../config';
+import { getChainName } from '../../lib/utilities';
 
 type Props = {
-  isValid: boolean;
+  isValidAmount: boolean;
+  isEmpty: boolean;
+  isWithdrawalLoading: boolean;
+  isWithdrawalSuccess: boolean;
+  isWithdrawalError: boolean;
+  accountAddress: Address;
+  exitTxHash?: Hash;
+  setIsWithdrawalSuccess: (isSuccess: boolean) => void;
+  setIsWithdrawalError: (isError: boolean) => void;
+  handleExecute: () => void;
   clearForm: () => void;
 };
 
-const WithdrawButton = ({ isValid, clearForm }: Props) => {
-  const [isError, setIsError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const fetchDummyData = async () => {
-    setIsLoading(true);
-    //  wait 1 second before setting isError to true
-    await new Promise((resolve) => setTimeout(resolve, 1000)).catch((err) => {
-      console.log(err);
-    });
-    setIsLoading(false);
+const WithdrawButton = ({
+  isValidAmount,
+  isEmpty,
+  isWithdrawalLoading,
+  isWithdrawalSuccess,
+  isWithdrawalError,
+  exitTxHash,
+  handleExecute,
+  setIsWithdrawalSuccess,
+  setIsWithdrawalError
+}: Props) => {
+  const { address } = useAccount();
+  const { chain } = useNetwork();
+  const { isLoading: isSwitchNetworkLoading, switchNetwork } =
+    useSwitchNetwork();
+  const wrongNetwork = chain?.id !== CHAIN_ID;
 
-    // randomly set isSuccess to true or false
-    const random = Math.random();
-    if (random > 0.5) {
-      setIsSuccess(true);
-      clearForm();
-    } else {
-      setIsError(true);
-    }
-  };
+  const buttonText = useMemo(() => {
+    if (!address) return 'Connect to withdraw';
+    if (wrongNetwork) return `Switch to ${getChainName(CHAIN_ID)}`;
+    if (isEmpty) return 'Enter an amount';
+    if (!isValidAmount && !isEmpty) return 'Insufficient balance';
+    return 'Request withdraw';
+  }, [isValidAmount, isEmpty, address, wrongNetwork]);
 
-  useEffect(() => {
-    async () => {
-      await fetchDummyData();
-    };
-  }, []);
+  const isDisabled = wrongNetwork
+    ? isSwitchNetworkLoading
+    : !isValidAmount || isEmpty || isWithdrawalLoading;
+
+  const handleClick = () =>
+    wrongNetwork ? switchNetwork?.(CHAIN_ID) : handleExecute();
 
   return (
     <AnimatePresence>
-      {!isSuccess && !isError && (
-        <motion.button
-          className={cx(
-            'rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
-            !isValid && 'bg-opacity-20',
-            isValid && 'hover:bg-[var(--color-dark-gray)]'
-          )}
-          disabled={!isValid || isLoading}
-          onClick={() => {
-            fetchDummyData().catch(() => {
-              setIsError(true);
-            });
-          }}
-          variants={TX_BUTTON_VARIANTS}
-          key={'withdraw'}
+      {(isWithdrawalError || isWithdrawalSuccess) && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.1 }}
         >
-          {isLoading && (
-            <div className="w-full text-center flex items-center justify-center gap-2">
-              <Spinner width={16} />
-              <span className="opacity-40">Submitting request</span>
-            </div>
-          )}
-          {!isLoading && !isError && (
-            <span className={cx(!isValid && 'opacity-20 text-black')}>
-              {isValid ? 'Request withdraw' : 'Enter an amount'}
-            </span>
-          )}
-        </motion.button>
+          <div className="mt-4">
+            <Alert
+              isSuccess={isWithdrawalSuccess}
+              isError={isWithdrawalError}
+              txHash={exitTxHash}
+              setIsSuccess={setIsWithdrawalSuccess}
+              setIsError={setIsWithdrawalError}
+            />
+          </div>
+        </motion.div>
       )}
-      <Alert
-        isSuccess={isSuccess}
-        isError={isError}
-        setIsSuccess={setIsSuccess}
-        setIsError={setIsError}
-      />
+      <motion.button
+        className={cx(
+          'rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
+          isDisabled ? 'bg-opacity-20' : 'hover:bg-[var(--color-dark-gray)]'
+        )}
+        disabled={isDisabled}
+        onClick={handleClick}
+        variants={TX_BUTTON_VARIANTS}
+      >
+        {isWithdrawalLoading || isSwitchNetworkLoading ? (
+          <div className="w-full text-center flex items-center justify-center gap-2">
+            <Spinner width={16} />
+            <span className="text-black opacity-20">
+              {isWithdrawalLoading
+                ? 'Submitting request'
+                : 'Awaiting confirmation'}
+            </span>
+          </div>
+        ) : (
+          <span className={cx(isDisabled && 'opacity-20 text-black')}>
+            {buttonText}
+          </span>
+        )}
+      </motion.button>
     </AnimatePresence>
   );
 };

@@ -2,7 +2,6 @@ import Head from 'next/head';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { APP_NAV_ITEMS, APP_TITLE } from '../../config';
 import AppNav from './Nav/AppNav';
-import useWindowSize from '../hooks/useWindowSize';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
 import ReETHConversion from './Shared/ReETHConversion';
@@ -17,15 +16,13 @@ type LayoutProps = {
 
 export default function Layout({ children }: LayoutProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [appCanvasHeight, setappCanvasHeight] = useState(0);
   const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0); // APP_NAV_ITEMS[0
   const [transitionDirection, setTransitionDirection] = useState<number>(50);
   const appNavRef = useRef<HTMLDivElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
   const conversionButtonRef = useRef<HTMLDivElement>(null);
-  const hasWindow = typeof window !== 'undefined';
-  const win = hasWindow ? (window as Window) : undefined;
-  const windowSize = useWindowSize(win);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const contentWrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const baseUrlSegment = router.pathname.split('/')[1];
   const nextSlugIndex = (slug: string) => {
@@ -48,37 +45,6 @@ export default function Layout({ children }: LayoutProps) {
       )
     );
   }, [router]);
-
-  useEffect(() => {
-    const appPadding = 40; // outer and inner wrapper paddings
-    if (
-      isMounted &&
-      !isDesktopOrLaptop &&
-      appNavRef.current &&
-      mobileNavRef.current &&
-      appNavRef.current.offsetHeight &&
-      windowSize.height > 0
-    ) {
-      setappCanvasHeight(
-        windowSize.height -
-          appNavRef.current.offsetHeight -
-          appPadding -
-          mobileNavRef.current.offsetHeight
-      );
-    } else if (
-      isMounted &&
-      appNavRef.current &&
-      conversionButtonRef.current &&
-      windowSize.height > 0
-    ) {
-      setappCanvasHeight(
-        windowSize.height -
-          appNavRef.current.offsetHeight -
-          conversionButtonRef.current.offsetHeight -
-          appPadding
-      );
-    }
-  }, [windowSize, appNavRef, mobileNavRef, isDesktopOrLaptop, isMounted]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -108,20 +74,34 @@ export default function Layout({ children }: LayoutProps) {
         <link rel="manifest" href="/site.webmanifest" />
         <title>{APP_TITLE}</title>
       </Head>
-      <main className="bg-[var(--color-app-bg)] lg:bg-white lg:p-[12px] min-h-full font-sans">
-        <div className="bg-[var(--color-app-bg)] p-4 lg:px-4 lg:py-2 rounded-[12px] bg-fixed relative min-h-full">
+      <main
+        className={cx(
+          'bg-[var(--color-app-bg)] lg:bg-white lg:p-[12px] lg:flex w-full min-h-full font-sans'
+        )}
+      >
+        <div
+          className={cx(
+            'bg-[var(--color-app-bg)] p-4 lg:px-4 lg:py-2 rounded-[12px] relative w-full lg:flex lg:flex-col lg:justify-center'
+          )}
+        >
           <div
             ref={appNavRef}
-            className="container-fluid w-full mx-auto pt-2 pb-6 lg:pb-4"
+            className="container-fluid w-full mx-auto pt-2 pb-6 lg:pb-[10vh] "
           >
             <AppNav />
           </div>
-          <div className={cx('lg:min-h-[80vh]')}>
-            <AnimatePresence mode={'wait'}>
+          <div
+            className={cx(
+              'flex flex-col justify-start items-start w-full relative z-10'
+            )}
+            ref={contentRef}
+          >
+            <AnimatePresence mode={'wait'} initial={false}>
               <motion.div
+                className="w-full"
                 key={baseUrlSegment}
-                initial={false}
-                animate={isDesktopOrLaptop && 'animateState'}
+                initial={'initialState'}
+                animate={'animateState'}
                 exit={'exitState'}
                 transition={{
                   type: 'spring',
@@ -143,10 +123,10 @@ export default function Layout({ children }: LayoutProps) {
                 }}
               >
                 <motion.div
-                  className="container-fluid w-full mx-auto lg:px-4 pb-8 flex items-center"
+                  className={cx(
+                    'container-fluid mx-auto lg:px-4 pb-8 flex items-center'
+                  )}
                   style={{
-                    minHeight:
-                      isMounted && isDesktopOrLaptop ? appCanvasHeight : '100%',
                     paddingBottom:
                       isMounted && isDesktopOrLaptop
                         ? '0px'
@@ -155,18 +135,29 @@ export default function Layout({ children }: LayoutProps) {
                   initial={{ opacity: 0 }}
                   animate={isMounted && { opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  ref={contentWrapperRef}
                 >
                   {children}
                 </motion.div>
               </motion.div>
             </AnimatePresence>
           </div>
-          <div
+          <motion.div
             ref={conversionButtonRef}
-            className="sticky bottom-4 left-0 pb-1 hidden lg:block"
+            key={'conversionButton'}
+            initial={{ opacity: 0 }}
+            animate={isMounted && { opacity: 1 }}
+            transition={{
+              type: 'spring',
+              duration: 0.1,
+              delay: 0.5
+            }}
+            className={cx(
+              'sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto z-0'
+            )}
           >
             <ReETHConversion />
-          </div>
+          </motion.div>
         </div>
         <div ref={mobileNavRef}>
           <MobileNav />

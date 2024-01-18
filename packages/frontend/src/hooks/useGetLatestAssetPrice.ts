@@ -3,32 +3,32 @@ import {
   ApolloError,
   NormalizedCacheObject
 } from '@apollo/client';
-import { getProposalsByDao } from '../lib/graphqlQueries';
-import { CHAIN_ID_NUMBER, EthereumAddress, Proposal } from '../lib/typings';
+import { getLatestAssetUSDPrice } from '../lib/graphqlQueries';
+import { AssetPrice, CHAIN_ID_NUMBER } from '../lib/typings';
 import { useEffect, useState } from 'react';
-import apolloClient from '../lib/apolloClient';
+import subgraphClient from '../lib/subgraphClient';
+import { Address } from 'viem';
 
-export const useGetProposals = (
-  collectionAddress: EthereumAddress,
-  chainId: CHAIN_ID_NUMBER,
-  amount: number = 100
+export const useGetLatestAssetPrice = (
+  tokenAddress: Address,
+  chainId: CHAIN_ID_NUMBER
 ) => {
-  const client = apolloClient(chainId);
+  const client = subgraphClient(chainId);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState<ApolloError>();
-  const [data, setData] = useState<Proposal[]>();
+  const [data, setData] = useState<AssetPrice>();
 
   const getData = async (client: ApolloClient<NormalizedCacheObject>) => {
-    const { data: subgraphData } = await client.query<{
-      proposals: Proposal[];
+    const { data } = await client.query<{
+      token: AssetPrice;
     }>({
-      query: getProposalsByDao(collectionAddress, amount)
+      query: getLatestAssetUSDPrice(tokenAddress)
     });
-    return subgraphData.proposals;
+    return data.token;
   };
 
   useEffect(() => {
-    if (!collectionAddress || !chainId) return;
+    if (!chainId) return;
     getData(client)
       .then((data) => {
         if (!data) return;
@@ -40,7 +40,7 @@ export const useGetProposals = (
         setIsError(error);
         setIsLoading(false);
       });
-  }, [collectionAddress, chainId]);
+  }, [chainId]);
 
   return {
     data,

@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import StatLabel from './StatLabel';
+import { displayEthAmount } from '../../lib/utilities';
+import { twJoin } from 'tailwind-merge';
 
 type Props = {
   label: string;
@@ -8,11 +10,33 @@ type Props = {
 };
 
 const Stat = ({ label, value, denominator }: Props) => {
+  const _value = useMemo(() => {
+    if (isNaN(Number(value))) {
+      return value;
+    }
+
+    if (/eth/i.test(denominator)) {
+      return displayEthAmount(value).toString();
+    }
+
+    if (denominator === '') {
+      return (+value).toLocaleString();
+    }
+
+    return value;
+  }, [value, denominator]);
+
   return (
-    <div className="bg-[var(--color-element-wrapper-bg)] p-4 lg:p-6 rounded-xl w-full flex flex-col gap-6">
+    <div
+      className={twJoin(
+        'flex flex-col gap-6 w-full rounded-xl',
+        'p-4 lg:p-6',
+        'bg-[var(--color-element-wrapper-bg)]'
+      )}
+    >
       <StatLabel label={label} />
       <span className="text-[28px] leading-none">
-        {value} {denominator}
+        {_value} {denominator}
       </span>
     </div>
   );

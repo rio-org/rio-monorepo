@@ -1,19 +1,27 @@
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
+import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
 import IconExternal from '../Icons/IconExternal';
-import { TX_BUTTON_VARIANTS } from '../../lib/constants';
-import cx from 'classnames';
+import { CHAIN_ID } from '../../../config';
 
 type Props = {
   isSuccess: boolean;
   isError: boolean;
+  errorMessage?: string;
+  txHash?: `0x${string}`;
   setIsSuccess: (isSuccess: boolean) => void;
   setIsError: (isError: boolean) => void;
 };
 
-const Alert = ({ isSuccess, isError, setIsSuccess, setIsError }: Props) => {
-  const chainId = 1;
+const Alert = ({
+  isSuccess,
+  isError,
+  errorMessage,
+  txHash,
+  setIsSuccess,
+  setIsError
+}: Props) => {
   return (
     <>
       {isSuccess && (
@@ -21,34 +29,45 @@ const Alert = ({ isSuccess, isError, setIsSuccess, setIsError }: Props) => {
           className="p-4 text-center flex flex-col gap-0 justify-center items-center text-[14px] rounded-lg w-full bg-[var(--color-green-bg)] text-[var(--color-green)]"
           variants={TX_BUTTON_VARIANTS}
           onClick={() => setIsSuccess(false)}
-          key={'success'}
         >
           <span className="font-medium">Success</span>
-          <a
-            href={linkToTxOnBlockExplorer('0x000', chainId)}
-            target="_blank"
-            rel="noreferrer"
-            className={cx(
-              `px-[8px] py-[4px] text-gray-500 font-normal whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200 leading-none`
-            )}
-          >
-            View transaction
-            <div className="opacity-50">
-              <IconExternal transactionStatus="None" />
-            </div>
-          </a>
         </motion.div>
       )}
-      {isError && (
+      {(isError || errorMessage) && (
         <motion.button
           className="p-4 text-center text-[14px] rounded-lg w-full bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] hover:bg-[var(--color-yellow-bg-hover)]"
           variants={TX_BUTTON_VARIANTS}
           onClick={() => setIsError(false)}
-          key={'error'}
         >
-          <span className="font-medium block">Error. Please try again.</span>
+          <span className="font-medium block">
+            {errorMessage || 'Error. Please try again.'}
+          </span>
         </motion.button>
       )}
+      <AnimatePresence>
+        {isSuccess && txHash && (
+          <motion.div
+            className="mt-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div>
+              <a
+                href={txHash ? linkToTxOnBlockExplorer(txHash, CHAIN_ID) : ''}
+                target="_blank"
+                rel="noreferrer"
+                className="flex flex-row justify-center text-center px-[8px] py-[2px] text-gray-500 font-normal whitespace-nowrap text-sm items-center rounded-full w-full gap-2 h-fit transition-colors duration-200 leading-none"
+              >
+                View transaction
+                <div className="opacity-50">
+                  <IconExternal transactionStatus="None" />
+                </div>
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

@@ -8,25 +8,29 @@ import {
   Drawer,
   Spinner
 } from '@material-tailwind/react';
-import { useDisconnect } from 'wagmi';
+import { useBalance, useDisconnect } from 'wagmi';
 import { useMediaQuery } from 'react-responsive';
 import { useEffect, useRef, useState } from 'react';
 import ReETHConversion from '../Shared/ReETHConversion';
 import { DESKTOP_MQ } from '../../lib/constants';
 import cx from 'classnames';
+import { mainNavConnectVariants } from '../../lib/motion';
+import { motion } from 'framer-motion';
+import { Address, formatEther, formatUnits } from 'viem';
+import { displayEthAmount } from '../../lib/utilities';
+import { useIsMounted } from '../../hooks/useIsMounted';
+import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
 
 export const CustomConnectButton = () => {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const [openNav, setOpenNav] = useState(false);
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
   const drawerContentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
   if (!isMounted) return null;
+
   return (
     <ConnectButton.Custom>
       {({
@@ -41,6 +45,8 @@ export const CustomConnectButton = () => {
         const [isLoading, setIsLoading] = useState(false);
         const [isDisconnected, setIsDisconnected] = useState(false);
         const ready = mounted && authenticationStatus !== 'loading';
+        const { data: lrts } = useGetLiquidRestakingTokens();
+
         const { disconnect } = useDisconnect({
           onSuccess() {
             setIsDisconnected(true);
@@ -49,18 +55,24 @@ export const CustomConnectButton = () => {
           }
         });
 
+        const { data: reEthBalance } = useBalance({
+          address: account?.address as Address,
+          token: lrts?.find((t) => /^reETH/i.test(t.symbol))?.address
+        });
+
         useEffect(() => {
-          account && setIsDisconnected(false);
-          account && setIsLoading(false);
+          if (!account) return;
+          setIsDisconnected(false);
+          setIsLoading(false);
         }, [account]);
 
         useEffect(() => {
-          connectModalOpen && setIsLoading(true);
-          !connectModalOpen && setIsLoading(false);
+          setIsLoading(connectModalOpen);
         }, [connectModalOpen]);
 
         return (
-          <div
+          <motion.div
+            key={account?.address}
             {...(!ready && {
               'aria-hidden': true,
               style: {
@@ -69,6 +81,8 @@ export const CustomConnectButton = () => {
                 userSelect: 'none'
               }
             })}
+            className="lg:ml-auto"
+            variants={mainNavConnectVariants}
           >
             {(() => {
               if (isDisconnected || !account) {
@@ -112,15 +126,17 @@ export const CustomConnectButton = () => {
                   <div className="hidden lg:block">
                     <Menu placement="bottom-end">
                       <MenuHandler>
-                        <div className="flex flex-col text-right items-end px-2 py-1 hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer">
+                        <div className="flex flex-col py-1 px-2 text-right items-end hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer text-[14px]">
                           {account?.displayName}
                           <span className="text-sm opacity-50 hidden lg:block">
-                            {account?.balanceFormatted
-                              ? `${
-                                  Math.trunc(+account.balanceFormatted * 1000) /
-                                  1000
-                                } reETH`
-                              : ''}
+                            {reEthBalance &&
+                              displayEthAmount(
+                                formatUnits(
+                                  reEthBalance.value,
+                                  reEthBalance.decimals
+                                )
+                              )}{' '}
+                            reETH
                           </span>
                         </div>
                       </MenuHandler>
@@ -153,12 +169,14 @@ export const CustomConnectButton = () => {
                         <div className="flex flex-row justify-between mb-2 text-black">
                           {account?.displayName}
                           <span className="text-sm opacity-50 -tracking-tighter">
-                            {account?.balanceFormatted
-                              ? `${
-                                  Math.trunc(+account.balanceFormatted * 1000) /
-                                  1000
-                                } reETH`
+                            {reEthBalance
+                              ? formatEther(reEthBalance.value) + `reETH`
                               : ''}
+                            {/* {account?.balanceFormatted
+                              ? `${Math.trunc(+account.balanceFormatted * 1000) /
+                              1000
+                              } reETH`
+                              : ''} */}
                           </span>
                         </div>
                         <button
@@ -177,7 +195,7 @@ export const CustomConnectButton = () => {
                 </div>
               );
             })()}
-          </div>
+          </motion.div>
         );
       }}
     </ConnectButton.Custom>
