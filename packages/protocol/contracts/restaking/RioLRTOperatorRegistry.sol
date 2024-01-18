@@ -132,7 +132,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         depositPool = depositPool_;
         rewardDistributor = rewardDistributor_;
 
-        _setValidatorKeyReviewPeriod(3 days);
+        _setValidatorKeyReviewPeriod(1 days);
     }
 
     /// @notice Returns the operator details for the provided operator ID.
