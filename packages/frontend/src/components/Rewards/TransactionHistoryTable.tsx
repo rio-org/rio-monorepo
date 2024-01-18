@@ -28,7 +28,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
   });
 
   const pagination = usePagination({
-    items: txHistory?.concat(txHistory),
+    items: txHistory,
     resultsPerPage: 10
   });
 
