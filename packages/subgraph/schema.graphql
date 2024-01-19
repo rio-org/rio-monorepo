@@ -202,6 +202,15 @@ type PriceFeed @entity {
   lastUpdatedTimestamp: BigInt
 }
 
+type OperatorMetadata @entity {
+  id: ID!
+  name: String
+  website: String
+  description: String
+  logo: String
+  twitter: String
+}
+
 type Operator @entity {
   id: ID!
   operatorId: Int!
@@ -209,6 +218,8 @@ type Operator @entity {
   delegator: Bytes!
   manager: Bytes!
   earningsReceiver: Bytes!
+  metadataURI: String!
+  metadata: OperatorMetadata
   delegationApprover: Bytes
   stakerOptOutWindowBlocks: BigInt
   restakingToken: LiquidRestakingToken!

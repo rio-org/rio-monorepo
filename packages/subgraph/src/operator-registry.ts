@@ -1,9 +1,10 @@
 import { OperatorAdded } from '../generated/templates/OperatorRegistry/RioLRTOperatorRegistry';
+import { OperatorMetadata as OperatorMetadataTemplate } from '../generated/templates';
 import { DelegationManager } from '../generated/DelegationManager/DelegationManager';
 import { Address, Bytes, dataSource } from '@graphprotocol/graph-ts';
 import { OperatorRegistry, Operator } from '../generated/schema';
+import { getIPFSContentID, getOperatorID } from './helpers/utils';
 import { DELEGATION_MANAGERS } from './helpers/constants';
-import { getOperatorID } from './helpers/utils';
 
 export function handleOperatorAdded(event: OperatorAdded): void {
   const operatorRegistry = OperatorRegistry.load(event.address.toHex())!;
@@ -19,11 +20,17 @@ export function handleOperatorAdded(event: OperatorAdded): void {
   operator.delegator = event.params.delegator;
   operator.manager = event.params.initialManager;
   operator.earningsReceiver = event.params.initialEarningsReceiver;
+  operator.metadataURI = event.params.initialMetadataURI;
+  operator.metadata = getIPFSContentID(operator.metadataURI);
   operator.restakingToken = operatorRegistry.restakingToken;
 
   if (!operatorDetails.reverted) {
     operator.delegationApprover = operatorDetails.value.delegationApprover;
     operator.stakerOptOutWindowBlocks = operatorDetails.value.stakerOptOutWindowBlocks;
+  }
+
+  if (operator.metadata) {
+    OperatorMetadataTemplate.create(operator.metadata!);
   }
   operator.save();
 }

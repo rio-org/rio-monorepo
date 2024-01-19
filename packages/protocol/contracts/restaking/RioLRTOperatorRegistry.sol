@@ -162,6 +162,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param operator The operator's address.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
+    /// @param initialMetadataURI The initial metadata URI of the operator.
     /// @param strategyShareCaps The maximum number of shares that can be allocated to
     /// the operator for each strategy.
     /// @param validatorCap The maximum number of active validators allowed.
@@ -169,6 +170,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         address operator,
         address initialManager,
         address initialEarningsReceiver,
+        string calldata initialMetadataURI,
         StrategyShareCap[] calldata strategyShareCaps,
         uint40 validatorCap
     ) external onlyOwner returns (uint8 operatorId, address delegator) {
@@ -193,7 +195,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         _operator.earningsReceiver = initialEarningsReceiver;
         _operator.delegator = delegator;
 
-        emit OperatorAdded(operatorId, delegator, delegator, initialManager, initialEarningsReceiver);
+        emit OperatorAdded(operatorId, delegator, delegator, initialManager, initialEarningsReceiver, initialMetadataURI);
 
         StrategyShareCap memory shareCap;
         OperatorUtilizationHeap.Data memory heap;

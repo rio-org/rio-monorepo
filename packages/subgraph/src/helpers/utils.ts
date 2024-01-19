@@ -15,6 +15,27 @@ export function toUnits(value: BigDecimal, decimals: u8 = 18): BigDecimal {
 }
 
 /**
+ * A native helper function to get the IPFS content ID from an IPFS gateway URL
+ * without regex.
+ * @param gatewayURL The IPFS gateway URL.
+ */
+export function getIPFSContentID(gatewayURL: string): string | null {
+  const parts = gatewayURL.split('/');
+  if (!parts.length) {
+    if (gatewayURL.length < 46) {
+      return null;
+    }
+    return gatewayURL;
+  }
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i].length >= 46) {
+      return parts[i];
+    }
+  }
+  return null;
+}
+
+/**
  * Find or create a user by their address.
  * @param address The address of the user.
  * @param save Whether to save the user.

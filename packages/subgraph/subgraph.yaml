@@ -1,4 +1,6 @@
 specVersion: 0.0.4
+features:
+  - ipfsOnEthereumContracts
 schema:
   file: ./schema.graphql
 dataSources:
@@ -109,9 +111,21 @@ templates:
         - name: RioLRTOperatorRegistry
           file: ./abis/RioLRTOperatorRegistry.json
       eventHandlers:
-        - event: OperatorAdded(indexed uint8,indexed address,indexed address,address,address)
+        - event: OperatorAdded(indexed uint8,indexed address,indexed address,address,address,string)
           handler: handleOperatorAdded
     network: goerli
+  - name: OperatorMetadata
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/operator-metadata.ts
+      handler: handleOperatorMetadata
+      entities:
+        - OperatorMetadata
+      abis:
+        - name: RioLRTOperatorRegistry
+          file: ./abis/RioLRTOperatorRegistry.json
   - name: PriceSource
     kind: ethereum/contract
     source:

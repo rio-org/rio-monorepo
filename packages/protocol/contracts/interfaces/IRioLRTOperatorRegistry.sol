@@ -191,12 +191,14 @@ interface IRioLRTOperatorRegistry {
     /// @param delegator The operator's delegator contract address.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
+    /// @param initialMetadataURI The initial metadata URI of the operator.
     event OperatorAdded(
         uint8 indexed operatorId,
         address indexed operator,
         address indexed delegator,
         address initialManager,
-        address initialEarningsReceiver
+        address initialEarningsReceiver,
+        string initialMetadataURI
     );
 
     /// @notice Emitted when an operator is activated.
@@ -315,6 +317,7 @@ interface IRioLRTOperatorRegistry {
         address operator,
         address initialManager,
         address initialEarningsReceiver,
+        string calldata initialMetadataURI,
         StrategyShareCap[] calldata strategyShareCaps,
         uint40 validatorCap
     ) external returns (uint8 operatorId, address operatorContract);
