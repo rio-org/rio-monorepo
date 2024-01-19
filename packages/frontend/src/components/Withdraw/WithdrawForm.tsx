@@ -137,16 +137,16 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
     handleExitRequest().catch(console.error);
   };
 
-  if (isError) {
-    return <Alert color="red">Error loading account balance.</Alert>;
-  }
-
   if (isLoading) {
     return (
       <div className="w-full text-center min-h-[100px] flex items-center justify-center">
         <Spinner />
       </div>
     );
+  }
+
+  if (!!address && isError) {
+    return <Alert color="red">Error loading account balance.</Alert>;
   }
 
   return (
