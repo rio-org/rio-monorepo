@@ -16,18 +16,3 @@ export const APP_NAV_ITEMS: InternalAppNavItem[] = [
     slug: '/'
   }
 ];
-
-export const WITHDRAW_NAV_ITEMS = [
-  {
-    label: 'Request',
-    slug: ''
-  },
-  {
-    label: 'Claim',
-    slug: 'claim'
-  },
-  {
-    label: 'History',
-    slug: 'history'
-  }
-];
