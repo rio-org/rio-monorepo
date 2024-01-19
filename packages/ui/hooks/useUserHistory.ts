@@ -64,7 +64,6 @@ export const useTransactionHistory = (config?: {
       .map((tx) => {
         if (tx.type !== TransactionType.Claim) {
           last = Number(tx.userBalanceAfter ?? 0);
-          console.log(last);
         }
         return {
           ...tx,
