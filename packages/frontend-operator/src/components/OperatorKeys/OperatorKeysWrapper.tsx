@@ -1,18 +1,18 @@
 import React from 'react';
 import FormCard from '@rio-monorepo/ui/components/Shared/FormCard';
-import { WITHDRAW_NAV_ITEMS } from '@config';
+import { OPERATOR_KEYS_NAV_ITEMS } from '@config';
 
 type Props = {
   children: React.ReactNode;
   noPadding?: boolean;
 };
 
-const WithdrawWrapper = ({ children, noPadding }: Props) => {
+const OperatorKeysWrapper = ({ children, noPadding }: Props) => {
   return (
     <div className="min-h-[inherit] w-full flex justify-center items-start">
       <FormCard.Container
-        title="Withdraw"
-        header={<FormCard.Tabs items={WITHDRAW_NAV_ITEMS} />}
+        title="Operator Keys"
+        header={<FormCard.Tabs items={OPERATOR_KEYS_NAV_ITEMS} />}
         noPadding={noPadding}
       >
         {children}
@@ -21,4 +21,4 @@ const WithdrawWrapper = ({ children, noPadding }: Props) => {
   );
 };
 
-export default WithdrawWrapper;
+export default OperatorKeysWrapper;

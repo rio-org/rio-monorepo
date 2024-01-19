@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
 import type { NextPage } from 'next';
-import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
-import WithdrawalRequestRow from '../../components/History/WithdrawalRequestRow';
-import ClaimButton from '../../components/Claim/ClaimButton';
+import WithdrawWrapper from '@/components/Withdraw/WithdrawWrapper';
+import WithdrawalRequestRow from '@/components/History/WithdrawalRequestRow';
+import ClaimButton from '@/components/Claim/ClaimButton';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';

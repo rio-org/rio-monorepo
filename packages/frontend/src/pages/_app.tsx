@@ -35,7 +35,7 @@ import {
   APP_NAV_LOGO_ITEM,
   APP_SOCIAL_NAV_ITEMS,
   CHAIN_ID
-} from '../../config';
+} from '@config';
 
 // Create the cache client
 const queryClient = new QueryClient();

@@ -1,7 +1,7 @@
 import type { NextPage } from 'next';
-import RestakeWrapper from '../components/Restake/RestakeWrapper';
+import RestakeWrapper from '@/components/Restake/RestakeWrapper';
 import Skeleton from 'react-loading-skeleton';
-import RestakeForm from '../components/Restake/RestakeForm';
+import RestakeForm from '@/components/Restake/RestakeForm';
 import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import { Tooltip } from '@material-tailwind/react';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';

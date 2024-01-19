@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
-import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
-import WithdrawForm from '../../components/Withdraw/WithdrawForm';
+import WithdrawWrapper from '@/components/Withdraw/WithdrawWrapper';
+import WithdrawForm from '@/components/Withdraw/WithdrawForm';
 import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 

@@ -16,3 +16,10 @@ export const APP_NAV_ITEMS: InternalAppNavItem[] = [
     slug: '/'
   }
 ];
+
+export const OPERATOR_KEYS_NAV_ITEMS = [
+  {
+    label: 'Submitter',
+    slug: ''
+  }
+];
