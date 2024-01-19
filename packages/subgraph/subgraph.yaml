@@ -8,8 +8,8 @@ dataSources:
     name: RioLRTIssuer
     source:
       abi: RioLRTIssuer
-      address: "0xD8030F4C269ae229C9Bf94c3139F3BF214789afD"
-      startBlock: 10375985
+      address: "0x502933537Ee5E6EBa274951502c221e7aDD0Ca70"
+      startBlock: 10401450
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -34,7 +34,7 @@ dataSources:
     source:
       abi: DelegationManager
       address: "0x1b7b8F6b258f95Cf9596EabB9aa18B62940Eb0a8"
-      startBlock: 10375985
+      startBlock: 10401450
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -132,8 +132,11 @@ templates:
       abis:
         - name: RioLRTOperatorRegistry
           file: ./abis/RioLRTOperatorRegistry.json
+        - name: DelegationManager
+          file: ./abis/DelegationManager.json
       eventHandlers:
-        - event: OperatorAdded(indexed uint8,indexed address,indexed address,address,address,string)
+        - event: OperatorAdded(indexed uint8,indexed address,indexed
+            address,address,address,string)
           handler: handleOperatorAdded
     network: goerli
   - name: OperatorMetadata
@@ -148,6 +151,7 @@ templates:
       abis:
         - name: RioLRTOperatorRegistry
           file: ./abis/RioLRTOperatorRegistry.json
+    network: goerli
   - name: PriceSource
     kind: ethereum/contract
     source:

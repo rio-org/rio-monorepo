@@ -1,12 +1,12 @@
 {
   "goerli": {
     "RioLRTIssuer": {
-      "address": "0xD8030F4C269ae229C9Bf94c3139F3BF214789afD",
-      "startBlock": 10375985     
+      "address": "0x502933537Ee5E6EBa274951502c221e7aDD0Ca70",
+      "startBlock": 10401450     
     },
     "DelegationManager": {
       "address": "0x1b7b8F6b258f95Cf9596EabB9aa18B62940Eb0a8",
-      "startBlock": 10375985
+      "startBlock": 10401450
     }
   }
 }
