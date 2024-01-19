@@ -1,13 +1,5 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "node",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "jsx": "preserve",
-    "isolatedModules": true,
-    "declaration": false
-  },
+  "extends": "../ui/config/tsconfig.json",
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", ".next", "../ui"]
+  "exclude": ["node_modules"]
 }

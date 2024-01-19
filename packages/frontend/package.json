@@ -23,6 +23,7 @@
     "@rionetwork/sdk-react": "0.1.0-alpha.16",
     "@wagmi/core": "^1.4.5",
     "classnames": "^2.3.2",
+    "clsx": "^2.1.0",
     "dayjs": "^1.11.10",
     "formik": "^2.4.5",
     "framer-motion": "^10.16.4",

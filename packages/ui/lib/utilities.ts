@@ -1,3 +1,5 @@
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import { Address, formatUnits, getAddress, zeroAddress } from 'viem';
 import { ASSETS, ASSET_LOGOS } from './constants';
 import {
@@ -263,3 +265,11 @@ export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(
   config?.perPage as number | undefined,
   JSON.stringify(config?.where)
 ];
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export const buildUrlFromSegments = (...segments: (string | string[])[]) => {
+  return `/${[segments].flat().filter(Boolean).join('/')}`;
+};
