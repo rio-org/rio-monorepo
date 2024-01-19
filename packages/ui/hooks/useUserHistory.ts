@@ -60,7 +60,7 @@ export const useTransactionHistory = (config?: {
       .concat(parseTx(deposits))
       .concat(parseTx(claims))
       .concat(parseTx(withdrawalRequests))
-      .sort((a, b) => +new Date(a.date) - +new Date(b.date))
+      .sort((a, b) => +a.date - +b.date)
       .map((tx) => {
         if (tx.type !== TransactionType.Claim) {
           last = Number(tx.userBalanceAfter ?? 0);
