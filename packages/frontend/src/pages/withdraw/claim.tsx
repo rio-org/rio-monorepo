@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
-import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
-import { LRTDetails } from '../../lib/typings';
+import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
+import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import { ClaimForm } from '../../components/Claim/ClaimForm';
 
 const Claim: NextPage = () => {

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '../../components/Withdraw/WithdrawWrapper';
 import WithdrawForm from '../../components/Withdraw/WithdrawForm';
-import { LRTDetails } from '../../lib/typings';
-import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
+import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 
 const Withdraw: NextPage = () => {
   const { data: lrtList } = useGetLiquidRestakingTokens();

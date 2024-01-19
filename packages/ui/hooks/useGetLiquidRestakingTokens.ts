@@ -2,7 +2,7 @@ import { LRTDetails, LRTSubgraphResponse } from '../lib/typings';
 import { getLiquidRestakingTokenList } from '../lib/graphqlQueries';
 import { parseSubgraphLRTList } from '../lib/utilities';
 import subgraphClient from '../lib/subgraphClient';
-import { CHAIN_ID } from '../../config';
+import { CHAIN_ID } from '../config';
 import { useQuery, UseQueryOptions } from 'react-query';
 
 const fetcher = async () => {

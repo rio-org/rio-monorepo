@@ -3,15 +3,11 @@ import {
   ApolloError,
   NormalizedCacheObject
 } from '@apollo/client';
-import { getLiquidRestakingTokenList } from '../lib/graphqlQueries';
-import {
-  CHAIN_ID_NUMBER,
-  LRTDetails,
-  LRTSubgraphResponse
-} from '../lib/typings';
-import subgraphClient from '../lib/subgraphClient';
-import { ALLOW_ALL_LSTS, ASSET_SYMBOLS_ALLOWED } from '../../config';
-import { parseSubgraphLRTList } from '../lib/utilities';
+import { getLiquidRestakingTokenList } from './graphqlQueries';
+import { CHAIN_ID_NUMBER, LRTDetails, LRTSubgraphResponse } from './typings';
+import subgraphClient from './subgraphClient';
+import { ALLOW_ALL_LSTS, ASSET_SYMBOLS_ALLOWED } from '../config';
+import { parseSubgraphLRTList } from './utilities';
 
 export const fetchLiquidRestakingTokens = async (chainId: CHAIN_ID_NUMBER) => {
   const client = subgraphClient(chainId);

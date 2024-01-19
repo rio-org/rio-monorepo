@@ -9,7 +9,7 @@ import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { useGetLatestAssetPrice } from '../../hooks/useGetLatestAssetPrice';
-import { CHAIN_ID } from '../../../config';
+import { CHAIN_ID } from '../../config';
 
 type Props = {
   asset: AssetDetails;

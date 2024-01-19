@@ -31,6 +31,27 @@ export const enum CHAIN_ID {
   FOUNDRY = 31337
 }
 
+export interface InternalAppNavItem {
+  label: string;
+  slug: string;
+}
+
+export interface NavItem {
+  label: string;
+  url?: string;
+  external: boolean;
+  icon?: string;
+}
+
+export interface LogoNavItem extends Omit<NavItem, 'url'> {
+  url: string;
+}
+
+export interface SocialNavItem extends Omit<NavItem, 'icon' | 'url'> {
+  url: string;
+  icon: string;
+}
+
 export interface Chain extends WagmiChain {
   id: CHAIN_ID;
   slug: string;

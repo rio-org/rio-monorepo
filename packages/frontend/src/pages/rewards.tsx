@@ -3,7 +3,7 @@ import type { NextPage } from 'next';
 import Stats from '../components/Rewards/Stats';
 import TransactionHistoryTable from '../components/Rewards/TransactionHistoryTable';
 import RestakeWrapper from '../components/Restake/RestakeWrapper';
-import { useGetLiquidRestakingTokens } from '../hooks/useGetLiquidRestakingTokens';
+import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 
 const Rewards: NextPage = () => {
   const { data: lrtList } = useGetLiquidRestakingTokens();

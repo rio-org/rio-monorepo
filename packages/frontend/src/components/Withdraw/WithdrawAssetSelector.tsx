@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AssetDetails } from '../../lib/typings';
-import { DESKTOP_MQ } from '../../lib/constants';
-import AssetItemContent from '../Assets/AssetItemContent';
-import WithdrawAssetItem from '../Assets/WithdrawAssetItem';
-import IconSelectArrow from '../Icons/IconSelectArrow';
+import { AssetDetails } from '@rio-monorepo/ui/lib/typings';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
+import AssetItemContent from '@rio-monorepo/ui/components/Assets/AssetItemContent';
+import WithdrawAssetItem from '@rio-monorepo/ui/components/Assets/WithdrawAssetItem';
+import IconSelectArrow from '@rio-monorepo/ui/components/Icons/IconSelectArrow';
 import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import { Drawer } from '@material-tailwind/react';
-import { useOutsideClick } from '../../hooks/useOutsideClick';
+import { useOutsideClick } from '@rio-monorepo/ui/hooks/useOutsideClick';
 
 type Props = {
   assetsList: AssetDetails[];

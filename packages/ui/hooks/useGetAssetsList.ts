@@ -3,7 +3,7 @@ import { BaseAssetDetails, BaseLRTSubgraphResponse } from '../lib/typings';
 import { parseBaseSubgraphAssetList } from '../lib/utilities';
 import { UseQueryOptions, useQuery } from 'react-query';
 import subgraphClient from '../lib/subgraphClient';
-import { CHAIN_ID } from '../../config';
+import { CHAIN_ID } from '../config';
 
 const fetcher = async () => {
   const client = subgraphClient(CHAIN_ID);

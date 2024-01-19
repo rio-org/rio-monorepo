@@ -2,11 +2,11 @@ import type { NextPage } from 'next';
 import RestakeWrapper from '../components/Restake/RestakeWrapper';
 import Skeleton from 'react-loading-skeleton';
 import RestakeForm from '../components/Restake/RestakeForm';
-import { LRTDetails } from '../lib/typings';
+import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import { Tooltip } from '@material-tailwind/react';
-import { useIsMounted } from '../hooks/useIsMounted';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { useEffect, useState } from 'react';
-import { useGetLiquidRestakingTokens } from '../hooks/useGetLiquidRestakingTokens';
+import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 
 const Home: NextPage = () => {
   const isMounted = useIsMounted();

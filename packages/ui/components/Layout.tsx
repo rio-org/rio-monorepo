@@ -1,6 +1,5 @@
 import Head from 'next/head';
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { APP_NAV_ITEMS, APP_TITLE } from '../../config';
 import AppNav from './Nav/AppNav';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
@@ -9,14 +8,28 @@ import MobileNav from './Nav/MobileNav';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../lib/constants';
 import cx from 'classnames';
+import {
+  InternalAppNavItem,
+  LogoNavItem,
+  NavItem,
+  SocialNavItem
+} from '../lib/typings';
 
 type LayoutProps = {
+  appTitle?: string;
+  nav: {
+    items: InternalAppNavItem[];
+    logoItem: LogoNavItem;
+    secondaryItems: NavItem[];
+    tertiaryItems: NavItem[];
+    socialItems: SocialNavItem[];
+  };
   children: ReactNode;
 };
 
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({ children, nav, appTitle }: LayoutProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0); // APP_NAV_ITEMS[0
+  const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0);
   const [transitionDirection, setTransitionDirection] = useState<number>(50);
   const appNavRef = useRef<HTMLDivElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
@@ -26,7 +39,7 @@ export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
   const baseUrlSegment = router.pathname.split('/')[1];
   const nextSlugIndex = (slug: string) => {
-    return APP_NAV_ITEMS.findIndex((item) => item.slug === slug) + 1;
+    return nav.items.findIndex((item) => item.slug === slug) + 1;
   };
 
   const isDesktopOrLaptop = useMediaQuery({
@@ -40,11 +53,9 @@ export default function Layout({ children }: LayoutProps) {
       setTransitionDirection(50);
     }
     setCurrentSlugIndex(
-      APP_NAV_ITEMS.findIndex(
-        (item) => item.slug === router.pathname.split('/')[1]
-      )
+      nav.items.findIndex((item) => item.slug === router.pathname.split('/')[1])
     );
-  }, [router]);
+  }, [router, nav.items]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -72,7 +83,7 @@ export default function Layout({ children }: LayoutProps) {
           href="/favicon-16x16.png"
         />
         <link rel="manifest" href="/site.webmanifest" />
-        <title>{APP_TITLE}</title>
+        <title>{appTitle}</title>
       </Head>
       <main
         className={cx(
@@ -88,7 +99,13 @@ export default function Layout({ children }: LayoutProps) {
             ref={appNavRef}
             className="container-fluid w-full mx-auto pt-2 pb-6 lg:pb-[10vh] "
           >
-            <AppNav />
+            <AppNav
+              items={nav.items}
+              secondaryItems={nav.secondaryItems}
+              tertiaryItems={nav.tertiaryItems}
+              socialItems={nav.socialItems}
+              logoItem={nav.logoItem}
+            />
           </div>
           <div
             className={cx(
@@ -160,7 +177,12 @@ export default function Layout({ children }: LayoutProps) {
           </motion.div>
         </div>
         <div ref={mobileNavRef}>
-          <MobileNav />
+          <MobileNav
+            items={nav.items}
+            secondaryItems={nav.secondaryItems}
+            tertiaryItems={nav.tertiaryItems}
+            socialItems={nav.socialItems}
+          />
         </div>
       </main>
     </>

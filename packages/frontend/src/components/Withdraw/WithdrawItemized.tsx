@@ -1,11 +1,11 @@
 import React from 'react';
-import HR from '../Shared/HR';
-import { AssetDetails, LRTDetails } from '../../lib/typings';
+import HR from '@rio-monorepo/ui/components/Shared/HR';
+import { AssetDetails, LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import { formatUnits } from 'viem';
-import { displayEthAmount } from '../../lib/utilities';
+import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import { twJoin } from 'tailwind-merge';
 import Image from 'next/image';
-import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
+import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
 import Skeleton from 'react-loading-skeleton';
 
 type Props = {

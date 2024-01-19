@@ -1,12 +1,12 @@
-import { AddressType, Asset, AssetAddress } from '@rio-monorepo/ui/lib/typings';
-import ethLogo from '@rio-monorepo/ui/assets/eth-logo.png';
-import stETHLogo from '@rio-monorepo/ui/assets/stETH-logo.png';
-import rETHLogo from '@rio-monorepo/ui/assets/rETH-logo.png';
-import wstETHLogo from '@rio-monorepo/ui/assets/wstETH-logo.png';
-import cbETHLogo from '@rio-monorepo/ui/assets/cbETH-logo.png';
-import allEthLogo from '@rio-monorepo/ui/assets/all-eth-logo.png';
+import { AddressType, Asset, AssetAddress } from './typings';
+import ethLogo from '../assets/eth-logo.png';
+import stETHLogo from '../assets/stETH-logo.png';
+import rETHLogo from '../assets/rETH-logo.png';
+import wstETHLogo from '../assets/wstETH-logo.png';
+import cbETHLogo from '../assets/cbETH-logo.png';
+import allEthLogo from '../assets/all-eth-logo.png';
 import { zeroAddress } from 'viem';
-import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
 
 export const NULL_ADDRESS =
   '0x0000000000000000000000000000000000000000' as AddressType;

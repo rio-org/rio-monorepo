@@ -23,10 +23,19 @@ import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { ThemeProvider } from '@material-tailwind/react';
 import CssBaseline from '@mui/material/CssBaseline';
-import Layout from '../components/Layout';
-import { APP_TITLE, CHAIN_ID } from '../../config';
-import { theme } from '../lib/theme';
+import Layout from '@rio-monorepo/ui/components/Layout';
+import { theme } from '@rio-monorepo/ui/lib/theme';
 import { QueryClient, QueryClientProvider } from 'react-query';
+
+import {
+  APP_TITLE,
+  APP_NAV_ITEMS,
+  APP_SECONDARY_NAV_ITEMS,
+  APP_TERTIARY_NAV_ITEMS,
+  APP_NAV_LOGO_ITEM,
+  APP_SOCIAL_NAV_ITEMS,
+  CHAIN_ID
+} from '../../config';
 
 // Create the cache client
 const queryClient = new QueryClient();
@@ -91,7 +100,16 @@ function MyApp({ Component, pageProps }: AppProps) {
           <RioNetworkProvider>
             <ThemeProvider value={theme}>
               <CssBaseline />
-              <Layout>
+              <Layout
+                appTitle={APP_TITLE}
+                nav={{
+                  logoItem: APP_NAV_LOGO_ITEM,
+                  items: APP_NAV_ITEMS,
+                  secondaryItems: APP_SECONDARY_NAV_ITEMS,
+                  tertiaryItems: APP_TERTIARY_NAV_ITEMS,
+                  socialItems: APP_SOCIAL_NAV_ITEMS
+                }}
+              >
                 <Component {...pageProps} />
               </Layout>
             </ThemeProvider>

@@ -7,19 +7,19 @@ import {
   useWaitForTransaction
 } from 'wagmi';
 import { Alert, Spinner } from '@material-tailwind/react';
-import { AssetDetails, LRTDetails } from '../../lib/typings';
-import HR from '../Shared/HR';
+import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
+import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
+import { AssetDetails, LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
+import HR from '@rio-monorepo/ui/components/Shared/HR';
 import DepositButton from './DepositButton';
 import {
   LiquidRestakingTokenClient,
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
-import { displayEthAmount } from '../../lib/utilities';
 import { Address, Hash, formatUnits, zeroAddress } from 'viem';
-import ApproveButtons from '../Shared/ApproveButtons';
-import { useIsMounted } from '../../hooks/useIsMounted';
-import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
-import { useAssetBalance } from '../../hooks/useAssetBalance';
+import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
 import Skeleton from 'react-loading-skeleton';
 
 const queryTokens = async (

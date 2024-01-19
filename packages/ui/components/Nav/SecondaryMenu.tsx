@@ -8,13 +8,20 @@ import SecondaryMenuItems from './SecondaryMenuItems';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { motion } from 'framer-motion';
 import { mainNavChildrenVariants } from '../../lib/motion';
+import { NavItem, SocialNavItem } from '../../lib/typings';
 
 type Props = {
+  secondaryItems: NavItem[];
+  tertiaryItems: NavItem[];
+  socialItems: SocialNavItem[];
   isSecondaryMenuOpen: boolean;
   setIsSecondaryMenuOpen: (isOpen: boolean) => void;
 };
 
 const SecondaryMenu = ({
+  secondaryItems,
+  tertiaryItems,
+  socialItems,
   isSecondaryMenuOpen,
   setIsSecondaryMenuOpen
 }: Props) => {
@@ -64,6 +71,9 @@ const SecondaryMenu = ({
             </MenuHandler>
             <MenuList>
               <SecondaryMenuItems
+                secondaryItems={secondaryItems}
+                tertiaryItems={tertiaryItems}
+                socialItems={socialItems}
                 setIsSecondaryMenuOpen={setIsSecondaryMenuOpen}
               />
             </MenuList>

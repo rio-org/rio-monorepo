@@ -3,7 +3,7 @@ import React from 'react';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
 import IconExternal from '../Icons/IconExternal';
-import { CHAIN_ID } from '../../../config';
+import { CHAIN_ID } from '../../config';
 
 type Props = {
   isSuccess: boolean;

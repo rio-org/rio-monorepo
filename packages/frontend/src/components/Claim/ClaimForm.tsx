@@ -1,13 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { LRTDetails, TokenSymbol } from '../../lib/typings';
+import { LRTDetails, TokenSymbol } from '@rio-monorepo/ui/lib/typings';
 import ClaimHeader from './ClaimHeader';
-import ItemizedAsset from '../Assets/ItemizedAsset';
+import ItemizedAsset from '@rio-monorepo/ui/components/Assets/ItemizedAsset';
 import ClaimButton from './ClaimButton';
 import { useAccount } from 'wagmi';
-import { ASSETS } from '../../lib/constants';
-import HR from '../Shared/HR';
+import { ASSETS } from '@rio-monorepo/ui/lib/constants';
+import HR from '@rio-monorepo/ui/components/Shared/HR';
 import { useCallback } from 'react';
-import { useGetAccountWithdrawals } from '../../hooks/useGetAccountWithdrawals';
+import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
 import Skeleton from 'react-loading-skeleton';
 
 interface Props {

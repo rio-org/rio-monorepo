@@ -18,7 +18,8 @@ module.exports = {
     ],
     '@typescript-eslint/no-unsafe-argument': [
       'off',
-      path.join(__dirname, 'packages/sdk')
+      path.join(__dirname, 'packages/sdk'),
+      path.join(__dirname, 'packages/ui')
     ],
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off'

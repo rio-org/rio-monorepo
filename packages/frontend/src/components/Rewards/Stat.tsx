@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import StatLabel from './StatLabel';
-import { displayEthAmount } from '../../lib/utilities';
+import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import { twJoin } from 'tailwind-merge';
 
 type Props = {

@@ -1,7 +1,7 @@
 import { Alert, Spinner } from '@material-tailwind/react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAccount, useWaitForTransaction } from 'wagmi';
-import { AssetDetails, LRTDetails } from '../../lib/typings';
+import { AssetDetails, LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import WithdrawAssetSelector from './WithdrawAssetSelector';
 import WithdrawButton from './WithdrawButton';
 import WithdrawField from './WithdrawField';
@@ -11,7 +11,7 @@ import {
   LiquidRestakingTokenClient
 } from '@rionetwork/sdk-react';
 import { Hash } from 'viem';
-import { useAssetBalance } from '../../hooks/useAssetBalance';
+import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
 
 const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
   const assets = useMemo(() => {

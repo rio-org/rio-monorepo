@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { Collapse, Navbar } from '@material-tailwind/react';
 import cx from 'classnames';
-import { APP_NAV_ITEMS, APP_NAV_LOGO_ITEM } from '../../../config';
 import logo from '../../assets/rio-logo.png';
 import Image from 'next/image';
 import { CustomConnectButton } from './CustomConnectButton';
@@ -13,13 +12,31 @@ import { mainNavChildrenVariants, mainNavVariants } from '../../lib/motion';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { useIsMounted } from '../../hooks/useIsMounted';
+import {
+  InternalAppNavItem,
+  LogoNavItem,
+  NavItem,
+  SocialNavItem
+} from '../../lib/typings';
 
 const slugUrl = (slug: string) => {
   if (slug === '/') return '/';
   return `/${slug}`;
 };
 
-const NavList = ({ activeTab }: { activeTab: string }) => {
+const NavList = ({
+  items,
+  secondaryItems,
+  tertiaryItems,
+  socialItems,
+  activeTab
+}: {
+  items: InternalAppNavItem[];
+  secondaryItems: NavItem[];
+  tertiaryItems: NavItem[];
+  socialItems: SocialNavItem[];
+  activeTab: string;
+}) => {
   const [isSecondaryMenuOpen, setIsSecondaryMenuOpen] = React.useState(false);
   return (
     <>
@@ -29,7 +46,7 @@ const NavList = ({ activeTab }: { activeTab: string }) => {
         animate="loaded"
         variants={mainNavVariants}
       >
-        {APP_NAV_ITEMS.map(({ label, slug }, index) => (
+        {items.map(({ label, slug }, index) => (
           <motion.div key={label + index} variants={mainNavChildrenVariants}>
             <Link
               href={slugUrl(slug)}
@@ -45,6 +62,9 @@ const NavList = ({ activeTab }: { activeTab: string }) => {
           </motion.div>
         ))}
         <SecondaryMenu
+          secondaryItems={secondaryItems}
+          tertiaryItems={tertiaryItems}
+          socialItems={socialItems}
           isSecondaryMenuOpen={isSecondaryMenuOpen}
           setIsSecondaryMenuOpen={setIsSecondaryMenuOpen}
         />
@@ -54,14 +74,26 @@ const NavList = ({ activeTab }: { activeTab: string }) => {
   );
 };
 
-const AppNav = () => {
+const AppNav = ({
+  items,
+  secondaryItems,
+  tertiaryItems,
+  socialItems,
+  logoItem
+}: {
+  items: InternalAppNavItem[];
+  secondaryItems: NavItem[];
+  tertiaryItems: NavItem[];
+  socialItems: SocialNavItem[];
+  logoItem: LogoNavItem;
+}) => {
   const [openNav] = useState(false);
   const logoDimensions = 37;
   const router = useRouter();
   const baseUrlSegment = router.pathname.split('/')[1];
   const activeTab =
-    APP_NAV_ITEMS.find((item) => baseUrlSegment.includes(item.slug))?.slug ||
-    APP_NAV_ITEMS[0].slug;
+    items.find((item) => baseUrlSegment.includes(item.slug))?.slug ||
+    items?.[0]?.slug;
   const isMounted = useIsMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
@@ -77,11 +109,9 @@ const AppNav = () => {
         <div className="flex items-center justify-between text-blue-gray-900">
           <div className="flex flex-row gap-4 items-center justify-between w-full">
             <Link
-              href={APP_NAV_LOGO_ITEM.url}
-              target={APP_NAV_LOGO_ITEM.external ? '_blank' : undefined}
-              rel={
-                APP_NAV_LOGO_ITEM.external ? 'noopener noreferrer' : undefined
-              }
+              href={logoItem.url}
+              target={logoItem.external ? '_blank' : undefined}
+              rel={logoItem.external ? 'noopener noreferrer' : undefined}
               className="w-[37px] h-[37px] lg:w-[32px] lg:h-[32px] aspect-square block my-2"
             >
               <Image
@@ -95,7 +125,13 @@ const AppNav = () => {
             <div className="hidden lg:flex flex-row gap-1 items-center w-full">
               {isMounted && (
                 <AnimatePresence>
-                  <NavList activeTab={activeTab} />
+                  <NavList
+                    secondaryItems={secondaryItems}
+                    tertiaryItems={tertiaryItems}
+                    socialItems={socialItems}
+                    activeTab={activeTab}
+                    items={items}
+                  />
                 </AnimatePresence>
               )}
             </div>
@@ -104,7 +140,13 @@ const AppNav = () => {
         </div>
 
         <Collapse open={openNav}>
-          <NavList activeTab={activeTab} />
+          <NavList
+            secondaryItems={secondaryItems}
+            tertiaryItems={tertiaryItems}
+            socialItems={socialItems}
+            activeTab={activeTab}
+            items={items}
+          />
         </Collapse>
       </Navbar>
     </>

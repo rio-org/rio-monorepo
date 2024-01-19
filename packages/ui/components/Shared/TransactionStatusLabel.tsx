@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
-import { CHAIN_ID } from '../../../config';
+import { CHAIN_ID } from '../../config';
 import {
   WithdrawalEpochStatus,
   WithdrawalRequest

@@ -1,16 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { AssetDetails, TokenSymbol } from '../../lib/typings';
-import { ASSETS, DESKTOP_MQ } from '../../lib/constants';
 import Image from 'next/image';
-import IconSelectArrow from '../Icons/IconSelectArrow';
 import cx from 'classnames';
 import { Drawer } from '@material-tailwind/react';
 import { useMediaQuery } from 'react-responsive';
 import AssetList from './AssetList';
-import { useOutsideClick } from '../../hooks/useOutsideClick';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { useIsMounted } from '../../hooks/useIsMounted';
 import Skeleton from 'react-loading-skeleton';
+
+import IconSelectArrow from '@rio-monorepo/ui/components/Icons/IconSelectArrow';
+import { AssetDetails, TokenSymbol } from '@rio-monorepo/ui/lib/typings';
+import { useOutsideClick } from '@rio-monorepo/ui/hooks/useOutsideClick';
+import { ASSETS, DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 
 type Props = {
   activeTokenSymbol?: TokenSymbol;

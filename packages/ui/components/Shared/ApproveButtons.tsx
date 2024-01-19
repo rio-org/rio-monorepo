@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import Alert from '../Shared/Alert';
+import Alert from './Alert';
 import { TOKEN_CAP_MAX } from '../../lib/constants';
 import { parseUnits, Address } from 'viem';
 import { AssetDetails } from '../../lib/typings';

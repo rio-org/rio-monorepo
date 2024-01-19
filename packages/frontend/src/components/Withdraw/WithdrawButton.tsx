@@ -2,12 +2,12 @@ import React, { useMemo } from 'react';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
-import Alert from '../Shared/Alert';
-import { TX_BUTTON_VARIANTS } from '../../lib/constants';
+import Alert from '@rio-monorepo/ui/components/Shared/Alert';
+import { TX_BUTTON_VARIANTS } from '@rio-monorepo/ui/lib/constants';
 import { Hash, Address } from 'viem';
 import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi';
-import { CHAIN_ID } from '../../../config';
-import { getChainName } from '../../lib/utilities';
+import { CHAIN_ID } from '@rio-monorepo/ui/config';
+import { getChainName } from '@rio-monorepo/ui/lib/utilities';
 
 type Props = {
   isValidAmount: boolean;

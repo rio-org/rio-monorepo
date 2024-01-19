@@ -1,14 +1,17 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { AssetDetails, LRTDetails } from '../../lib/typings';
 import AssetSelector from './AssetSelector';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
-import { DESKTOP_MQ } from '../../lib/constants';
-import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
-import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
-import { useIsMounted } from '../../hooks/useIsMounted';
+import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
+import { AssetDetails, LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
+import {
+  displayEthAmount,
+  parseBigIntFieldAmount
+} from '@rio-monorepo/ui/lib/utilities';
 
 type Props = {
   activeToken?: AssetDetails;

@@ -4,15 +4,15 @@ import { useMediaQuery } from 'react-responsive';
 import {
   DESKTOP_MQ,
   TX_HISTORY_TABLE_HEADER_LABELS
-} from '../../lib/constants';
+} from '@rio-monorepo/ui/lib/constants';
 import { useAccount } from 'wagmi';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
 import Pagination from './Pagination';
-import { useIsMounted } from '../../hooks/useIsMounted';
-import { useTransactionHistory } from '../../hooks/useUserHistory';
-import { LRTDetails } from '../../lib/typings';
-import { usePagination } from '../../hooks/usePagination';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { useTransactionHistory } from '@rio-monorepo/ui/hooks/useUserHistory';
+import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import { usePagination } from '@rio-monorepo/ui/hooks/usePagination';
 
 interface Props {
   lrt?: LRTDetails;

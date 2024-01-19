@@ -15,7 +15,7 @@ import {
 } from './typings';
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
-import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../../config';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
 import { SubgraphClient } from '@rionetwork/sdk-react';
 
 export const getChainName = (chainId: number) => {
@@ -237,21 +237,29 @@ export const isEqualAddress = (a: string, b: string) => {
   }
 };
 
-export const buildRioSdkRestakingKey = <
-  T extends
-    | Parameters<SubgraphClient['getLiquidRestakingTokens']>[0]
-    | Parameters<SubgraphClient['getDeposits']>[0]
-    | Parameters<SubgraphClient['getWithdrawalRequests']>[0]
-    | Parameters<SubgraphClient['getWithdrawalClaims']>[0]
->(
+type SubgraphClienSimilarConfigs =
+  | Parameters<SubgraphClient['getLiquidRestakingTokens']>[0]
+  | Parameters<SubgraphClient['getDeposits']>[0]
+  | Parameters<SubgraphClient['getWithdrawalRequests']>[0]
+  | Parameters<SubgraphClient['getWithdrawalClaims']>[0];
+
+export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(
   name: string,
   config: T
-) =>
-  [
-    name,
-    config?.orderBy,
-    config?.orderDirection,
-    config?.page,
-    config?.perPage,
-    JSON.stringify(config?.where)
-  ] as const;
+): [
+  name: string,
+  orderBy?: string,
+  orderDirection?: string,
+  page?: number,
+  perPage?: number,
+  where?: string
+] => [
+  name,
+  config?.orderBy as string | undefined,
+  config?.orderDirection as string | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  config?.page as number | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  config?.perPage as number | undefined,
+  JSON.stringify(config?.where)
+];

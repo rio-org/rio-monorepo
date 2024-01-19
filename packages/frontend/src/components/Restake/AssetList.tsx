@@ -1,6 +1,6 @@
 import React from 'react';
-import DepositAssetItem from '../Assets/DepositAssetItem';
-import { AssetDetails, TokenSymbol } from '../../lib/typings';
+import DepositAssetItem from '@rio-monorepo/ui/components/Assets/DepositAssetItem';
+import { AssetDetails, TokenSymbol } from '@rio-monorepo/ui/lib/typings';
 
 type Props = {
   activeTokenSymbol?: TokenSymbol;

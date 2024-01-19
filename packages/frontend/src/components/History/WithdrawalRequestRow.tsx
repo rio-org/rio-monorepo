@@ -1,12 +1,15 @@
 import React, { useMemo } from 'react';
-import TransactionStatusLabel from '../Shared/TransactionStatusLabel';
-import SymbolPill from '../Shared/SymbolPill';
+import TransactionStatusLabel from '@rio-monorepo/ui/components/Shared/TransactionStatusLabel';
+import SymbolPill from '@rio-monorepo/ui/components/Shared/SymbolPill';
 import { AnimatePresence, motion } from 'framer-motion';
-import { dateFromTimestamp, displayEthAmount } from '../../lib/utilities';
+import {
+  dateFromTimestamp,
+  displayEthAmount
+} from '@rio-monorepo/ui/lib/utilities';
 import { useMediaQuery } from 'react-responsive';
-import { DESKTOP_MQ } from '../../lib/constants';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import { WithdrawalRequest } from '@rionetwork/sdk-react';
-import { useGetAssetsList } from '../../hooks/useGetAssetsList';
+import { useGetAssetsList } from '@rio-monorepo/ui/hooks/useGetAssetsList';
 import { getAddress } from 'viem';
 
 type Props = {

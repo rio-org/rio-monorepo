@@ -40,30 +40,24 @@ export const usePagination = <T = unknown>({
     [pageCount]
   );
 
+  const goToFirstPage = useCallback(() => setCurrentPage(0), []);
+
+  const goToLastPage = useCallback(
+    () => setCurrentPage(pageCount - 1),
+    [pageCount]
+  );
+
   const goToNextPage = useCallback(() => {
-    setCurrentPage((prevPage) =>
-      prevPage >= pageCount - 1 ? pageCount - 1 : currentPage + 1
-    );
+    setCurrentPage((p) => (p >= pageCount - 1 ? pageCount - 1 : p + 1));
   }, [pageCount]);
 
   const goToPreviousPage = useCallback(() => {
-    setCurrentPage((prevPage) => (prevPage <= 0 ? 0 : currentPage - 1));
-  }, [pageCount]);
-
-  const goToFirstPage = useCallback(() => {
-    setCurrentPage(0);
+    setCurrentPage((prevPage) => (prevPage <= 0 ? 0 : prevPage - 1));
   }, []);
 
-  const goToLastPage = useCallback(() => {
-    setCurrentPage(pageCount - 1);
-  }, [pageCount]);
-
   useEffect(() => {
-    if (pageCount <= 0) {
-      return setCurrentPage(0);
-    } else if (currentPage > pageCount - 1) {
-      setCurrentPage(pageCount - 1);
-    }
+    if (pageCount <= 0) return setCurrentPage(0);
+    if (currentPage > pageCount - 1) setCurrentPage(pageCount - 1);
   }, [currentPage, pageCount]);
 
   return useMemo(
