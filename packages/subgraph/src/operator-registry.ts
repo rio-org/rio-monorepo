@@ -3,8 +3,8 @@ import { OperatorMetadata as OperatorMetadataTemplate } from '../generated/templ
 import { DelegationManager } from '../generated/DelegationManager/DelegationManager';
 import { Address, Bytes, dataSource } from '@graphprotocol/graph-ts';
 import { OperatorRegistry, Operator } from '../generated/schema';
-import { getIPFSContentID, getOperatorID } from './helpers/utils';
 import { DELEGATION_MANAGERS } from './helpers/constants';
+import { getIPFSContentID } from './helpers/utils';
 
 export function handleOperatorAdded(event: OperatorAdded): void {
   const operatorRegistry = OperatorRegistry.load(event.address.toHex())!;
@@ -14,7 +14,11 @@ export function handleOperatorAdded(event: OperatorAdded): void {
 
   const operatorDetails = delegationManagerContract.try_operatorDetails(event.params.operator);
 
-  const operator = new Operator(getOperatorID(operatorRegistry.restakingToken, event.params.operatorId));
+  // This handler makes the assumption that an operator will never receive delegations from
+  // multiple delegator contracts, or across multiple LRTs. This assumption is made so that we can track
+  // metadata and configuration updated without separating the delegator from the underlying operator.
+  // In the future, we can separate these, if needed.
+  const operator = new Operator(event.params.operator.toHex());
   operator.operatorId = event.params.operatorId;
   operator.address = event.params.operator;
   operator.delegator = event.params.delegator;

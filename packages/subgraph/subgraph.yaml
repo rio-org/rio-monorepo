@@ -29,6 +29,28 @@ dataSources:
         - event: LiquidRestakingTokenIssued(string,string,((address,uint96,address,address)[],uint8,address,address),(address,address,address,address,address,address,address,address))
           handler: handleLiquidRestakingTokenIssued
     network: goerli
+  - kind: ethereum/contract
+    name: DelegationManager
+    source:
+      abi: DelegationManager
+      address: "0x1b7b8F6b258f95Cf9596EabB9aa18B62940Eb0a8"
+      startBlock: 10375985
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/delegation-manager.ts
+      entities:
+        - Operator
+      abis:
+        - name: DelegationManager
+          file: ./abis/DelegationManager.json
+      eventHandlers:
+        - event: OperatorMetadataURIUpdated(indexed address,string)
+          handler: handleOperatorMetadataURIUpdated
+        - event: OperatorDetailsModified(indexed address,(address,address,uint32))
+          handler: handleOperatorDetailsModified
+    network: goerli
 templates:
   - name: LiquidRestakingToken
     kind: ethereum/contract
