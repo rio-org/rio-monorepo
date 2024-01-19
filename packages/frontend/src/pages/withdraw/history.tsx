@@ -34,7 +34,7 @@ const History: NextPage = () => {
       <h2 className="px-4 lg:px-6 pt-4 lg:pt-6 lg:pb-1 text-[14px] font-bold">
         Withdrawal history
       </h2>
-      {isLoading || !isMounted || !isFetched ? (
+      {!!address && (isLoading || !isMounted || !isFetched) ? (
         <motion.div
           className="bg-white w-full flex items-center justify-center border-t border-blue-gray-50 p-4 rounded-xl h-40"
           initial={{ opacity: 0 }}
@@ -52,7 +52,7 @@ const History: NextPage = () => {
               Connect to see your withdraw history
             </h2>
           )}
-          {address && withdrawalRequests && withdrawalRequests.length > 0 ? (
+          {withdrawalRequests && withdrawalRequests.length > 0 ? (
             <motion.div
               className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200"
               layoutId="withdraw-history"
@@ -87,11 +87,13 @@ const History: NextPage = () => {
               )}
             </motion.div>
           ) : (
-            <div className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200">
-              <div className="p-4 lg:p-6 text-center opacity-50">
-                No withdraws yet
+            address && (
+              <div className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200">
+                <div className="p-4 lg:p-6 text-center opacity-50">
+                  No withdraws yet
+                </div>
               </div>
-            </div>
+            )
           )}
         </>
       )}
