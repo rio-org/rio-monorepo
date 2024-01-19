@@ -157,14 +157,15 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         return operatorDetails[operatorId].shareDetails[strategy];
     }
 
-    /// @notice Deploys an operator delegator contract and delegates to the provided `operator`.
+    /// @notice Adds a new operator to the registry, deploying a delegator contract and
+    /// delegating to the provided `operator`.
     /// @param operator The operator's address.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
     /// @param strategyShareCaps The maximum number of shares that can be allocated to
     /// the operator for each strategy.
     /// @param validatorCap The maximum number of active validators allowed.
-    function createOperatorDelegator(
+    function addOperator(
         address operator,
         address initialManager,
         address initialEarningsReceiver,
@@ -192,7 +193,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         _operator.earningsReceiver = initialEarningsReceiver;
         _operator.delegator = delegator;
 
-        emit OperatorCreated(operatorId, delegator, delegator, initialManager, initialEarningsReceiver);
+        emit OperatorAdded(operatorId, delegator, delegator, initialManager, initialEarningsReceiver);
 
         StrategyShareCap memory shareCap;
         OperatorUtilizationHeap.Data memory heap;

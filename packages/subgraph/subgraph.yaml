@@ -94,6 +94,24 @@ templates:
         - event: EpochSettledFromEigenLayer(indexed uint256,address,uint256)
           handler: handleEpochSettledFromEigenLayer
     network: goerli
+  - name: OperatorRegistry
+    kind: ethereum/contract
+    source:
+      abi: RioLRTOperatorRegistry
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/operator-registry.ts
+      entities:
+        - Operator
+      abis:
+        - name: RioLRTOperatorRegistry
+          file: ./abis/RioLRTOperatorRegistry.json
+      eventHandlers:
+        - event: OperatorAdded(indexed uint8,indexed address,indexed address,address,address)
+          handler: handleOperatorAdded
+    network: goerli
   - name: PriceSource
     kind: ethereum/contract
     source:

@@ -251,3 +251,12 @@ export function getWithdrawalRequestID(restakingToken: string, epoch: BigInt, as
 export function getWithdrawalClaimID(restakingToken: string, epoch: BigInt, asset: string, user: string): string {
   return `${getWithdrawalEpochUserSummaryID(restakingToken, epoch, asset, user)}-claim`;
 }
+
+/**
+ * Get the ID for an operator.
+ * @param restakingToken The address of the restaking token.
+ * @param operatorId The operator ID.
+ */
+export function getOperatorID(restakingToken: string, operatorId: number): string {
+  return `${restakingToken}--${operatorId}`;
+}

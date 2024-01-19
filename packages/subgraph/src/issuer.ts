@@ -2,8 +2,9 @@ import {
   LiquidRestakingToken as LiquidRestakingTokenTemplate,
   Coordinator as CoordinatorTemplate,
   WithdrawalQueue as WithdrawalQueueTemplate,
+  OperatorRegistry as OperatorRegistryTemplate,
 } from '../generated/templates';
-import { Coordinator, Issuer, LiquidRestakingToken, UnderlyingAsset, WithdrawalQueue } from '../generated/schema';
+import { Coordinator, Issuer, LiquidRestakingToken, UnderlyingAsset, WithdrawalQueue, OperatorRegistry } from '../generated/schema';
 import { findOrCreateAsset, findOrCreatePriceFeed, findOrCreateWithdrawalEpoch, toUnits } from './helpers/utils';
 import { LiquidRestakingTokenIssued } from '../generated/RioLRTIssuer/RioLRTIssuer';
 import { ZERO_BD, ZERO_BI } from './helpers/constants';
@@ -21,6 +22,11 @@ export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssu
   withdrawalQueue.address = event.params.deployment.withdrawalQueue;
   withdrawalQueue.restakingToken = restakingToken.id;
   withdrawalQueue.save();
+
+  const operatorRegistry = new OperatorRegistry(event.params.deployment.operatorRegistry.toHex());
+  operatorRegistry.address = event.params.deployment.operatorRegistry;
+  operatorRegistry.restakingToken = restakingToken.id;
+  operatorRegistry.save();
   
   restakingToken.address = event.params.deployment.token;
   restakingToken.symbol = event.params.symbol;
@@ -62,6 +68,7 @@ export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssu
   LiquidRestakingTokenTemplate.create(event.params.deployment.token);
   CoordinatorTemplate.create(event.params.deployment.coordinator);
   WithdrawalQueueTemplate.create(event.params.deployment.withdrawalQueue);
+  OperatorRegistryTemplate.create(event.params.deployment.operatorRegistry);
 
   restakingToken.save();
 }

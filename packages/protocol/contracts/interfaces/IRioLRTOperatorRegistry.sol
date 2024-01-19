@@ -185,13 +185,13 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when attempting to queue the exit of zero shares.
     error CANNOT_EXIT_ZERO_SHARES();
 
-    /// @notice Emitted when an operator is created.
+    /// @notice Emitted when a new operator is added to the registry.
     /// @param operatorId The operator's ID.
     /// @param operator The operator's contract address.
     /// @param delegator The operator's delegator contract address.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
-    event OperatorCreated(
+    event OperatorAdded(
         uint8 indexed operatorId,
         address indexed operator,
         address indexed delegator,
@@ -303,14 +303,15 @@ interface IRioLRTOperatorRegistry {
     /// @notice The amount of time (in seconds) before uploaded validator keys are considered "vetted".
     function validatorKeyReviewPeriod() external view returns (uint24);
 
-    /// @notice Deploys an operator delegator contract and delegates to the provided `operator`.
+    /// @notice Adds a new operator to the registry, deploying a delegator contract and
+    /// delegating to the provided `operator`.
     /// @param operator The operator's address.
     /// @param initialManager The initial manager of the operator.
     /// @param initialEarningsReceiver The initial reward address of the operator.
     /// @param strategyShareCaps The maximum number of shares that can be allocated to
     /// the operator for each strategy.
     /// @param validatorCap The maximum number of active validators allowed.
-    function createOperatorDelegator(
+    function addOperator(
         address operator,
         address initialManager,
         address initialEarningsReceiver,
