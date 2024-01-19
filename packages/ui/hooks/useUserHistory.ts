@@ -66,7 +66,11 @@ export const useTransactionHistory = (config?: {
           last = Number(tx.userBalanceAfter ?? 0);
           console.log(last);
         }
-        return { ...tx, userBalanceAfter: last };
+        return {
+          ...tx,
+          date: dateFromTimestamp(+tx.date),
+          userBalanceAfter: last
+        };
       })
       .reverse();
   }, [deposits, claims, withdrawalRequests, lrtLookup]);
@@ -150,7 +154,7 @@ function buildParseTx(lrtLookup: Record<Address, BaseAssetDetails>) {
       const _tx = tx as Deposit | WithdrawalRequest;
       return {
         type,
-        date: dateFromTimestamp(+tx.timestamp),
+        date: tx.timestamp,
         address: tx.sender,
         valueUSD: !isClaim ? Number(tx.valueUSD) : 0,
         amountChange: isClaim
