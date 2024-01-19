@@ -1,4 +1,6 @@
 specVersion: 0.0.4
+features:
+  - ipfsOnEthereumContracts
 schema:
   file: ./schema.graphql
 dataSources:
@@ -26,6 +28,28 @@ dataSources:
       eventHandlers:
         - event: LiquidRestakingTokenIssued(string,string,((address,uint96,address,address)[],uint8,address,address),(address,address,address,address,address,address,address,address))
           handler: handleLiquidRestakingTokenIssued
+    network: goerli
+  - kind: ethereum/contract
+    name: DelegationManager
+    source:
+      abi: DelegationManager
+      address: "0x1b7b8F6b258f95Cf9596EabB9aa18B62940Eb0a8"
+      startBlock: 10375985
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/delegation-manager.ts
+      entities:
+        - Operator
+      abis:
+        - name: DelegationManager
+          file: ./abis/DelegationManager.json
+      eventHandlers:
+        - event: OperatorMetadataURIUpdated(indexed address,string)
+          handler: handleOperatorMetadataURIUpdated
+        - event: OperatorDetailsModified(indexed address,(address,address,uint32))
+          handler: handleOperatorDetailsModified
     network: goerli
 templates:
   - name: LiquidRestakingToken
@@ -94,6 +118,36 @@ templates:
         - event: EpochSettledFromEigenLayer(indexed uint256,address,uint256)
           handler: handleEpochSettledFromEigenLayer
     network: goerli
+  - name: OperatorRegistry
+    kind: ethereum/contract
+    source:
+      abi: RioLRTOperatorRegistry
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/operator-registry.ts
+      entities:
+        - Operator
+      abis:
+        - name: RioLRTOperatorRegistry
+          file: ./abis/RioLRTOperatorRegistry.json
+      eventHandlers:
+        - event: OperatorAdded(indexed uint8,indexed address,indexed address,address,address,string)
+          handler: handleOperatorAdded
+    network: goerli
+  - name: OperatorMetadata
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/operator-metadata.ts
+      handler: handleOperatorMetadata
+      entities:
+        - OperatorMetadata
+      abis:
+        - name: RioLRTOperatorRegistry
+          file: ./abis/RioLRTOperatorRegistry.json
   - name: PriceSource
     kind: ethereum/contract
     source:

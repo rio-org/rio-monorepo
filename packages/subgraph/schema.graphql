@@ -20,6 +20,13 @@ type WithdrawalQueue @entity {
   restakingToken: LiquidRestakingToken!
 }
 
+# The operator registry contract for a liquid restaking token.
+type OperatorRegistry @entity {
+  id: ID!
+  address: Bytes!
+  restakingToken: LiquidRestakingToken!
+}
+
 # A liquid restaking token.
 type LiquidRestakingToken @entity {
   id: ID!
@@ -193,4 +200,27 @@ type PriceFeed @entity {
   assetPair: String!
   price: BigDecimal
   lastUpdatedTimestamp: BigInt
+}
+
+type OperatorMetadata @entity {
+  id: ID!
+  name: String
+  website: String
+  description: String
+  logo: String
+  twitter: String
+}
+
+type Operator @entity {
+  id: ID!
+  operatorId: Int!
+  address: Bytes!
+  delegator: Bytes!
+  manager: Bytes!
+  earningsReceiver: Bytes!
+  metadataURI: String!
+  metadata: OperatorMetadata
+  delegationApprover: Bytes
+  stakerOptOutWindowBlocks: BigInt
+  restakingToken: LiquidRestakingToken!
 }
