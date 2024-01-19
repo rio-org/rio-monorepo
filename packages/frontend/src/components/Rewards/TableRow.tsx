@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import { TransactionEvent, TransactionType } from '../../lib/typings';
+import {
+  TransactionEvent,
+  TransactionType
+} from '@rio-monorepo/ui/lib/typings';
 import TableLabel from './TableLabel';
 import cx from 'classnames';
-import { linkToTxOnBlockExplorer } from '../../lib/utilities';
-import IconExternal from '../Icons/IconExternal';
+import { linkToTxOnBlockExplorer } from '@rio-monorepo/ui/lib/utilities';
+import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
 import { useMediaQuery } from 'react-responsive';
 import { AnimatePresence, motion } from 'framer-motion';
-import IconLineArrow from '../Icons/IconLineArrow';
-import IconExpand from '../Icons/IconExpand';
-import { DESKTOP_MQ } from '../../lib/constants';
-import { CHAIN_ID } from '../../../config';
-import { useIsMounted } from '../../hooks/useIsMounted';
+import IconLineArrow from '@rio-monorepo/ui/components/Icons/IconLineArrow';
+import IconExpand from '@rio-monorepo/ui/components/Icons/IconExpand';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
+import { CHAIN_ID } from '@rio-monorepo/ui/config';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 
 type Props = {
   event: TransactionEvent;

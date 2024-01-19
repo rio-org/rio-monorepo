@@ -5,10 +5,10 @@ import WithdrawalRequestRow from '../../components/History/WithdrawalRequestRow'
 import ClaimButton from '../../components/Claim/ClaimButton';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
-import { useGetAccountWithdrawals } from '../../hooks/useGetAccountWithdrawals';
+import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
 import { Spinner } from '@material-tailwind/react';
-import { useIsMounted } from '../../hooks/useIsMounted';
-import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 
 const History: NextPage = () => {
   const { data: lrts } = useGetLiquidRestakingTokens();

@@ -2,6 +2,9 @@
 node_modules
 dist
 .DS_Store
+## Keep ui package def file because it doesn't build itself.
+!packages/ui/next-env.d.ts
+
 
 # Typescript
 *.tsbuildinfo

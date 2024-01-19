@@ -1,12 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { LRTDetails } from '../../lib/typings';
+import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
-import { displayEthAmount, parseBigIntFieldAmount } from '../../lib/utilities';
+import {
+  displayEthAmount,
+  parseBigIntFieldAmount
+} from '@rio-monorepo/ui/lib/utilities';
 import { formatUnits, parseUnits } from 'viem';
 import { useMediaQuery } from 'react-responsive';
-import { DESKTOP_MQ } from '../../lib/constants';
-import { useIsMounted } from '../../hooks/useIsMounted';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 
 type Props = {
   amount: bigint | null;

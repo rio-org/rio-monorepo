@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import Stat from './Stat';
 import { motion } from 'framer-motion';
-import IconSelectArrow from '../Icons/IconSelectArrow';
+import IconSelectArrow from '@rio-monorepo/ui/components/Icons/IconSelectArrow';
 import { useMediaQuery } from 'react-responsive';
-import { DESKTOP_MQ } from '../../lib/constants';
-import { useIsMounted } from '../../hooks/useIsMounted';
-import { LRTDetails } from '../../lib/typings';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 
 interface Props {
   lrt?: LRTDetails;

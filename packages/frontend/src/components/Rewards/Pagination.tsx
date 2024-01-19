@@ -1,8 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState } from 'react';
-import IconLineArrow from '../Icons/IconLineArrow';
+import IconLineArrow from '@rio-monorepo/ui/components/Icons/IconLineArrow';
 import cx from 'classnames';
-import { usePagination } from '../../hooks/usePagination';
+import { usePagination } from '@rio-monorepo/ui/hooks/usePagination';
 
 type Props = Partial<ReturnType<typeof usePagination>> &
   Pick<

@@ -2,14 +2,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 import cx from 'classnames';
 import { Spinner } from '@material-tailwind/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import Alert from '../Shared/Alert';
-import { TX_BUTTON_VARIANTS } from '../../lib/constants';
+import Alert from '@rio-monorepo/ui/components/Shared/Alert';
+import { TX_BUTTON_VARIANTS } from '@rio-monorepo/ui/lib/constants';
 import { useAccount, useWaitForTransaction } from 'wagmi';
 import {
   ClaimWithdrawalParams,
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
-import { ContractError, LRTDetails } from '../../lib/typings';
+import { ContractError, LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import { Hash } from 'viem';
 
 type Props = {
