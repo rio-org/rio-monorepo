@@ -24,12 +24,8 @@ interface IRioLRTDepositPool {
     /// @param assetRegistry The address of the asset registry contract.
     /// @param operatorRegistry The address of the operator registry contract.
     /// @param coordinator The address of the coordinator contract.
-    function initialize(
-        address initialOwner,
-        address assetRegistry,
-        address operatorRegistry,
-        address coordinator
-    ) external;
+    function initialize(address initialOwner, address assetRegistry, address operatorRegistry, address coordinator)
+        external;
 
     /// @notice Deposits the entire deposit pool balance of the specified `asset` into EigenLayer.
     function depositBalanceIntoEigenLayer(address asset) external returns (uint256);
@@ -41,9 +37,7 @@ interface IRioLRTDepositPool {
     /// @param recipient The address of the recipient of the transferred assets.
     /// @dev This function handles asset transfer by converting the share value to assets and
     /// ensures that either the requested amount or the maximum possible amount is transferred.
-    function transferMaxAssetsForShares(
-        address asset,
-        uint256 sharesRequested,
-        address recipient
-    ) external returns (uint256, uint256);
+    function transferMaxAssetsForShares(address asset, uint256 sharesRequested, address recipient)
+        external
+        returns (uint256, uint256);
 }

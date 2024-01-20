@@ -17,7 +17,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
     function setUp() public {
         deployRio();
 
-        (deployment, ) = issueRestakedETH();
+        (deployment,) = issueRestakedETH();
 
         withdrawalQueue = IRioLRTWithdrawalQueue(deployment.withdrawalQueue);
         coordinator = IRioLRTCoordinator(deployment.coordinator);
@@ -31,7 +31,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(reETH.balanceOf(address(this)), 1 ether);
     }
 
-      function test_depositEtherViaReceiveFunction() public {
+    function test_depositEtherViaReceiveFunction() public {
         (bool success,) = address(coordinator).call{value: 1 ether}('');
         assertTrue(success);
 
@@ -45,12 +45,10 @@ contract RioLRTCoordinatorTest is RioDeployer {
         coordinator.requestWithdrawal(ETH_ADDRESS, 1 ether);
 
         uint256 currentEpoch = withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
-        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary = withdrawalQueue.getEpochWithdrawalSummary(
-            ETH_ADDRESS, currentEpoch
-        );
-        IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary = withdrawalQueue.getUserWithdrawalSummary(
-            ETH_ADDRESS, currentEpoch, address(this)
-        );
+        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
+            withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, currentEpoch);
+        IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary =
+            withdrawalQueue.getUserWithdrawalSummary(ETH_ADDRESS, currentEpoch, address(this));
 
         assertEq(reETH.balanceOf(address(this)), 0);
         assertEq(withdrawalQueue.getSharesOwedInCurrentEpoch(ETH_ADDRESS), 1 ether);

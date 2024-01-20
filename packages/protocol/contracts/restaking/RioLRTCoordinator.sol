@@ -16,7 +16,6 @@ import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable {
-    using OperatorOperations for IRioLRTOperatorRegistry;
     using SafeERC20 for IERC20;
     using Asset for address;
 
@@ -286,6 +285,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         }
     }
 
+    // forgefmt: disable-next-item
     /// @dev Processes user withdrawals for the provided asset by transferring available
     /// assets from the deposit pool and queueing any remaining amount for withdrawal from
     /// EigenLayer.
@@ -306,7 +306,8 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         }
 
         address strategy = assetRegistry.getAssetStrategy(asset);
-        bytes32 aggregateRoot = operatorRegistry.queueWithdrawals(
+        bytes32 aggregateRoot = OperatorOperations.queueWithdrawals(
+            operatorRegistry,
             strategy,
             sharesRemaining,
             address(withdrawalQueue)

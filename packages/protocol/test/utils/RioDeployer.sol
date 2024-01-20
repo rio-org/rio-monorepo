@@ -8,7 +8,7 @@ import {RioLRTRewardDistributor} from 'contracts/restaking/RioLRTRewardDistribut
 import {RioLRTOperatorDelegator} from 'contracts/restaking/RioLRTOperatorDelegator.sol';
 import {RioLRTWithdrawalQueue} from 'contracts/restaking/RioLRTWithdrawalQueue.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
-import {BEACON_CHAIN_STRATEGY,ETH_ADDRESS} from 'contracts/utils/Constants.sol';
+import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {RioLRTAssetRegistry} from 'contracts/restaking/RioLRTAssetRegistry.sol';
 import {RioLRTCoordinator} from 'contracts/restaking/RioLRTCoordinator.sol';
 import {RioLRTDepositPool} from 'contracts/restaking/RioLRTDepositPool.sol';
@@ -32,7 +32,9 @@ abstract contract RioDeployer is EigenLayerDeployer {
                     new RioLRTOperatorRegistry(
                         address(this),
                         address(
-                            new RioLRTOperatorDelegator(STRATEGY_MANAGER_ADDRESS, EIGEN_POD_MANAGER_ADDRESS, DELEGATION_MANAGER_ADDRESS)
+                            new RioLRTOperatorDelegator(
+                                STRATEGY_MANAGER_ADDRESS, EIGEN_POD_MANAGER_ADDRESS, DELEGATION_MANAGER_ADDRESS
+                            )
                         )
                     )
                 ),
@@ -47,6 +49,7 @@ abstract contract RioDeployer is EigenLayerDeployer {
         );
     }
 
+    // forgefmt: disable-next-item
     function issueRestakedETH() public returns (IRioLRTIssuer.LRTDeployment memory d, IRioLRTAssetRegistry.AssetConfig[] memory assets) {
         assets = new IRioLRTAssetRegistry.AssetConfig[](1);
         assets[0] = IRioLRTAssetRegistry.AssetConfig({

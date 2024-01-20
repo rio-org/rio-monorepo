@@ -17,7 +17,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
     function setUp() public {
         deployRio();
 
-        (deployment, ) = issueRestakedETH();
+        (deployment,) = issueRestakedETH();
 
         withdrawalQueue = IRioLRTWithdrawalQueue(deployment.withdrawalQueue);
         coordinator = IRioLRTCoordinator(deployment.coordinator);
@@ -33,12 +33,10 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // Rebalance to settle the withdrawal.
         coordinator.rebalance(ETH_ADDRESS);
 
-        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary = withdrawalQueue.getEpochWithdrawalSummary(
-            ETH_ADDRESS, withdrawalEpoch
-        );
-        IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary = withdrawalQueue.getUserWithdrawalSummary(
-            ETH_ADDRESS, withdrawalEpoch, address(this)
-        );
+        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
+            withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch);
+        IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary =
+            withdrawalQueue.getUserWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch, address(this));
 
         // Ensure the reETH was burned.
         assertEq(reETH.totalSupply(), 0);
@@ -53,10 +51,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
 
         // Claim the withdrawal.
         uint256 amountOut = withdrawalQueue.claimWithdrawalsForEpoch(
-            IRioLRTWithdrawalQueue.ClaimRequest({
-                asset: ETH_ADDRESS,
-                epoch: withdrawalEpoch
-            })
+            IRioLRTWithdrawalQueue.ClaimRequest({asset: ETH_ADDRESS, epoch: withdrawalEpoch})
         );
 
         assertEq(amountOut, 1 ether);

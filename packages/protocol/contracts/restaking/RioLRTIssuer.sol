@@ -79,6 +79,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         __UUPSUpgradeable_init();
     }
 
+    // forgefmt: disable-next-item
     /// @notice Issues a new liquid restaking token (LRT).
     /// @param name The name of the token.
     /// @param symbol The symbol of the token.
@@ -90,13 +91,13 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         // Deploy the supporting contracts using the LRT address as the salt.
         bytes32 salt = bytes32(uint256(uint160(d.token)) << 96);
 
-        d.coordinator = address(new ERC1967Proxy{ salt: salt }(coordinatorImpl, ''));
-        d.assetRegistry = address(new ERC1967Proxy{ salt: salt }(assetRegistryImpl, ''));
-        d.operatorRegistry = address(new ERC1967Proxy{ salt: salt }(operatorRegistryImpl, ''));
-        d.avsRegistry = address(new ERC1967Proxy{ salt: salt }(avsRegistryImpl, ''));
-        d.depositPool = address(new ERC1967Proxy{ salt: salt }(depositPoolImpl, ''));
-        d.withdrawalQueue = address(new ERC1967Proxy{ salt: salt }(withdrawalQueueImpl, ''));
-        d.rewardDistributor = address(new ERC1967Proxy{ salt: salt }(rewardDistributorImpl, ''));
+        d.coordinator = address(new ERC1967Proxy{salt: salt}(coordinatorImpl, ''));
+        d.assetRegistry = address(new ERC1967Proxy{salt: salt}(assetRegistryImpl, ''));
+        d.operatorRegistry = address(new ERC1967Proxy{salt: salt}(operatorRegistryImpl, ''));
+        d.avsRegistry = address(new ERC1967Proxy{salt: salt}(avsRegistryImpl, ''));
+        d.depositPool = address(new ERC1967Proxy{salt: salt}(depositPoolImpl, ''));
+        d.withdrawalQueue = address(new ERC1967Proxy{salt: salt}(withdrawalQueueImpl, ''));
+        d.rewardDistributor = address(new ERC1967Proxy{salt: salt}(rewardDistributorImpl, ''));
 
         address initialOwner = msg.sender;
 

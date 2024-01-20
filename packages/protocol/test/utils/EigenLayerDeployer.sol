@@ -75,7 +75,11 @@ abstract contract EigenLayerDeployer is Test {
         );
 
         // Deploy the EigenPod Upgradeable Beacon
-        _deployTo(type(UpgradeableBeacon).creationCode, abi.encode(EIGEN_POD_IMPL_ADDRESS, OWNER_ADDRESS), EIGEN_POD_BEACON_ADDRESS);
+        _deployTo(
+            type(UpgradeableBeacon).creationCode,
+            abi.encode(EIGEN_POD_IMPL_ADDRESS, OWNER_ADDRESS),
+            EIGEN_POD_BEACON_ADDRESS
+        );
 
         // Deploy the Eigen Pod Manager Implementation
         _deployTo(

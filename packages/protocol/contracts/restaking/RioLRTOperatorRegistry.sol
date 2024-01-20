@@ -195,7 +195,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         _operator.earningsReceiver = initialEarningsReceiver;
         _operator.delegator = delegator;
 
-        emit OperatorAdded(operatorId, delegator, delegator, initialManager, initialEarningsReceiver, initialMetadataURI);
+        emit OperatorAdded(
+            operatorId, delegator, delegator, initialManager, initialEarningsReceiver, initialMetadataURI
+        );
 
         StrategyShareCap memory shareCap;
         OperatorUtilizationHeap.Data memory heap;

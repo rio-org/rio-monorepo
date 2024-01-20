@@ -7,7 +7,7 @@ contract MockPriceFeed is IPriceFeed {
     uint256 internal _price;
 
     constructor(uint256 price) {
-       _price = price;
+        _price = price;
     }
 
     string public constant FEED_TYPE = 'MOCK';

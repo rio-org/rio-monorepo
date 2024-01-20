@@ -75,7 +75,12 @@ interface IRioLRTAssetRegistry {
     /// @param coordinator The liquid restaking token coordinator.
     /// @param priceFeedDecimals The number of decimals that all price feeds must use.
     /// @param initialAssets The initial supported asset configurations.
-    function initialize(address initialOwner, address coordinator, uint8 priceFeedDecimals, AssetConfig[] calldata initialAssets) external;
+    function initialize(
+        address initialOwner,
+        address coordinator,
+        uint8 priceFeedDecimals,
+        AssetConfig[] calldata initialAssets
+    ) external;
 
     /// @notice Checks if a given asset is supported.
     /// @param asset The address of the asset to check.
