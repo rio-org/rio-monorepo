@@ -312,7 +312,7 @@ importers:
     dependencies:
       '@rionetwork/sdk':
         specifier: 0.1.0-alpha.15
-        version: link:../sdk
+        version: 0.1.0-alpha.15(graphql@16.8.1)(typescript@5.2.2)
     devDependencies:
       '@types/react':
         specifier: ^18.2.37

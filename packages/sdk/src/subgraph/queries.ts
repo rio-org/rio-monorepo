@@ -123,6 +123,30 @@ export const WithdrawalClaimFields = graphql(`
   }
 `);
 
+export const OperatorFields = graphql(`
+  fragment OperatorFields on Operator {
+    id
+    operatorId
+    address
+    delegator
+    manager
+    earningsReceiver
+    metadataURI
+    metadata {
+      name
+      website
+      description
+      logo
+      twitter
+    }
+    delegationApprover
+    stakerOptOutWindowBlocks
+    restakingToken {
+      id
+    }
+  }
+`);
+
 //#region
 
 //#region Single Record Queries
@@ -223,6 +247,26 @@ export const ManyWithdrawalClaimsQuery = graphql(`
       where: $where
     ) {
       ...WithdrawalClaimFields
+    }
+  }
+`);
+
+export const ManyOperatorsQuery = graphql(`
+  query manyOperators(
+    $first: Int!
+    $skip: Int!
+    $orderBy: Operator_orderBy
+    $orderDirection: OrderDirection
+    $where: Operator_filter
+  ) {
+    operators(
+      first: $first
+      skip: $skip
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+      where: $where
+    ) {
+      ...OperatorFields
     }
   }
 `);

@@ -101,4 +101,21 @@ export interface WithdrawalClaim {
   tx: string;
 }
 
+export interface Operator {
+  operatorId: number;
+  address: Address;
+  delegator: Address;
+  manager: Address;
+  earningsReceiver: Address;
+  metadataURI: string;
+  name: string | null;
+  website: string | null;
+  description: string | null;
+  logo: string | null;
+  twitter: string | null;
+  delegationApprover: Address;
+  stakerOptOutWindowBlocks: number;
+  restakingToken: Address;
+}
+
 //#endregion
