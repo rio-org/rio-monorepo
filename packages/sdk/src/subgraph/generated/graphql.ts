@@ -509,12 +509,21 @@ export type LiquidRestakingToken = {
   issuer: Issuer;
   name: Scalars['String']['output'];
   percentAPY?: Maybe<Scalars['BigDecimal']['output']>;
+  priceFeeds?: Maybe<Array<PriceFeed>>;
   symbol: Scalars['String']['output'];
   totalSupply: Scalars['BigDecimal']['output'];
   totalValueETH?: Maybe<Scalars['BigDecimal']['output']>;
   totalValueUSD?: Maybe<Scalars['BigDecimal']['output']>;
   underlyingAssets?: Maybe<Array<UnderlyingAsset>>;
   withdrawalQueue: WithdrawalQueue;
+};
+
+export type LiquidRestakingTokenPriceFeedsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PriceFeed_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<PriceFeed_Filter>;
 };
 
 export type LiquidRestakingTokenUnderlyingAssetsArgs = {
@@ -642,6 +651,7 @@ export type LiquidRestakingToken_Filter = {
   percentAPY_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
   percentAPY_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   percentAPY_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  priceFeeds_?: InputMaybe<PriceFeed_Filter>;
   symbol?: InputMaybe<Scalars['String']['input']>;
   symbol_contains?: InputMaybe<Scalars['String']['input']>;
   symbol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -727,6 +737,7 @@ export enum LiquidRestakingToken_OrderBy {
   IssuerTokensIssued = 'issuer__tokensIssued',
   Name = 'name',
   PercentApy = 'percentAPY',
+  PriceFeeds = 'priceFeeds',
   Symbol = 'symbol',
   TotalSupply = 'totalSupply',
   TotalValueEth = 'totalValueETH',
@@ -735,6 +746,405 @@ export enum LiquidRestakingToken_OrderBy {
   WithdrawalQueue = 'withdrawalQueue',
   WithdrawalQueueAddress = 'withdrawalQueue__address',
   WithdrawalQueueId = 'withdrawalQueue__id'
+}
+
+export type Operator = {
+  __typename?: 'Operator';
+  address: Scalars['Bytes']['output'];
+  delegationApprover?: Maybe<Scalars['Bytes']['output']>;
+  delegator: Scalars['Bytes']['output'];
+  earningsReceiver: Scalars['Bytes']['output'];
+  id: Scalars['ID']['output'];
+  manager: Scalars['Bytes']['output'];
+  metadata?: Maybe<OperatorMetadata>;
+  metadataURI: Scalars['String']['output'];
+  operatorId: Scalars['Int']['output'];
+  restakingToken: LiquidRestakingToken;
+  stakerOptOutWindowBlocks?: Maybe<Scalars['BigInt']['output']>;
+};
+
+export type OperatorMetadata = {
+  __typename?: 'OperatorMetadata';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  logo?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  twitter?: Maybe<Scalars['String']['output']>;
+  website?: Maybe<Scalars['String']['output']>;
+};
+
+export type OperatorMetadata_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<OperatorMetadata_Filter>>>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  description_contains?: InputMaybe<Scalars['String']['input']>;
+  description_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_ends_with?: InputMaybe<Scalars['String']['input']>;
+  description_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_gt?: InputMaybe<Scalars['String']['input']>;
+  description_gte?: InputMaybe<Scalars['String']['input']>;
+  description_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  description_lt?: InputMaybe<Scalars['String']['input']>;
+  description_lte?: InputMaybe<Scalars['String']['input']>;
+  description_not?: InputMaybe<Scalars['String']['input']>;
+  description_not_contains?: InputMaybe<Scalars['String']['input']>;
+  description_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  description_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  description_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  description_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  description_starts_with?: InputMaybe<Scalars['String']['input']>;
+  description_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  logo?: InputMaybe<Scalars['String']['input']>;
+  logo_contains?: InputMaybe<Scalars['String']['input']>;
+  logo_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  logo_ends_with?: InputMaybe<Scalars['String']['input']>;
+  logo_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  logo_gt?: InputMaybe<Scalars['String']['input']>;
+  logo_gte?: InputMaybe<Scalars['String']['input']>;
+  logo_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  logo_lt?: InputMaybe<Scalars['String']['input']>;
+  logo_lte?: InputMaybe<Scalars['String']['input']>;
+  logo_not?: InputMaybe<Scalars['String']['input']>;
+  logo_not_contains?: InputMaybe<Scalars['String']['input']>;
+  logo_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  logo_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  logo_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  logo_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  logo_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  logo_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  logo_starts_with?: InputMaybe<Scalars['String']['input']>;
+  logo_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  name_contains?: InputMaybe<Scalars['String']['input']>;
+  name_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  name_ends_with?: InputMaybe<Scalars['String']['input']>;
+  name_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  name_gt?: InputMaybe<Scalars['String']['input']>;
+  name_gte?: InputMaybe<Scalars['String']['input']>;
+  name_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  name_lt?: InputMaybe<Scalars['String']['input']>;
+  name_lte?: InputMaybe<Scalars['String']['input']>;
+  name_not?: InputMaybe<Scalars['String']['input']>;
+  name_not_contains?: InputMaybe<Scalars['String']['input']>;
+  name_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  name_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  name_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  name_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  name_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  name_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  name_starts_with?: InputMaybe<Scalars['String']['input']>;
+  name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  or?: InputMaybe<Array<InputMaybe<OperatorMetadata_Filter>>>;
+  twitter?: InputMaybe<Scalars['String']['input']>;
+  twitter_contains?: InputMaybe<Scalars['String']['input']>;
+  twitter_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  twitter_ends_with?: InputMaybe<Scalars['String']['input']>;
+  twitter_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  twitter_gt?: InputMaybe<Scalars['String']['input']>;
+  twitter_gte?: InputMaybe<Scalars['String']['input']>;
+  twitter_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  twitter_lt?: InputMaybe<Scalars['String']['input']>;
+  twitter_lte?: InputMaybe<Scalars['String']['input']>;
+  twitter_not?: InputMaybe<Scalars['String']['input']>;
+  twitter_not_contains?: InputMaybe<Scalars['String']['input']>;
+  twitter_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  twitter_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  twitter_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  twitter_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  twitter_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  twitter_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  twitter_starts_with?: InputMaybe<Scalars['String']['input']>;
+  twitter_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  website?: InputMaybe<Scalars['String']['input']>;
+  website_contains?: InputMaybe<Scalars['String']['input']>;
+  website_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  website_ends_with?: InputMaybe<Scalars['String']['input']>;
+  website_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  website_gt?: InputMaybe<Scalars['String']['input']>;
+  website_gte?: InputMaybe<Scalars['String']['input']>;
+  website_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  website_lt?: InputMaybe<Scalars['String']['input']>;
+  website_lte?: InputMaybe<Scalars['String']['input']>;
+  website_not?: InputMaybe<Scalars['String']['input']>;
+  website_not_contains?: InputMaybe<Scalars['String']['input']>;
+  website_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  website_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  website_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  website_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  website_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  website_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  website_starts_with?: InputMaybe<Scalars['String']['input']>;
+  website_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum OperatorMetadata_OrderBy {
+  Description = 'description',
+  Id = 'id',
+  Logo = 'logo',
+  Name = 'name',
+  Twitter = 'twitter',
+  Website = 'website'
+}
+
+export type OperatorRegistry = {
+  __typename?: 'OperatorRegistry';
+  address: Scalars['Bytes']['output'];
+  id: Scalars['ID']['output'];
+  restakingToken: LiquidRestakingToken;
+};
+
+export type OperatorRegistry_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<OperatorRegistry_Filter>>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<OperatorRegistry_Filter>>>;
+  restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
+  restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_lt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_lte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_starts_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  restakingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum OperatorRegistry_OrderBy {
+  Address = 'address',
+  Id = 'id',
+  RestakingToken = 'restakingToken',
+  RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
+  RestakingTokenId = 'restakingToken__id',
+  RestakingTokenName = 'restakingToken__name',
+  RestakingTokenPercentApy = 'restakingToken__percentAPY',
+  RestakingTokenSymbol = 'restakingToken__symbol',
+  RestakingTokenTotalSupply = 'restakingToken__totalSupply',
+  RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
+  RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD'
+}
+
+export type Operator_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<Operator_Filter>>>;
+  delegationApprover?: InputMaybe<Scalars['Bytes']['input']>;
+  delegationApprover_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  delegationApprover_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  delegationApprover_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  delegationApprover_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  delegationApprover_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  delegationApprover_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  delegationApprover_not?: InputMaybe<Scalars['Bytes']['input']>;
+  delegationApprover_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  delegationApprover_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  delegator?: InputMaybe<Scalars['Bytes']['input']>;
+  delegator_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  delegator_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  delegator_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  delegator_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  delegator_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  delegator_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  delegator_not?: InputMaybe<Scalars['Bytes']['input']>;
+  delegator_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  delegator_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  earningsReceiver?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  earningsReceiver_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_not?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  manager?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  manager_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_not?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  metadata?: InputMaybe<Scalars['String']['input']>;
+  metadataURI?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_contains?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_ends_with?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_gt?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_gte?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  metadataURI_lt?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_lte?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_not?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_not_contains?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  metadataURI_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_starts_with?: InputMaybe<Scalars['String']['input']>;
+  metadataURI_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadata_?: InputMaybe<OperatorMetadata_Filter>;
+  metadata_contains?: InputMaybe<Scalars['String']['input']>;
+  metadata_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadata_ends_with?: InputMaybe<Scalars['String']['input']>;
+  metadata_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadata_gt?: InputMaybe<Scalars['String']['input']>;
+  metadata_gte?: InputMaybe<Scalars['String']['input']>;
+  metadata_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  metadata_lt?: InputMaybe<Scalars['String']['input']>;
+  metadata_lte?: InputMaybe<Scalars['String']['input']>;
+  metadata_not?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_contains?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  metadata_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  metadata_starts_with?: InputMaybe<Scalars['String']['input']>;
+  metadata_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  operatorId?: InputMaybe<Scalars['Int']['input']>;
+  operatorId_gt?: InputMaybe<Scalars['Int']['input']>;
+  operatorId_gte?: InputMaybe<Scalars['Int']['input']>;
+  operatorId_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  operatorId_lt?: InputMaybe<Scalars['Int']['input']>;
+  operatorId_lte?: InputMaybe<Scalars['Int']['input']>;
+  operatorId_not?: InputMaybe<Scalars['Int']['input']>;
+  operatorId_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<Operator_Filter>>>;
+  restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
+  restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_lt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_lte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_starts_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  restakingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  stakerOptOutWindowBlocks?: InputMaybe<Scalars['BigInt']['input']>;
+  stakerOptOutWindowBlocks_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  stakerOptOutWindowBlocks_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  stakerOptOutWindowBlocks_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  stakerOptOutWindowBlocks_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  stakerOptOutWindowBlocks_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  stakerOptOutWindowBlocks_not?: InputMaybe<Scalars['BigInt']['input']>;
+  stakerOptOutWindowBlocks_not_in?: InputMaybe<
+    Array<Scalars['BigInt']['input']>
+  >;
+};
+
+export enum Operator_OrderBy {
+  Address = 'address',
+  DelegationApprover = 'delegationApprover',
+  Delegator = 'delegator',
+  EarningsReceiver = 'earningsReceiver',
+  Id = 'id',
+  Manager = 'manager',
+  Metadata = 'metadata',
+  MetadataUri = 'metadataURI',
+  MetadataDescription = 'metadata__description',
+  MetadataId = 'metadata__id',
+  MetadataLogo = 'metadata__logo',
+  MetadataName = 'metadata__name',
+  MetadataTwitter = 'metadata__twitter',
+  MetadataWebsite = 'metadata__website',
+  OperatorId = 'operatorId',
+  RestakingToken = 'restakingToken',
+  RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
+  RestakingTokenId = 'restakingToken__id',
+  RestakingTokenName = 'restakingToken__name',
+  RestakingTokenPercentApy = 'restakingToken__percentAPY',
+  RestakingTokenSymbol = 'restakingToken__symbol',
+  RestakingTokenTotalSupply = 'restakingToken__totalSupply',
+  RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
+  RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD',
+  StakerOptOutWindowBlocks = 'stakerOptOutWindowBlocks'
 }
 
 /** Defines the order direction, either ascending or descending */
@@ -756,6 +1166,15 @@ export type PriceFeed = {
   price?: Maybe<Scalars['BigDecimal']['output']>;
   priceSource?: Maybe<PriceSource>;
   quoteAssetSymbol: Scalars['String']['output'];
+  usedBy: Array<LiquidRestakingToken>;
+};
+
+export type PriceFeedUsedByArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<LiquidRestakingToken_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<LiquidRestakingToken_Filter>;
 };
 
 export type PriceFeed_Filter = {
@@ -911,6 +1330,13 @@ export type PriceFeed_Filter = {
   >;
   quoteAssetSymbol_starts_with?: InputMaybe<Scalars['String']['input']>;
   quoteAssetSymbol_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  usedBy?: InputMaybe<Array<Scalars['String']['input']>>;
+  usedBy_?: InputMaybe<LiquidRestakingToken_Filter>;
+  usedBy_contains?: InputMaybe<Array<Scalars['String']['input']>>;
+  usedBy_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
+  usedBy_not?: InputMaybe<Array<Scalars['String']['input']>>;
+  usedBy_not_contains?: InputMaybe<Array<Scalars['String']['input']>>;
+  usedBy_not_contains_nocase?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export enum PriceFeed_OrderBy {
@@ -933,7 +1359,8 @@ export enum PriceFeed_OrderBy {
   PriceSource = 'priceSource',
   PriceSourceAddress = 'priceSource__address',
   PriceSourceId = 'priceSource__id',
-  QuoteAssetSymbol = 'quoteAssetSymbol'
+  QuoteAssetSymbol = 'quoteAssetSymbol',
+  UsedBy = 'usedBy'
 }
 
 export type PriceSource = {
@@ -1018,6 +1445,11 @@ export type Query = {
   issuers: Array<Issuer>;
   liquidRestakingToken?: Maybe<LiquidRestakingToken>;
   liquidRestakingTokens: Array<LiquidRestakingToken>;
+  operator?: Maybe<Operator>;
+  operatorMetadata: Array<OperatorMetadata>;
+  operatorRegistries: Array<OperatorRegistry>;
+  operatorRegistry?: Maybe<OperatorRegistry>;
+  operators: Array<Operator>;
   priceFeed?: Maybe<PriceFeed>;
   priceFeeds: Array<PriceFeed>;
   priceSource?: Maybe<PriceSource>;
@@ -1120,6 +1552,48 @@ export type QueryLiquidRestakingTokensArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<LiquidRestakingToken_Filter>;
+};
+
+export type QueryOperatorArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryOperatorMetadataArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<OperatorMetadata_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<OperatorMetadata_Filter>;
+};
+
+export type QueryOperatorRegistriesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<OperatorRegistry_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<OperatorRegistry_Filter>;
+};
+
+export type QueryOperatorRegistryArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryOperatorsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Operator_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<Operator_Filter>;
 };
 
 export type QueryPriceFeedArgs = {
@@ -1280,6 +1754,11 @@ export type Subscription = {
   issuers: Array<Issuer>;
   liquidRestakingToken?: Maybe<LiquidRestakingToken>;
   liquidRestakingTokens: Array<LiquidRestakingToken>;
+  operator?: Maybe<Operator>;
+  operatorMetadata: Array<OperatorMetadata>;
+  operatorRegistries: Array<OperatorRegistry>;
+  operatorRegistry?: Maybe<OperatorRegistry>;
+  operators: Array<Operator>;
   priceFeed?: Maybe<PriceFeed>;
   priceFeeds: Array<PriceFeed>;
   priceSource?: Maybe<PriceSource>;
@@ -1382,6 +1861,48 @@ export type SubscriptionLiquidRestakingTokensArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<LiquidRestakingToken_Filter>;
+};
+
+export type SubscriptionOperatorArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionOperatorMetadataArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<OperatorMetadata_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<OperatorMetadata_Filter>;
+};
+
+export type SubscriptionOperatorRegistriesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<OperatorRegistry_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<OperatorRegistry_Filter>;
+};
+
+export type SubscriptionOperatorRegistryArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionOperatorsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Operator_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<Operator_Filter>;
 };
 
 export type SubscriptionPriceFeedArgs = {
@@ -2872,6 +3393,28 @@ export type WithdrawalClaimFieldsFragment = {
   requests?: Array<{ __typename?: 'WithdrawalRequest'; id: string }> | null;
 };
 
+export type OperatorFieldsFragment = {
+  __typename?: 'Operator';
+  id: string;
+  operatorId: number;
+  address: any;
+  delegator: any;
+  manager: any;
+  earningsReceiver: any;
+  metadataURI: string;
+  delegationApprover?: any | null;
+  stakerOptOutWindowBlocks?: any | null;
+  metadata?: {
+    __typename?: 'OperatorMetadata';
+    name?: string | null;
+    website?: string | null;
+    description?: string | null;
+    logo?: string | null;
+    twitter?: string | null;
+  } | null;
+  restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
+};
+
 export type IssuerQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
@@ -2922,6 +3465,35 @@ export type LiquidRestakingTokenQuery = {
         name: string;
       };
     }> | null;
+  } | null;
+};
+
+export type OperatorQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+export type OperatorQuery = {
+  __typename?: 'Query';
+  operator?: {
+    __typename?: 'Operator';
+    id: string;
+    operatorId: number;
+    address: any;
+    delegator: any;
+    manager: any;
+    earningsReceiver: any;
+    metadataURI: string;
+    delegationApprover?: any | null;
+    stakerOptOutWindowBlocks?: any | null;
+    metadata?: {
+      __typename?: 'OperatorMetadata';
+      name?: string | null;
+      website?: string | null;
+      description?: string | null;
+      logo?: string | null;
+      twitter?: string | null;
+    } | null;
+    restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
   } | null;
 };
 
@@ -3051,6 +3623,39 @@ export type ManyWithdrawalClaimsQuery = {
     assetOut: { __typename?: 'Asset'; id: string };
     restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
     requests?: Array<{ __typename?: 'WithdrawalRequest'; id: string }> | null;
+  }>;
+};
+
+export type ManyOperatorsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  skip: Scalars['Int']['input'];
+  orderBy?: InputMaybe<Operator_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<Operator_Filter>;
+}>;
+
+export type ManyOperatorsQuery = {
+  __typename?: 'Query';
+  operators: Array<{
+    __typename?: 'Operator';
+    id: string;
+    operatorId: number;
+    address: any;
+    delegator: any;
+    manager: any;
+    earningsReceiver: any;
+    metadataURI: string;
+    delegationApprover?: any | null;
+    stakerOptOutWindowBlocks?: any | null;
+    metadata?: {
+      __typename?: 'OperatorMetadata';
+      name?: string | null;
+      website?: string | null;
+      description?: string | null;
+      logo?: string | null;
+      twitter?: string | null;
+    } | null;
+    restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
   }>;
 };
 
@@ -3356,6 +3961,63 @@ export const WithdrawalClaimFieldsFragmentDoc = {
     }
   ]
 } as unknown as DocumentNode<WithdrawalClaimFieldsFragment, unknown>;
+export const OperatorFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'OperatorFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Operator' }
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'operatorId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'address' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'delegator' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'metadataURI' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'metadata' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'website' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'logo' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'twitter' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'delegationApprover' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'stakerOptOutWindowBlocks' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingToken' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+} as unknown as DocumentNode<OperatorFieldsFragment, unknown>;
 export const IssuerDocument = {
   kind: 'Document',
   definitions: [
@@ -3554,6 +4216,103 @@ export const LiquidRestakingTokenDocument = {
   LiquidRestakingTokenQuery,
   LiquidRestakingTokenQueryVariables
 >;
+export const OperatorDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'operator' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } }
+          }
+        }
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'operator' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } }
+              }
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'OperatorFields' }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'OperatorFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Operator' }
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'operatorId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'address' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'delegator' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'metadataURI' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'metadata' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'website' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'logo' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'twitter' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'delegationApprover' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'stakerOptOutWindowBlocks' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingToken' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+} as unknown as DocumentNode<OperatorQuery, OperatorQueryVariables>;
 export const ManyLiquidRestakingTokensDocument = {
   kind: 'Document',
   definitions: [
@@ -4310,3 +5069,179 @@ export const ManyWithdrawalClaimsDocument = {
   ManyWithdrawalClaimsQuery,
   ManyWithdrawalClaimsQueryVariables
 >;
+export const ManyOperatorsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'manyOperators' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'first' }
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderBy' }
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'Operator_orderBy' }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderDirection' }
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'OrderDirection' }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'where' }
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'Operator_filter' }
+          }
+        }
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'operators' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'first' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'first' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'skip' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'skip' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderBy' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderBy' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderDirection' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderDirection' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'where' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'where' }
+                }
+              }
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'OperatorFields' }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'OperatorFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Operator' }
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'operatorId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'address' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'delegator' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'metadataURI' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'metadata' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'website' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'logo' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'twitter' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'delegationApprover' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'stakerOptOutWindowBlocks' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingToken' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+} as unknown as DocumentNode<ManyOperatorsQuery, ManyOperatorsQueryVariables>;
