@@ -2,6 +2,7 @@
 pragma solidity 0.8.21;
 
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
+import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 
@@ -14,6 +15,16 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         (reETH,) = issueRestakedETH();
         (reLST,) = issueRestakedLST();
+    }
+
+    function test_depositEtherNotSupportedReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.ASSET_NOT_SUPPORTED.selector, ETH_ADDRESS));
+        reLST.coordinator.depositETH{value: 1 ether}();
+    }
+
+    function test_depositEtherZeroValueReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.AMOUNT_MUST_BE_GREATER_THAN_ZERO.selector));
+        reETH.coordinator.depositETH{value: 0}();
     }
 
     function test_depositEtherViaNamedFunction() public {
@@ -29,6 +40,24 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         // The initial exchange rate is 1:1.
         assertEq(reETH.token.balanceOf(address(this)), 1 ether);
+    }
+
+    function test_depositERC20NotSupportedReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.ASSET_NOT_SUPPORTED.selector, address(42)));
+        reLST.coordinator.deposit(address(42), 20e18);
+    }
+
+    function test_depositERC20ZeroValueReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.AMOUNT_MUST_BE_GREATER_THAN_ZERO.selector));
+        reLST.coordinator.deposit(address(rETH), 0);
+    }
+
+    function test_depositERC20() public {
+        rETH.approve(address(reLST.coordinator), 20e18);
+        reLST.coordinator.deposit(address(rETH), 20e18);
+
+        uint256 price = reLST.assetRegistry.getAssetPrice(address(rETH));
+        assertEq(reLST.token.balanceOf(address(this)), price * 20);
     }
 
     function test_requestEtherWithdrawal() public {
@@ -51,6 +80,32 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         assertFalse(userSummary.claimed);
         assertEq(userSummary.sharesOwed, 1 ether);
+    }
+
+    function test_requestERC20Withdrawal() public {
+        address _rETH = address(rETH);
+        uint256 amount = 50e18;
+
+        rETH.approve(address(reLST.coordinator), amount);
+        uint256 amountOut = reLST.coordinator.deposit(_rETH, amount);
+
+        reLST.coordinator.requestWithdrawal(_rETH, amountOut);
+
+        uint256 currentEpoch = reLST.withdrawalQueue.getCurrentEpoch(_rETH);
+        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
+            reLST.withdrawalQueue.getEpochWithdrawalSummary(_rETH, currentEpoch);
+        IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary =
+            reLST.withdrawalQueue.getUserWithdrawalSummary(_rETH, currentEpoch, address(this));
+
+        assertEq(reLST.token.balanceOf(address(this)), 0);
+        assertEq(reLST.withdrawalQueue.getSharesOwedInCurrentEpoch(_rETH), amount);
+
+        assertFalse(epochSummary.settled);
+        assertEq(epochSummary.sharesOwed, amount);
+        assertEq(epochSummary.amountToBurnAtSettlement, amountOut);
+
+        assertFalse(userSummary.claimed);
+        assertEq(userSummary.sharesOwed, amount);
     }
 
     receive() external payable {}

@@ -150,7 +150,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         address priceFeed = assetInfo[asset].priceFeed;
         uint256 price = getPrice(priceFeed);
 
-        return _normalizeDecimals(value * price / priceScale, priceFeedDecimals, assetInfo[asset].decimals);
+        return _normalizeDecimals(value * priceScale / price, priceFeedDecimals, assetInfo[asset].decimals);
     }
 
     /// @notice Converts an amount of EigenLayer shares to the equivalent amount
