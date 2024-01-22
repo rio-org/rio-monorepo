@@ -50,6 +50,9 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     /// @notice The LRT deposit pool.
     address public depositPool;
 
+    /// @notice The LRT reward distributor.
+    address public rewardDistributor;
+
     /// @notice The operator's EigenPod.
     IEigenPod public eigenPod;
 
@@ -91,20 +94,21 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     // forgefmt: disable-next-item
     /// @notice Initializes the contract by registering the operator with EigenLayer.
     /// @param depositPool_ The LRT deposit pool.
-    /// @param rewardDistributor The LRT reward distributor.
+    /// @param rewardDistributor_ The LRT reward distributor.
     /// @param operator The operator's address.
     function initialize(
         address depositPool_,
-        address rewardDistributor,
+        address rewardDistributor_,
         address operator
     ) external initializer {
         operatorRegistry = msg.sender;
         depositPool = depositPool_;
+        rewardDistributor = rewardDistributor_;
 
         IRioLRTOperatorRegistry registry = IRioLRTOperatorRegistry(msg.sender);
 
         IDelegationManager.OperatorDetails memory operatorDetails = delegationManager.operatorDetails(operator);
-        if (operatorDetails.earningsReceiver != rewardDistributor) revert INVALID_EARNINGS_RECEIVER();
+        if (operatorDetails.earningsReceiver != rewardDistributor_) revert INVALID_EARNINGS_RECEIVER();
         if (operatorDetails.delegationApprover != address(0)) revert INVALID_DELEGATION_APPROVER();
         if (operatorDetails.stakerOptOutWindowBlocks < registry.minStakerOptOutBlocks()) revert INVALID_STAKER_OPT_OUT_BLOCKS();
 
@@ -148,9 +152,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     /// @notice Scrapes ETH sitting in the operator's EigenPod to the reward distributor.
     /// @dev Anyone can call this function.
     function scrapeEigenPodETHBalanceToRewardDistributor() external {
-        eigenPod.withdrawNonBeaconChainETHBalanceWei(
-            delegationManager.earningsReceiver(address(this)), eigenPod.nonBeaconChainETHBalanceWei()
-        );
+        eigenPod.withdrawNonBeaconChainETHBalanceWei(rewardDistributor, eigenPod.nonBeaconChainETHBalanceWei());
     }
 
     // forgefmt: disable-next-item
