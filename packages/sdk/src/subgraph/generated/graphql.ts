@@ -3468,35 +3468,6 @@ export type LiquidRestakingTokenQuery = {
   } | null;
 };
 
-export type OperatorQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-export type OperatorQuery = {
-  __typename?: 'Query';
-  operator?: {
-    __typename?: 'Operator';
-    id: string;
-    operatorId: number;
-    address: any;
-    delegator: any;
-    manager: any;
-    earningsReceiver: any;
-    metadataURI: string;
-    delegationApprover?: any | null;
-    stakerOptOutWindowBlocks?: any | null;
-    metadata?: {
-      __typename?: 'OperatorMetadata';
-      name?: string | null;
-      website?: string | null;
-      description?: string | null;
-      logo?: string | null;
-      twitter?: string | null;
-    } | null;
-    restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
-  } | null;
-};
-
 export type ManyLiquidRestakingTokensQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   skip: Scalars['Int']['input'];
@@ -4216,103 +4187,6 @@ export const LiquidRestakingTokenDocument = {
   LiquidRestakingTokenQuery,
   LiquidRestakingTokenQueryVariables
 >;
-export const OperatorDocument = {
-  kind: 'Document',
-  definitions: [
-    {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: { kind: 'Name', value: 'operator' },
-      variableDefinitions: [
-        {
-          kind: 'VariableDefinition',
-          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
-          type: {
-            kind: 'NonNullType',
-            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } }
-          }
-        }
-      ],
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'operator' },
-            arguments: [
-              {
-                kind: 'Argument',
-                name: { kind: 'Name', value: 'id' },
-                value: { kind: 'Variable', name: { kind: 'Name', value: 'id' } }
-              }
-            ],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                {
-                  kind: 'FragmentSpread',
-                  name: { kind: 'Name', value: 'OperatorFields' }
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'OperatorFields' },
-      typeCondition: {
-        kind: 'NamedType',
-        name: { kind: 'Name', value: 'Operator' }
-      },
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: [
-          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'operatorId' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'address' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'delegator' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'metadataURI' } },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'metadata' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'website' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'description' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'logo' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'twitter' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'delegationApprover' }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'stakerOptOutWindowBlocks' }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'restakingToken' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
-              ]
-            }
-          }
-        ]
-      }
-    }
-  ]
-} as unknown as DocumentNode<OperatorQuery, OperatorQueryVariables>;
 export const ManyLiquidRestakingTokensDocument = {
   kind: 'Document',
   definitions: [
