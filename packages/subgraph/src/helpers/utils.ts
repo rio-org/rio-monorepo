@@ -1,6 +1,6 @@
-import { Address, BigDecimal, BigInt, Bytes, dataSource } from '@graphprotocol/graph-ts';
-import { Asset, PriceFeed, PriceSource, User, WithdrawalEpoch } from '../../generated/schema';
-import { CHAINLINK_FEED_TYPE, ETH_ADDRESS, ETH_USD_CHAINLINK_FEEDS, USD_PRICE_FEED_DECIMALS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD } from './constants';
+import { Address, BigDecimal, BigInt, Bytes, Entity, Value, dataSource, store } from '@graphprotocol/graph-ts';
+import { AVSRegistry, Asset, AssetRegistry, Coordinator, DepositPool, OperatorRegistry, PriceFeed, PriceSource, RewardDistributor, User, WithdrawalEpoch, WithdrawalQueue } from '../../generated/schema';
+import { CHAINLINK_FEED_TYPE, ETH_ADDRESS, ETH_USD_CHAINLINK_FEEDS, SupportingContractName, USD_PRICE_FEED_DECIMALS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD } from './constants';
 import { PriceFeed as PriceFeedContract } from '../../generated/RioLRTIssuer/PriceFeed';
 import { PriceSource as PriceSourceTemplate } from '../../generated/templates';
 import { ERC20Token } from '../../generated/RioLRTIssuer/ERC20Token';
@@ -33,6 +33,37 @@ export function getIPFSContentID(gatewayURL: string): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Create a supporting contract entity.
+ * @param entityName The supporting contract entity name.
+ * @param address The address of the supporting contract.
+ * @param restakingTokenId The ID of the restaking token.
+ */
+export function createSupportingContract(entityName: string, address: Address, restakingTokenId: string): void {
+  let entity: Entity;
+  if (entityName == SupportingContractName.COORDINATOR) {
+    entity = new Coordinator(address.toHex());
+  } else if (entityName == SupportingContractName.ASSET_REGISTRY) {
+    entity = new AssetRegistry(address.toHex());
+  } else if (entityName == SupportingContractName.OPERATOR_REGISTRY) {
+    entity = new OperatorRegistry(address.toHex());
+  } else if (entityName == SupportingContractName.AVS_REGISTRY) {
+    entity = new AVSRegistry(address.toHex());
+  } else if (entityName == SupportingContractName.DEPOSIT_POOL) {
+    entity = new DepositPool(address.toHex());
+  } else if (entityName == SupportingContractName.WITHDRAWAL_QUEUE) {
+    entity = new WithdrawalQueue(address.toHex());
+  } else if (entityName == SupportingContractName.REWARD_DISTRIBUTOR) {
+    entity = new RewardDistributor(address.toHex());
+  } else {
+    throw new Error(`Unexpected supporting contract: ${entityName}`);
+  }
+
+  entity.set('address', Value.fromBytes(address));
+  entity.set('restakingToken', Value.fromString(restakingTokenId));
+  store.set(entityName, address.toHex(), entity);
 }
 
 /**

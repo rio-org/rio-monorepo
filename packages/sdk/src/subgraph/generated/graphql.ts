@@ -37,6 +37,78 @@ export type Scalars = {
   Int8: { input: any; output: any };
 };
 
+export type AvsRegistry = {
+  __typename?: 'AVSRegistry';
+  address: Scalars['Bytes']['output'];
+  id: Scalars['ID']['output'];
+  restakingToken: LiquidRestakingToken;
+};
+
+export type AvsRegistry_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<AvsRegistry_Filter>>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<AvsRegistry_Filter>>>;
+  restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
+  restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_lt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_lte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_starts_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  restakingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum AvsRegistry_OrderBy {
+  Address = 'address',
+  Id = 'id',
+  RestakingToken = 'restakingToken',
+  RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
+  RestakingTokenId = 'restakingToken__id',
+  RestakingTokenName = 'restakingToken__name',
+  RestakingTokenPercentApy = 'restakingToken__percentAPY',
+  RestakingTokenSymbol = 'restakingToken__symbol',
+  RestakingTokenTotalSupply = 'restakingToken__totalSupply',
+  RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
+  RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD'
+}
+
 export type Asset = {
   __typename?: 'Asset';
   address: Scalars['Bytes']['output'];
@@ -47,6 +119,78 @@ export type Asset = {
   name: Scalars['String']['output'];
   symbol: Scalars['String']['output'];
 };
+
+export type AssetRegistry = {
+  __typename?: 'AssetRegistry';
+  address: Scalars['Bytes']['output'];
+  id: Scalars['ID']['output'];
+  restakingToken: LiquidRestakingToken;
+};
+
+export type AssetRegistry_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<AssetRegistry_Filter>>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<AssetRegistry_Filter>>>;
+  restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
+  restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_lt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_lte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_starts_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  restakingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum AssetRegistry_OrderBy {
+  Address = 'address',
+  Id = 'id',
+  RestakingToken = 'restakingToken',
+  RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
+  RestakingTokenId = 'restakingToken__id',
+  RestakingTokenName = 'restakingToken__name',
+  RestakingTokenPercentApy = 'restakingToken__percentAPY',
+  RestakingTokenSymbol = 'restakingToken__symbol',
+  RestakingTokenTotalSupply = 'restakingToken__totalSupply',
+  RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
+  RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD'
+}
 
 export type Asset_Filter = {
   /** Filter for the block changed event. */
@@ -247,6 +391,78 @@ export type Deposit = {
   userBalanceBefore: Scalars['BigDecimal']['output'];
   valueUSD?: Maybe<Scalars['BigDecimal']['output']>;
 };
+
+export type DepositPool = {
+  __typename?: 'DepositPool';
+  address: Scalars['Bytes']['output'];
+  id: Scalars['ID']['output'];
+  restakingToken: LiquidRestakingToken;
+};
+
+export type DepositPool_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<DepositPool_Filter>>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<DepositPool_Filter>>>;
+  restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
+  restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_lt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_lte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_starts_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  restakingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum DepositPool_OrderBy {
+  Address = 'address',
+  Id = 'id',
+  RestakingToken = 'restakingToken',
+  RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
+  RestakingTokenId = 'restakingToken__id',
+  RestakingTokenName = 'restakingToken__name',
+  RestakingTokenPercentApy = 'restakingToken__percentAPY',
+  RestakingTokenSymbol = 'restakingToken__symbol',
+  RestakingTokenTotalSupply = 'restakingToken__totalSupply',
+  RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
+  RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD'
+}
 
 export type Deposit_Filter = {
   /** Filter for the block changed event. */
@@ -501,15 +717,20 @@ export enum Issuer_OrderBy {
 export type LiquidRestakingToken = {
   __typename?: 'LiquidRestakingToken';
   address: Scalars['Bytes']['output'];
+  assetRegistry: AssetRegistry;
+  avsRegistry: AvsRegistry;
   coordinator: Coordinator;
   createdTimestamp: Scalars['BigInt']['output'];
+  depositPool: DepositPool;
   exchangeRateETH?: Maybe<Scalars['BigDecimal']['output']>;
   exchangeRateUSD?: Maybe<Scalars['BigDecimal']['output']>;
   id: Scalars['ID']['output'];
   issuer: Issuer;
   name: Scalars['String']['output'];
+  operatorRegistry: OperatorRegistry;
   percentAPY?: Maybe<Scalars['BigDecimal']['output']>;
   priceFeeds?: Maybe<Array<PriceFeed>>;
+  rewardDistributor: RewardDistributor;
   symbol: Scalars['String']['output'];
   totalSupply: Scalars['BigDecimal']['output'];
   totalValueETH?: Maybe<Scalars['BigDecimal']['output']>;
@@ -548,27 +769,9 @@ export type LiquidRestakingToken_Filter = {
   address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   and?: InputMaybe<Array<InputMaybe<LiquidRestakingToken_Filter>>>;
-  coordinator?: InputMaybe<Scalars['String']['input']>;
+  assetRegistry_?: InputMaybe<AssetRegistry_Filter>;
+  avsRegistry_?: InputMaybe<AvsRegistry_Filter>;
   coordinator_?: InputMaybe<Coordinator_Filter>;
-  coordinator_contains?: InputMaybe<Scalars['String']['input']>;
-  coordinator_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  coordinator_ends_with?: InputMaybe<Scalars['String']['input']>;
-  coordinator_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  coordinator_gt?: InputMaybe<Scalars['String']['input']>;
-  coordinator_gte?: InputMaybe<Scalars['String']['input']>;
-  coordinator_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  coordinator_lt?: InputMaybe<Scalars['String']['input']>;
-  coordinator_lte?: InputMaybe<Scalars['String']['input']>;
-  coordinator_not?: InputMaybe<Scalars['String']['input']>;
-  coordinator_not_contains?: InputMaybe<Scalars['String']['input']>;
-  coordinator_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  coordinator_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  coordinator_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  coordinator_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  coordinator_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  coordinator_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  coordinator_starts_with?: InputMaybe<Scalars['String']['input']>;
-  coordinator_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -577,6 +780,7 @@ export type LiquidRestakingToken_Filter = {
   createdTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  depositPool_?: InputMaybe<DepositPool_Filter>;
   exchangeRateETH?: InputMaybe<Scalars['BigDecimal']['input']>;
   exchangeRateETH_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   exchangeRateETH_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -642,6 +846,7 @@ export type LiquidRestakingToken_Filter = {
   name_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   name_starts_with?: InputMaybe<Scalars['String']['input']>;
   name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  operatorRegistry_?: InputMaybe<OperatorRegistry_Filter>;
   or?: InputMaybe<Array<InputMaybe<LiquidRestakingToken_Filter>>>;
   percentAPY?: InputMaybe<Scalars['BigDecimal']['input']>;
   percentAPY_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -652,6 +857,7 @@ export type LiquidRestakingToken_Filter = {
   percentAPY_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   percentAPY_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   priceFeeds_?: InputMaybe<PriceFeed_Filter>;
+  rewardDistributor_?: InputMaybe<RewardDistributor_Filter>;
   symbol?: InputMaybe<Scalars['String']['input']>;
   symbol_contains?: InputMaybe<Scalars['String']['input']>;
   symbol_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -697,37 +903,24 @@ export type LiquidRestakingToken_Filter = {
   totalValueUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
   totalValueUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   underlyingAssets_?: InputMaybe<UnderlyingAsset_Filter>;
-  withdrawalQueue?: InputMaybe<Scalars['String']['input']>;
   withdrawalQueue_?: InputMaybe<WithdrawalQueue_Filter>;
-  withdrawalQueue_contains?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_ends_with?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_gt?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_gte?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  withdrawalQueue_lt?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_lte?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_not?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_not_contains?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  withdrawalQueue_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_not_starts_with_nocase?: InputMaybe<
-    Scalars['String']['input']
-  >;
-  withdrawalQueue_starts_with?: InputMaybe<Scalars['String']['input']>;
-  withdrawalQueue_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum LiquidRestakingToken_OrderBy {
   Address = 'address',
+  AssetRegistry = 'assetRegistry',
+  AssetRegistryAddress = 'assetRegistry__address',
+  AssetRegistryId = 'assetRegistry__id',
+  AvsRegistry = 'avsRegistry',
+  AvsRegistryAddress = 'avsRegistry__address',
+  AvsRegistryId = 'avsRegistry__id',
   Coordinator = 'coordinator',
   CoordinatorAddress = 'coordinator__address',
   CoordinatorId = 'coordinator__id',
   CreatedTimestamp = 'createdTimestamp',
+  DepositPool = 'depositPool',
+  DepositPoolAddress = 'depositPool__address',
+  DepositPoolId = 'depositPool__id',
   ExchangeRateEth = 'exchangeRateETH',
   ExchangeRateUsd = 'exchangeRateUSD',
   Id = 'id',
@@ -736,8 +929,14 @@ export enum LiquidRestakingToken_OrderBy {
   IssuerId = 'issuer__id',
   IssuerTokensIssued = 'issuer__tokensIssued',
   Name = 'name',
+  OperatorRegistry = 'operatorRegistry',
+  OperatorRegistryAddress = 'operatorRegistry__address',
+  OperatorRegistryId = 'operatorRegistry__id',
   PercentApy = 'percentAPY',
   PriceFeeds = 'priceFeeds',
+  RewardDistributor = 'rewardDistributor',
+  RewardDistributorAddress = 'rewardDistributor__address',
+  RewardDistributorId = 'rewardDistributor__id',
   Symbol = 'symbol',
   TotalSupply = 'totalSupply',
   TotalValueEth = 'totalValueETH',
@@ -1436,10 +1635,16 @@ export type Query = {
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
   asset?: Maybe<Asset>;
+  assetRegistries: Array<AssetRegistry>;
+  assetRegistry?: Maybe<AssetRegistry>;
   assets: Array<Asset>;
+  avsregistries: Array<AvsRegistry>;
+  avsregistry?: Maybe<AvsRegistry>;
   coordinator?: Maybe<Coordinator>;
   coordinators: Array<Coordinator>;
   deposit?: Maybe<Deposit>;
+  depositPool?: Maybe<DepositPool>;
+  depositPools: Array<DepositPool>;
   deposits: Array<Deposit>;
   issuer?: Maybe<Issuer>;
   issuers: Array<Issuer>;
@@ -1454,6 +1659,8 @@ export type Query = {
   priceFeeds: Array<PriceFeed>;
   priceSource?: Maybe<PriceSource>;
   priceSources: Array<PriceSource>;
+  rewardDistributor?: Maybe<RewardDistributor>;
+  rewardDistributors: Array<RewardDistributor>;
   underlyingAsset?: Maybe<UnderlyingAsset>;
   underlyingAssets: Array<UnderlyingAsset>;
   user?: Maybe<User>;
@@ -1480,6 +1687,22 @@ export type QueryAssetArgs = {
   subgraphError?: _SubgraphErrorPolicy_;
 };
 
+export type QueryAssetRegistriesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<AssetRegistry_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<AssetRegistry_Filter>;
+};
+
+export type QueryAssetRegistryArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
 export type QueryAssetsArgs = {
   block?: InputMaybe<Block_Height>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -1488,6 +1711,22 @@ export type QueryAssetsArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<Asset_Filter>;
+};
+
+export type QueryAvsregistriesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<AvsRegistry_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<AvsRegistry_Filter>;
+};
+
+export type QueryAvsregistryArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
 };
 
 export type QueryCoordinatorArgs = {
@@ -1510,6 +1749,22 @@ export type QueryDepositArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
   subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryDepositPoolArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryDepositPoolsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<DepositPool_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<DepositPool_Filter>;
 };
 
 export type QueryDepositsArgs = {
@@ -1628,6 +1883,22 @@ export type QueryPriceSourcesArgs = {
   where?: InputMaybe<PriceSource_Filter>;
 };
 
+export type QueryRewardDistributorArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryRewardDistributorsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<RewardDistributor_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<RewardDistributor_Filter>;
+};
+
 export type QueryUnderlyingAssetArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
@@ -1740,15 +2011,93 @@ export type QueryWithdrawalRequestsArgs = {
   where?: InputMaybe<WithdrawalRequest_Filter>;
 };
 
+export type RewardDistributor = {
+  __typename?: 'RewardDistributor';
+  address: Scalars['Bytes']['output'];
+  id: Scalars['ID']['output'];
+  restakingToken: LiquidRestakingToken;
+};
+
+export type RewardDistributor_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<RewardDistributor_Filter>>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<RewardDistributor_Filter>>>;
+  restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
+  restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_lt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_lte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_starts_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  restakingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum RewardDistributor_OrderBy {
+  Address = 'address',
+  Id = 'id',
+  RestakingToken = 'restakingToken',
+  RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
+  RestakingTokenId = 'restakingToken__id',
+  RestakingTokenName = 'restakingToken__name',
+  RestakingTokenPercentApy = 'restakingToken__percentAPY',
+  RestakingTokenSymbol = 'restakingToken__symbol',
+  RestakingTokenTotalSupply = 'restakingToken__totalSupply',
+  RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
+  RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD'
+}
+
 export type Subscription = {
   __typename?: 'Subscription';
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
   asset?: Maybe<Asset>;
+  assetRegistries: Array<AssetRegistry>;
+  assetRegistry?: Maybe<AssetRegistry>;
   assets: Array<Asset>;
+  avsregistries: Array<AvsRegistry>;
+  avsregistry?: Maybe<AvsRegistry>;
   coordinator?: Maybe<Coordinator>;
   coordinators: Array<Coordinator>;
   deposit?: Maybe<Deposit>;
+  depositPool?: Maybe<DepositPool>;
+  depositPools: Array<DepositPool>;
   deposits: Array<Deposit>;
   issuer?: Maybe<Issuer>;
   issuers: Array<Issuer>;
@@ -1763,6 +2112,8 @@ export type Subscription = {
   priceFeeds: Array<PriceFeed>;
   priceSource?: Maybe<PriceSource>;
   priceSources: Array<PriceSource>;
+  rewardDistributor?: Maybe<RewardDistributor>;
+  rewardDistributors: Array<RewardDistributor>;
   underlyingAsset?: Maybe<UnderlyingAsset>;
   underlyingAssets: Array<UnderlyingAsset>;
   user?: Maybe<User>;
@@ -1789,6 +2140,22 @@ export type SubscriptionAssetArgs = {
   subgraphError?: _SubgraphErrorPolicy_;
 };
 
+export type SubscriptionAssetRegistriesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<AssetRegistry_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<AssetRegistry_Filter>;
+};
+
+export type SubscriptionAssetRegistryArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
 export type SubscriptionAssetsArgs = {
   block?: InputMaybe<Block_Height>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -1797,6 +2164,22 @@ export type SubscriptionAssetsArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<Asset_Filter>;
+};
+
+export type SubscriptionAvsregistriesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<AvsRegistry_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<AvsRegistry_Filter>;
+};
+
+export type SubscriptionAvsregistryArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
 };
 
 export type SubscriptionCoordinatorArgs = {
@@ -1819,6 +2202,22 @@ export type SubscriptionDepositArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
   subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionDepositPoolArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionDepositPoolsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<DepositPool_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<DepositPool_Filter>;
 };
 
 export type SubscriptionDepositsArgs = {
@@ -1935,6 +2334,22 @@ export type SubscriptionPriceSourcesArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<PriceSource_Filter>;
+};
+
+export type SubscriptionRewardDistributorArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionRewardDistributorsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<RewardDistributor_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<RewardDistributor_Filter>;
 };
 
 export type SubscriptionUnderlyingAssetArgs = {
@@ -3321,8 +3736,6 @@ export type LiquidRestakingTokenFieldsFragment = {
   exchangeRateETH?: any | null;
   exchangeRateUSD?: any | null;
   percentAPY?: any | null;
-  coordinator: { __typename?: 'Coordinator'; id: string };
-  withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
   underlyingAssets?: Array<{
     __typename?: 'UnderlyingAsset';
     address: any;
@@ -3337,6 +3750,13 @@ export type LiquidRestakingTokenFieldsFragment = {
       name: string;
     };
   }> | null;
+  coordinator: { __typename?: 'Coordinator'; id: string };
+  assetRegistry: { __typename?: 'AssetRegistry'; id: string };
+  operatorRegistry: { __typename?: 'OperatorRegistry'; id: string };
+  avsRegistry: { __typename?: 'AVSRegistry'; id: string };
+  depositPool: { __typename?: 'DepositPool'; id: string };
+  withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
+  rewardDistributor: { __typename?: 'RewardDistributor'; id: string };
 };
 
 export type DepositFieldsFragment = {
@@ -3449,8 +3869,6 @@ export type LiquidRestakingTokenQuery = {
     exchangeRateETH?: any | null;
     exchangeRateUSD?: any | null;
     percentAPY?: any | null;
-    coordinator: { __typename?: 'Coordinator'; id: string };
-    withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
     underlyingAssets?: Array<{
       __typename?: 'UnderlyingAsset';
       address: any;
@@ -3465,6 +3883,13 @@ export type LiquidRestakingTokenQuery = {
         name: string;
       };
     }> | null;
+    coordinator: { __typename?: 'Coordinator'; id: string };
+    assetRegistry: { __typename?: 'AssetRegistry'; id: string };
+    operatorRegistry: { __typename?: 'OperatorRegistry'; id: string };
+    avsRegistry: { __typename?: 'AVSRegistry'; id: string };
+    depositPool: { __typename?: 'DepositPool'; id: string };
+    withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
+    rewardDistributor: { __typename?: 'RewardDistributor'; id: string };
   } | null;
 };
 
@@ -3491,8 +3916,6 @@ export type ManyLiquidRestakingTokensQuery = {
     exchangeRateETH?: any | null;
     exchangeRateUSD?: any | null;
     percentAPY?: any | null;
-    coordinator: { __typename?: 'Coordinator'; id: string };
-    withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
     underlyingAssets?: Array<{
       __typename?: 'UnderlyingAsset';
       address: any;
@@ -3507,6 +3930,13 @@ export type ManyLiquidRestakingTokensQuery = {
         name: string;
       };
     }> | null;
+    coordinator: { __typename?: 'Coordinator'; id: string };
+    assetRegistry: { __typename?: 'AssetRegistry'; id: string };
+    operatorRegistry: { __typename?: 'OperatorRegistry'; id: string };
+    avsRegistry: { __typename?: 'AVSRegistry'; id: string };
+    depositPool: { __typename?: 'DepositPool'; id: string };
+    withdrawalQueue: { __typename?: 'WithdrawalQueue'; id: string };
+    rewardDistributor: { __typename?: 'RewardDistributor'; id: string };
   }>;
 };
 
@@ -3687,26 +4117,6 @@ export const LiquidRestakingTokenFieldsFragmentDoc = {
           { kind: 'Field', name: { kind: 'Name', value: 'percentAPY' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'coordinator' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'withdrawalQueue' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
             name: { kind: 'Name', value: 'underlyingAssets' },
             selectionSet: {
               kind: 'SelectionSet',
@@ -3737,6 +4147,76 @@ export const LiquidRestakingTokenFieldsFragmentDoc = {
                 { kind: 'Field', name: { kind: 'Name', value: 'strategy' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'depositCap' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'balance' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'coordinator' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'assetRegistry' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'operatorRegistry' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'avsRegistry' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'depositPool' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'withdrawalQueue' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'rewardDistributor' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
               ]
             }
           }
@@ -4126,26 +4606,6 @@ export const LiquidRestakingTokenDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'percentAPY' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'coordinator' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'withdrawalQueue' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
             name: { kind: 'Name', value: 'underlyingAssets' },
             selectionSet: {
               kind: 'SelectionSet',
@@ -4176,6 +4636,76 @@ export const LiquidRestakingTokenDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'strategy' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'depositCap' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'balance' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'coordinator' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'assetRegistry' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'operatorRegistry' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'avsRegistry' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'depositPool' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'withdrawalQueue' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'rewardDistributor' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
               ]
             }
           }
@@ -4332,26 +4862,6 @@ export const ManyLiquidRestakingTokensDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'percentAPY' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'coordinator' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
-            name: { kind: 'Name', value: 'withdrawalQueue' },
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
-              ]
-            }
-          },
-          {
-            kind: 'Field',
             name: { kind: 'Name', value: 'underlyingAssets' },
             selectionSet: {
               kind: 'SelectionSet',
@@ -4382,6 +4892,76 @@ export const ManyLiquidRestakingTokensDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'strategy' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'depositCap' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'balance' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'coordinator' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'assetRegistry' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'operatorRegistry' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'avsRegistry' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'depositPool' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'withdrawalQueue' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'rewardDistributor' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
               ]
             }
           }

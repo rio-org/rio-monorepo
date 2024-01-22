@@ -324,7 +324,12 @@ export class SubgraphClient {
       exchangeRateUSD,
       percentAPY,
       coordinator,
+      assetRegistry,
+      operatorRegistry,
+      avsRegistry,
+      depositPool,
       withdrawalQueue,
+      rewardDistributor,
       underlyingAssets
     } = raw;
     return {
@@ -338,8 +343,15 @@ export class SubgraphClient {
       exchangeRateETH,
       exchangeRateUSD,
       percentAPY,
-      coordinator: coordinator.id,
-      withdrawalQueue: withdrawalQueue.id,
+      deployment: {
+        coordinator: coordinator.id,
+        assetRegistry: assetRegistry.id,
+        operatorRegistry: operatorRegistry.id,
+        avsRegistry: avsRegistry.id,
+        depositPool: depositPool.id,
+        withdrawalQueue: withdrawalQueue.id,
+        rewardDistributor: rewardDistributor.id
+      },
       underlyingAssets:
         underlyingAssets?.map(
           ({
