@@ -13,7 +13,8 @@ import {
   LRTSubgraphResponse,
   TokenSymbol,
   UnderlyingAssetDetails,
-  UnderlyingAssetSubgraphResponse
+  UnderlyingAssetSubgraphResponse,
+  ValidatorKeyItem
 } from './typings';
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
@@ -243,6 +244,7 @@ type SubgraphClienSimilarConfigs =
   | Parameters<SubgraphClient['getLiquidRestakingTokens']>[0]
   | Parameters<SubgraphClient['getDeposits']>[0]
   | Parameters<SubgraphClient['getWithdrawalRequests']>[0]
+  | Parameters<SubgraphClient['getOperators']>[0]
   | Parameters<SubgraphClient['getWithdrawalClaims']>[0];
 
 export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(
@@ -266,6 +268,9 @@ export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(
   JSON.stringify(config?.where)
 ];
 
+export const asType = <T>(item: unknown) => item as T;
+export const asError = asType<Error>;
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -273,3 +278,31 @@ export function cn(...inputs: ClassValue[]) {
 export const buildUrlFromSegments = (...segments: (string | string[])[]) => {
   return `/${[segments].flat().filter(Boolean).join('/')}`;
 };
+
+export function hasDuplicateFields<T>(items: T[], field: keyof T) {
+  const length = items.length;
+  const fields = items.map((item) => item[field]);
+
+  const fieldSet = new Set(fields);
+  if (length !== fieldSet.size) return true;
+
+  return false;
+}
+
+export function hasDuplicatePubkeys(signingKeys: ValidatorKeyItem[]) {
+  return hasDuplicateFields(signingKeys, 'pubkey');
+}
+
+export function hasDuplicateSigs(signingKeys: ValidatorKeyItem[]) {
+  return hasDuplicateFields(signingKeys, 'signature');
+}
+
+export function isHexadecimal(hexString: string, length: number) {
+  if (!length) return false;
+
+  const type = typeof hexString;
+  if (type !== 'string') return false;
+
+  const regex = new RegExp(`^[a-fA-F0-9]{${length}}$`);
+  return regex.test(hexString);
+}

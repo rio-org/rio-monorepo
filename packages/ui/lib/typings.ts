@@ -31,6 +31,8 @@ export const enum CHAIN_ID {
   FOUNDRY = 31337
 }
 
+export type Not<T, R> = T extends R ? never : T;
+
 export interface InternalAppNavItem {
   label: string;
   slug: string;
@@ -249,4 +251,19 @@ export interface LRTSubgraphResponse
   extends Omit<BaseAssetSubgraphResponse, 'decimals'>,
     LRTFinancials<NumberString> {
   underlyingAssets: UnderlyingAssetSubgraphResponse[];
+}
+
+///////////////////////
+// Validator/Operator
+///////////////////////
+
+export interface ValidatorKeyItem {
+  pubkey: string;
+  withdrawal_credentials: string;
+  amount: number;
+  signature: string;
+  fork_version: string;
+  eth2_network_name: string;
+  deposit_message_root: string;
+  deposit_data_root: string;
 }

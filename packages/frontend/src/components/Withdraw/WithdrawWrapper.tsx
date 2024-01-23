@@ -1,6 +1,6 @@
 import React from 'react';
 import FormCard from '@rio-monorepo/ui/components/Shared/FormCard';
-import { WITHDRAW_NAV_ITEMS } from '@config';
+import { WITHDRAW_NAV_ITEMS } from '../../../config';
 
 type Props = {
   children: React.ReactNode;

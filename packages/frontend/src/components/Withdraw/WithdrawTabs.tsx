@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 import cx from 'classnames';
-import { WITHDRAW_NAV_ITEMS } from '@config';
+import { WITHDRAW_NAV_ITEMS } from '../../../config';
 import { useRouter } from 'next/router';
 
 const buildHref = (baseUrlSegment: string, slug: string) => {

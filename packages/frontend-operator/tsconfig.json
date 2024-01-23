@@ -1,12 +1,23 @@
 {
-  "extends": "../ui/config/tsconfig.json",
-  "baseUrl": ".",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "jsx": "preserve",
+    "isolatedModules": true,
+    "declaration": false,
     "paths": {
-      "@/*": ["./src/*"],
-      "@config": ["./config"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "../ui/**/*.ts",
+    "../ui/**/*.tsx"
+  ],
   "exclude": ["node_modules"]
 }

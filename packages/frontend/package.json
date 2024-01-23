@@ -20,7 +20,7 @@
     "@mui/material": "^5.14.17",
     "@rainbow-me/rainbowkit": "^1.2.0",
     "@rio-monorepo/ui": "*",
-    "@rionetwork/sdk-react": "0.1.0-alpha.16",
+    "@rionetwork/sdk-react": "0.1.0-alpha.18",
     "@wagmi/core": "^1.4.5",
     "classnames": "^2.3.2",
     "clsx": "^2.1.0",

@@ -6,12 +6,14 @@ module.exports = withMT({
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    '../ui/components/**/*.{js,ts,jsx,tsx,mdx}'
+    '../ui/**/*.{js,ts,jsx,tsx,mdx}'
   ],
   theme: {
-    extend: {},
-    fontFamily: {
-      sans: ['NB International Pro', 'ui-sans-serif', 'system-ui']
+    extend: {
+      fontFamily: {
+        sans: ['var(--font-sans)'],
+        mono: ['var(--font-mono)']
+      }
     }
   },
   plugins: []

@@ -57,9 +57,12 @@ export const getLiquidRestakingTokenList = () => {
 export const getLatestAssetUSDPrice = (tokenAddress: Address) => {
   return gql`
     query getLatestAssetUSDPrice {
-      asset(id: "${tokenAddress}") {
+      asset(id: "${tokenAddress.toLowerCase()}") {
+        id
         address
+        name
         symbol
+        decimals
         latestUSDPrice
         latestUSDPriceTimestamp
       }

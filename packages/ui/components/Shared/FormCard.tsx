@@ -52,26 +52,40 @@ const Tabs = ({ items }: TabsProps) => {
   const router = useRouter();
   const [, ...baseUrlSegment] = router.pathname.split('/');
   const urlSegment = baseUrlSegment.splice(-1)[0];
-  const activeTab =
+  const activeTab = (
     items.find((item) => new RegExp(`^${item.slug}$`, 'i').test(urlSegment)) ||
-    items[0].slug;
+    items[0]
+  ).slug;
 
   return (
     <div className="flex w-full text-center content-center lg:justify-center gap-4">
-      {items.map(({ label, slug }) => (
-        <Link
-          href={buildUrlFromSegments(baseUrlSegment, slug)}
-          key={slug}
-          scroll={false}
-          passHref
-          className={cn(
-            'font-medium hover:text-black ',
-            activeTab === slug && 'text-gray-500 font-bold'
-          )}
-        >
-          {label}
-        </Link>
-      ))}
+      {items.map(({ label, slug }) => {
+        const className = cn(
+          'font-medium',
+          activeTab === slug && 'text-gray-500 font-bold'
+        );
+
+        if (slug === activeTab) {
+          return (
+            <span key={slug} className={cn(className, 'cursor-default')}>
+              {label}
+            </span>
+          );
+        }
+
+        return (
+          <Link
+            href={buildUrlFromSegments(baseUrlSegment, slug)}
+            key={slug}
+            scroll={false}
+            passHref
+            aria-disabled={slug === activeTab}
+            className={cn(className, 'hover:text-black')}
+          >
+            {label}
+          </Link>
+        );
+      })}
     </div>
   );
 };

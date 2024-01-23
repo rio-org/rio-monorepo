@@ -1,50 +1,45 @@
-import {
-  ApolloClient,
-  ApolloError,
-  NormalizedCacheObject
-} from '@apollo/client';
-import { getLatestAssetUSDPrice } from '../lib/graphqlQueries';
-import { AssetPrice, CHAIN_ID_NUMBER } from '../lib/typings';
-import { useEffect, useState } from 'react';
-import subgraphClient from '../lib/subgraphClient';
+import { UseQueryOptions, useQuery } from 'react-query';
 import { Address } from 'viem';
+import { getLatestAssetUSDPrice } from '../lib/graphqlQueries';
+import {
+  AssetDetails,
+  AssetSubgraphResponse,
+  CHAIN_ID_NUMBER
+} from '../lib/typings';
+import subgraphClient from '../lib/subgraphClient';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
+import { parseSubgraphAsset } from '../lib/utilities';
 
-export const useGetLatestAssetPrice = (
-  tokenAddress: Address,
-  chainId: CHAIN_ID_NUMBER
-) => {
-  const client = subgraphClient(chainId);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState<ApolloError>();
-  const [data, setData] = useState<AssetPrice>();
-
-  const getData = async (client: ApolloClient<NormalizedCacheObject>) => {
-    const { data } = await client.query<{
-      token: AssetPrice;
-    }>({
-      query: getLatestAssetUSDPrice(tokenAddress)
-    });
-    return data.token;
-  };
-
-  useEffect(() => {
-    if (!chainId) return;
-    getData(client)
-      .then((data) => {
-        if (!data) return;
-        setIsLoading(false);
-        setData(data);
-      })
-      .catch((error: ApolloError) => {
-        if (!error) return;
-        setIsError(error);
-        setIsLoading(false);
-      });
-  }, [chainId]);
-
-  return {
-    data,
-    isLoading,
-    isError
-  };
+const fetcher = async ({
+  tokenAddress = NATIVE_ETH_ADDRESS,
+  chainId = CHAIN_ID
+}: {
+  tokenAddress?: Address;
+  chainId?: CHAIN_ID_NUMBER;
+}) => {
+  const { data } = await subgraphClient(chainId).query<{
+    asset: AssetSubgraphResponse;
+  }>({ query: getLatestAssetUSDPrice(tokenAddress) });
+  return parseSubgraphAsset(data.asset);
 };
+
+export function useGetLatestAssetPrice(
+  {
+    tokenAddress,
+    chainId = CHAIN_ID
+  }: {
+    tokenAddress?: Address;
+    chainId?: CHAIN_ID_NUMBER;
+  },
+  queryConfig?: UseQueryOptions<AssetDetails, Error>
+) {
+  return useQuery<AssetDetails, Error>(
+    ['useGetLatestAssetPrice', chainId, tokenAddress] as const,
+    () => fetcher({ tokenAddress, chainId }),
+    {
+      staleTime: 60 * 1000,
+      ...queryConfig,
+      enabled: !!tokenAddress && queryConfig?.enabled !== false
+    }
+  );
+}
