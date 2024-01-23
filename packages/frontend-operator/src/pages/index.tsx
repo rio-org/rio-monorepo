@@ -1,73 +1,232 @@
-import type { NextPage } from 'next';
-import RestakeWrapper from '../components/Restake/RestakeWrapper';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import RestakeForm from '../components/Restake/RestakeForm';
-import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
-import { Tooltip } from '@material-tailwind/react';
+import {
+  useAccount,
+  useContractWrite,
+  useFeeData,
+  usePrepareContractWrite,
+  usePublicClient,
+  useWaitForTransaction
+} from 'wagmi';
+import type { NextPage } from 'next';
+import type { Hex } from 'viem';
+import OperatorKeysWrapper from '@/components/OperatorKeys/OperatorKeysWrapper';
+import SubmitterButton from '@/components/OperatorKeys/SubmitterButton';
+import SubmitterField from '@/components/OperatorKeys/SubmitterField';
+import { useGetLatestAssetPrice } from '@rio-monorepo/ui/hooks/useGetLatestAssetPrice';
+import { useGetOperators } from '@rio-monorepo/ui/hooks/useGetOperators';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
-import { useEffect, useState } from 'react';
-import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
+import { RioLRTOperatorRegistryABI } from '@rio-monorepo/ui/abi/RioLRTOperatorRegistryABI';
+import HR from '@rio-monorepo/ui/components/Shared/HR';
+import { validateOperatorKeys } from '@rio-monorepo/ui/lib/validation';
+import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
+import type {
+  ContractError,
+  ValidatorKeyItem
+} from '@rio-monorepo/ui/lib/typings';
 
-const Home: NextPage = () => {
+const DEFAULT_ARGS = [255, 0n, '0x', '0x'] as const;
+
+const OperatorKeysPage: NextPage = () => {
+  const client = usePublicClient();
+  const account = useAccount();
   const isMounted = useIsMounted();
-  // When more LRT products are available, we'll offer a way to switch these
-  const { data: lrtList } = useGetLiquidRestakingTokens();
-  const [activeLrt, setActiveLrt] = useState<LRTDetails | undefined>(
-    lrtList?.[0]
+  const address = isMounted ? account?.address : undefined;
+
+  const { data: operators, isFetched } = useGetOperators(
+    { where: { manager: address?.toLowerCase() } },
+    { enabled: !!address }
   );
+
+  const { data: ethAssetPrice } = useGetLatestAssetPrice({
+    tokenAddress: NATIVE_ETH_ADDRESS
+  });
+
+  const [error, setError] = useState<ContractError | undefined>();
+  const [value, setValue] = useState<string | undefined>();
+  const [gas, setGas] = useState<bigint>();
+
+  const args = useMemo(() => {
+    const _args = [operators?.[0]?.operatorId, 0n, '0x', '0x'] as [
+      number,
+      bigint,
+      Hex,
+      Hex
+    ];
+
+    try {
+      if (!value) throw new Error('Invalid value');
+      if (typeof _args[0] === 'undefined') throw new Error('Invalid operator');
+
+      const parsed = JSON.parse(value) as ValidatorKeyItem[];
+      if (!Array.isArray(parsed)) {
+        throw new Error('Input value must be a JSON array');
+      }
+
+      parsed.forEach((key) => {
+        _args[1] += 1n;
+        _args[2] += key.pubkey;
+        _args[3] += key.signature;
+      });
+
+      return _args;
+    } catch (e) {
+      return DEFAULT_ARGS;
+    }
+  }, [operators?.[0]?.operatorId, value]);
+
+  const contractWriteOptions = {
+    address: '0xaEc50d7Dfa361C940A394e10c085c5133b3793A0',
+    abi: RioLRTOperatorRegistryABI,
+    functionName: 'addValidatorDetails',
+    args,
+    enabled: !!address && args !== DEFAULT_ARGS
+  } as const;
+
+  const {
+    data: feeData,
+    isLoading: isFeeDataLoading,
+    isFetching: isFeeDataFetching,
+    error: feeDataError
+  } = useFeeData(contractWriteOptions);
+
+  const {
+    config,
+    isLoading: isPrepareLoading,
+    error: prepareError
+  } = usePrepareContractWrite(contractWriteOptions);
+
+  const {
+    data,
+    write,
+    isLoading: isWriteLoading,
+    error: writeError,
+    reset: resetWrite
+  } = useContractWrite(config);
+
+  const {
+    isSuccess: isTxSuccess,
+    isLoading: isTxLoading,
+    error: txError
+  } = useWaitForTransaction({
+    hash: data?.hash
+  });
 
   useEffect(() => {
-    if (!lrtList?.length || activeLrt) return;
-    setActiveLrt(lrtList[0]);
-  }, [lrtList]);
+    if (!address || contractWriteOptions.args === DEFAULT_ARGS) {
+      return setGas(0n);
+    }
 
-  const networkStats = {
-    tvl: activeLrt ? Math.trunc(activeLrt.totalValueETH ?? 0) : null,
-    apy: activeLrt ? activeLrt.percentAPY : null
-  };
+    client
+      ?.estimateContractGas({ account: address, ...contractWriteOptions })
+      .then(setGas)
+      .catch(console.error);
+  }, [address, client, contractWriteOptions]);
 
-  const [tvlVal, apyVal] =
-    isMounted && networkStats
-      ? [
-          (networkStats.tvl ?? 0).toLocaleString() + ' ETH',
-          networkStats.apy ?? 0
-        ]
-      : [<Skeleton width={40} />, <Skeleton />];
+  useEffect(() => {
+    setError(
+      prepareError ?? writeError ?? txError ?? feeDataError ?? undefined
+    );
+  }, [prepareError, writeError, txError, feeDataError]);
 
-  // TODO: Replace the tooltip content with real copy
-  const tooltipContent = (
-    <>
-      <p>APY information TKTK</p>
-    </>
+  const isLoading = isWriteLoading || isTxLoading;
+  const inputDisabled =
+    !address || (isFetched && !operators?.length) || isTxLoading;
+  const submitDisabled = inputDisabled || isLoading || isPrepareLoading;
+  const gasPriceEth =
+    isFeeDataLoading || isFeeDataFetching
+      ? undefined
+      : +(feeData?.formatted.gasPrice || 0) * Number(gas || 0);
+  const gasPriceUsd =
+    !ethAssetPrice?.latestUSDPrice || typeof gasPriceEth === 'undefined'
+      ? undefined
+      : gasPriceEth * ethAssetPrice.latestUSDPrice;
+  const pricesLoaded =
+    typeof gasPriceEth !== 'undefined' && typeof gasPriceUsd !== 'undefined';
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setValue(e.target.value);
+    },
+    []
   );
 
+  const handleValidation = useCallback(
+    (json: string) => validateOperatorKeys({ json }),
+    []
+  );
+
+  const resetForm = useCallback(() => {
+    setValue('');
+    resetWrite();
+  }, []);
+
   return (
-    <RestakeWrapper>
-      <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-2xl p-[2px]">
-        <div className="flex flex-col lg:flex-row lg:justify-between gap-2 lg:gap-8 w-full px-4 lg:px-5 pt-3 lg:pt-5 pb-3">
-          <h1 className="text-2xl font-medium">Restake</h1>
-          <div className="flex gap-2 lg:justify-center items-center">
-            <span className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4 flex gap-1">
-              TVL: {tvlVal}
-            </span>
-            <Tooltip content={tooltipContent}>
-              <a
-                href="TODO" // TODO: add link to public view of APY details
-                target="_blank"
-                rel="noreferrer"
-                className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4"
-              >
-                {apyVal}% APY
-              </a>
-            </Tooltip>
-          </div>
+    <OperatorKeysWrapper>
+      <SubmitterField
+        validation={handleValidation}
+        onChange={handleChange}
+        disabled={inputDisabled}
+        readOnly={inputDisabled}
+        autoFocus={!!address}
+        value={
+          !address
+            ? 'Connect your wallet to submit operator keys'
+            : !isFetched
+            ? 'Loading operators...'
+            : !operators?.length
+            ? 'Must be a valid operator to submit keys'
+            : value ?? ''
+        }
+      />
+      <div className="flex flex-col gap-2 mt-4">
+        <div className="flex justify-between text-[14px]">
+          <span className="text-black opacity-50">Total Keys</span>
+          <strong>{args[1].toString()}</strong>
         </div>
-        <div className="bg-white rounded-xl p-4 lg:p-6 space-y-4 w-full m-[2px]">
-          {activeLrt && <RestakeForm lrt={activeLrt} />}
+        <HR />
+        <div className="flex justify-between text-[14px]">
+          <span className="text-black opacity-50">Estimated Gas Price</span>
+          {!pricesLoaded ? (
+            <Skeleton height="0.875rem" width={80} />
+          ) : (
+            <strong className="text-right space-x-2">
+              <span>
+                {gasPriceEth.toLocaleString(undefined, {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 6
+                })}{' '}
+                ETH
+              </span>
+              <span className="opacity-50">
+                ($
+                {gasPriceUsd.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}
+                )
+              </span>
+            </strong>
+          )}
         </div>
       </div>
-    </RestakeWrapper>
+      <SubmitterButton
+        operatorId={args[0]}
+        txError={error}
+        disabled={submitDisabled}
+        isValid={!!write}
+        isEmpty={!value}
+        isTxLoading={isLoading}
+        isTxError={!!txError}
+        isTxSuccess={isTxSuccess}
+        error={error}
+        txHash={data?.hash}
+        setIsTxSuccess={resetForm}
+        setisTxError={() => setError(undefined)}
+        handleExecute={() => write?.()}
+      />
+    </OperatorKeysWrapper>
   );
 };
 
-export default Home;
+export default OperatorKeysPage;

@@ -45,7 +45,7 @@ const Alert = ({
         </motion.button>
       )}
       <AnimatePresence>
-        {isSuccess && txHash && (
+        {txHash && (
           <motion.div
             className="mt-2"
             initial={{ opacity: 0 }}

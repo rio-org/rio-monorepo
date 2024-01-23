@@ -18,8 +18,7 @@ type Props = {
   assets: AssetDetails[];
   isDisabled?: boolean;
   setActiveToken: (asset: AssetDetails) => void;
-  setIsFocused: (isFocused: boolean) => void;
-  unFocusInput: () => void;
+  unFocusInput?: () => void;
 };
 
 const AssetSelector = ({
@@ -42,7 +41,7 @@ const AssetSelector = ({
 
   const handleClick = () => {
     if (!isDesktopOrLaptop && !isListOpen) {
-      unFocusInput();
+      unFocusInput?.();
       setIsListOpen(true);
     } else {
       if (isListOpen) {

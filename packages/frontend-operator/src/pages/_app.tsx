@@ -102,6 +102,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               <CssBaseline />
               <Layout
                 appTitle={APP_TITLE}
+                showExchangeRates={false}
                 nav={{
                   logoItem: APP_NAV_LOGO_ITEM,
                   items: APP_NAV_ITEMS,

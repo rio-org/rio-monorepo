@@ -1,8 +1,8 @@
 import React from 'react';
 import type { NextPage } from 'next';
-import Stats from '../components/Rewards/Stats';
-import TransactionHistoryTable from '../components/Rewards/TransactionHistoryTable';
-import RestakeWrapper from '../components/Restake/RestakeWrapper';
+import Stats from '@/components/Rewards/Stats';
+import TransactionHistoryTable from '@/components/Rewards/TransactionHistoryTable';
+import RestakeWrapper from '@/components/Restake/RestakeWrapper';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 
 const Rewards: NextPage = () => {
