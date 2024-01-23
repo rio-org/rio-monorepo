@@ -14,7 +14,7 @@ import {
   getContract
 } from 'viem';
 import { IProcess, RebalanceProcessConfig } from './types';
-import { formatRelative } from 'date-fns';
+import { formatDistance } from 'date-fns';
 
 export class RebalanceProcess implements IProcess {
   /**
@@ -139,8 +139,10 @@ export class RebalanceProcess implements IProcess {
     const lastRebalancedAt = await this._coordinator.read.assetLastRebalancedAt([address]);
     const nextRebalanceInSecs = await this.getSecondsUntilNextRebalance(Number(lastRebalancedAt));
 
-    const relativeTime = formatRelative(new Date(Date.now() + nextRebalanceInSecs * 1_000), new Date());
-    console.log(`Attempting next rebalance of ${asset.symbol} (${this._config.token.symbol}) ${relativeTime}`);
+    const nextRebalanceInMs = nextRebalanceInSecs * 1_000;
+    const relativeTime = formatDistance(new Date(Date.now() + nextRebalanceInMs), new Date(), { addSuffix: true })
+
+    console.log(`Attempting next rebalance of ${asset.symbol} (${this._config.token.symbol}) ${nextRebalanceInMs ? relativeTime : 'now'}`);
 
     this._rebalanceTimeouts[address] = setTimeout(async () => {
       if (await this.shouldRebalance(address)) {
@@ -162,7 +164,7 @@ export class RebalanceProcess implements IProcess {
 
       // Check again after 5 minutes if no rebalance needed.
       setTimeout(() => this.scheduleRebalance(asset), 5 * 60 * 1000);
-    }, nextRebalanceInSecs * 1_000);
+    }, nextRebalanceInMs);
   }
 
   /**
