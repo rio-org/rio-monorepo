@@ -82,6 +82,13 @@ export class RebalanceProcess implements IProcess {
   }
 
   /**
+   * Whether the rebalance process is currently running.
+   */
+  public get isRunning() {
+    return this._isRunning;
+  }
+
+  /**
    * Get the current unix timestamp in seconds.
    */
   protected get nowSecs() {
