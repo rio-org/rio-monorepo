@@ -7,7 +7,12 @@ import { Spinner } from '@material-tailwind/react';
 import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import type { Address } from 'viem';
 import { useNetwork, useSwitchNetwork } from 'wagmi';
-import { getChainName } from '@rio-monorepo/ui/lib/utilities';
+import {
+  getChainName,
+  linkToTxOnBlockExplorer
+} from '@rio-monorepo/ui/lib/utilities';
+import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
+import { twJoin } from 'tailwind-merge';
 
 type Props = {
   isValidAmount: boolean;
@@ -37,7 +42,7 @@ const DepositButton = ({
   const [buttonText, setButtonText] = useState('Enter an amount');
   const { chain } = useNetwork();
   const { error, isLoading, switchNetwork } = useSwitchNetwork();
-  const wrongNetwork = chain?.id !== CHAIN_ID;
+  const wrongNetwork = !!chain?.id && chain?.id !== CHAIN_ID;
 
   useEffect(() => {
     if (!error) return;
@@ -66,84 +71,120 @@ const DepositButton = ({
   ]);
 
   return (
-    <AnimatePresence>
-      {(isDepositError || isDepositSuccess) && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.1 }}
-        >
-          <div className="mt-4">
-            <Alert
-              isSuccess={isDepositSuccess}
-              isError={isDepositError}
-              txHash={depositTxHash}
-              setIsSuccess={setIsDepositSuccess}
-              setIsError={setIsDepositError}
-            />
-          </div>
-        </motion.div>
-      )}
-
-      {wrongNetwork && (
-        <motion.button
-          className={cx(
-            'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
-            !isValidAmount && 'bg-opacity-20',
-            isValidAmount && 'hover:bg-[var(--color-dark-gray)]'
-          )}
-          onClick={() => {
-            switchNetwork?.(CHAIN_ID);
-          }}
-          variants={TX_BUTTON_VARIANTS}
-          key={'switchNetwork'}
-        >
-          {!isLoading && `Switch to ${getChainName(CHAIN_ID)}`}
-          {isLoading && (
-            <div className="w-full text-center flex items-center justify-center gap-2">
-              <Spinner width={16} />
-              <span className="opacity-40">Awaiting confirmation</span>
+    <>
+      <AnimatePresence>
+        {(isDepositError || isDepositSuccess) && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.1 }}
+          >
+            <div className="mt-4">
+              <Alert
+                isSuccess={isDepositSuccess}
+                isError={isDepositError}
+                setIsSuccess={setIsDepositSuccess}
+                setIsError={setIsDepositError}
+              />
             </div>
-          )}
-        </motion.button>
-      )}
-      {!wrongNetwork && (!isDepositError || !isDepositSuccess) && (
-        <motion.button
-          className={cx(
-            'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
-            !isValidAmount && 'bg-opacity-20',
-            isValidAmount &&
-              !isDepositLoading &&
-              'hover:bg-[var(--color-dark-gray)]'
-          )}
-          disabled={!isValidAmount || isDepositLoading}
-          onClick={() => {
-            handleExecute();
-          }}
-          variants={TX_BUTTON_VARIANTS}
-          key={'restakeContent'}
-        >
-          {isDepositLoading && (
-            <span className="flex items-center justify-center gap-2">
-              <span className="w-4 h-4 mb-2">
+          </motion.div>
+        )}
+
+        {wrongNetwork && (
+          <motion.button
+            className={cx(
+              'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
+              !isValidAmount && 'bg-opacity-20',
+              isValidAmount && 'hover:bg-[var(--color-dark-gray)]'
+            )}
+            onClick={() => {
+              switchNetwork?.(CHAIN_ID);
+            }}
+            variants={TX_BUTTON_VARIANTS}
+            key={'switchNetwork'}
+          >
+            {!isLoading && `Switch to ${getChainName(CHAIN_ID)}`}
+            {isLoading && (
+              <div className="w-full text-center flex items-center justify-center gap-2">
                 <Spinner width={16} />
+                <span className="opacity-40">Awaiting confirmation</span>
+              </div>
+            )}
+          </motion.button>
+        )}
+        {!wrongNetwork && (!isDepositError || !isDepositSuccess) && (
+          <motion.button
+            className={cx(
+              'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
+              !isValidAmount && 'bg-opacity-20',
+              isValidAmount &&
+                !isDepositLoading &&
+                'hover:bg-[var(--color-dark-gray)]'
+            )}
+            disabled={!isValidAmount || isDepositLoading}
+            onClick={() => {
+              handleExecute();
+            }}
+            variants={TX_BUTTON_VARIANTS}
+            key={'restakeContent'}
+          >
+            {isDepositLoading && (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-4 h-4 mb-2">
+                  <Spinner width={16} />
+                </span>
+                <span className="opacity-40">Awaiting confirmation</span>
               </span>
-              <span className="opacity-40">Awaiting confirmation</span>
-            </span>
-          )}
-          {!isDepositLoading && (
-            <span
-              className={cx(
-                (!isValidAmount || !accountAddress) && 'opacity-20 text-black'
-              )}
-            >
-              {buttonText}
-            </span>
-          )}
-        </motion.button>
-      )}
-    </AnimatePresence>
+            )}
+            {!isDepositLoading && (
+              <span
+                className={cx(
+                  (!isValidAmount || !accountAddress) && 'opacity-20 text-black'
+                )}
+              >
+                {buttonText}
+              </span>
+            )}
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {depositTxHash && (
+          <motion.div
+            className="mt-2"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+          >
+            <div>
+              <a
+                href={
+                  depositTxHash
+                    ? linkToTxOnBlockExplorer(depositTxHash, CHAIN_ID)
+                    : ''
+                }
+                target="_blank"
+                rel="noreferrer"
+                className={twJoin(
+                  'flex flex-row justify-center items-center gap-2',
+                  'w-full h-fit',
+                  'px-[8px] py-[2px] rounded-full',
+                  'text-center text-gray-500 text-sm font-normal leading-none whitespace-nowrap',
+                  'transition-colors duration-200 '
+                )}
+              >
+                View transaction
+                <div className="opacity-50">
+                  <IconExternal transactionStatus="None" />
+                </div>
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

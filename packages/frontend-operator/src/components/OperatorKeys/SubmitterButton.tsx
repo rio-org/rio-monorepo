@@ -4,7 +4,7 @@ import Alert from '@rio-monorepo/ui/components/Shared/Alert';
 import { TX_BUTTON_VARIANTS } from '@rio-monorepo/ui/lib/constants';
 import { Spinner } from '@material-tailwind/react';
 import { CHAIN_ID } from '@rio-monorepo/ui/config';
-import { useAccount, useNetwork, useSwitchNetwork } from 'wagmi';
+import { useNetwork, useSwitchNetwork } from 'wagmi';
 import {
   cn,
   getChainName,
@@ -14,6 +14,8 @@ import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { ContractError } from '@rio-monorepo/ui/lib/typings';
 import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
 import { twJoin } from 'tailwind-merge';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 
 type Props = {
   operatorId?: number;
@@ -46,9 +48,9 @@ const SubmitterButton = ({
   setisTxError,
   handleExecute
 }: Props) => {
-  const account = useAccount();
+  const { address } = useAccountIfMounted();
   const isMounted = useIsMounted();
-  const address = isMounted ? account?.address : undefined;
+  const { openConnectModal } = useConnectModal();
 
   const { chain } = useNetwork();
   const {
@@ -56,7 +58,7 @@ const SubmitterButton = ({
     isLoading: isSwitchNetworkLoading,
     switchNetwork
   } = useSwitchNetwork();
-  const wrongNetwork = chain?.id !== CHAIN_ID;
+  const wrongNetwork = chain?.id && chain?.id !== CHAIN_ID;
 
   useEffect(() => {
     if (!switchNetworkError) return;
@@ -115,9 +117,13 @@ const SubmitterButton = ({
                 : 'bg-opacity-20'
             )}
             disabled={isDisabled}
-            onClick={() =>
-              wrongNetwork ? switchNetwork?.(CHAIN_ID) : handleExecute()
-            }
+            onClick={() => {
+              !address
+                ? openConnectModal?.()
+                : wrongNetwork
+                ? switchNetwork?.(CHAIN_ID)
+                : handleExecute();
+            }}
             variants={TX_BUTTON_VARIANTS}
           >
             {(() => {
@@ -134,7 +140,7 @@ const SubmitterButton = ({
 
               return (
                 <span className={cn(isDisabled && 'opacity-20 text-black')}>
-                  {wrongNetwork
+                  {!address && wrongNetwork
                     ? `Switch to ${getChainName(CHAIN_ID)}`
                     : buttonText}
                 </span>

@@ -244,12 +244,12 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
 
   return (
     <>
-      {isMounted && isLoading && (
+      {isLoading && (
         <div className="w-full text-center min-h-[100px] flex items-center justify-center">
           <Spinner />
         </div>
       )}
-      {isMounted && isError && (
+      {!!address && isError && (
         <Alert color="red">Error loading account balance.</Alert>
       )}
       {isMounted && !isLoading && (
@@ -296,7 +296,7 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
               reETH
             </strong>
           </div>
-          {isAllowed && address && (
+          {isAllowed && (
             <DepositButton
               isValidAmount={isValidAmount}
               isEmpty={isEmpty}
