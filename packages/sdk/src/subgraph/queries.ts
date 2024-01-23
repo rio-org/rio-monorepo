@@ -26,12 +26,6 @@ export const LiquidRestakingTokenFields = graphql(`
     exchangeRateETH
     exchangeRateUSD
     percentAPY
-    coordinator {
-      id
-    }
-    withdrawalQueue {
-      id
-    }
     underlyingAssets {
       address
       asset {
@@ -43,6 +37,27 @@ export const LiquidRestakingTokenFields = graphql(`
       strategy
       depositCap
       balance
+    }
+    coordinator {
+      id
+    }
+    assetRegistry {
+      id
+    }
+    operatorRegistry {
+      id
+    }
+    avsRegistry {
+      id
+    }
+    depositPool {
+      id
+    }
+    withdrawalQueue {
+      id
+    }
+    rewardDistributor {
+      id
     }
   }
 `);

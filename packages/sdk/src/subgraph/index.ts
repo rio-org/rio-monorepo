@@ -4,6 +4,7 @@ export {
   QueryConfig,
   Issuer,
   UnderlyingAsset,
+  ContractDeployment,
   LiquidRestakingToken,
   Deposit,
   WithdrawalEpochStatus,

@@ -13,8 +13,8 @@ type Coordinator @entity {
   restakingToken: LiquidRestakingToken!
 }
 
-# The withdrawal queue contract for a liquid restaking token.
-type WithdrawalQueue @entity {
+# The asset registry contract for a liquid restaking token.
+type AssetRegistry @entity {
   id: ID!
   address: Bytes!
   restakingToken: LiquidRestakingToken!
@@ -22,6 +22,34 @@ type WithdrawalQueue @entity {
 
 # The operator registry contract for a liquid restaking token.
 type OperatorRegistry @entity {
+  id: ID!
+  address: Bytes!
+  restakingToken: LiquidRestakingToken!
+}
+
+# The AVS registry contract for a liquid restaking token.
+type AVSRegistry @entity {
+  id: ID!
+  address: Bytes!
+  restakingToken: LiquidRestakingToken!
+}
+
+# The deposit pool contract for a liquid restaking token.
+type DepositPool @entity {
+  id: ID!
+  address: Bytes!
+  restakingToken: LiquidRestakingToken!
+}
+
+# The withdrawal queue contract for a liquid restaking token.
+type WithdrawalQueue @entity {
+  id: ID!
+  address: Bytes!
+  restakingToken: LiquidRestakingToken!
+}
+
+# The reward distributor contract for a liquid restaking token.
+type RewardDistributor @entity {
   id: ID!
   address: Bytes!
   restakingToken: LiquidRestakingToken!
@@ -44,8 +72,13 @@ type LiquidRestakingToken @entity {
   percentAPY: BigDecimal # APY based on a 14-day moving average.
 
   issuer: Issuer!
-  coordinator: Coordinator!
-  withdrawalQueue: WithdrawalQueue!
+  coordinator: Coordinator! @derivedFrom(field: "restakingToken")
+  assetRegistry: AssetRegistry! @derivedFrom(field: "restakingToken")
+  operatorRegistry: OperatorRegistry! @derivedFrom(field: "restakingToken")
+  avsRegistry: AVSRegistry! @derivedFrom(field: "restakingToken")
+  depositPool: DepositPool! @derivedFrom(field: "restakingToken")
+  withdrawalQueue: WithdrawalQueue! @derivedFrom(field: "restakingToken")
+  rewardDistributor: RewardDistributor! @derivedFrom(field: "restakingToken")
 
   priceFeeds: [PriceFeed!] @derivedFrom(field: "usedBy")
   underlyingAssets: [UnderlyingAsset!] @derivedFrom(field: "restakingToken")

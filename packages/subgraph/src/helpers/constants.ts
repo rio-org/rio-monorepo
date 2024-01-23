@@ -26,3 +26,13 @@ export namespace WithdrawalEpochStatus {
   export const QUEUED = 'QUEUED';
   export const SETTLED = 'SETTLED';
 }
+
+export namespace SupportingContractName {
+  export const COORDINATOR = 'Coordinator';
+  export const ASSET_REGISTRY = 'AssetRegistry';
+  export const OPERATOR_REGISTRY = 'OperatorRegistry';
+  export const AVS_REGISTRY = 'AVSRegistry';
+  export const DEPOSIT_POOL = 'DepositPool';
+  export const WITHDRAWAL_QUEUE = 'WithdrawalQueue';
+  export const REWARD_DISTRIBUTOR = 'RewardDistributor';
+}

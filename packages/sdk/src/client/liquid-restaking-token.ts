@@ -47,7 +47,7 @@ export class LiquidRestakingTokenClient {
    * prior to deposit.
    */
   public get allowanceTarget() {
-    return this._token.coordinator;
+    return this._token.deployment.coordinator;
   }
 
   /**
@@ -131,7 +131,7 @@ export class LiquidRestakingTokenClient {
       () =>
         Promise.all([
           this._public.readContract({
-            address: this._token.coordinator as ViemAddress,
+            address: this._token.deployment.coordinator as ViemAddress,
             abi: RioLRTCoordinatorABI,
             functionName: 'getTVL'
           }),
@@ -162,7 +162,7 @@ export class LiquidRestakingTokenClient {
   ): Promise<bigint> {
     if (!this._token) await this.populate();
     return this._public.readContract({
-      address: this._token.coordinator as ViemAddress,
+      address: this._token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
       functionName: 'convertToAssetFromRestakingTokens',
       args: [params.assetOut as ViemAddress, BigInt(params.amountIn)]
@@ -182,7 +182,7 @@ export class LiquidRestakingTokenClient {
     const { tokenIn, amount } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
-      address: this._token.coordinator as ViemAddress,
+      address: this._token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
       functionName: 'deposit',
       args: [tokenIn as ViemAddress, BigInt(amount)]
@@ -203,7 +203,7 @@ export class LiquidRestakingTokenClient {
     const { amount } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
-      address: this._token.coordinator as ViemAddress,
+      address: this._token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
       functionName: 'depositETH',
       value: BigInt(amount)
@@ -226,7 +226,7 @@ export class LiquidRestakingTokenClient {
     const { assetOut, amountIn } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
-      address: this._token.coordinator as ViemAddress,
+      address: this._token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
       functionName: 'requestWithdrawal',
       args: [assetOut as ViemAddress, BigInt(amountIn)]
@@ -249,7 +249,7 @@ export class LiquidRestakingTokenClient {
     const { assetOut, epoch } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
-      address: this._token.withdrawalQueue as ViemAddress,
+      address: this._token.deployment.withdrawalQueue as ViemAddress,
       abi: RioLRTWithdrawalQueueABI,
       functionName: 'claimWithdrawalsForEpoch',
       args: [
@@ -275,7 +275,7 @@ export class LiquidRestakingTokenClient {
 
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
-      address: this._token.withdrawalQueue as ViemAddress,
+      address: this._token.deployment.withdrawalQueue as ViemAddress,
       abi: RioLRTWithdrawalQueueABI,
       functionName: 'claimWithdrawalsForManyEpochs',
       args: [

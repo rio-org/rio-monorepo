@@ -4,38 +4,28 @@ import {
   WithdrawalQueue as WithdrawalQueueTemplate,
   OperatorRegistry as OperatorRegistryTemplate,
 } from '../generated/templates';
-import { Coordinator, Issuer, LiquidRestakingToken, UnderlyingAsset, WithdrawalQueue, OperatorRegistry } from '../generated/schema';
-import { findOrCreateAsset, findOrCreatePriceFeed, findOrCreateWithdrawalEpoch, toUnits } from './helpers/utils';
+import { Issuer, LiquidRestakingToken, UnderlyingAsset } from '../generated/schema';
+import { createSupportingContract, findOrCreateAsset, findOrCreatePriceFeed, findOrCreateWithdrawalEpoch, toUnits } from './helpers/utils';
 import { LiquidRestakingTokenIssued } from '../generated/RioLRTIssuer/RioLRTIssuer';
-import { ZERO_BD, ZERO_BI } from './helpers/constants';
+import { SupportingContractName, ZERO_BD, ZERO_BI } from './helpers/constants';
 import { Address } from '@graphprotocol/graph-ts';
 
 export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssued): void {
   const restakingToken = new LiquidRestakingToken(event.params.deployment.token.toHex());
 
-  const coordinator = new Coordinator(event.params.deployment.coordinator.toHex());
-  coordinator.address = event.params.deployment.coordinator;
-  coordinator.restakingToken = restakingToken.id;
-  coordinator.save();
+  createSupportingContract(SupportingContractName.COORDINATOR, event.params.deployment.coordinator, restakingToken.id);
+  createSupportingContract(SupportingContractName.ASSET_REGISTRY, event.params.deployment.assetRegistry, restakingToken.id);
+  createSupportingContract(SupportingContractName.OPERATOR_REGISTRY, event.params.deployment.operatorRegistry, restakingToken.id);
+  createSupportingContract(SupportingContractName.AVS_REGISTRY, event.params.deployment.avsRegistry, restakingToken.id);
+  createSupportingContract(SupportingContractName.DEPOSIT_POOL, event.params.deployment.depositPool, restakingToken.id);
+  createSupportingContract(SupportingContractName.WITHDRAWAL_QUEUE, event.params.deployment.withdrawalQueue, restakingToken.id);
+  createSupportingContract(SupportingContractName.REWARD_DISTRIBUTOR, event.params.deployment.rewardDistributor, restakingToken.id);
 
-  const withdrawalQueue = new WithdrawalQueue(event.params.deployment.withdrawalQueue.toHex());
-  withdrawalQueue.address = event.params.deployment.withdrawalQueue;
-  withdrawalQueue.restakingToken = restakingToken.id;
-  withdrawalQueue.save();
-
-  const operatorRegistry = new OperatorRegistry(event.params.deployment.operatorRegistry.toHex());
-  operatorRegistry.address = event.params.deployment.operatorRegistry;
-  operatorRegistry.restakingToken = restakingToken.id;
-  operatorRegistry.save();
-  
   restakingToken.address = event.params.deployment.token;
   restakingToken.symbol = event.params.symbol;
   restakingToken.name = event.params.name;
   restakingToken.createdTimestamp = event.block.timestamp;
   restakingToken.totalSupply = ZERO_BD;
-
-  restakingToken.coordinator = coordinator.id;
-  restakingToken.withdrawalQueue = withdrawalQueue.id;
 
   for (let i = 0; i < event.params.config.assets.length; i++) {
     const assetConfig = event.params.config.assets[i];
