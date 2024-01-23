@@ -27,7 +27,10 @@ export function useGetWithdrawalClaims(
     {
       staleTime: 30 * 1000,
       ...queryConfig,
-      enabled: queryConfig?.enabled !== false
+      enabled:
+        queryConfig?.enabled !== false &&
+        (!config?.where ||
+          !Object.values(config.where).some((v) => v === undefined))
     }
   );
 }

@@ -12,7 +12,9 @@ const WithdrawWrapper = ({ children, noPadding }: Props) => {
     <div className="min-h-[inherit] w-full flex justify-center items-start">
       <FormCard.Container
         title="Withdraw"
-        header={<FormCard.Tabs items={WITHDRAW_NAV_ITEMS} />}
+        header={
+          <FormCard.Tabs baseUrl="/withdraw" items={WITHDRAW_NAV_ITEMS} />
+        }
         noPadding={noPadding}
       >
         {children}

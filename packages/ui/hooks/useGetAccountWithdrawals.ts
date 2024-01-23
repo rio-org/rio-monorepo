@@ -77,7 +77,11 @@ export function useGetAccountWithdrawals(
         withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
       },
       ...queryConfig,
-      enabled: !!assets?.length && queryConfig?.enabled !== false
+      enabled:
+        !!assets?.length &&
+        (!config?.where ||
+          !Object.values(config.where).some((v) => v === undefined)) &&
+        queryConfig?.enabled !== false
     }
   );
 

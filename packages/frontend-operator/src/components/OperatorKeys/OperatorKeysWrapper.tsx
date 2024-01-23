@@ -12,7 +12,7 @@ const OperatorKeysWrapper = ({ children, noPadding }: Props) => {
     <div className="min-h-[inherit] w-full flex justify-center items-start">
       <FormCard.Container
         title="Operator Keys"
-        header={<FormCard.Tabs items={OPERATOR_KEYS_NAV_ITEMS} />}
+        header={<FormCard.Tabs baseUrl="/" items={OPERATOR_KEYS_NAV_ITEMS} />}
         noPadding={noPadding}
       >
         {children}

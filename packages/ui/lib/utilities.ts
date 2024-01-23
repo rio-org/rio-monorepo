@@ -276,7 +276,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const buildUrlFromSegments = (...segments: (string | string[])[]) => {
-  return `/${[segments].flat().filter(Boolean).join('/')}`;
+  return `/${[segments].flat().filter(Boolean).join('/')}`.replace(/\/+/g, '/');
 };
 
 export function hasDuplicateFields<T>(items: T[], field: keyof T) {

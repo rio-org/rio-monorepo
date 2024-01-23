@@ -45,13 +45,13 @@ const Container = ({
 };
 
 export interface TabsProps {
+  baseUrl: string;
   items: InternalAppNavItem[];
 }
 
-const Tabs = ({ items }: TabsProps) => {
+const Tabs = ({ items, baseUrl }: TabsProps) => {
   const router = useRouter();
-  const [, ...baseUrlSegment] = router.pathname.split('/');
-  const urlSegment = baseUrlSegment.splice(-1)[0];
+  const urlSegment = router.pathname.replace(new RegExp(`${baseUrl}/`), '');
   const activeTab = (
     items.find((item) => new RegExp(`^${item.slug}$`, 'i').test(urlSegment)) ||
     items[0]
@@ -75,7 +75,7 @@ const Tabs = ({ items }: TabsProps) => {
 
         return (
           <Link
-            href={buildUrlFromSegments(baseUrlSegment, slug)}
+            href={buildUrlFromSegments(baseUrl, slug)}
             key={slug}
             scroll={false}
             passHref

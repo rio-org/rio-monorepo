@@ -137,20 +137,16 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
     handleExitRequest().catch(console.error);
   };
 
-  if (isLoading) {
-    return (
-      <div className="w-full text-center min-h-[100px] flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (!!address && isError) {
-    return <Alert color="red">Error loading account balance.</Alert>;
-  }
-
   return (
     <>
+      {isLoading && (
+        <div className="w-full text-center min-h-[100px] flex items-center justify-center">
+          <Spinner />
+        </div>
+      )}
+      {!!address && isError && (
+        <Alert color="red">Error loading account balance.</Alert>
+      )}
       {isMounted && !isLoading && (
         <>
           {!!lrt && (
@@ -174,21 +170,20 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
             amount={amountOut}
             activeToken={activeToken}
           />
-          {address && (
+          {
             <WithdrawButton
               isValidAmount={isValidAmount}
               isEmpty={amount === null || amount === BigInt(0)}
               isWithdrawalLoading={isWithdrawalLoading}
               isWithdrawalSuccess={isWithdrawalSuccess}
               isWithdrawalError={isWithdrawalError}
-              accountAddress={address}
               exitTxHash={exitTxHash}
               setIsWithdrawalSuccess={setIsWithdrawalSuccess}
               setIsWithdrawalError={setIsWithdrawalError}
               handleExecute={handleExecute}
               clearForm={clearForm}
             />
-          )}
+          }
         </>
       )}
     </>
