@@ -4,7 +4,7 @@ import { goerli } from 'viem/chains';
 
 export const SUBGRAPH_URLS: Record<number, string> = {
   [goerli.id]:
-    'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-goerli-v2'
+    'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-goerli'
 };
 
 /**

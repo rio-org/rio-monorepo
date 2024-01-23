@@ -28,6 +28,16 @@ export interface UnderlyingAsset {
   balance: string;
 }
 
+export interface ContractDeployment {
+  coordinator: Address;
+  assetRegistry: Address;
+  operatorRegistry: Address;
+  avsRegistry: Address;
+  depositPool: Address;
+  withdrawalQueue: Address;
+  rewardDistributor: Address;
+}
+
 export interface LiquidRestakingToken {
   address: Address;
   symbol: string;
@@ -39,9 +49,8 @@ export interface LiquidRestakingToken {
   exchangeRateETH: string | null;
   exchangeRateUSD: string | null;
   percentAPY: string | null;
-  coordinator: Address;
-  withdrawalQueue: Address;
   underlyingAssets: UnderlyingAsset[];
+  deployment: ContractDeployment;
 }
 
 export interface Deposit {
@@ -99,6 +108,23 @@ export interface WithdrawalClaim {
   timestamp: string;
   blockNumber: string;
   tx: string;
+}
+
+export interface Operator {
+  operatorId: number;
+  address: Address;
+  delegator: Address;
+  manager: Address;
+  earningsReceiver: Address;
+  metadataURI: string;
+  name: string | null;
+  website: string | null;
+  description: string | null;
+  logo: string | null;
+  twitter: string | null;
+  delegationApprover: Address;
+  stakerOptOutWindowBlocks: number;
+  restakingToken: Address;
 }
 
 //#endregion

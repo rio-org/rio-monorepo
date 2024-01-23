@@ -12,7 +12,9 @@ import {
   WithdrawalRequest_OrderBy,
   WithdrawalRequest_Filter,
   WithdrawalClaim_OrderBy,
-  WithdrawalClaim_Filter
+  WithdrawalClaim_Filter,
+  Operator_OrderBy,
+  Operator_Filter
 } from './generated/graphql';
 import {
   IssuerQuery,
@@ -20,7 +22,8 @@ import {
   ManyDepositsQuery,
   ManyWithdrawalRequestsQuery,
   ManyWithdrawalClaimsQuery,
-  ManyLiquidRestakingTokensQuery
+  ManyLiquidRestakingTokensQuery,
+  ManyOperatorsQuery
 } from './queries';
 import {
   WithdrawalRequest,
@@ -29,7 +32,8 @@ import {
   LiquidRestakingToken,
   QueryConfig,
   WithdrawalEpochStatus,
-  WithdrawalClaim
+  WithdrawalClaim,
+  Operator
 } from './types';
 import { GraphQLClient } from 'graphql-request';
 import BN from 'big.js';
@@ -95,7 +99,7 @@ export class SubgraphClient {
   }
 
   /**
-   * Get information about a one or more liquid restaking tokens.
+   * Get information about one or more liquid restaking tokens.
    * @param config Filtering, pagination, and ordering configuration.
    */
   public async getLiquidRestakingTokens(
@@ -113,7 +117,7 @@ export class SubgraphClient {
   }
 
   /**
-   * Get information about a one or more deposits.
+   * Get information about one or more deposits.
    * @param config Filtering, pagination, and ordering configuration.
    */
   public async getDeposits(
@@ -153,7 +157,7 @@ export class SubgraphClient {
   }
 
   /**
-   * Get information about a one or more withdrawal requests.
+   * Get information about one or more withdrawal requests.
    * @param config Filtering, pagination, and ordering configuration.
    */
   public async getWithdrawalRequests(
@@ -214,7 +218,7 @@ export class SubgraphClient {
   }
 
   /**
-   * Get information about a one or more withdrawal claims.
+   * Get information about one or more withdrawal claims.
    * @param config Filtering, pagination, and ordering configuration.
    */
   public async getWithdrawalClaims(
@@ -258,6 +262,50 @@ export class SubgraphClient {
   }
 
   /**
+   * Get information about one or more operators.
+   * @param config Filtering, pagination, and ordering configuration.
+   */
+  public async getOperators(
+    config: Partial<QueryConfig<Operator_OrderBy, Operator_Filter>> = {}
+  ): Promise<Operator[]> {
+    const { operators } = await this._gql.request(
+      ManyOperatorsQuery,
+      toPaginated(
+        this.merge(getDefaultConfig(Operator_OrderBy.OperatorId), config)
+      )
+    );
+    return operators.map(
+      ({
+        operatorId,
+        address,
+        delegator,
+        manager,
+        earningsReceiver,
+        metadataURI,
+        metadata,
+        delegationApprover,
+        stakerOptOutWindowBlocks,
+        restakingToken
+      }) => ({
+        operatorId,
+        address,
+        delegator,
+        manager,
+        earningsReceiver,
+        metadataURI,
+        name: metadata?.name ?? null,
+        website: metadata?.website ?? null,
+        description: metadata?.description ?? null,
+        logo: metadata?.logo ?? null,
+        twitter: metadata?.twitter ?? null,
+        delegationApprover,
+        stakerOptOutWindowBlocks,
+        restakingToken: restakingToken.id
+      })
+    );
+  }
+
+  /**
    * Convert a raw `LiquidRestakingTokenFieldsFragment` object to a `LiquidRestakingToken`.
    * @param raw The raw `LiquidRestakingTokenFieldsFragment` object.
    */
@@ -276,7 +324,12 @@ export class SubgraphClient {
       exchangeRateUSD,
       percentAPY,
       coordinator,
+      assetRegistry,
+      operatorRegistry,
+      avsRegistry,
+      depositPool,
       withdrawalQueue,
+      rewardDistributor,
       underlyingAssets
     } = raw;
     return {
@@ -290,8 +343,15 @@ export class SubgraphClient {
       exchangeRateETH,
       exchangeRateUSD,
       percentAPY,
-      coordinator: coordinator.id,
-      withdrawalQueue: withdrawalQueue.id,
+      deployment: {
+        coordinator: coordinator.id,
+        assetRegistry: assetRegistry.id,
+        operatorRegistry: operatorRegistry.id,
+        avsRegistry: avsRegistry.id,
+        depositPool: depositPool.id,
+        withdrawalQueue: withdrawalQueue.id,
+        rewardDistributor: rewardDistributor.id
+      },
       underlyingAssets:
         underlyingAssets?.map(
           ({

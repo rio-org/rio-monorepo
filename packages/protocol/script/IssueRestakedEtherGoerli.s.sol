@@ -15,7 +15,7 @@ contract IssueRestakedEtherGoerli is Script {
     address public constant ETH_STRATEGY_ADDRESS = 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0;
 
     // Rio
-    address public constant ISSUER_ADDRESS = 0xD8030F4C269ae229C9Bf94c3139F3BF214789afD;
+    address public constant ISSUER_ADDRESS = 0x502933537Ee5E6EBa274951502c221e7aDD0Ca70;
 
     function run() public returns (IRioLRTIssuer.LRTDeployment memory deployment) {
         uint256 deployerKey = vm.envUint('DEPLOYER_PRIVATE_KEY');

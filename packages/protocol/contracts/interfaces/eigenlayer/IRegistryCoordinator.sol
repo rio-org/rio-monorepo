@@ -10,9 +10,8 @@ interface IRegistryCoordinator {
     /// @notice Emits when an operator is deregistered
     event OperatorDeregistered(address indexed operator, bytes32 indexed operatorId);
 
-    enum OperatorStatus
-    // default is NEVER_REGISTERED
-    {
+    enum OperatorStatus {
+        // default is NEVER_REGISTERED
         NEVER_REGISTERED,
         REGISTERED,
         DEREGISTERED

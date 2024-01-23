@@ -4,9 +4,10 @@ libs = ['lib', '../../node_modules']
 auto_detect_remappings = false
 auto_detect_solc = true
 bytecode_hash = 'none'
-optimizer_runs = 10
+optimizer_runs = 10000
 
 [fmt]
 quote_style = 'single'
+ignore = ['**/governance/*.sol', '**/RioLRT.sol', '**/OperatorOperations.sol']
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

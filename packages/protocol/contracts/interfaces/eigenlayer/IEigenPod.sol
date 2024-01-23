@@ -20,9 +20,12 @@ import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager
 ///   to account balances in terms of gwei in the EigenPod contract and convert to wei when making calls to other contracts
 interface IEigenPod {
     enum VALIDATOR_STATUS {
-        INACTIVE, // doesnt exist
-        ACTIVE, // staked on ethpos and withdrawal credentials are pointed to the EigenPod
-        WITHDRAWN // withdrawn from the Beacon Chain
+        // doesnt exist
+        INACTIVE,
+        // staked on ethpos and withdrawal credentials are pointed to the EigenPod
+        ACTIVE,
+        // withdrawn from the Beacon Chain
+        WITHDRAWN
     }
 
     struct ValidatorInfo {

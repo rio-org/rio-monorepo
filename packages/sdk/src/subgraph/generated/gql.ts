@@ -15,7 +15,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
   '\n  fragment IssuerFields on Issuer {\n    id\n    address\n    tokensIssued\n    tokens {\n      id\n    }\n  }\n':
     types.IssuerFieldsFragmentDoc,
-  '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    totalValueETH\n    totalValueUSD\n    exchangeRateETH\n    exchangeRateUSD\n    percentAPY\n    coordinator {\n      id\n    }\n    withdrawalQueue {\n      id\n    }\n    underlyingAssets {\n      address\n      asset {\n        latestUSDPrice\n        latestUSDPriceTimestamp\n        symbol\n        name\n      }\n      strategy\n      depositCap\n      balance\n    }\n  }\n':
+  '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    totalValueETH\n    totalValueUSD\n    exchangeRateETH\n    exchangeRateUSD\n    percentAPY\n    underlyingAssets {\n      address\n      asset {\n        latestUSDPrice\n        latestUSDPriceTimestamp\n        symbol\n        name\n      }\n      strategy\n      depositCap\n      balance\n    }\n    coordinator {\n        id\n    }\n    assetRegistry {\n      id\n    }\n    operatorRegistry {\n      id\n    }\n    avsRegistry {\n      id\n    }\n    depositPool {\n      id\n    }\n    withdrawalQueue {\n      id\n    }\n    rewardDistributor {\n      id\n    }\n  }\n':
     types.LiquidRestakingTokenFieldsFragmentDoc,
   '\n  fragment DepositFields on Deposit {\n    id\n    sender\n    assetIn {\n      id\n    }\n    amountIn\n    amountOut\n    restakingToken {\n      id\n    }\n    userBalanceAfter\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n':
     types.DepositFieldsFragmentDoc,
@@ -23,6 +23,8 @@ const documents = {
     types.WithdrawalRequestFieldsFragmentDoc,
   '\n  fragment WithdrawalClaimFields on WithdrawalClaim {\n    id\n    sender\n    epoch {\n      epoch\n    }\n    assetOut {\n      id\n    }\n    amountOut\n    restakingToken {\n      id\n    }\n    requests {\n      id\n    }\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n':
     types.WithdrawalClaimFieldsFragmentDoc,
+  '\n  fragment OperatorFields on Operator {\n    id\n    operatorId\n    address\n    delegator\n    manager\n    earningsReceiver\n    metadataURI\n    metadata {\n      name\n      website\n      description\n      logo\n      twitter\n    }\n    delegationApprover\n    stakerOptOutWindowBlocks\n    restakingToken {\n      id\n    }\n  }\n':
+    types.OperatorFieldsFragmentDoc,
   '\n  query issuer($id: ID!) {\n    issuer(id: $id) {\n      ...IssuerFields\n    }\n  }\n':
     types.IssuerDocument,
   '\n  query liquidRestakingToken($id: ID!) {\n    liquidRestakingToken(id: $id) {\n      ...LiquidRestakingTokenFields\n    }\n  }\n':
@@ -34,7 +36,9 @@ const documents = {
   '\n  query manyWithdrawalRequests(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalRequest_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalRequest_filter\n  ) {\n    withdrawalRequests(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalRequestFields\n    }\n  }\n':
     types.ManyWithdrawalRequestsDocument,
   '\n  query manyWithdrawalClaims(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalClaim_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalClaim_filter\n  ) {\n    withdrawalClaims(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalClaimFields\n    }\n  }\n':
-    types.ManyWithdrawalClaimsDocument
+    types.ManyWithdrawalClaimsDocument,
+  '\n  query manyOperators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Operator_orderBy\n    $orderDirection: OrderDirection\n    $where: Operator_filter\n  ) {\n    operators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...OperatorFields\n    }\n  }\n':
+    types.ManyOperatorsDocument
 };
 
 /**
@@ -61,8 +65,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    totalValueETH\n    totalValueUSD\n    exchangeRateETH\n    exchangeRateUSD\n    percentAPY\n    coordinator {\n      id\n    }\n    withdrawalQueue {\n      id\n    }\n    underlyingAssets {\n      address\n      asset {\n        latestUSDPrice\n        latestUSDPriceTimestamp\n        symbol\n        name\n      }\n      strategy\n      depositCap\n      balance\n    }\n  }\n'
-): (typeof documents)['\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    totalValueETH\n    totalValueUSD\n    exchangeRateETH\n    exchangeRateUSD\n    percentAPY\n    coordinator {\n      id\n    }\n    withdrawalQueue {\n      id\n    }\n    underlyingAssets {\n      address\n      asset {\n        latestUSDPrice\n        latestUSDPriceTimestamp\n        symbol\n        name\n      }\n      strategy\n      depositCap\n      balance\n    }\n  }\n'];
+  source: '\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    totalValueETH\n    totalValueUSD\n    exchangeRateETH\n    exchangeRateUSD\n    percentAPY\n    underlyingAssets {\n      address\n      asset {\n        latestUSDPrice\n        latestUSDPriceTimestamp\n        symbol\n        name\n      }\n      strategy\n      depositCap\n      balance\n    }\n    coordinator {\n        id\n    }\n    assetRegistry {\n      id\n    }\n    operatorRegistry {\n      id\n    }\n    avsRegistry {\n      id\n    }\n    depositPool {\n      id\n    }\n    withdrawalQueue {\n      id\n    }\n    rewardDistributor {\n      id\n    }\n  }\n'
+): (typeof documents)['\n  fragment LiquidRestakingTokenFields on LiquidRestakingToken {\n    id\n    address\n    symbol\n    name\n    createdTimestamp\n    totalSupply\n    totalValueETH\n    totalValueUSD\n    exchangeRateETH\n    exchangeRateUSD\n    percentAPY\n    underlyingAssets {\n      address\n      asset {\n        latestUSDPrice\n        latestUSDPriceTimestamp\n        symbol\n        name\n      }\n      strategy\n      depositCap\n      balance\n    }\n    coordinator {\n        id\n    }\n    assetRegistry {\n      id\n    }\n    operatorRegistry {\n      id\n    }\n    avsRegistry {\n      id\n    }\n    depositPool {\n      id\n    }\n    withdrawalQueue {\n      id\n    }\n    rewardDistributor {\n      id\n    }\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -81,6 +85,12 @@ export function graphql(
 export function graphql(
   source: '\n  fragment WithdrawalClaimFields on WithdrawalClaim {\n    id\n    sender\n    epoch {\n      epoch\n    }\n    assetOut {\n      id\n    }\n    amountOut\n    restakingToken {\n      id\n    }\n    requests {\n      id\n    }\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n'
 ): (typeof documents)['\n  fragment WithdrawalClaimFields on WithdrawalClaim {\n    id\n    sender\n    epoch {\n      epoch\n    }\n    assetOut {\n      id\n    }\n    amountOut\n    restakingToken {\n      id\n    }\n    requests {\n      id\n    }\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n'];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  fragment OperatorFields on Operator {\n    id\n    operatorId\n    address\n    delegator\n    manager\n    earningsReceiver\n    metadataURI\n    metadata {\n      name\n      website\n      description\n      logo\n      twitter\n    }\n    delegationApprover\n    stakerOptOutWindowBlocks\n    restakingToken {\n      id\n    }\n  }\n'
+): (typeof documents)['\n  fragment OperatorFields on Operator {\n    id\n    operatorId\n    address\n    delegator\n    manager\n    earningsReceiver\n    metadataURI\n    metadata {\n      name\n      website\n      description\n      logo\n      twitter\n    }\n    delegationApprover\n    stakerOptOutWindowBlocks\n    restakingToken {\n      id\n    }\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -117,6 +127,12 @@ export function graphql(
 export function graphql(
   source: '\n  query manyWithdrawalClaims(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalClaim_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalClaim_filter\n  ) {\n    withdrawalClaims(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalClaimFields\n    }\n  }\n'
 ): (typeof documents)['\n  query manyWithdrawalClaims(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalClaim_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalClaim_filter\n  ) {\n    withdrawalClaims(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalClaimFields\n    }\n  }\n'];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  query manyOperators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Operator_orderBy\n    $orderDirection: OrderDirection\n    $where: Operator_filter\n  ) {\n    operators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...OperatorFields\n    }\n  }\n'
+): (typeof documents)['\n  query manyOperators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Operator_orderBy\n    $orderDirection: OrderDirection\n    $where: Operator_filter\n  ) {\n    operators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...OperatorFields\n    }\n  }\n'];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

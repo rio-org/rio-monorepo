@@ -4,11 +4,13 @@ export {
   QueryConfig,
   Issuer,
   UnderlyingAsset,
+  ContractDeployment,
   LiquidRestakingToken,
   Deposit,
   WithdrawalEpochStatus,
   WithdrawalRequest,
-  WithdrawalClaim
+  WithdrawalClaim,
+  Operator
 } from './types';
 export {
   SUBGRAPH_URLS,

@@ -27,5 +27,6 @@ interface IRioLRTRewardDistributor {
     /// @param treasury The treasury address.
     /// @param operatorRewardPool The operator reward pool address.
     /// @param depositPool The contract that holds funds awaiting deposit into EigenLayer.
-    function initialize(address initialOwner, address treasury, address operatorRewardPool, address depositPool) external;
+    function initialize(address initialOwner, address treasury, address operatorRewardPool, address depositPool)
+        external;
 }

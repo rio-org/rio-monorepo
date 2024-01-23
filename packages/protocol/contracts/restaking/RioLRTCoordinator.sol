@@ -16,7 +16,6 @@ import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable {
-    using OperatorOperations for IRioLRTOperatorRegistry;
     using SafeERC20 for IERC20;
     using Asset for address;
 
@@ -44,11 +43,23 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @notice Tracks the amount of EigenLayer shares owned by the LRT.
     mapping(address asset => uint256 shares) public assetSharesHeld;
 
-    /// @notice Require that the asset deposit cap has not been reached.
+    /// @notice Require that the asset is supported, the deposit amount is non-zero, and the
+    /// deposit cap has not been reached.
     /// @param asset The asset being deposited.
     /// @param amountIn The amount of the asset being deposited.
-    modifier onlyIfCapNotReached(address asset, uint256 amountIn) {
+    modifier checkDeposit(address asset, uint256 amountIn) {
+        _checkAssetSupported(asset);
+        _checkAmountGreaterThanZero(amountIn);
         _checkDepositCapReached(asset, amountIn);
+        _;
+    }
+
+    /// @notice Require that the asset is supported and the withdrawal amount is non-zero.
+    /// @param asset The asset being deposited.
+    /// @param amountIn The amount of the asset being deposited.
+    modifier checkWithdrawal(address asset, uint256 amountIn) {
+        _checkAssetSupported(asset);
+        _checkAmountGreaterThanZero(amountIn);
         _;
     }
 
@@ -127,14 +138,13 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         return tokensInRio + tokensInEigenLayer;
     }
 
+    // forgefmt: disable-next-item
     /// @notice Deposits ERC20 tokens and mints restaking token(s) to the caller.
     /// @param token The token being deposited.
     /// @param amountIn The amount of the asset being deposited.
-    function deposit(address token, uint256 amountIn) external payable onlyIfCapNotReached(token, amountIn) {
-        if (!assetRegistry.isSupportedAsset(token)) revert ASSET_NOT_SUPPORTED(token);
-
+    function deposit(address token, uint256 amountIn) external checkDeposit(token, amountIn) returns (uint256 amountOut) {
         // Convert deposited asset amount to restaking tokens.
-        uint256 amountOut = convertFromAssetToRestakingTokens(token, amountIn);
+        amountOut = convertFromAssetToRestakingTokens(token, amountIn);
 
         // Pull tokens from the sender to the deposit pool.
         IERC20(token).safeTransferFrom(msg.sender, address(depositPool), amountIn);
@@ -146,18 +156,17 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     }
 
     /// @notice Deposits ETH and mints restaking token(s) to the caller.
-    function depositETH() external payable {
-        _depositETH();
+    function depositETH() external payable returns (uint256) {
+        return _depositETH();
     }
 
+    // forgefmt: disable-next-item
     /// @notice Requests a withdrawal to `asset` for `amountIn` restaking tokens.
     /// @param asset The asset being withdrawn.
     /// @param amountIn The amount of restaking tokens being redeemed.
-    function requestWithdrawal(address asset, uint256 amountIn) external {
-        if (!assetRegistry.isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
-
+    function requestWithdrawal(address asset, uint256 amountIn) external checkWithdrawal(asset, amountIn) returns (uint256 sharesOwed) {
         // Determine the amount of shares owed to the withdrawer using the current exchange rate.
-        uint256 sharesOwed = convertToSharesFromRestakingTokens(asset, amountIn);
+        sharesOwed = convertToSharesFromRestakingTokens(asset, amountIn);
 
         // Pull restaking tokens from the sender to the withdrawal queue.
         IERC20(address(restakingToken)).safeTransferFrom(msg.sender, address(withdrawalQueue), amountIn);
@@ -252,11 +261,9 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
 
     /// @notice Deposits ETH and mints restaking token(s) to the caller.
     /// @dev This function assumes that the quote asset is ETH.
-    function _depositETH() internal onlyIfCapNotReached(ETH_ADDRESS, msg.value) {
-        if (!assetRegistry.isSupportedAsset(ETH_ADDRESS)) revert ASSET_NOT_SUPPORTED(ETH_ADDRESS);
-
+    function _depositETH() internal checkDeposit(ETH_ADDRESS, msg.value) returns (uint256 amountOut) {
         // Convert deposited ETH to restaking tokens and mint to the caller.
-        uint256 amountOut = convertFromUnitOfAccountToRestakingTokens(msg.value);
+        amountOut = convertFromUnitOfAccountToRestakingTokens(msg.value);
 
         // Forward ETH to the deposit pool.
         address(depositPool).transferETH(msg.value);
@@ -275,17 +282,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         emit RebalanceDelaySet(newRebalanceDelay);
     }
 
-    /// @dev Checks if the deposit cap for the asset has been reached.
-    /// @param asset The address of the asset.
-    /// @param amountIn The amount of the asset being deposited.
-    function _checkDepositCapReached(address asset, uint256 amountIn) internal view {
-        uint256 depositCap = assetRegistry.getAssetDepositCap(asset);
-        uint256 existingBalance = getTotalBalanceForAsset(asset);
-        if (depositCap != 0 && existingBalance + amountIn > depositCap) {
-            revert DEPOSIT_CAP_REACHED(asset, depositCap);
-        }
-    }
-
+    // forgefmt: disable-next-item
     /// @dev Processes user withdrawals for the provided asset by transferring available
     /// assets from the deposit pool and queueing any remaining amount for withdrawal from
     /// EigenLayer.
@@ -306,12 +303,36 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         }
 
         address strategy = assetRegistry.getAssetStrategy(asset);
-        bytes32 aggregateRoot = operatorRegistry.queueWithdrawals(
+        bytes32 aggregateRoot = OperatorOperations.queueWithdrawals(
+            operatorRegistry,
             strategy,
             sharesRemaining,
             address(withdrawalQueue)
         );
         withdrawalQueue.queueCurrentEpochSettlement(asset, sharesSent, assetsSent, aggregateRoot);
+    }
+
+    /// @dev Checks if the provided asset is supported.
+    /// @param asset The address of the asset.
+    function _checkAssetSupported(address asset) internal view {
+        if (!assetRegistry.isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+    }
+
+    /// @dev Checks if the provided amount is greater than zero.
+    /// @param amount The amount being checked.
+    function _checkAmountGreaterThanZero(uint256 amount) internal pure {
+        if (amount == 0) revert AMOUNT_MUST_BE_GREATER_THAN_ZERO();
+    }
+
+    /// @dev Checks if the deposit cap for the asset has been reached.
+    /// @param asset The address of the asset.
+    /// @param amountIn The amount of the asset being deposited.
+    function _checkDepositCapReached(address asset, uint256 amountIn) internal view {
+        uint256 depositCap = assetRegistry.getAssetDepositCap(asset);
+        uint256 existingBalance = getTotalBalanceForAsset(asset);
+        if (depositCap > 0 && existingBalance + amountIn > depositCap) {
+            revert DEPOSIT_CAP_REACHED(asset, depositCap);
+        }
     }
 
     /// @dev Reverts if the rebalance delay has not been met.

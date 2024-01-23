@@ -6,7 +6,7 @@ import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.so
 import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
-import {BEACON_CHAIN_STRATEGY,ETH_ADDRESS} from 'contracts/utils/Constants.sol';
+import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 
@@ -48,7 +48,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     ) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        
+
         coordinator = IRioLRTCoordinator(coordinator_);
 
         // Non-ETH pairs must use 8 decimals, while ETH pairs must use 18.
@@ -119,7 +119,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     function getAssetStrategies() external view returns (address[] memory strategies) {
         uint256 assetCount = supportedAssets.length;
         strategies = new address[](assetCount);
-        
+
         for (uint256 i = 0; i < assetCount; ++i) {
             strategies[i] = getAssetStrategy(supportedAssets[i]);
         }
@@ -150,7 +150,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         address priceFeed = assetInfo[asset].priceFeed;
         uint256 price = getPrice(priceFeed);
 
-        return _normalizeDecimals(value * price / priceScale, priceFeedDecimals, assetInfo[asset].decimals);
+        return _normalizeDecimals(value * priceScale / price, priceFeedDecimals, assetInfo[asset].decimals);
     }
 
     /// @notice Converts an amount of EigenLayer shares to the equivalent amount

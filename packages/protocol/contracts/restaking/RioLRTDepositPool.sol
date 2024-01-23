@@ -12,7 +12,6 @@ import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgradeable {
-    using OperatorOperations for IRioLRTOperatorRegistry;
     using FixedPointMathLib for uint256;
     using Asset for address;
 
@@ -41,12 +40,10 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
     /// @param assetRegistry_ The address of the asset registry contract.
     /// @param operatorRegistry_ The address of the operator registry contract.
     /// @param coordinator_ The address of the coordinator contract.
-    function initialize(
-        address initialOwner,
-        address assetRegistry_,
-        address operatorRegistry_,
-        address coordinator_
-    ) external initializer {
+    function initialize(address initialOwner, address assetRegistry_, address operatorRegistry_, address coordinator_)
+        external
+        initializer
+    {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
 
@@ -60,12 +57,12 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
     function depositBalanceIntoEigenLayer(address asset) external onlyCoordinator returns (uint256) {
         uint256 currentBalance = asset.getSelfBalance();
         if (asset == ETH_ADDRESS) {
-            return operatorRegistry.depositETH(currentBalance);
+            return OperatorOperations.depositETH(operatorRegistry, currentBalance);
         }
 
         address strategy = assetRegistry.getAssetStrategy(asset);
         uint256 sharesToAllocate = assetRegistry.convertToSharesFromAsset(asset, currentBalance);
-        return operatorRegistry.depositToken(asset, strategy, sharesToAllocate);
+        return OperatorOperations.depositToken(operatorRegistry, asset, strategy, sharesToAllocate);
     }
 
     /// @notice Transfers the maximum possible amount of assets based on the available
@@ -75,14 +72,14 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
     /// @param recipient The address of the recipient of the transferred assets.
     /// @dev This function handles asset transfer by converting the share value to assets and
     /// ensures that either the requested amount or the maximum possible amount is transferred.
-    function transferMaxAssetsForShares(
-        address asset,
-        uint256 sharesRequested,
-        address recipient
-    ) external onlyCoordinator returns (uint256, uint256) {
+    function transferMaxAssetsForShares(address asset, uint256 sharesRequested, address recipient)
+        external
+        onlyCoordinator
+        returns (uint256, uint256)
+    {
         uint256 poolBalance = asset.getSelfBalance();
         uint256 poolBalanceShareValue = assetRegistry.convertToSharesFromAsset(asset, poolBalance);
-        
+
         // Return early if the deposit pool has no balance or value for the given asset.
         if (poolBalance == 0 || poolBalanceShareValue == 0) {
             return (0, 0);

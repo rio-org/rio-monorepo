@@ -19,7 +19,7 @@ library OperatorOperations {
     /// @notice Thrown when the amount of shares received is not the expected amount.
     error INCORRECT_NUMBER_OF_SHARES_RECEIVED();
 
-    /// @dev Deposits ETH into EigenLayer through the operators that are returned from the registry.
+    /// @notice Deposits ETH into EigenLayer through the operators that are returned from the registry.
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param amount The amount of ETH to deposit.
     function depositETH(IRioLRTOperatorRegistry operatorRegistry, uint256 amount) internal returns (uint256 depositAmount) {
@@ -44,13 +44,18 @@ library OperatorOperations {
         }
     }
 
-    /// @dev Deposits the given `amount` of tokens into EigenLayer the provided
+    /// @notice Deposits the given `amount` of tokens into EigenLayer the provided
     /// EigenLayer `strategy` via the operators that are returned from the registry.
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param token The address of the token to deposit.
     /// @param strategy The strategy to deposit the funds into.
     /// @param sharesToAllocate The amount of strategy shares to allocate.
-    function depositToken(IRioLRTOperatorRegistry operatorRegistry, address token, address strategy, uint256 sharesToAllocate) internal returns (uint256 sharesReceived) {
+    function depositToken(
+        IRioLRTOperatorRegistry operatorRegistry,
+        address token,
+        address strategy,
+        uint256 sharesToAllocate
+    ) internal returns (uint256 sharesReceived) {
         (uint256 sharesAllocated, IRioLRTOperatorRegistry.OperatorStrategyAllocation[] memory  allocations) = operatorRegistry.allocateStrategyShares(
             strategy, sharesToAllocate
         );
@@ -67,6 +72,11 @@ library OperatorOperations {
         if (sharesReceived != sharesAllocated) revert INCORRECT_NUMBER_OF_SHARES_RECEIVED();
     }
 
+    /// @notice Queues withdrawals from EigenLayer through the operators that are returned from the registry.
+    /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
+    /// @param strategy The strategy to withdraw the funds from.
+    /// @param amount The amount needed.
+    /// @param withdrawalQueue The address of the withdrawal queue.
     function queueWithdrawals(
         IRioLRTOperatorRegistry operatorRegistry,
         address strategy,
@@ -79,7 +89,7 @@ library OperatorOperations {
         return queueTokenWithdrawals(operatorRegistry, strategy, amount, withdrawalQueue);
     }
 
-    /// @dev Queues ETH withdrawals from EigenLayer through the operators that are returned from the registry.
+    /// @notice Queues ETH withdrawals from EigenLayer through the operators that are returned from the registry.
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param amount The amount of ETH needed.
     /// @param withdrawalQueue The address of the withdrawal queue.
@@ -103,12 +113,17 @@ library OperatorOperations {
         aggregateRoot = keccak256(abi.encode(roots));
     }
 
-    /// @dev Queues a withdrawal from EigenLayer through the operators that are returned from the registry.
+    /// @notice Queues a withdrawal from EigenLayer through the operators that are returned from the registry.
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param strategy The strategy to withdraw the funds from.
     /// @param sharesToWithdraw The number of shares to withdraw.
     /// @param withdrawalQueue The address of the withdrawal queue.
-    function queueTokenWithdrawals(IRioLRTOperatorRegistry operatorRegistry, address strategy, uint256 sharesToWithdraw, address withdrawalQueue) internal returns (bytes32 aggregateRoot) {
+    function queueTokenWithdrawals(
+        IRioLRTOperatorRegistry operatorRegistry,
+        address strategy,
+        uint256 sharesToWithdraw,
+        address withdrawalQueue
+    ) internal returns (bytes32 aggregateRoot) {
         (, IRioLRTOperatorRegistry.OperatorStrategyDeallocation[] memory operatorDeallocations) = operatorRegistry.deallocateStrategyShares(
             strategy, sharesToWithdraw
         );

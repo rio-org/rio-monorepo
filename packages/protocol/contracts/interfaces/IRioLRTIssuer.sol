@@ -29,9 +29,7 @@ interface IRioLRTIssuer {
     /// @param symbol The symbol of the new LRT.
     /// @param config The LRT configuration.
     /// @param deployment The LRT deployment addresses.
-    event LiquidRestakingTokenIssued(
-        string name, string symbol, LRTConfig config, LRTDeployment deployment
-    );
+    event LiquidRestakingTokenIssued(string name, string symbol, LRTConfig config, LRTDeployment deployment);
 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.

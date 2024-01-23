@@ -6,6 +6,9 @@ interface IRioLRTCoordinator {
     /// @param asset The address of the asset.
     error ASSET_NOT_SUPPORTED(address asset);
 
+    /// @notice Thrown when attempting to deposit an amount of zero.
+    error AMOUNT_MUST_BE_GREATER_THAN_ZERO();
+
     /// @notice Thrown when attempting to deposit an amount that would exceed the deposit cap.
     /// @param asset The address of the asset.
     /// @param depositCap The asset's deposit cap.
@@ -80,20 +83,20 @@ interface IRioLRTCoordinator {
     /// asset's EigenLayer shares.
     /// @param asset The address of the asset whose EigenLayer shares to convert to.
     /// @param amount The amount of restaking tokens to convert.
-    function convertToSharesFromRestakingTokens(address asset, uint256 amount) external view returns (uint256 shares);
+    function convertToSharesFromRestakingTokens(address asset, uint256 amount) external view returns (uint256);
 
     /// @notice Deposits ERC20 tokens and mints restaking token(s) to the caller.
     /// @param token The token being deposited.
     /// @param amountIn The amount of the asset being deposited.
-    function deposit(address token, uint256 amountIn) external payable;
+    function deposit(address token, uint256 amountIn) external returns (uint256);
 
     /// @notice Deposits ETH and mints restaking token(s) to the caller.
-    function depositETH() external payable;
+    function depositETH() external payable returns (uint256);
 
     /// @notice Requests a withdrawal to `asset` for `amountIn` restaking tokens.
     /// @param asset The asset being withdrawn.
     /// @param amountIn The amount of restaking tokens being redeemed.
-    function requestWithdrawal(address asset, uint256 amountIn) external;
+    function requestWithdrawal(address asset, uint256 amountIn) external returns (uint256);
 
     /// @notice Rebalances the provided `asset` by processing outstanding withdrawals and
     /// depositing remaining assets into EigenLayer.
