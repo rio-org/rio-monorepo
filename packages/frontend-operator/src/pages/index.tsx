@@ -25,7 +25,7 @@ import type {
   ValidatorKeyItem
 } from '@rio-monorepo/ui/lib/typings';
 
-const defaultFunctionArgs = [255, 0n, '0x', '0x'] as const;
+const DEFAULT_ARGS = [255, 0n, '0x', '0x'] as const;
 
 const OperatorKeysPage: NextPage = () => {
   const client = usePublicClient();
@@ -71,7 +71,7 @@ const OperatorKeysPage: NextPage = () => {
 
       return _args;
     } catch (e) {
-      return defaultFunctionArgs;
+      return DEFAULT_ARGS;
     }
   }, [operators?.[0]?.operatorId, value]);
 
@@ -80,7 +80,7 @@ const OperatorKeysPage: NextPage = () => {
     abi: RioLRTOperatorRegistryABI,
     functionName: 'addValidatorDetails',
     args,
-    enabled: !!address && args !== defaultFunctionArgs
+    enabled: !!address && args !== DEFAULT_ARGS
   } as const;
 
   const {
@@ -113,7 +113,7 @@ const OperatorKeysPage: NextPage = () => {
   });
 
   useEffect(() => {
-    if (!address || contractWriteOptions.args === defaultFunctionArgs) {
+    if (!address || contractWriteOptions.args === DEFAULT_ARGS) {
       return setGas(0n);
     }
 
