@@ -3,10 +3,10 @@ import RestakeWrapper from '@/components/Restake/RestakeWrapper';
 import Skeleton from 'react-loading-skeleton';
 import RestakeForm from '@/components/Restake/RestakeForm';
 import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
-import { Tooltip } from '@material-tailwind/react';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { useEffect, useState } from 'react';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
+import { cn } from '@rio-monorepo/ui/lib/utilities';
 
 const Home: NextPage = () => {
   const isMounted = useIsMounted();
@@ -30,16 +30,12 @@ const Home: NextPage = () => {
     isMounted && networkStats
       ? [
           (networkStats.tvl ?? 0).toLocaleString() + ' ETH',
-          networkStats.apy ?? 0
+          (networkStats.apy ?? 0).toLocaleString() + '%'
         ]
-      : [<Skeleton width={40} />, <Skeleton />];
-
-  // TODO: Replace the tooltip content with real copy
-  const tooltipContent = (
-    <>
-      <p>APY information TKTK</p>
-    </>
-  );
+      : [
+          <Skeleton className="inline-block" width={40} />,
+          <Skeleton className="inline-block" width={20} />
+        ];
 
   return (
     <RestakeWrapper>
@@ -47,19 +43,14 @@ const Home: NextPage = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between gap-2 lg:gap-8 w-full px-4 lg:px-5 pt-3 lg:pt-5 pb-3">
           <h1 className="text-2xl font-medium">Restake</h1>
           <div className="flex gap-2 lg:justify-center items-center">
-            <span className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4 flex gap-1">
-              TVL: {tvlVal}
-            </span>
-            <Tooltip content={tooltipContent}>
-              <a
-                href="TODO" // TODO: add link to public view of APY details
-                target="_blank"
-                rel="noreferrer"
-                className="text-sm uppercase -tracking-tight rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4"
-              >
-                {apyVal}% APY
-              </a>
-            </Tooltip>
+            <HeaderBadge>
+              <span>TVL:</span>
+              {tvlVal}
+            </HeaderBadge>
+            <HeaderBadge>
+              {apyVal}
+              <span>APY</span>
+            </HeaderBadge>
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 lg:p-6 space-y-4 w-full m-[2px]">
@@ -70,4 +61,21 @@ const Home: NextPage = () => {
   );
 };
 
+const HeaderBadge = ({
+  children,
+  className
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) => (
+  <span
+    className={cn(
+      'inline-flex items-center text-sm uppercase -tracking-tight',
+      'rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4 gap-1',
+      className
+    )}
+  >
+    {children}
+  </span>
+);
 export default Home;
