@@ -24,10 +24,16 @@ type LayoutProps = {
     tertiaryItems: NavItem[];
     socialItems: SocialNavItem[];
   };
+  showExchangeRates?: boolean;
   children: ReactNode;
 };
 
-export default function Layout({ children, nav, appTitle }: LayoutProps) {
+export default function Layout({
+  children,
+  nav,
+  appTitle,
+  showExchangeRates = true
+}: LayoutProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0);
   const [transitionDirection, setTransitionDirection] = useState<number>(50);
@@ -159,24 +165,28 @@ export default function Layout({ children, nav, appTitle }: LayoutProps) {
               </motion.div>
             </AnimatePresence>
           </div>
-          <motion.div
-            ref={conversionButtonRef}
-            key={'conversionButton'}
-            initial={{ opacity: 0 }}
-            animate={isMounted && { opacity: 1 }}
-            transition={{
-              type: 'spring',
-              duration: 0.1,
-              delay: 0.5
-            }}
-            className={cx(
-              'sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto z-0'
-            )}
-          >
-            <ReETHConversion />
-          </motion.div>
+          {showExchangeRates ? (
+            <motion.div
+              ref={conversionButtonRef}
+              key={'conversionButton'}
+              initial={{ opacity: 0 }}
+              animate={isMounted && { opacity: 1 }}
+              transition={{
+                type: 'spring',
+                duration: 0.1,
+                delay: 0.5
+              }}
+              className={cx(
+                'sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto z-0'
+              )}
+            >
+              <ReETHConversion />
+            </motion.div>
+          ) : (
+            <div className="sticky bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto z-0" />
+          )}
         </div>
-        <div ref={mobileNavRef}>
+        <div ref={mobileNavRef} className="relative z-50">
           <MobileNav
             items={nav.items}
             secondaryItems={nav.secondaryItems}

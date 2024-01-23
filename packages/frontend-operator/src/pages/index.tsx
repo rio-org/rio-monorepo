@@ -1,11 +1,5 @@
-import type { NextPage } from 'next';
-import OperatorKeysWrapper from '../components/OperatorKeys/OperatorKeysWrapper';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ValidatorKeyItem } from '@rio-monorepo/ui/lib/typings';
-import { validateOperatorKeys } from '@rio-monorepo/ui/lib/validation';
-
-import { useGetOperators } from '@rio-monorepo/ui/hooks/useGetOperators';
-
+import Skeleton from 'react-loading-skeleton';
 import {
   useAccount,
   useContractWrite,
@@ -14,15 +8,22 @@ import {
   usePublicClient,
   useWaitForTransaction
 } from 'wagmi';
-import { Hex } from 'viem';
+import type { NextPage } from 'next';
+import type { Hex } from 'viem';
+import OperatorKeysWrapper from '@/components/OperatorKeys/OperatorKeysWrapper';
+import SubmitterButton from '@/components/OperatorKeys/SubmitterButton';
+import SubmitterField from '@/components/OperatorKeys/SubmitterField';
+import { useGetLatestAssetPrice } from '@rio-monorepo/ui/hooks/useGetLatestAssetPrice';
+import { useGetOperators } from '@rio-monorepo/ui/hooks/useGetOperators';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { RioLRTOperatorRegistryABI } from '@rio-monorepo/ui/abi/RioLRTOperatorRegistryABI';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
-import Skeleton from 'react-loading-skeleton';
-import { useGetLatestAssetPrice } from '@rio-monorepo/ui/hooks/useGetLatestAssetPrice';
+import { validateOperatorKeys } from '@rio-monorepo/ui/lib/validation';
 import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
-import SubmitterField from '@/components/OperatorKeys/SubmitterField';
-import SubmitterButton from '@/components/OperatorKeys/SubmitterButton';
-import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import type {
+  ContractError,
+  ValidatorKeyItem
+} from '@rio-monorepo/ui/lib/typings';
 
 const defaultFunctionArgs = [255, 0n, '0x', '0x'] as const;
 
@@ -41,6 +42,7 @@ const OperatorKeysPage: NextPage = () => {
     tokenAddress: NATIVE_ETH_ADDRESS
   });
 
+  const [error, setError] = useState<ContractError | undefined>();
   const [value, setValue] = useState<string | undefined>();
   const [gas, setGas] = useState<bigint>();
 
@@ -72,18 +74,6 @@ const OperatorKeysPage: NextPage = () => {
       return defaultFunctionArgs;
     }
   }, [operators?.[0]?.operatorId, value]);
-
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setValue(e.target.value);
-    },
-    []
-  );
-
-  const handleValidation = useCallback(
-    (json: string) => validateOperatorKeys({ json }),
-    []
-  );
 
   const contractWriteOptions = {
     address: '0xaEc50d7Dfa361C940A394e10c085c5133b3793A0',
@@ -123,19 +113,26 @@ const OperatorKeysPage: NextPage = () => {
   });
 
   useEffect(() => {
-    if (!address) return;
+    if (!address || contractWriteOptions.args === defaultFunctionArgs) {
+      return setGas(0n);
+    }
+
     client
       ?.estimateContractGas({ account: address, ...contractWriteOptions })
       .then(setGas)
       .catch(console.error);
   }, [address, client, contractWriteOptions]);
 
-  const error = prepareError ?? writeError ?? txError ?? feeDataError;
+  useEffect(() => {
+    setError(
+      prepareError ?? writeError ?? txError ?? feeDataError ?? undefined
+    );
+  }, [prepareError, writeError, txError, feeDataError]);
+
   const isLoading = isWriteLoading || isTxLoading;
   const inputDisabled =
     !address || (isFetched && !operators?.length) || isTxLoading;
-  const submitDisabled =
-    inputDisabled || isLoading || isPrepareLoading || !!error;
+  const submitDisabled = inputDisabled || isLoading || isPrepareLoading;
   const gasPriceEth =
     isFeeDataLoading || isFeeDataFetching
       ? undefined
@@ -144,21 +141,25 @@ const OperatorKeysPage: NextPage = () => {
     !ethAssetPrice?.latestUSDPrice || typeof gasPriceEth === 'undefined'
       ? undefined
       : gasPriceEth * ethAssetPrice.latestUSDPrice;
+  const pricesLoaded =
+    typeof gasPriceEth !== 'undefined' && typeof gasPriceUsd !== 'undefined';
 
-  const resetForm = () => {
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setValue(e.target.value);
+    },
+    []
+  );
+
+  const handleValidation = useCallback(
+    (json: string) => validateOperatorKeys({ json }),
+    []
+  );
+
+  const resetForm = useCallback(() => {
     setValue('');
     resetWrite();
-  };
-
-  // remove reeth conversion from operator
-  // remove reeth conversion from operator
-  // remove reeth conversion from operator
-  // remove reeth conversion from operator
-  // remove reeth conversion from operator
-  // remove reeth conversion from operator
-  // remove reeth conversion from operator
-  // remove reeth conversion from operator
-  // remove reeth conversion from operator
+  }, []);
 
   return (
     <OperatorKeysWrapper>
@@ -186,8 +187,7 @@ const OperatorKeysPage: NextPage = () => {
         <HR />
         <div className="flex justify-between text-[14px]">
           <span className="text-black opacity-50">Estimated Gas Price</span>
-          {typeof gasPriceEth === 'undefined' ||
-          typeof gasPriceUsd === 'undefined' ? (
+          {!pricesLoaded ? (
             <Skeleton height="0.875rem" width={80} />
           ) : (
             <strong className="text-right space-x-2">
@@ -219,9 +219,10 @@ const OperatorKeysPage: NextPage = () => {
         isTxLoading={isLoading}
         isTxError={!!txError}
         isTxSuccess={isTxSuccess}
+        error={error}
         txHash={data?.hash}
         setIsTxSuccess={resetForm}
-        setisTxError={resetForm}
+        setisTxError={() => setError(undefined)}
         handleExecute={() => write?.()}
       />
     </OperatorKeysWrapper>

@@ -13,6 +13,7 @@ import {
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { ContractError } from '@rio-monorepo/ui/lib/typings';
 import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
+import { twJoin } from 'tailwind-merge';
 
 type Props = {
   operatorId?: number;
@@ -24,6 +25,7 @@ type Props = {
   txHash?: `0x${string}`;
   disabled?: boolean;
   txError?: ContractError | null;
+  error?: ContractError | null;
   setIsTxSuccess: (isSuccess: boolean) => void;
   setisTxError: (isError: boolean) => void;
   handleExecute: () => void;
@@ -39,6 +41,7 @@ const SubmitterButton = ({
   disabled,
   isTxError,
   txHash,
+  error,
   setIsTxSuccess,
   setisTxError,
   handleExecute
@@ -72,27 +75,14 @@ const SubmitterButton = ({
     ? isSwitchNetworkLoading
     : !isValid || isEmpty || isTxLoading || !address || disabled;
 
-  const buttonClassName = cn(
-    'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
-    !isDisabled ? 'hover:bg-[var(--color-dark-gray)]' : 'bg-opacity-20'
-  );
-
-  const loader = useMemo(
-    () => (
-      <div className="w-full text-center flex items-center justify-center gap-2">
-        <Spinner width={16} />
-        <span className="text-black opacity-40">Awaiting confirmation</span>
-      </div>
-    ),
-    []
-  );
-
-  if (!isMounted) return null;
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <>
       <AnimatePresence>
-        {(isTxError || isTxSuccess) && (
+        {(isTxError || isTxSuccess || error) && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -101,7 +91,12 @@ const SubmitterButton = ({
           >
             <div className="mt-4">
               <Alert
-                errorMessage={txError?.shortMessage ?? txError?.message}
+                errorMessage={
+                  txError?.shortMessage ??
+                  txError?.message ??
+                  error?.shortMessage ??
+                  error?.message
+                }
                 isSuccess={isTxSuccess}
                 isError={isTxError}
                 setIsSuccess={setIsTxSuccess}
@@ -113,7 +108,12 @@ const SubmitterButton = ({
 
         {!(isTxError || isTxSuccess) && (
           <motion.button
-            className={buttonClassName}
+            className={cn(
+              'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
+              !isDisabled
+                ? 'hover:bg-[var(--color-dark-gray)]'
+                : 'bg-opacity-20'
+            )}
             disabled={isDisabled}
             onClick={() =>
               wrongNetwork ? switchNetwork?.(CHAIN_ID) : handleExecute()
@@ -122,7 +122,14 @@ const SubmitterButton = ({
           >
             {(() => {
               if (isTxLoading || (wrongNetwork && isSwitchNetworkLoading)) {
-                return loader;
+                return (
+                  <div className="w-full text-center flex items-center justify-center gap-2">
+                    <Spinner width={16} />
+                    <span className="text-black opacity-40">
+                      Awaiting confirmation
+                    </span>
+                  </div>
+                );
               }
 
               return (
@@ -150,7 +157,13 @@ const SubmitterButton = ({
                 href={txHash ? linkToTxOnBlockExplorer(txHash, CHAIN_ID) : ''}
                 target="_blank"
                 rel="noreferrer"
-                className="flex flex-row justify-center text-center px-[8px] py-[2px] text-gray-500 font-normal whitespace-nowrap text-sm items-center rounded-full w-full gap-2 h-fit transition-colors duration-200 leading-none"
+                className={twJoin(
+                  'flex flex-row justify-center items-center gap-2',
+                  'w-full h-fit',
+                  'px-[8px] py-[2px] rounded-full',
+                  'text-center text-gray-500 text-sm font-normal leading-none whitespace-nowrap',
+                  'transition-colors duration-200 '
+                )}
               >
                 View transaction
                 <div className="opacity-50">

@@ -59,7 +59,7 @@ const SubmitterField = ({
           status.value === 'invalid' && '[&_*]:!border-red-500'
         )}
         textAreaClassName={cn(
-          'min-h-[80px] max-h-[170px] !p-4',
+          'min-h-[80px] max-h-[200px] !p-4',
           '!font-mono !text-sm !leading-snug',
           'transition-all',
           disabled && 'opacity-30'
