@@ -496,7 +496,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         allocations = new OperatorStrategyAllocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForStrategy(strategy);
-        if (heap.isEmpty()) revert NO_AVAILABLE_OPERATORS_FOR_ALLOCATION();
+        if (heap.isEmpty()) {
+            return (sharesAllocated, allocations);
+        }
 
         uint256 allocationIndex;
         uint256 remainingShares = sharesToAllocate;
@@ -546,7 +548,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         allocations = new OperatorETHAllocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForETH();
-        if (heap.isEmpty()) revert NO_AVAILABLE_OPERATORS_FOR_ALLOCATION();
+        if (heap.isEmpty()) {
+            return (depositsAllocated, allocations);
+        }
 
         uint256 allocationIndex;
         uint256 remainingDeposits = depositsToAllocate;
@@ -607,7 +611,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
             }
         }
         depositsAllocated = depositsToAllocate - remainingDeposits;
-        if (depositsAllocated == 0) revert NO_AVAILABLE_OPERATORS_FOR_ALLOCATION();
+        if (depositsAllocated == 0) {
+            return (depositsAllocated, allocations);
+        }
 
         // Reinsert skipped operators back into the heap.
         for (uint256 i = 0; i < skippedOperatorCount; ++i) {

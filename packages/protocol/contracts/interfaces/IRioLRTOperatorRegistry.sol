@@ -167,9 +167,6 @@ interface IRioLRTOperatorRegistry {
     /// still has shares allocated.
     error OPERATOR_STILL_HAS_ALLOCATED_SHARES();
 
-    /// @notice Thrown when there are no available operators for allocation.
-    error NO_AVAILABLE_OPERATORS_FOR_ALLOCATION();
-
     /// @notice Thrown when there are no available operators for deallocation.
     error NO_AVAILABLE_OPERATORS_FOR_DEALLOCATION();
 
