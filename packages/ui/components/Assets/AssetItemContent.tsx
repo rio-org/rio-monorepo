@@ -30,7 +30,7 @@ const AssetItemContent = ({
   amount,
   isSelectorDisplay
 }: Props) => {
-  useGetLatestAssetPrice(asset.address, CHAIN_ID);
+  useGetLatestAssetPrice({ tokenAddress: asset.address, chainId: CHAIN_ID });
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });

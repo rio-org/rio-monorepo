@@ -23,10 +23,10 @@ const WithdrawAssetItem = ({
   setActiveToken,
   setIsListOpen
 }: Props) => {
-  const { data, isLoading, isError } = useGetLatestAssetPrice(
-    token.address,
-    CHAIN_ID
-  );
+  const { data, isLoading, isError } = useGetLatestAssetPrice({
+    tokenAddress: token.address,
+    chainId: CHAIN_ID
+  });
   const handleClick = (token: AssetDetails) => {
     setActiveToken(token);
     setIsListOpen(false);
@@ -41,7 +41,7 @@ const WithdrawAssetItem = ({
             1 reETH = {reETHConversionAmount} {token.symbol}
           </strong>
           <span className="text-[14px] opacity-50 font-bold">
-            (${data.latestUSDPrice * reETHConversionAmount})
+            (${(data.latestUSDPrice || 0) * reETHConversionAmount})
           </span>
         </>
       ) : (
