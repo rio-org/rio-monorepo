@@ -1,8 +1,12 @@
 import { SubgraphClient } from '@rionetwork/sdk';
 import { CHAIN_ID, PRIVATE_KEY, SUPPORTED_CHAIN } from './config';
 import { createPublicClient, createWalletClient, http } from 'viem';
+import { IProcess, RebalanceProcess } from './processes';
 import { privateKeyToAccount } from 'viem/accounts';
-import { Rebalancer } from './processes';
+
+//#region Client Setup
+
+const subgraph = new SubgraphClient(CHAIN_ID);
 
 // prettier-ignore
 const publicClient = createPublicClient({
@@ -15,19 +19,32 @@ const walletClient = createWalletClient({
   transport: http(),
   account
 });
-const subgraph = new SubgraphClient(CHAIN_ID);
 
+//#endregion
+
+//#region Process Setup/Teardown
+
+const processes: IProcess[] = [];
 const run = async () => {
   const tokens = await subgraph.getLiquidRestakingTokens();
 
   // Start supported processes for each token.
   for (const token of tokens) {
-    const rebalancer = new Rebalancer({
-      publicClient,
-      walletClient,
-      token
-    });
-    rebalancer.start();
+    processes.push(
+      new RebalanceProcess({
+        publicClient,
+        walletClient,
+        token
+      })
+    );
   }
+  processes.forEach((process) => process.start());
 };
 run();
+
+process.on('SIGINT', () => {
+  processes.forEach((process) => process.stop());
+  process.exit(0);
+});
+
+//#endregion

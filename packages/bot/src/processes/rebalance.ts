@@ -13,17 +13,17 @@ import {
   WalletClient,
   getContract
 } from 'viem';
-import { RebalancerConfig } from './types';
+import { IProcess, RebalanceProcessConfig } from './types';
 import { formatRelative } from 'date-fns';
 
-export class Rebalancer {
+export class RebalanceProcess implements IProcess {
   /**
    * The number of seconds to wait after an asset can first be rebalanced.
    */
   protected static readonly _BUFFER_SECS = 30;
 
   /**
-   * Whether the rebalancer is currently running.
+   * Whether the rebalance process is currently running.
    */
   protected _isRunning = false;
 
@@ -64,9 +64,9 @@ export class Rebalancer {
   > = {};
 
   /**
-   * @param _config The configuration for the rebalancer.
+   * @param _config The configuration for the rebalance processs.
    */
-  constructor(protected readonly _config: RebalancerConfig) {
+  constructor(protected readonly _config: RebalanceProcessConfig) {
     this._coordinator = getContract({
       address: _config.token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
@@ -89,7 +89,7 @@ export class Rebalancer {
   }
 
   /**
-   * Start the rebalancer.
+   * Start the rebalance process.
    */
   public start() {
     this._isRunning = true;
@@ -99,7 +99,7 @@ export class Rebalancer {
   }
 
   /**
-   * Stop the rebalancer.
+   * Stop the rebalance process.
    */
   public stop() {
     this._isRunning = false;
@@ -118,7 +118,7 @@ export class Rebalancer {
     // prettier-ignore
     return Math.max(
       0,
-      lastRebalancedAt + this._rebalanceDelay + Rebalancer._BUFFER_SECS - this.nowSecs
+      lastRebalancedAt + this._rebalanceDelay + RebalanceProcess._BUFFER_SECS - this.nowSecs
     );
   }
 
