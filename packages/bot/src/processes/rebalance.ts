@@ -140,9 +140,9 @@ export class RebalanceProcess implements IProcess {
         try {
           const hash = await this.rebalance(address);
           console.log(`Rebalanced ${asset.symbol} (${this._config.token.symbol}) in transaction: ${hash}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.log(
-            `Failed to rebalance ${asset.symbol} (${this._config.token.symbol}) with error: ${error.message}`
+            `Failed to rebalance ${asset.symbol} (${this._config.token.symbol}) with error: ${(error as Error).message}`
           );
         }
 

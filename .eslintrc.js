@@ -21,6 +21,10 @@ module.exports = {
       path.join(__dirname, 'packages/sdk'),
       path.join(__dirname, 'packages/ui')
     ],
+    '@typescript-eslint/no-misused-promises': [
+      'off',
+      path.join(__dirname, 'packages/bot')
+    ],
     '@typescript-eslint/no-unsafe-assignment': 'off',
     '@typescript-eslint/no-unsafe-call': 'off'
   },

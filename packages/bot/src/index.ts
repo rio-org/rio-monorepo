@@ -40,7 +40,7 @@ const run = async () => {
   }
   processes.forEach((process) => process.start());
 };
-run();
+void run();
 
 process.on('SIGINT', () => {
   processes.forEach((process) => process.stop());
