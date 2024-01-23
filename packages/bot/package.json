@@ -1,0 +1,36 @@
+{
+  "name": "@rionetwork/bot",
+  "version": "0.0.0-development",
+  "description": "A bot that automates Rio Network protocol operations",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "engines": {
+    "node": ">=16",
+    "pnpm": ">=7.5.1"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean:build": "rimraf ./dist",
+    "dev": "nodemon src/index.ts",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "pnpm lint --fix",
+    "format": "prettier --check src/**/*.ts",
+    "format:fix": "prettier --write src/**/*.ts",
+    "test": "jest",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@rionetwork/sdk": "0.1.0-alpha.17",
+    "date-fns": "^3.3.1",
+    "dotenv": "^16.3.2",
+    "viem": "^1.19.9"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
+}

@@ -97,7 +97,7 @@ export function findOrCreateAsset(address: Address, save: boolean = false): Asse
     asset.symbol = 'ETH';
     asset.name = 'Ether';
     asset.decimals = 18;
-    asset.address = Bytes.fromHexString(ZERO_ADDRESS);
+    asset.address = Bytes.fromHexString(ETH_ADDRESS);
 
     if (save) asset.save();
 
