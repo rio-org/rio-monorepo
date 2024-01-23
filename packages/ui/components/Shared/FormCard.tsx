@@ -51,7 +51,7 @@ export interface TabsProps {
 
 const Tabs = ({ items, baseUrl }: TabsProps) => {
   const router = useRouter();
-  const urlSegment = router.pathname.replace(new RegExp(baseUrl), '');
+  const urlSegment = router.pathname.replace(new RegExp(`${baseUrl}/`), '');
   const activeTab = (
     items.find((item) => new RegExp(`^${item.slug}$`, 'i').test(urlSegment)) ||
     items[0]
