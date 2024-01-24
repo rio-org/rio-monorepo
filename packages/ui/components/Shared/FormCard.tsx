@@ -58,11 +58,11 @@ const Tabs = ({ items, baseUrl }: TabsProps) => {
   ).slug;
 
   return (
-    <div className="flex w-full text-center content-center lg:justify-center gap-4">
+    <div className="flex w-full text-center content-center text-gray-600 lg:justify-center gap-4">
       {items.map(({ label, slug }) => {
         const className = cn(
           'font-medium',
-          activeTab === slug && 'text-gray-500 font-bold'
+          activeTab === slug && 'text-black font-bold'
         );
 
         if (slug === activeTab) {
