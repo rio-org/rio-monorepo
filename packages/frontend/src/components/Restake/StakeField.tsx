@@ -10,6 +10,7 @@ import {
   displayEthAmount,
   parseBigIntFieldAmount
 } from '@rio-monorepo/ui/lib/utilities';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 
 type Props = {
   activeToken?: AssetDetails;
@@ -32,6 +33,7 @@ const StakeField = ({
   setAmount,
   setActiveToken
 }: Props) => {
+  const { address } = useAccountIfMounted();
   const isMounted = useIsMounted();
   const { data: exchangeRate } = useAssetExchangeRate({
     asset: activeToken?.address,
@@ -98,18 +100,22 @@ const StakeField = ({
               <span className="opacity-50">
                 Balance:{' '}
                 {displayEthAmount(
-                  formatUnits(accountTokenBalance, activeToken.decimals)
+                  !address
+                    ? '0'
+                    : formatUnits(accountTokenBalance, activeToken.decimals)
                 )}{' '}
                 {activeToken.symbol}
               </span>{' '}
-              <button
-                className="text-[color:var(--color-blue)] font-medium underline mx-1 hover:[color:var(--color-light-blue)]"
-                onClick={() => {
-                  handleMaxBalance(accountTokenBalance);
-                }}
-              >
-                Max
-              </button>
+              {address && (
+                <button
+                  className="text-[color:var(--color-blue)] font-medium underline mx-1 hover:[color:var(--color-light-blue)]"
+                  onClick={() => {
+                    handleMaxBalance(accountTokenBalance);
+                  }}
+                >
+                  Max
+                </button>
+              )}
             </>
           ) : (
             <Skeleton width={50} />
