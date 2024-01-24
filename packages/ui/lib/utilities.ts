@@ -225,11 +225,21 @@ export const parseSubgraphLRTList = (
 
 export const displayEthAmount = (amount: string) => {
   const decimalPlaces = CHAIN_ID === 1 ? 2 : 3;
-  return parseFloat(
+
+  if (!amount || /^0+(\.0+)?$/.test(amount)) {
+    return '0';
+  }
+
+  return `${
     parseFloat(
-      bigDecimal.round(amount, decimalPlaces, bigDecimal.RoundingModes.DOWN)
-    ).toFixed(decimalPlaces)
-  );
+      parseFloat(
+        bigDecimal.round(amount, decimalPlaces, bigDecimal.RoundingModes.DOWN)
+      ).toFixed(decimalPlaces)
+    ) ||
+    `<0.${Array(decimalPlaces - 1)
+      .fill(0)
+      .join('')}1`
+  }`;
 };
 
 export const isEqualAddress = (a: string, b: string) => {
