@@ -1,33 +1,62 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { LRTDetails, TokenSymbol } from '@rio-monorepo/ui/lib/typings';
+import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import ClaimHeader from './ClaimHeader';
 import ItemizedAsset from '@rio-monorepo/ui/components/Assets/ItemizedAsset';
-import ClaimButton from './ClaimButton';
-import { useAccount } from 'wagmi';
 import { ASSETS } from '@rio-monorepo/ui/lib/constants';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
 import Skeleton from 'react-loading-skeleton';
+import {
+  ClaimWithdrawalParams,
+  useLiquidRestakingToken
+} from '@rionetwork/sdk-react';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
+import { useSubgraphConstractWrite } from '@rio-monorepo/ui/hooks/useSubgraphContractWrite';
 
 interface Props {
   lrt: LRTDetails;
 }
 
 export const HydratedClaimForm = ({ lrt }: Props) => {
-  const { address } = useAccount();
+  const lrtClient = useLiquidRestakingToken(lrt.address);
+  const { address } = useAccountIfMounted();
 
-  const { data, refetch } = useGetAccountWithdrawals(
-    { where: { sender: address, restakingToken: lrt?.address } },
+  const {
+    data: { withdrawalAssets, withdrawalParams } = {
+      withdrawalAssets: [{ amount: 0, symbol: 'ETH' }],
+      withdrawalParams: [] as ClaimWithdrawalParams[]
+    },
+    refetch
+  } = useGetAccountWithdrawals(
+    { where: { sender: address, restakingToken: lrt.address } },
     { enabled: !!address && !!lrt?.address }
   );
-  const { withdrawalAssets, withdrawalParams } = data || {
-    withdrawalAssets: [] as { symbol: TokenSymbol; amount: number }[]
-  };
 
-  const onSuccess = useCallback(() => {
-    refetch().catch(console.error);
+  const execute = useCallback(async () => {
+    if (!lrtClient || !address || !withdrawalParams) return;
+
+    return withdrawalParams.length !== 1
+      ? lrtClient.claimWithdrawalsForManyEpochs(withdrawalParams)
+      : lrtClient.claimWithdrawalsForEpoch(withdrawalParams[0]);
+  }, [lrtClient, address, withdrawalParams]);
+
+  const onReset = useCallback(async () => {
+    return refetch().catch(console.error);
   }, [refetch]);
+
+  const canClaim = !!address && !!lrtClient && withdrawalParams?.length > 0;
+
+  const { txHash, isLoading, error, success, write, reset } =
+    useSubgraphConstractWrite({
+      execute,
+      onReset,
+      enabled: canClaim,
+      confirmations: 1
+    });
+
+  useEffect(() => void (success && onReset()), [success, onReset]);
 
   return (
     <div>
@@ -64,11 +93,22 @@ export const HydratedClaimForm = ({ lrt }: Props) => {
           </motion.div>
         )}
       </AnimatePresence>
-      <ClaimButton
-        lrt={lrt}
-        claimWithdrawalParams={withdrawalParams || []}
-        onSuccess={onSuccess}
-      />
+
+      <TransactionButton
+        hash={txHash}
+        disabled={!canClaim || isLoading}
+        isSigning={isLoading}
+        error={error}
+        reset={reset}
+        clearErrors={reset}
+        write={write}
+      >
+        {isLoading
+          ? 'Claiming'
+          : canClaim
+          ? 'Claim'
+          : 'Nothing available to claim'}
+      </TransactionButton>
     </div>
   );
 };

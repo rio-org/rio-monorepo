@@ -3,6 +3,7 @@ import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import Skeleton from 'react-loading-skeleton';
 import cx from 'classnames';
 import {
+  cn,
   displayEthAmount,
   parseBigIntFieldAmount
 } from '@rio-monorepo/ui/lib/utilities';
@@ -13,6 +14,7 @@ import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 
 type Props = {
   amount: bigint | null;
+  disabled?: boolean;
   restakingTokenBalance: bigint;
   restakingToken: LRTDetails;
   setAmount: (amount: bigint | null) => void;
@@ -20,6 +22,7 @@ type Props = {
 
 const WithdrawField = ({
   amount,
+  disabled,
   restakingTokenBalance,
   restakingToken,
   setAmount
@@ -76,12 +79,16 @@ const WithdrawField = ({
       >
         <div className="relative flex flex-row gap-4 items-center">
           <input
-            className="text-[22px] bg-transparent w-full focus:outline-none flex-1"
+            className={cn(
+              'text-[22px] bg-transparent w-full focus:outline-none flex-1',
+              disabled && 'text-gray-700'
+            )}
             id="amount"
             type="number"
             placeholder="0.00"
-            autoFocus={isDesktopOrLaptop}
+            autoFocus={!disabled && isDesktopOrLaptop}
             min={0}
+            disabled={disabled}
             value={parseBigIntFieldAmount(amount, 18)}
             step="0.1"
             ref={inputRef}
@@ -96,6 +103,7 @@ const WithdrawField = ({
             }}
           />
           <button
+            disabled={disabled}
             className="font-medium ml-2 px-3 py-2 bg-[var(--color-element-wrapper-bg)] rounded-xl hover:bg-black hover:bg-opacity-10 transition-colors duration-200"
             onClick={() => {
               setAmount(restakingTokenBalance);

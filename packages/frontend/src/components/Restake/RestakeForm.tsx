@@ -9,11 +9,14 @@ import {
 import { Alert, Spinner } from '@material-tailwind/react';
 import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
 import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
-import { AssetDetails, LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import {
+  AssetDetails,
+  ContractError,
+  LRTDetails
+} from '@rio-monorepo/ui/lib/typings';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
-import DepositButton from './DepositButton';
 import {
   LiquidRestakingTokenClient,
   useLiquidRestakingToken
@@ -21,6 +24,7 @@ import {
 import { Address, Hash, formatUnits, zeroAddress } from 'viem';
 import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
 import Skeleton from 'react-loading-skeleton';
+import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -41,9 +45,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   const [amount, setAmount] = useState<bigint | null>(null);
   const [accountTokenBalance, setAccountTokenBalance] = useState(BigInt(0));
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets?.[0]);
-  const [isDepositError, setIsDepositError] = useState(false);
   const [isDepositLoading, setIsDepositLoading] = useState(false);
-  const [isDepositSuccess, setIsDepositSuccess] = useState(false);
+  const [depositError, setDepositError] = useState<ContractError | null>(null);
   const [depositTxHash, setDepositTxHash] = useState<Hash>();
   const [allowanceTarget, setAllowanceTarget] = useState<Address>();
   const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
@@ -67,11 +70,15 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     !!amount && amount > BigInt(0) && amount <= accountTokenBalance;
   const isEmpty = !amount;
 
+  const clearErrors = () => {
+    setDepositError(null);
+    setIsDepositLoading(false);
+    setDepositTxHash(undefined);
+  };
+
   const resetForm = () => {
     setAmount(null);
-    setIsDepositSuccess(false);
-    setIsDepositError(false);
-    setIsDepositLoading(false);
+    clearErrors();
   };
 
   useEffect(() => {
@@ -95,8 +102,6 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     args: [address || zeroAddress, allowanceTarget || zeroAddress],
     enabled:
       address && allowanceTarget && activeToken && activeToken.symbol !== 'ETH'
-        ? true
-        : false
   });
 
   const handleRefetchAllowance = () => {
@@ -160,7 +165,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   const {
     data: txData,
     isError: isTxError,
-    isLoading: isTxLoading
+    isLoading: isTxLoading,
+    error: txError
   } = useWaitForTransaction({
     hash: depositTxHash,
     enabled: !!depositTxHash
@@ -169,33 +175,29 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   useEffect(() => {
     if (isTxLoading) {
       setIsDepositLoading(true);
-      setIsDepositError(false);
-      setIsDepositSuccess(false);
+      setDepositError(null);
       return;
     }
-    if (isTxError) {
+    if (isTxError || txError) {
       setIsDepositLoading(false);
-      setIsDepositError(true);
-      setIsDepositSuccess(false);
+      setDepositError(txError);
       return;
     }
     if (txData?.status === 'success') {
       setIsDepositLoading(false);
-      setIsDepositError(false);
-      setIsDepositSuccess(true);
+      setDepositError(null);
       setAmount(null);
       return;
     }
     if (txData?.status === 'reverted') {
       setIsDepositLoading(false);
-      setIsDepositError(true);
-      setIsDepositSuccess(false);
+      setDepositError(txError || null);
       return;
     }
-  }, [txData, isTxLoading, isTxError]);
+  }, [txData, isTxLoading, isTxError, txError]);
 
   const handleJoin = async () => {
-    if (!activeToken || !restakingToken) {
+    if (!activeToken || !restakingToken || isDepositLoading) {
       return;
     }
 
@@ -209,22 +211,20 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
 
     await depositFunction
       .then((res) => {
-        setIsDepositSuccess(true);
-        setIsDepositLoading(false);
+        setIsDepositLoading(true);
         setDepositTxHash(res);
         return res;
       })
       .catch((err) => {
         console.error('err', err);
-        setIsDepositError(true);
+        setDepositError(err);
         setIsDepositLoading(false);
       });
   };
 
   const handleExecute = () => {
     setIsDepositLoading(true);
-    setIsDepositError(false);
-    setIsDepositSuccess(false);
+    setDepositError(null);
     setDepositTxHash(undefined);
     handleJoin().catch((e) => {
       console.error(e);
@@ -297,18 +297,23 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
             </strong>
           </div>
           {isAllowed && (
-            <DepositButton
-              isValidAmount={isValidAmount}
-              isEmpty={isEmpty}
-              isDepositLoading={isDepositLoading}
-              isDepositSuccess={isDepositSuccess}
-              isDepositError={isDepositError}
-              accountAddress={address}
-              depositTxHash={depositTxHash}
-              setIsDepositSuccess={setIsDepositSuccess}
-              setIsDepositError={setIsDepositError}
-              handleExecute={handleExecute}
-            />
+            <>
+              <TransactionButton
+                hash={depositTxHash}
+                disabled={!isValidAmount || isEmpty || isDepositLoading}
+                isSigning={isDepositLoading}
+                error={depositError}
+                reset={resetForm}
+                clearErrors={clearErrors}
+                write={handleExecute}
+              >
+                {isEmpty
+                  ? 'Enter an amount'
+                  : !isValidAmount
+                  ? 'Insufficient balance'
+                  : 'Restake'}
+              </TransactionButton>
+            </>
           )}
           {!isAllowed && address && (
             <ApproveButtons

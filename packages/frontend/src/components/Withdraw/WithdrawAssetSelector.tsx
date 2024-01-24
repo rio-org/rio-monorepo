@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { AssetDetails } from '@rio-monorepo/ui/lib/typings';
 import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import AssetItemContent from '@rio-monorepo/ui/components/Assets/AssetItemContent';
@@ -8,8 +8,10 @@ import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import { Drawer } from '@material-tailwind/react';
 import { useOutsideClick } from '@rio-monorepo/ui/hooks/useOutsideClick';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 
 type Props = {
+  disabled?: boolean;
   assetsList: AssetDetails[];
   activeToken: AssetDetails;
   setActiveToken: (token: AssetDetails) => void;
@@ -48,12 +50,13 @@ const List = ({
 
 const WithdrawAssetSelector = ({
   assetsList,
+  disabled,
   activeToken,
   setActiveToken
 }: Props) => {
   const [isListOpen, setIsListOpen] = useState(false);
   const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
@@ -61,10 +64,6 @@ const WithdrawAssetSelector = ({
   const listRef = useOutsideClick(() => {
     setIsListOpen(false);
   }, isButtonHovered);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <>
@@ -83,6 +82,7 @@ const WithdrawAssetSelector = ({
               'flex flex-row gap-4 lg:gap-4 items-center w-full text-left bg-black bg-opacity-5 text-black p-4 lg:px-[20px] lg:py-4 rounded-xl border border-transparent hover:border-gray-300',
               isListOpen && 'border-gray-400 hover:border-gray-400'
             )}
+            disabled={disabled}
             id="asset"
             onClick={() => setIsListOpen(!isListOpen)}
             onMouseEnter={() => setIsButtonHovered(true)}

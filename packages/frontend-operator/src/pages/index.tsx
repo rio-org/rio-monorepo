@@ -11,7 +11,6 @@ import {
 import type { NextPage } from 'next';
 import type { Hex } from 'viem';
 import OperatorKeysWrapper from '@/components/OperatorKeys/OperatorKeysWrapper';
-import SubmitterButton from '@/components/OperatorKeys/SubmitterButton';
 import SubmitterField from '@/components/OperatorKeys/SubmitterField';
 import { useGetLatestAssetPrice } from '@rio-monorepo/ui/hooks/useGetLatestAssetPrice';
 import { useGetOperators } from '@rio-monorepo/ui/hooks/useGetOperators';
@@ -24,6 +23,7 @@ import type {
   ContractError,
   ValidatorKeyItem
 } from '@rio-monorepo/ui/lib/typings';
+import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 
 const DEFAULT_ARGS = [255, 0n, '0x', '0x'] as const;
 
@@ -44,6 +44,7 @@ const OperatorKeysPage: NextPage = () => {
 
   const [error, setError] = useState<ContractError | undefined>();
   const [value, setValue] = useState<string | undefined>();
+  const [isValid, setIsValid] = useState<boolean>(false);
   const [gas, setGas] = useState<bigint>();
 
   const args = useMemo(() => {
@@ -80,20 +81,18 @@ const OperatorKeysPage: NextPage = () => {
     abi: RioLRTOperatorRegistryABI,
     functionName: 'addValidatorDetails',
     args,
-    enabled: !!address && args !== DEFAULT_ARGS
+    enabled: !!address && isValid && args !== DEFAULT_ARGS
   } as const;
 
   const {
     data: feeData,
     isLoading: isFeeDataLoading,
-    isFetching: isFeeDataFetching,
-    error: feeDataError
+    isFetching: isFeeDataFetching
   } = useFeeData(contractWriteOptions);
 
   const {
     config,
     isLoading: isPrepareLoading,
-    isError: isPrepareError,
     error: prepareError
   } = usePrepareContractWrite(contractWriteOptions);
 
@@ -105,11 +104,7 @@ const OperatorKeysPage: NextPage = () => {
     reset: resetWrite
   } = useContractWrite(config);
 
-  const {
-    isSuccess: isTxSuccess,
-    isLoading: isTxLoading,
-    error: txError
-  } = useWaitForTransaction({
+  const { error: txError } = useWaitForTransaction({
     hash: data?.hash
   });
 
@@ -125,20 +120,10 @@ const OperatorKeysPage: NextPage = () => {
   }, [address, client, contractWriteOptions]);
 
   useEffect(() => {
-    setError(
-      prepareError ?? writeError ?? txError ?? feeDataError ?? undefined
-    );
-  }, [prepareError, writeError, txError, feeDataError]);
+    setError(prepareError ?? writeError ?? txError ?? undefined);
+  }, [prepareError, writeError, txError]);
 
-  console.log(
-    isPrepareError,
-    prepareError ?? writeError ?? txError ?? feeDataError ?? undefined
-  );
-
-  const isLoading = isWriteLoading || isTxLoading;
-  const inputDisabled =
-    !address || (isFetched && !operators?.length) || isTxLoading;
-  const submitDisabled = inputDisabled || isLoading || isPrepareLoading;
+  const isNotOperator = !!address && isFetched && !operators?.length;
   const gasPriceEth =
     isFeeDataLoading || isFeeDataFetching
       ? undefined
@@ -157,14 +142,25 @@ const OperatorKeysPage: NextPage = () => {
     []
   );
 
-  const handleValidation = useCallback(
-    (json: string) => validateOperatorKeys({ json }),
-    []
-  );
+  const handleValidation = useCallback((json: string) => {
+    try {
+      validateOperatorKeys({ json });
+      setIsValid(true);
+      return true;
+    } catch (e) {
+      setIsValid(false);
+      throw e;
+    }
+  }, []);
+
+  const clearErrors = useCallback(() => {
+    resetWrite();
+    setError(undefined);
+  }, []);
 
   const resetForm = useCallback(() => {
     setValue('');
-    resetWrite();
+    clearErrors();
   }, []);
 
   return (
@@ -172,8 +168,7 @@ const OperatorKeysPage: NextPage = () => {
       <SubmitterField
         validation={handleValidation}
         onChange={handleChange}
-        disabled={inputDisabled}
-        readOnly={inputDisabled}
+        disabled={!address || isNotOperator}
         autoFocus={!!address}
         isOperator={!address || !isFetched ? undefined : !!operators?.length}
         value={
@@ -217,21 +212,23 @@ const OperatorKeysPage: NextPage = () => {
           )}
         </div>
       </div>
-      <SubmitterButton
-        operatorId={args[0]}
-        txError={error}
-        disabled={submitDisabled}
-        isValid={!!write}
-        isEmpty={!value}
-        isTxLoading={isLoading}
-        isTxError={!!txError}
-        isTxSuccess={isTxSuccess}
+      <TransactionButton
+        hash={data?.hash}
+        disabled={isNotOperator || isWriteLoading || isPrepareLoading}
+        isSigning={isWriteLoading}
         error={error}
-        txHash={data?.hash}
-        setIsTxSuccess={resetForm}
-        setisTxError={() => setError(undefined)}
-        handleExecute={() => write?.()}
-      />
+        reset={resetForm}
+        clearErrors={clearErrors}
+        write={write}
+      >
+        {!!address && isFetched && !operators?.length
+          ? 'Not a registered operator'
+          : !value
+          ? 'Enter your keys'
+          : !write
+          ? 'Keys entered are invalid'
+          : null}
+      </TransactionButton>
     </OperatorKeysWrapper>
   );
 };

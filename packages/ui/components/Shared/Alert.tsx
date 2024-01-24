@@ -8,10 +8,10 @@ import { CHAIN_ID } from '../../config';
 type Props = {
   isSuccess: boolean;
   isError: boolean;
-  errorMessage?: string;
+  errorMessage?: string | null;
   txHash?: `0x${string}`;
-  setIsSuccess: (isSuccess: boolean) => void;
-  setIsError: (isError: boolean) => void;
+  setIsSuccess?: (isSuccess: boolean) => void;
+  setIsError?: (isError: boolean) => void;
 };
 
 const Alert = ({
@@ -25,19 +25,19 @@ const Alert = ({
   return (
     <>
       {isSuccess && (
-        <motion.div
+        <motion.button
           className="p-4 text-center flex flex-col gap-0 justify-center items-center text-[14px] rounded-full w-full bg-[var(--color-green-bg)] text-[var(--color-green)]"
           variants={TX_BUTTON_VARIANTS}
-          onClick={() => setIsSuccess(false)}
+          onClick={() => setIsSuccess?.(false)}
         >
           <span className="font-medium">Success</span>
-        </motion.div>
+        </motion.button>
       )}
       {(isError || errorMessage) && (
         <motion.button
           className="p-4 text-center text-[14px] rounded-full w-full bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] hover:bg-[var(--color-yellow-bg-hover)]"
           variants={TX_BUTTON_VARIANTS}
-          onClick={() => setIsError(false)}
+          onClick={() => setIsError?.(false)}
         >
           <span className="font-medium block">
             {errorMessage || 'Error. Please try again.'}
