@@ -61,7 +61,9 @@ function buildFetcherAndParser(
   config?: Parameters<SubgraphClient['getWithdrawalRequests']>[0]
 ) {
   return async () => {
-    const withdrawalRequests = await subgraph.getWithdrawalRequests(config);
+    const withdrawalRequests = await subgraph
+      .getWithdrawalRequests(config)
+      .then((res) => res.sort((a, b) => +b.timestamp - +a.timestamp));
     return <UseGetAccountWithdrawalsReturn>{
       withdrawalRequests,
       ...parseWithdrawalRequests(withdrawalRequests, assets)

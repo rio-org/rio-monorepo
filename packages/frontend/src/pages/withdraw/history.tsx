@@ -3,18 +3,18 @@ import type { NextPage } from 'next';
 import WithdrawWrapper from '@/components/Withdraw/WithdrawWrapper';
 import WithdrawalRequestRow from '@/components/History/WithdrawalRequestRow';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useAccount } from 'wagmi';
 import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
 import { Spinner } from '@material-tailwind/react';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 
 const History: NextPage = () => {
   const { data: lrts } = useGetLiquidRestakingTokens();
   const lrt = lrts?.[0];
 
   const isMounted = useIsMounted();
-  const { address } = useAccount();
+  const { address } = useAccountIfMounted();
   const { data, isLoading, isFetched } = useGetAccountWithdrawals(
     { where: { sender: address, restakingToken: lrt?.address } },
     { enabled: !!address && !!lrt?.address }
