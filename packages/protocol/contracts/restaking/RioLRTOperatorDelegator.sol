@@ -14,9 +14,11 @@ import {ISignatureUtils} from 'contracts/interfaces/eigenlayer/ISignatureUtils.s
 import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {Memory} from 'contracts/utils/Memory.sol';
 import {Array} from 'contracts/utils/Array.sol';
+import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     using SafeERC20 for IERC20;
+    using Asset for address;
     using Array for *;
 
     /// @dev The length of a BLS12-381 public key.
@@ -218,6 +220,12 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
             withdrawer: withdrawer
         });
         root = delegationManager.queueWithdrawals(withdrawalParams)[0];
+    }
+
+    /// @notice Forwards ETH rewards to the reward distributor. This includes partial
+    /// withdrawals and any amount in excess of 32 ETH for full withdrawals.
+    receive() external payable {
+        rewardDistributor.transferETH(msg.value);
     }
 
     /// @dev Compute withdrawal credentials for the given EigenPod.
