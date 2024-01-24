@@ -211,7 +211,13 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     /// @param shares The amount of shares to withdraw.
     /// @param withdrawer The address who has permission to complete the withdrawal.
     function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external onlyCoordinatorOrOperatorRegistry returns (bytes32 root) {
-        root = delegationManager.queueWithdrawal(strategy.toArray(), shares.toArray(), withdrawer);
+        IDelegationManager.QueuedWithdrawalParams[] memory withdrawalParams = new IDelegationManager.QueuedWithdrawalParams[](1);
+        withdrawalParams[0] = IDelegationManager.QueuedWithdrawalParams({
+            strategies: strategy.toArray(),
+            shares: shares.toArray(),
+            withdrawer: withdrawer
+        });
+        root = delegationManager.queueWithdrawals(withdrawalParams)[0];
     }
 
     /// @dev Compute withdrawal credentials for the given EigenPod.

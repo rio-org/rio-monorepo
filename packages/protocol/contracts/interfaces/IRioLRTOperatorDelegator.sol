@@ -41,7 +41,8 @@ interface IRioLRTOperatorDelegator {
     /// @param depositPool The LRT deposit pool.
     /// @param rewardDistributor The LRT reward distributor.
     /// @param operator The operator's address.
-    function initialize(address coordinator, address depositPool, address rewardDistributor, address operator) external;
+    function initialize(address coordinator, address depositPool, address rewardDistributor, address operator)
+        external;
 
     /// @notice Returns the number of shares in the operator delegator's EigenPod.
     function getEigenPodShares() external view returns (int256);
