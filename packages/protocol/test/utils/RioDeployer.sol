@@ -193,7 +193,9 @@ abstract contract RioDeployer is EigenLayerDeployer {
         uint8 validatorCount
     ) public {
         IRioLRTOperatorRegistry.OperatorPublicDetails memory details = operatorRegistry.getOperatorDetails(operatorId);
-        bytes32 withdrawalCredentials = RioLRTOperatorDelegator(payable(details.operatorContract)).withdrawalCredentials();
+        RioLRTOperatorDelegator operatorDelegator = RioLRTOperatorDelegator(payable(details.operatorContract));
+
+        bytes32 withdrawalCredentials = operatorDelegator.withdrawalCredentials();
 
         beaconChain.setNextTimestamp(block.timestamp);
         for (uint8 i = 0; i < validatorCount; i++) {
