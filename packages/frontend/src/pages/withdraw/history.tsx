@@ -1,8 +1,7 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '@/components/Withdraw/WithdrawWrapper';
 import WithdrawalRequestRow from '@/components/History/WithdrawalRequestRow';
-import ClaimButton from '@/components/Claim/ClaimButton';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAccount } from 'wagmi';
 import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
@@ -16,18 +15,12 @@ const History: NextPage = () => {
 
   const isMounted = useIsMounted();
   const { address } = useAccount();
-  const { data, isLoading, refetch, isFetched } = useGetAccountWithdrawals(
+  const { data, isLoading, isFetched } = useGetAccountWithdrawals(
     { where: { sender: address, restakingToken: lrt?.address } },
     { enabled: !!address && !!lrt?.address }
   );
 
-  const { withdrawalRequests, withdrawalParams } = data || {};
-
-  const onSuccess = useCallback(() => {
-    refetch().catch(console.error);
-  }, [refetch]);
-
-  const hasClaimAvailable = !!address && !!withdrawalParams?.length;
+  const { withdrawalRequests } = data || {};
 
   return (
     <WithdrawWrapper noPadding>
@@ -76,15 +69,6 @@ const History: NextPage = () => {
                   </motion.tbody>
                 </AnimatePresence>
               </table>
-              {isMounted && hasClaimAvailable && lrt && (
-                <div className="px-6 mt-2 mb-6">
-                  <ClaimButton
-                    lrt={lrt}
-                    claimWithdrawalParams={withdrawalParams || []}
-                    onSuccess={onSuccess}
-                  />
-                </div>
-              )}
             </motion.div>
           ) : (
             address && (
