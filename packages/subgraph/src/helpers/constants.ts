@@ -8,6 +8,8 @@ export const ZERO_BI = BigInt.fromString('0');
 
 export const ZERO_BD = BigDecimal.fromString('0');
 
+export const STAT_UPDATE_MIN_TRADE = BigDecimal.fromString('0.0000000001');
+
 export const USD_PRICE_FEED_DECIMALS: u8 = 8;
 
 export const CHAINLINK_FEED_TYPE = 'CHAINLINK';

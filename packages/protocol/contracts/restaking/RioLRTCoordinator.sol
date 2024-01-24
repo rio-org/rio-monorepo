@@ -192,7 +192,11 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         }
 
         // Deposit remaining assets into EigenLayer.
-        assetSharesHeld[asset] += depositPool.depositBalanceIntoEigenLayer(asset);
+        uint256 sharesReceived = depositPool.depositBalanceIntoEigenLayer(asset);
+        if (sharesOwed == 0 && sharesReceived == 0) {
+            revert NO_REBALANCE_NEEDED();
+        }
+        assetSharesHeld[asset] += sharesReceived;
 
         emit Rebalanced(asset);
     }

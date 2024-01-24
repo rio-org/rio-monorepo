@@ -47,6 +47,9 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     /// @notice The address of the LRT operator registry.
     address public operatorRegistry;
 
+    /// @notice The address of the LRT coordinator.
+    address public coordinator;
+
     /// @notice The LRT deposit pool.
     address public depositPool;
 
@@ -71,11 +74,11 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
         _;
     }
 
-    /// @notice Require that the caller is the LRT's deposit pool
-    /// or the LRT's operator registry.
-    modifier onlyDepositPoolOrOperatorRegistry() {
-        if (msg.sender != depositPool && msg.sender != operatorRegistry) {
-            revert ONLY_DEPOSIT_POOL_OR_OPERATOR_REGISTRY();
+    /// @notice Require that the caller is the LRT's coordinator
+    /// or the operator registry.
+    modifier onlyCoordinatorOrOperatorRegistry() {
+        if (msg.sender != coordinator && msg.sender != operatorRegistry) {
+            revert ONLY_COORDINATOR_OR_OPERATOR_REGISTRY();
         }
         _;
     }
@@ -93,15 +96,19 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract by registering the operator with EigenLayer.
+    /// @param coordinator_ The LRT coordinator.
     /// @param depositPool_ The LRT deposit pool.
     /// @param rewardDistributor_ The LRT reward distributor.
     /// @param operator The operator's address.
     function initialize(
+        address coordinator_,
         address depositPool_,
         address rewardDistributor_,
         address operator
     ) external initializer {
         operatorRegistry = msg.sender;
+
+        coordinator = coordinator_;
         depositPool = depositPool_;
         rewardDistributor = rewardDistributor_;
 
@@ -203,8 +210,14 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     /// @param strategy The strategy to withdraw from.
     /// @param shares The amount of shares to withdraw.
     /// @param withdrawer The address who has permission to complete the withdrawal.
-    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external onlyDepositPoolOrOperatorRegistry returns (bytes32 root) {
-        root = delegationManager.queueWithdrawal(strategy.toArray(), shares.toArray(), withdrawer);
+    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external onlyCoordinatorOrOperatorRegistry returns (bytes32 root) {
+        IDelegationManager.QueuedWithdrawalParams[] memory withdrawalParams = new IDelegationManager.QueuedWithdrawalParams[](1);
+        withdrawalParams[0] = IDelegationManager.QueuedWithdrawalParams({
+            strategies: strategy.toArray(),
+            shares: shares.toArray(),
+            withdrawer: withdrawer
+        });
+        root = delegationManager.queueWithdrawals(withdrawalParams)[0];
     }
 
     /// @dev Compute withdrawal credentials for the given EigenPod.

@@ -1,7 +1,7 @@
 import { Deposited } from '../generated/templates/Coordinator/RioLRTCoordinator';
 import { Asset, Coordinator, Deposit, LiquidRestakingToken } from '../generated/schema';
 import { findOrCreateUser, getExchangeRateUSD, toUnits } from './helpers/utils';
-import { ETH_ADDRESS, ZERO_BD } from './helpers/constants';
+import { ETH_ADDRESS, STAT_UPDATE_MIN_TRADE, ZERO_BD } from './helpers/constants';
 import { BigDecimal } from '@graphprotocol/graph-ts';
 
 export function handleDeposited(event: Deposited): void {
@@ -14,12 +14,16 @@ export function handleDeposited(event: Deposited): void {
   const amountOutUnits = toUnits(event.params.amountOut.toBigDecimal());
 
   const restakingToken = LiquidRestakingToken.load(coordinator.restakingToken)!;
-  restakingToken.exchangeRateETH = getExchangeRateETH(assetIn, amountInUnits, amountOutUnits);
-  restakingToken.exchangeRateUSD = getExchangeRateUSD(assetIn, restakingToken.exchangeRateETH, assetIn.latestUSDPrice);
-  restakingToken.totalValueETH = restakingToken.exchangeRateETH && restakingToken.totalSupply.times(restakingToken.exchangeRateETH!);
-  restakingToken.totalValueUSD = restakingToken.exchangeRateUSD && restakingToken.totalSupply.times(restakingToken.exchangeRateUSD!);
-  restakingToken.percentAPY = ZERO_BD;
-  restakingToken.save();
+
+  // Update exchange rates if enough of the LRT was minted to avoid precision loss.
+  if (amountOutUnits.ge(STAT_UPDATE_MIN_TRADE)) {
+    restakingToken.exchangeRateETH = getExchangeRateETH(assetIn, amountInUnits, amountOutUnits);
+    restakingToken.exchangeRateUSD = getExchangeRateUSD(assetIn, restakingToken.exchangeRateETH, assetIn.latestUSDPrice);
+    restakingToken.totalValueETH = restakingToken.exchangeRateETH && restakingToken.totalSupply.times(restakingToken.exchangeRateETH!);
+    restakingToken.totalValueUSD = restakingToken.exchangeRateUSD && restakingToken.totalSupply.times(restakingToken.exchangeRateUSD!);
+    restakingToken.percentAPY = ZERO_BD;
+    restakingToken.save();
+  }
 
   const deposit = new Deposit(`${event.transaction.hash.toHex()}-${event.logIndex.toString()}`);
   deposit.user = user.id;
@@ -28,6 +32,7 @@ export function handleDeposited(event: Deposited): void {
   deposit.amountIn = amountInUnits;
   deposit.amountOut = amountOutUnits;
   deposit.restakingToken = restakingToken.id;
+  deposit.restakingTokenPriceUSD = restakingToken.exchangeRateUSD;
   deposit.userBalanceBefore = user.balance;
   deposit.userBalanceAfter = deposit.userBalanceBefore.plus(amountOutUnits);
   deposit.timestamp = event.block.timestamp;

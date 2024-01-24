@@ -21,6 +21,9 @@ interface IRioLRTCoordinator {
     /// @notice Thrown when attempting rebalance before the rebalance delay has elapsed.
     error REBALANCE_DELAY_NOT_MET();
 
+    /// @notice Thrown when attempting to rebalance an asset that does not need to be rebalanced.
+    error NO_REBALANCE_NEEDED();
+
     /// @notice Emitted when a user deposits an asset into Rio.
     /// @param user The address of the user.
     /// @param asset The address of the asset.

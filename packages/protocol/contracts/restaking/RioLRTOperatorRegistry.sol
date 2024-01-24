@@ -187,7 +187,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
         // Create the operator with the provided salt and initialize it.
         delegator = address(new BeaconProxy(operatorBeaconImpl, ''));
-        IRioLRTOperatorDelegator(delegator).initialize(depositPool, rewardDistributor, operator);
+        IRioLRTOperatorDelegator(delegator).initialize(address(coordinator), depositPool, rewardDistributor, operator);
 
         OperatorDetails storage _operator = operatorDetails[operatorId];
         _operator.active = true;
@@ -496,7 +496,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         allocations = new OperatorStrategyAllocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForStrategy(strategy);
-        if (heap.isEmpty()) revert NO_AVAILABLE_OPERATORS_FOR_ALLOCATION();
+        if (heap.isEmpty()) {
+            return (sharesAllocated, allocations);
+        }
 
         uint256 allocationIndex;
         uint256 remainingShares = sharesToAllocate;
@@ -546,7 +548,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         allocations = new OperatorETHAllocation[](activeOperatorCount);
 
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForETH();
-        if (heap.isEmpty()) revert NO_AVAILABLE_OPERATORS_FOR_ALLOCATION();
+        if (heap.isEmpty()) {
+            return (depositsAllocated, allocations);
+        }
 
         uint256 allocationIndex;
         uint256 remainingDeposits = depositsToAllocate;
@@ -607,7 +611,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
             }
         }
         depositsAllocated = depositsToAllocate - remainingDeposits;
-        if (depositsAllocated == 0) revert NO_AVAILABLE_OPERATORS_FOR_ALLOCATION();
+        if (depositsAllocated == 0) {
+            return (depositsAllocated, allocations);
+        }
 
         // Reinsert skipped operators back into the heap.
         for (uint256 i = 0; i < skippedOperatorCount; ++i) {

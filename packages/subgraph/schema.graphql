@@ -103,6 +103,7 @@ type Deposit @entity(immutable: true) {
   amountIn: BigDecimal!
   amountOut: BigDecimal!
   restakingToken: LiquidRestakingToken!
+  restakingTokenPriceUSD: BigDecimal
   userBalanceBefore: BigDecimal!
   userBalanceAfter: BigDecimal!
   valueUSD: BigDecimal
@@ -121,6 +122,7 @@ type WithdrawalRequest @entity {
   sharesOwed: BigDecimal!
   amountIn: BigDecimal!
   restakingToken: LiquidRestakingToken!
+  restakingTokenPriceUSD: BigDecimal
   userBalanceBefore: BigDecimal!
   userBalanceAfter: BigDecimal!
   valueUSD: BigDecimal
@@ -143,6 +145,7 @@ type WithdrawalClaim @entity {
   assetOut: Asset!
   amountOut: BigDecimal!
   restakingToken: LiquidRestakingToken!
+  restakingTokenPriceUSD: BigDecimal
   requests: [WithdrawalRequest!] @derivedFrom(field: "claim") # The withdrawal requests that were claimed.
   valueUSD: BigDecimal
   timestamp: BigInt!

@@ -77,9 +77,18 @@ interface IDelegationManager is ISignatureUtils {
         // Block number when the Withdrawal was created
         uint32 startBlock;
         // Array of strategies that the Withdrawal contains
-        IStrategy[] strategies;
+        address[] strategies;
         // Array containing the amount of shares in each Strategy in the `strategies` array
         uint256[] shares;
+    }
+
+    struct QueuedWithdrawalParams {
+        // Array of strategies that the QueuedWithdrawal contains
+        address[] strategies;
+        // Array containing the amount of shares in each Strategy in the `strategies` array
+        uint256[] shares;
+        // The address of the withdrawer
+        address withdrawer;
     }
 
     /// @notice Emitted when a new operator registers in EigenLayer and provides their OperatorDetails.
@@ -186,13 +195,13 @@ interface IDelegationManager is ISignatureUtils {
     /// @dev Reverts if the `staker` is already undelegated.
     function undelegate(address staker) external returns (bytes32 withdrawalRoot);
 
-    /// @notice Allows a staker to withdraw some shares. Withdrawn shares/strategies are immediately removed
+    /// Allows a staker to withdraw some shares. Withdrawn shares/strategies are immediately removed
     /// from the staker. If the staker is delegated, withdrawn shares/strategies are also removed from
     /// their operator.
     /// All withdrawn shares/strategies are placed in a queue and can be fully withdrawn after a delay.
-    function queueWithdrawal(address[] calldata strategies, uint256[] calldata shares, address withdrawer)
+    function queueWithdrawals(QueuedWithdrawalParams[] calldata queuedWithdrawalParams)
         external
-        returns (bytes32);
+        returns (bytes32[] memory);
 
     /// @notice Used to complete the specified `withdrawal`. The caller must match `withdrawal.withdrawer`
     /// @param withdrawal The Withdrawal to complete.
