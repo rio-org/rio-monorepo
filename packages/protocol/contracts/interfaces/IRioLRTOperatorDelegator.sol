@@ -10,9 +10,9 @@ interface IRioLRTOperatorDelegator {
     /// @notice Thrown when the caller is not the deposit pool.
     error ONLY_DEPOSIT_POOL();
 
-    /// @notice Thrown when the caller is not the deposit pool
+    /// @notice Thrown when the caller is not the LRT's coordinator
     /// or the operator registry.
-    error ONLY_DEPOSIT_POOL_OR_OPERATOR_REGISTRY();
+    error ONLY_COORDINATOR_OR_OPERATOR_REGISTRY();
 
     /// @notice Thrown when the earnings receiver is not set to the reward distributor.
     error INVALID_EARNINGS_RECEIVER();
@@ -37,10 +37,11 @@ interface IRioLRTOperatorDelegator {
     error INVALID_SIGNATURES_BATCH_LENGTH(uint256 actual, uint256 expected);
 
     /// @notice Initializes the contract by delegating to the provided EigenLayer operator.
+    /// @param coordinator The LRT coordinator.
     /// @param depositPool The LRT deposit pool.
     /// @param rewardDistributor The LRT reward distributor.
     /// @param operator The operator's address.
-    function initialize(address depositPool, address rewardDistributor, address operator) external;
+    function initialize(address coordinator, address depositPool, address rewardDistributor, address operator) external;
 
     /// @notice Returns the number of shares in the operator delegator's EigenPod.
     function getEigenPodShares() external view returns (int256);
