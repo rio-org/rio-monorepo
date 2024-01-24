@@ -7,6 +7,7 @@ import { twJoin } from 'tailwind-merge';
 
 type Props = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   validation: (str: string) => boolean;
+  isOperator?: boolean;
 };
 
 const SubmitterField = ({
@@ -16,6 +17,7 @@ const SubmitterField = ({
   disabled,
   onBlur,
   readOnly,
+  isOperator,
   ...props
 }: Props) => {
   const [status, setStatus] = useState<{
@@ -56,7 +58,8 @@ const SubmitterField = ({
         className={cn(
           '[&>div]:first-of-type:px-0 [&>div]:first-of-type:py-0',
           'relative z-10',
-          status.value === 'invalid' && '[&_*]:!border-red-500'
+          (isOperator === false || status.value === 'invalid') &&
+            '[&_*]:!border-red-500'
         )}
         textAreaClassName={cn(
           'min-h-[80px] max-h-[200px] !p-4',
@@ -73,7 +76,7 @@ const SubmitterField = ({
         {...props}
       />
       <AnimatePresence>
-        {status.message && (
+        {(isOperator === false || status.message) && (
           <motion.div
             initial={{ opacity: 1, translateY: -64, maxHeight: 0 }}
             animate={{ opacity: 1, translateY: -8, maxHeight: 90 }}
@@ -84,7 +87,9 @@ const SubmitterField = ({
             )}
           >
             <div className="w-full max-h-[90px-1.75rem] overflow-hidden line-clamp-3">
-              {status.message}
+              {isOperator === false
+                ? 'You cannot submit operator keys as your wallet address is not registered as an operator manager.'
+                : status.message}
             </div>
           </motion.div>
         )}

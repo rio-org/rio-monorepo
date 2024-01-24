@@ -93,6 +93,7 @@ const OperatorKeysPage: NextPage = () => {
   const {
     config,
     isLoading: isPrepareLoading,
+    isError: isPrepareError,
     error: prepareError
   } = usePrepareContractWrite(contractWriteOptions);
 
@@ -128,6 +129,11 @@ const OperatorKeysPage: NextPage = () => {
       prepareError ?? writeError ?? txError ?? feeDataError ?? undefined
     );
   }, [prepareError, writeError, txError, feeDataError]);
+
+  console.log(
+    isPrepareError,
+    prepareError ?? writeError ?? txError ?? feeDataError ?? undefined
+  );
 
   const isLoading = isWriteLoading || isTxLoading;
   const inputDisabled =
@@ -169,6 +175,7 @@ const OperatorKeysPage: NextPage = () => {
         disabled={inputDisabled}
         readOnly={inputDisabled}
         autoFocus={!!address}
+        isOperator={!address || !isFetched ? undefined : !!operators?.length}
         value={
           !address
             ? 'Connect your wallet to submit operator keys'

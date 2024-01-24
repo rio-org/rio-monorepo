@@ -173,6 +173,5 @@ export const TX_HISTORY_TABLE_HEADER_LABELS = [
   'Date',
   'Transaction',
   'Historical reETH price',
-  'Amount (USD)',
-  'Balance'
+  'Amount (USD)'
 ];

@@ -121,31 +121,6 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
               </TableLabel>
             </div>
           </motion.td>
-          <motion.td
-            key={`${index}-balance`}
-            className={cx(
-              'p-4 pr-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors w-[15%]',
-              isFirst && 'rounded-tr-xl'
-            )}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: exitDuration } }}
-            transition={{
-              duration: animationDuration,
-              delay: index * animationDelay
-            }}
-          >
-            <TableLabel textDirection="right">
-              {event.userBalanceAfter} reETH
-            </TableLabel>
-            <TableLabel isSecondary={true} textDirection="right">
-              $
-              {(
-                (event.userBalanceAfter * event.valueUSD) /
-                (event.amountChange || 1)
-              ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </TableLabel>
-          </motion.td>
         </motion.tr>
       )}
     </AnimatePresence>
@@ -188,24 +163,6 @@ const MobileRow = ({
           <span className="">{isOpen ? 'Collapse' : 'Expand'}</span>
           <IconExpand isExpanded={isOpen} />
         </button>
-      </td>
-      <td
-        className={cx(
-          'p-4 pr-6 text-right bg-white w-[50%]',
-          isFirst && 'rounded-tr-xl'
-        )}
-      >
-        <span className="block text-[12px] font-normal opacity-50 text-right w-full">
-          Balance / Amount
-        </span>
-        <TableLabel textDirection="right">
-          <span className="pt-1 block">{event.amountChange} reETH</span>
-        </TableLabel>
-        <span className="mt-2 block">
-          <TableLabel textDirection="right" isSecondary={true}>
-            {event.amountChange} reETH
-          </TableLabel>
-        </span>
       </td>
 
       <AnimatePresence>

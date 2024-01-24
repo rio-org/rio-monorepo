@@ -2,6 +2,7 @@ import { useGetDeposits } from './useGetDeposits';
 import { useGetWithdrawalClaims } from './useGetWithdrawalClaims';
 import { useGetAccountWithdrawals } from './useGetAccountWithdrawals';
 import { useCallback, useMemo } from 'react';
+import { UseQueryResult } from 'react-query';
 import { Address } from 'viem';
 import {
   BaseAssetDetails,
@@ -74,56 +75,31 @@ export const useTransactionHistory = (config?: {
       .reverse();
   }, [deposits, claims, withdrawalRequests, lrtLookup]);
 
-  const refetch = useCallback(() => {
-    claimsValues.refetch().catch((e) => console.error('claimsValues error', e));
-    requestsValues
-      .refetch()
-      .catch((e) => console.error('requestsValues error', e));
-    depositsValues
-      .refetch()
-      .catch((e) => console.error('depositsValues error', e));
+  const values = [
+    claimsValues,
+    requestsValues,
+    depositsValues,
     lrtListValues
-      .refetch()
-      .catch((e) => console.error('lrtListValues error', e));
-  }, [
-    claimsValues.refetch,
-    requestsValues.refetch,
-    depositsValues.refetch,
-    lrtListValues.refetch
-  ]);
+  ] as const;
+
+  const refetch = useCallback(
+    () => refetchAll(values),
+    [
+      claimsValues.refetch,
+      requestsValues.refetch,
+      depositsValues.refetch,
+      lrtListValues.refetch
+    ]
+  );
 
   return {
     data: txHistory,
-    error:
-      claimsValues.error ||
-      requestsValues.error ||
-      depositsValues.error ||
-      lrtListValues.error,
-    isLoading:
-      claimsValues.isLoading ||
-      requestsValues.isLoading ||
-      depositsValues.isLoading ||
-      lrtListValues.isLoading,
-    isError:
-      claimsValues.isError ||
-      requestsValues.isError ||
-      depositsValues.isError ||
-      lrtListValues.isError,
-    isFetching:
-      claimsValues.isFetching ||
-      requestsValues.isFetching ||
-      depositsValues.isFetching ||
-      lrtListValues.isFetching,
-    isFetched:
-      claimsValues.isFetched &&
-      requestsValues.isFetched &&
-      depositsValues.isFetched &&
-      lrtListValues.isFetched,
-    isSuccess:
-      claimsValues.isSuccess &&
-      requestsValues.isSuccess &&
-      depositsValues.isSuccess &&
-      lrtListValues.isSuccess,
+    error: findFirstTruthy(values, 'error') ?? null,
+    isLoading: findFirstTruthy(values, 'isLoading') ?? false,
+    isError: findFirstTruthy(values, 'isError') ?? false,
+    isFetching: findFirstTruthy(values, 'isFetching') ?? false,
+    isFetched: allAreTruthy(values, 'isFetched'),
+    isSuccess: allAreTruthy(values, 'isSuccess'),
     refetch
   };
 };
@@ -131,6 +107,27 @@ export const useTransactionHistory = (config?: {
 ///////////
 // helpers
 ///////////
+
+function refetchAll(
+  values: readonly (Partial<UseQueryResult> & { refetch(): void })[]
+) {
+  values.forEach((v) => {
+    v.refetch().catch((e) => console.error(`refetch error`, e));
+  });
+}
+function allAreTruthy<T extends keyof UseQueryResult>(
+  values: readonly Partial<UseQueryResult>[],
+  field: T
+): boolean {
+  return values.every((v) => v[field]);
+}
+
+function findFirstTruthy<T extends keyof UseQueryResult>(
+  values: readonly Partial<UseQueryResult>[],
+  field: T
+): Partial<UseQueryResult>[T] | undefined {
+  return values.find((v) => v[field])?.[field];
+}
 
 function buildParseTx(lrtLookup: Record<Address, BaseAssetDetails>) {
   return <
@@ -149,20 +146,18 @@ function buildParseTx(lrtLookup: Record<Address, BaseAssetDetails>) {
           ? TransactionType.Request
           : TransactionType.Deposit;
       const isClaim = type === TransactionType.Claim;
-      const isDeposit = type === TransactionType.Deposit;
-      const _tx = tx as Deposit | WithdrawalRequest;
+      const _ctx = tx as WithdrawalClaim;
+      const _dtx = tx as Deposit | WithdrawalRequest;
       return {
         type,
         date: tx.timestamp,
         address: tx.sender,
-        valueUSD: !isClaim ? Number(tx.valueUSD) : 0,
-        amountChange: isClaim
-          ? 0
-          : Number(isDeposit ? _tx.amountIn : _tx.amountIn),
+        valueUSD: Number(tx.valueUSD),
+        amountChange: Number(isClaim ? _ctx.amountClaimed : _dtx.amountIn),
         restakingToken: lrtLookup[tx.restakingToken as Address],
         tx: tx.tx,
         ...(!isClaim && {
-          userBalanceAfter: Number((tx as Deposit).userBalanceAfter)
+          userBalanceAfter: Number(_dtx.userBalanceAfter)
         })
       } as RawTransactionEvent<R>;
     });
