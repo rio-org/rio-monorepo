@@ -108,7 +108,7 @@ const SubmitterButton = ({
           </motion.div>
         )}
 
-        {!(isTxError || isTxSuccess) && (
+        {!(isTxError || isTxSuccess || error) && (
           <motion.button
             className={cn(
               'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',

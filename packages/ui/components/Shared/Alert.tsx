@@ -26,7 +26,7 @@ const Alert = ({
     <>
       {isSuccess && (
         <motion.div
-          className="p-4 text-center flex flex-col gap-0 justify-center items-center text-[14px] rounded-lg w-full bg-[var(--color-green-bg)] text-[var(--color-green)]"
+          className="p-4 text-center flex flex-col gap-0 justify-center items-center text-[14px] rounded-full w-full bg-[var(--color-green-bg)] text-[var(--color-green)]"
           variants={TX_BUTTON_VARIANTS}
           onClick={() => setIsSuccess(false)}
         >
@@ -35,7 +35,7 @@ const Alert = ({
       )}
       {(isError || errorMessage) && (
         <motion.button
-          className="p-4 text-center text-[14px] rounded-lg w-full bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] hover:bg-[var(--color-yellow-bg-hover)]"
+          className="p-4 text-center text-[14px] rounded-full w-full bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] hover:bg-[var(--color-yellow-bg-hover)]"
           variants={TX_BUTTON_VARIANTS}
           onClick={() => setIsError(false)}
         >
