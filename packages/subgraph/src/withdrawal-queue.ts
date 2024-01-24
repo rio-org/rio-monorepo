@@ -34,6 +34,7 @@ export function handleWithdrawalQueued(event: WithdrawalQueued): void {
   request.sharesOwed = sharesOwedUnits;
   request.amountIn = amountInUnits;
   request.restakingToken = queue.restakingToken;
+  request.restakingTokenPriceUSD = restakingToken.exchangeRateUSD;
   request.userBalanceBefore = user.balance;
   request.userBalanceAfter = request.userBalanceBefore.minus(amountInUnits);
   request.timestamp = event.block.timestamp;
@@ -62,6 +63,8 @@ export function handleWithdrawalsClaimedForEpoch(event: WithdrawalsClaimedForEpo
     queue.restakingToken, event.params.epoch, event.params.asset, event.params.withdrawer, false
   );
 
+  const restakingToken = LiquidRestakingToken.load(queue.restakingToken)!;
+
   const asset = findOrCreateAsset(event.params.asset, false);
   const withdrawalEpoch = findOrCreateWithdrawalEpoch(queue.restakingToken, event.params.epoch, asset, true);
   withdrawalEpoch.claimCount = withdrawalEpoch.claimCount + 1;
@@ -74,6 +77,7 @@ export function handleWithdrawalsClaimedForEpoch(event: WithdrawalsClaimedForEpo
   claim.assetOut = asset.id;
   claim.amountOut = toUnits(event.params.amountOut.toBigDecimal(), asset.decimals as u8);
   claim.restakingToken = queue.restakingToken;
+  claim.restakingTokenPriceUSD = restakingToken.exchangeRateUSD;
   claim.timestamp = event.block.timestamp;
   claim.blockNumber = event.block.number;
   claim.tx = event.transaction.hash;
