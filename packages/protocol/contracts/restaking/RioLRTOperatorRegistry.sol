@@ -187,7 +187,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
         // Create the operator with the provided salt and initialize it.
         delegator = address(new BeaconProxy(operatorBeaconImpl, ''));
-        IRioLRTOperatorDelegator(delegator).initialize(depositPool, rewardDistributor, operator);
+        IRioLRTOperatorDelegator(delegator).initialize(address(coordinator), depositPool, rewardDistributor, operator);
 
         OperatorDetails storage _operator = operatorDetails[operatorId];
         _operator.active = true;
