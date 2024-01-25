@@ -8,6 +8,7 @@ import {ERC20PermitUpgradeable} from '@openzeppelin/contracts-upgradeable/token/
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {NoncesUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/NoncesUpgradeable.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 
 contract RioLRT is IRioLRT, ERC20BurnableUpgradeable, ERC20PermitUpgradeable, ERC20VotesUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
@@ -56,18 +57,13 @@ contract RioLRT is IRioLRT, ERC20BurnableUpgradeable, ERC20PermitUpgradeable, ER
         super.burn(amount);
     }
 
-    /// @notice Returns the amount of tokens in existence.
-    function totalSupply() public view override(ERC20Upgradeable, IRioLRT) returns (uint256) {
-        return super.totalSupply();
-    }
-
     /// @notice Returns the remaining number of tokens that `spender` is allowed
     /// to spend on behalf of `owner`
     /// @param owner The account that owns the tokens.
     /// @param spender The account that can spend the tokens.
     /// @dev This function grants an infinite allowance to the LRT coordinator,
     /// which is an internal, trusted contract that pulls tokens on withdrawal.
-    function allowance(address owner, address spender) public view override returns (uint256) {
+    function allowance(address owner, address spender) public view override(ERC20Upgradeable, IERC20) returns (uint256) {
         if (spender == coordinator) {
             return type(uint256).max;
         }

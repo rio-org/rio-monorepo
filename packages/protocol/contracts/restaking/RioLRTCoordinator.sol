@@ -16,8 +16,8 @@ import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable {
-    using SafeERC20 for IERC20;
     using Asset for address;
+    using SafeERC20 for *;
 
     /// @notice The liquid restaking token (LRT).
     IRioLRT public restakingToken;
@@ -169,7 +169,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         sharesOwed = convertToSharesFromRestakingTokens(asset, amountIn);
 
         // Pull restaking tokens from the sender to the withdrawal queue.
-        IERC20(address(restakingToken)).safeTransferFrom(msg.sender, address(withdrawalQueue), amountIn);
+        restakingToken.safeTransferFrom(msg.sender, address(withdrawalQueue), amountIn);
 
         // Ensure there are enough shares to cover the withdrawal request, and queue the withdrawal.
         uint256 availableShares = assetRegistry.convertToSharesFromAsset(asset, getTotalBalanceForAsset(asset));
