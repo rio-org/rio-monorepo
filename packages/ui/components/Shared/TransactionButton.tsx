@@ -2,7 +2,7 @@ import { useNetwork, useSwitchNetwork, useWaitForTransaction } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { twJoin } from 'tailwind-merge';
 import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 import { cn, getChainName } from '../../lib/utilities';
@@ -10,14 +10,20 @@ import { ViewTransactionLink } from './ViewTransactionLink';
 import Alert from './Alert';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { CHAIN_ID } from '../../config';
-import type { ContractError } from '../../lib/typings';
+import { ContractError, RioTransactionType } from '../../lib/typings';
 import type { Hash } from '@wagmi/core';
+import {
+  useAddTransaction,
+  usePendingTransactions
+} from '../../contexts/RioTransactionStore';
 
 export type TransactionButtonProps = {
+  transactionType: RioTransactionType;
   disabled?: boolean;
   isSigning?: boolean;
   hash?: Hash;
   error?: ContractError | null;
+  refetch?: () => void;
   reset?: () => void;
   clearErrors?: () => void;
   write?: () => void;
@@ -25,9 +31,11 @@ export type TransactionButtonProps = {
 };
 
 const TransactionButton = ({
+  transactionType: type,
   disabled,
   hash,
   error,
+  refetch,
   reset,
   clearErrors,
   write,
@@ -37,14 +45,30 @@ const TransactionButton = ({
   const wrongNetwork = useNetwork().chain?.unsupported;
   const { openConnectModal } = useConnectModal();
   const { address } = useAccountIfMounted();
+  const pendingTxs = usePendingTransactions();
+  const addTransaction = useAddTransaction();
   const { isLoading: isSwitchNetworkLoading, switchNetwork } =
     useSwitchNetwork();
+
+  const previousTxExists = !!pendingTxs[0];
+  const previousTxIsSameType = previousTxExists && pendingTxs[0].type === type;
 
   const {
     isLoading: isTxLoading,
     isSuccess: isTxSuccess,
     error: txError
-  } = useWaitForTransaction({ hash });
+  } = useWaitForTransaction({
+    hash: previousTxIsSameType ? pendingTxs[0].hash : hash
+  });
+
+  useEffect(() => {
+    if (isTxSuccess) refetch?.();
+  }, [isTxSuccess]);
+
+  useEffect(() => {
+    if (!hash) return;
+    addTransaction({ hash, type });
+  }, [hash, type]);
 
   const [_error, _errorMessage] = useMemo(() => {
     const e = (txError ?? error) as ContractError | null;
@@ -53,7 +77,7 @@ const TransactionButton = ({
 
   const isDisabled = wrongNetwork
     ? isSwitchNetworkLoading
-    : isTxLoading || isSigning || disabled || !write;
+    : isTxLoading || isSigning || disabled || !write || previousTxExists;
 
   const handleClick = useCallback((): void => {
     if (isDisabled) {
@@ -103,8 +127,17 @@ const TransactionButton = ({
                 return <>Connect your wallet</>;
               }
 
-              if (isTxLoading || isSwitchNetworkLoading || isSigning) {
-                return <LoadingTransactionContent />;
+              if (
+                isTxLoading ||
+                isSwitchNetworkLoading ||
+                isSigning ||
+                previousTxExists
+              ) {
+                return (
+                  <LoadingTransactionContent>
+                    {previousTxExists && 'Awaiting previous transaction'}
+                  </LoadingTransactionContent>
+                );
               }
 
               return (
@@ -135,11 +168,17 @@ const TransactionButton = ({
   );
 };
 
-function LoadingTransactionContent() {
+function LoadingTransactionContent({
+  children
+}: {
+  children?: React.ReactNode;
+}) {
   return (
     <div className="w-full text-center flex items-center justify-center gap-2">
       <Spinner width={16} />
-      <span className="text-black opacity-40">Awaiting confirmation</span>
+      <span className="text-black opacity-40">
+        {children || 'Awaiting confirmation'}
+      </span>
     </div>
   );
 }

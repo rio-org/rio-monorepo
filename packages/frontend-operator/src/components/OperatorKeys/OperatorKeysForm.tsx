@@ -8,6 +8,7 @@ import { useGetOperators } from '@rio-monorepo/ui/hooks/useGetOperators';
 import {
   ContractError,
   LRTDetails,
+  RioTransactionType,
   ValidatorKeyItem
 } from '@rio-monorepo/ui/lib/typings';
 import { validateOperatorKeys } from '@rio-monorepo/ui/lib/validation';
@@ -250,6 +251,7 @@ function OperatorKeysFormInternal({
         </div>
       </div>
       <TransactionButton
+        transactionType={RioTransactionType.SUBMIT_KEYS}
         hash={data?.hash}
         disabled={isNotOperator || isWriteLoading || isPrepareLoading}
         isSigning={isWriteLoading}

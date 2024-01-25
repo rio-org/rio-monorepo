@@ -12,7 +12,8 @@ import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
 import {
   AssetDetails,
   ContractError,
-  LRTDetails
+  LRTDetails,
+  RioTransactionType
 } from '@rio-monorepo/ui/lib/typings';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
@@ -58,6 +59,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     lrt
   });
   const { address } = useAccount();
+
+  const { refetch: refetchLrtBalance } = useAssetBalance(lrt);
 
   const {
     data,
@@ -237,9 +240,14 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     enabled: !!depositTxHash
   });
 
+  const refetchUserBalances = useCallback(() => {
+    refetchLrtBalance().catch(console.error);
+    refetchBalance().catch(console.error);
+  }, [refetchLrtBalance, refetchBalance]);
+
   useEffect(() => {
     if (!txReceipt) return;
-    refetchBalance().catch(console.error);
+    refetchUserBalances();
   }, [txReceipt]);
 
   return (
@@ -299,6 +307,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
           {isAllowed && (
             <>
               <TransactionButton
+                transactionType={RioTransactionType.DEPOSIT}
+                refetch={refetchUserBalances}
                 hash={depositTxHash}
                 disabled={!isValidAmount || isEmpty || isDepositLoading}
                 isSigning={isDepositLoading}

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import { LRTDetails, RioTransactionType } from '@rio-monorepo/ui/lib/typings';
 import ClaimHeader from './ClaimHeader';
 import ItemizedAsset from '@rio-monorepo/ui/components/Assets/ItemizedAsset';
 import { ASSETS } from '@rio-monorepo/ui/lib/constants';
@@ -95,7 +95,9 @@ export const HydratedClaimForm = ({ lrt }: Props) => {
       </AnimatePresence>
 
       <TransactionButton
+        transactionType={RioTransactionType.CLAIM}
         hash={txHash}
+        refetch={onReset}
         disabled={!canClaim || isLoading}
         isSigning={isLoading}
         error={error}
