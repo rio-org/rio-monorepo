@@ -1,8 +1,8 @@
 import { Alert, Spinner } from '@material-tailwind/react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  AssetDetails,
-  LRTDetails,
+  type AssetDetails,
+  type LRTDetails,
   RioTransactionType
 } from '@rio-monorepo/ui/lib/typings';
 import WithdrawAssetSelector from './WithdrawAssetSelector';

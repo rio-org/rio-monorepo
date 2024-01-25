@@ -1,5 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { LRTDetails, RioTransactionType } from '@rio-monorepo/ui/lib/typings';
+import {
+  type LRTDetails,
+  RioTransactionType
+} from '@rio-monorepo/ui/lib/typings';
 import ClaimHeader from './ClaimHeader';
 import ItemizedAsset from '@rio-monorepo/ui/components/Assets/ItemizedAsset';
 import { ASSETS } from '@rio-monorepo/ui/lib/constants';

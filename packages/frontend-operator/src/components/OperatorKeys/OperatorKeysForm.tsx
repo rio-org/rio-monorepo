@@ -6,10 +6,10 @@ import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted'
 import { useGetLatestAssetPrice } from '@rio-monorepo/ui/hooks/useGetLatestAssetPrice';
 import { useGetOperators } from '@rio-monorepo/ui/hooks/useGetOperators';
 import {
-  ContractError,
-  LRTDetails,
-  RioTransactionType,
-  ValidatorKeyItem
+  type ContractError,
+  type LRTDetails,
+  type ValidatorKeyItem,
+  RioTransactionType
 } from '@rio-monorepo/ui/lib/typings';
 import { validateOperatorKeys } from '@rio-monorepo/ui/lib/validation';
 import {

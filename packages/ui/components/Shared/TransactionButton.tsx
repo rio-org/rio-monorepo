@@ -50,20 +50,32 @@ const TransactionButton = ({
   const { isLoading: isSwitchNetworkLoading, switchNetwork } =
     useSwitchNetwork();
 
-  const previousTxExists = !!pendingTxs[0];
-  const previousTxIsSameType = previousTxExists && pendingTxs[0].type === type;
+  const lastPendingTx = !pendingTxs.length
+    ? null
+    : pendingTxs[pendingTxs.length - 1];
+
+  const prevTx = useMemo(() => {
+    if (!lastPendingTx) return null;
+    return {
+      hash: lastPendingTx.hash,
+      isSame: lastPendingTx.type === type
+    };
+  }, [lastPendingTx]);
 
   const {
     isLoading: isTxLoading,
     isSuccess: isTxSuccess,
     error: txError
   } = useWaitForTransaction({
-    hash: previousTxIsSameType ? pendingTxs[0].hash : hash
+    hash: prevTx?.isSame ? prevTx.hash : hash
   });
 
-  useEffect(() => {
-    if (isTxSuccess) refetch?.();
-  }, [isTxSuccess]);
+  const { isSuccess: isPrevTxSuccess } = useWaitForTransaction({
+    hash: prevTx?.isSame ? undefined : prevTx?.hash
+  });
+
+  const shouldRefetchData = isTxSuccess || isPrevTxSuccess;
+  useEffect(() => void (shouldRefetchData && refetch?.()), [shouldRefetchData]);
 
   useEffect(() => {
     if (!hash) return;
@@ -77,7 +89,7 @@ const TransactionButton = ({
 
   const isDisabled = wrongNetwork
     ? isSwitchNetworkLoading
-    : isTxLoading || isSigning || disabled || !write || previousTxExists;
+    : isTxLoading || isSigning || disabled || !write || !!prevTx?.hash;
 
   const handleClick = useCallback((): void => {
     if (isDisabled) {
@@ -131,11 +143,11 @@ const TransactionButton = ({
                 isTxLoading ||
                 isSwitchNetworkLoading ||
                 isSigning ||
-                previousTxExists
+                prevTx?.hash
               ) {
                 return (
                   <LoadingTransactionContent>
-                    {previousTxExists && 'Awaiting previous transaction'}
+                    {!prevTx?.isSame && 'Awaiting previous transaction'}
                   </LoadingTransactionContent>
                 );
               }
