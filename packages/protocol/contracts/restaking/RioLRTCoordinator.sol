@@ -302,7 +302,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
 
         // Exit early if all pending withdrawals were paid from the deposit pool.
         if (sharesRemaining == 0) {
-            withdrawalQueue.settleCurrentEpoch(asset, sharesSent, assetsSent);
+            withdrawalQueue.settleCurrentEpoch(asset, assetsSent, sharesSent);
             return;
         }
 
@@ -313,7 +313,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
             sharesRemaining,
             address(withdrawalQueue)
         );
-        withdrawalQueue.queueCurrentEpochSettlement(asset, sharesSent, assetsSent, aggregateRoot);
+        withdrawalQueue.queueCurrentEpochSettlement(asset, assetsSent, sharesSent, aggregateRoot);
     }
 
     /// @dev Checks if the provided asset is supported.
