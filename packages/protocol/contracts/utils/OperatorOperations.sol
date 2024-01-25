@@ -99,7 +99,7 @@ library OperatorOperations {
             depositCount
         );
         uint256 length = operatorDepositDeallocations.length;
-        bytes32[] memory roots = new bytes32[](deallocationsLength);
+        bytes32[] memory roots = new bytes32[](length);
 
         uint256 remainingAmount = amount;
         for (uint256 i = 0; i < length;) {
