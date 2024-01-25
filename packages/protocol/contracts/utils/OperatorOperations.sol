@@ -98,13 +98,18 @@ library OperatorOperations {
         (, IRioLRTOperatorRegistry.OperatorETHDeallocation[] memory operatorDepositDeallocations) = operatorRegistry.deallocateETHDeposits(
             depositCount
         );
-        bytes32[] memory roots = new bytes32[](operatorDepositDeallocations.length);
+        uint256 length = operatorDepositDeallocations.length;
+        bytes32[] memory roots = new bytes32[](deallocationsLength);
 
-        for (uint256 i = 0; i < operatorDepositDeallocations.length;) {
+        uint256 remainingAmount = amount;
+        for (uint256 i = 0; i < length;) {
             address operator = operatorDepositDeallocations[i].operator;
 
-            uint256 sharesToWithdraw = operatorDepositDeallocations[i].deposits * ETH_DEPOSIT_SIZE;
-            roots[i] = IRioLRTOperatorDelegator(operator).queueWithdrawal(BEACON_CHAIN_STRATEGY, sharesToWithdraw, withdrawalQueue);
+            // Ensure we do not send more than needed to the withdrawal queue. The remaining will stay in the Eigen Pod.
+            uint256 amountToWithdraw = (i == length - 1) ? remainingAmount : operatorDepositDeallocations[i].deposits * ETH_DEPOSIT_SIZE;
+
+            remainingAmount -= amountToWithdraw;
+            roots[i] = IRioLRTOperatorDelegator(operator).queueWithdrawal(BEACON_CHAIN_STRATEGY, amountToWithdraw, withdrawalQueue);
 
             unchecked {
                 ++i;
