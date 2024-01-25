@@ -8,6 +8,7 @@ import MobileNav from './Nav/MobileNav';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../lib/constants';
 import cx from 'classnames';
+import { useIsMounted } from '../hooks/useIsMounted';
 import {
   InternalAppNavItem,
   LogoNavItem,
@@ -34,7 +35,7 @@ export default function Layout({
   appTitle,
   showExchangeRates = true
 }: LayoutProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0);
   const [transitionDirection, setTransitionDirection] = useState<number>(50);
   const appNavRef = useRef<HTMLDivElement>(null);
@@ -62,10 +63,6 @@ export default function Layout({
       nav.items.findIndex((item) => item.slug === router.pathname.split('/')[1])
     );
   }, [router, nav.items]);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <>
