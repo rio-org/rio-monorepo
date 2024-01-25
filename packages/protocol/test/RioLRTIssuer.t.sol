@@ -28,24 +28,21 @@ contract RioLRTIssuerTest is RioDeployer {
     }
 
     function test_issuesLRTWithValidParams() public {
-        address _rETH = address(rETH);
-        address _stETH = address(stETH);
-
         address rETHPriceFeed = address(new MockPriceFeed(1.09 ether));
-        address stETHPriceFeed = address(new MockPriceFeed(1 ether));
+        address cbETHPriceFeed = address(new MockPriceFeed(1.05 ether));
 
         IRioLRTAssetRegistry.AssetConfig[] memory assets = new IRioLRTAssetRegistry.AssetConfig[](2);
         assets[0] = IRioLRTAssetRegistry.AssetConfig({
-            asset: _rETH,
+            asset: RETH_ADDRESS,
             depositCap: 1_000_000 ether,
             strategy: RETH_STRATEGY,
             priceFeed: rETHPriceFeed
         });
         assets[1] = IRioLRTAssetRegistry.AssetConfig({
-            asset: _stETH,
+            asset: CBETH_ADDRESS,
             depositCap: 2_000_000 ether,
-            strategy: STETH_STRATEGY,
-            priceFeed: stETHPriceFeed
+            strategy: CBETH_STRATEGY,
+            priceFeed: cbETHPriceFeed
         });
 
         IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
@@ -73,7 +70,7 @@ contract RioLRTIssuerTest is RioDeployer {
         address[] memory supportedAssets = assetRegistry.getSupportedAssets();
         assertEq(supportedAssets.length, 2);
 
-        assertEq(supportedAssets[0], _rETH);
-        assertEq(supportedAssets[1], _stETH);
+        assertEq(supportedAssets[0], RETH_ADDRESS);
+        assertEq(supportedAssets[1], CBETH_ADDRESS);
     }
 }

@@ -3,8 +3,6 @@ pragma solidity 0.8.21;
 
 import {Test} from 'forge-std/Test.sol';
 import {MockERC20} from 'test/utils/MockERC20.sol';
-import {MockSTETH} from 'test/utils/MockSTETH.sol';
-import {MockWSTETH} from 'test/utils/MockWSTETH.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
 import {UpgradeableBeacon} from '@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol';
@@ -40,29 +38,29 @@ abstract contract EigenLayerDeployer is Test {
     address public constant STRATEGY_BASE_TVL_LIMITS_IMPL_ADDRESS = 0x81E94e16949AC397d508B5C2557a272faD2F8ebA;
 
     address public constant RETH_STRATEGY = 0x879944A8cB437a5f8061361f82A6d4EED59070b5;
-    address public constant STETH_STRATEGY = 0xB613E78E2068d7489bb66419fB1cfa11275d14da;
+    address public constant CBETH_STRATEGY = 0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc;
 
     IStrategyManager public immutable strategyManager = IStrategyManager(STRATEGY_MANAGER_ADDRESS);
     IDelegationManager public immutable delegationManager = IDelegationManager(DELEGATION_MANAGER_ADDRESS);
 
     IStrategy public immutable rETHStrategy = IStrategy(RETH_STRATEGY);
-    IStrategy public immutable stETHStrategy = IStrategy(STETH_STRATEGY);
+    IStrategy public immutable cbETHStrategy = IStrategy(CBETH_STRATEGY);
 
     MockERC20 public rETH;
-    MockSTETH public stETH;
-    MockWSTETH public wstETH;
+    MockERC20 public cbETH;
+
+    address public RETH_ADDRESS;
+    address public CBETH_ADDRESS;
 
     MockBeaconChain beaconChain;
 
     function deployEigenLayer() public {
         // Deploy LSTs
         rETH = new MockERC20('Rocket Pool ETH', 'rETH');
-        stETH = new MockSTETH{value: 2_000_000 ether}();
-        wstETH = new MockWSTETH(stETH);
+        cbETH = new MockERC20('Coinbase Wrapped Staked ETH', 'cbETH');
 
-        // Mint 1_000_000 wstETH
-        stETH.approve(address(wstETH), 1_000_000 ether);
-        wstETH.wrap(1_000_000 ether);
+        RETH_ADDRESS = address(rETH);
+        CBETH_ADDRESS = address(cbETH);
 
         // Deploy the mock beacon chain & beacon chain oracle
         MockBeaconChainOracle beaconChainOracle = new MockBeaconChainOracle();
@@ -186,7 +184,7 @@ abstract contract EigenLayerDeployer is Test {
                     'initialize(uint256,uint256,address,address)',
                     type(uint256).max, // Max Per Deposit
                     type(uint256).max, // Max Total Deposits
-                    address(rETH), // Underlying Token
+                    RETH_ADDRESS, // Underlying Token
                     address(1) // Pauser Registry
                 )
             ),
@@ -201,17 +199,17 @@ abstract contract EigenLayerDeployer is Test {
                     'initialize(uint256,uint256,address,address)',
                     type(uint256).max, // Max Per Deposit
                     type(uint256).max, // Max Total Deposits
-                    address(stETH), // Underlying Token
+                    CBETH_ADDRESS, // Underlying Token
                     address(1) // Pauser Registry
                 )
             ),
-            STETH_STRATEGY
+            CBETH_STRATEGY
         );
 
         // Whitelist strategies
         address[] memory strategies = new address[](2);
         strategies[0] = RETH_STRATEGY;
-        strategies[1] = STETH_STRATEGY;
+        strategies[1] = CBETH_STRATEGY;
 
         vm.prank(STRATEGY_WHITELISTER_ADDRESS);
         strategyManager.addStrategiesToDepositWhitelist(strategies);

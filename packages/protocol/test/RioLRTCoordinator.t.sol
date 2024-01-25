@@ -50,14 +50,14 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
     function test_depositERC20ZeroValueReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.AMOUNT_MUST_BE_GREATER_THAN_ZERO.selector));
-        reLST.coordinator.deposit(address(rETH), 0);
+        reLST.coordinator.deposit(CBETH_ADDRESS, 0);
     }
 
     function test_depositERC20() public {
-        rETH.approve(address(reLST.coordinator), 20e18);
-        reLST.coordinator.deposit(address(rETH), 20e18);
+        cbETH.approve(address(reLST.coordinator), 20e18);
+        reLST.coordinator.deposit(CBETH_ADDRESS, 20e18);
 
-        uint256 price = reLST.assetRegistry.getAssetPrice(address(rETH));
+        uint256 price = reLST.assetRegistry.getAssetPrice(CBETH_ADDRESS);
         assertEq(reLST.token.balanceOf(address(this)), price * 20);
     }
 
@@ -100,26 +100,25 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
     function test_requestERC20WithdrawalZeroValueReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.AMOUNT_MUST_BE_GREATER_THAN_ZERO.selector));
-        reLST.coordinator.requestWithdrawal(address(rETH), 0);
+        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, 0);
     }
 
     function test_requestERC20Withdrawal() public {
-        address _rETH = address(rETH);
         uint256 amount = 50e18;
 
-        rETH.approve(address(reLST.coordinator), amount);
-        uint256 amountOut = reLST.coordinator.deposit(_rETH, amount);
+        cbETH.approve(address(reLST.coordinator), amount);
+        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
 
-        reLST.coordinator.requestWithdrawal(_rETH, amountOut);
+        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut);
 
-        uint256 currentEpoch = reLST.withdrawalQueue.getCurrentEpoch(_rETH);
+        uint256 currentEpoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
-            reLST.withdrawalQueue.getEpochWithdrawalSummary(_rETH, currentEpoch);
+            reLST.withdrawalQueue.getEpochWithdrawalSummary(CBETH_ADDRESS, currentEpoch);
         IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary =
-            reLST.withdrawalQueue.getUserWithdrawalSummary(_rETH, currentEpoch, address(this));
+            reLST.withdrawalQueue.getUserWithdrawalSummary(CBETH_ADDRESS, currentEpoch, address(this));
 
         assertEq(reLST.token.balanceOf(address(this)), 0);
-        assertEq(reLST.withdrawalQueue.getSharesOwedInCurrentEpoch(_rETH), amount);
+        assertEq(reLST.withdrawalQueue.getSharesOwedInCurrentEpoch(CBETH_ADDRESS), amount);
 
         assertFalse(epochSummary.settled);
         assertEq(epochSummary.sharesOwed, amount);
@@ -237,19 +236,18 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         uint256 amount = 1_000e18;
 
-        address _rETH = address(rETH);
-        rETH.approve(address(reLST.coordinator), amount);
+        cbETH.approve(address(reLST.coordinator), amount);
 
-        uint256 amountOut = reLST.coordinator.deposit(_rETH, amount);
-        reLST.coordinator.requestWithdrawal(_rETH, amountOut);
+        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut);
 
-        uint256 epoch = reLST.withdrawalQueue.getCurrentEpoch(_rETH);
-        reLST.coordinator.rebalance(_rETH);
+        uint256 epoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
+        reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
-            reLST.withdrawalQueue.getEpochWithdrawalSummary(_rETH, epoch);
+            reLST.withdrawalQueue.getEpochWithdrawalSummary(CBETH_ADDRESS, epoch);
         assertTrue(epochSummary.settled);
-        assertEq(rETH.balanceOf(address(reLST.withdrawalQueue)), amount);
+        assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), amount);
     }
 
     function test_rebalanceQueuesWithdrawalEpochLowERC20BalanceInDepositPool() public {
@@ -258,29 +256,28 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         uint256 amount = 100e18;
 
-        address _rETH = address(rETH);
-        rETH.approve(address(reLST.coordinator), type(uint256).max);
+        cbETH.approve(address(reLST.coordinator), type(uint256).max);
 
         // Deposit and push the balance into EigenLayer.
-        uint256 amountOut = reLST.coordinator.deposit(_rETH, amount);
-        reLST.coordinator.rebalance(_rETH);
+        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         // Deposit again and request a withdrawal. Following this deposit,
-        // both EigenLayer and the deposit pool will have `amount` rETH.
-        reLST.coordinator.deposit(_rETH, amount);
-        reLST.coordinator.requestWithdrawal(_rETH, amountOut + 1e18);
+        // both EigenLayer and the deposit pool will have `amount` cbETH.
+        reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut + 1e18);
 
         skip(reLST.coordinator.rebalanceDelay());
 
-        uint256 epoch = reLST.withdrawalQueue.getCurrentEpoch(_rETH);
-        reLST.coordinator.rebalance(_rETH);
+        uint256 epoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
+        reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
-            reLST.withdrawalQueue.getEpochWithdrawalSummary(_rETH, epoch);
+            reLST.withdrawalQueue.getEpochWithdrawalSummary(CBETH_ADDRESS, epoch);
         assertFalse(epochSummary.settled);
         assertNotEq(epochSummary.aggregateRoot, bytes32(0));
         assertEq(epochSummary.assetsReceived, amount);
-        assertEq(rETH.balanceOf(address(reLST.withdrawalQueue)), amount);
+        assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), amount);
     }
 
     function test_rebalanceQueuesWithdrawalEpochNoERC20BalanceInDepositPool() public {
@@ -289,27 +286,26 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         uint256 amount = 100e18;
 
-        address _rETH = address(rETH);
-        rETH.approve(address(reLST.coordinator), type(uint256).max);
+        cbETH.approve(address(reLST.coordinator), type(uint256).max);
 
         // Deposit and push the balance into EigenLayer.
-        uint256 amountOut = reLST.coordinator.deposit(_rETH, amount);
-        reLST.coordinator.rebalance(_rETH);
+        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        reLST.coordinator.rebalance(CBETH_ADDRESS);
 
-        // Request a withdrawal. There is no rETH in the deposit pool.
-        reLST.coordinator.requestWithdrawal(_rETH, amountOut);
+        // Request a withdrawal. There is no cbETH in the deposit pool.
+        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut);
 
         skip(reLST.coordinator.rebalanceDelay());
 
-        uint256 epoch = reLST.withdrawalQueue.getCurrentEpoch(_rETH);
-        reLST.coordinator.rebalance(_rETH);
+        uint256 epoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
+        reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
-            reLST.withdrawalQueue.getEpochWithdrawalSummary(_rETH, epoch);
+            reLST.withdrawalQueue.getEpochWithdrawalSummary(CBETH_ADDRESS, epoch);
         assertFalse(epochSummary.settled);
         assertNotEq(epochSummary.aggregateRoot, bytes32(0));
         assertEq(epochSummary.assetsReceived, 0);
-        assertEq(rETH.balanceOf(address(reLST.withdrawalQueue)), 0);
+        assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), 0);
     }
 
     receive() external payable {}

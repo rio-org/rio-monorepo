@@ -102,16 +102,16 @@ abstract contract RioDeployer is EigenLayerDeployer {
     function issueRestakedLST() public returns (TestLRTDeployment memory td, IRioLRTAssetRegistry.AssetConfig[] memory assets) {
         assets = new IRioLRTAssetRegistry.AssetConfig[](2);
         assets[0] = IRioLRTAssetRegistry.AssetConfig({
-            asset: address(rETH),
+            asset: RETH_ADDRESS,
             depositCap: 1_000 ether,
             priceFeed: address(new MockPriceFeed(1.0961 ether)),
             strategy: RETH_STRATEGY
         });
         assets[1] = IRioLRTAssetRegistry.AssetConfig({
-            asset: address(stETH),
+            asset: CBETH_ADDRESS,
             depositCap: 1_000 ether,
-            priceFeed: address(new MockPriceFeed(0.9995 ether)),
-            strategy: STETH_STRATEGY
+            priceFeed: address(new MockPriceFeed(1.0555 ether)),
+            strategy: CBETH_STRATEGY
         });
 
         IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
@@ -140,8 +140,8 @@ abstract contract RioDeployer is EigenLayerDeployer {
         public
     {
         IRioLRTOperatorRegistry.StrategyShareCap[] memory shareCaps = new IRioLRTOperatorRegistry.StrategyShareCap[](2);
-        shareCaps[0] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: STETH_STRATEGY, cap: 1_000 ether});
-        shareCaps[1] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: RETH_STRATEGY, cap: 1_000 ether});
+        shareCaps[0] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: RETH_STRATEGY, cap: 1_000 ether});
+        shareCaps[1] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: CBETH_STRATEGY, cap: 1_000 ether});
         uint40 validatorCap = 100;
 
         addOperatorDelegators(operatorRegistry, rewardDistributor, count, shareCaps, validatorCap);
