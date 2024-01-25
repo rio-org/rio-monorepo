@@ -383,6 +383,7 @@ export type Deposit = {
   blockNumber: Scalars['BigInt']['output'];
   id: Scalars['ID']['output'];
   restakingToken: LiquidRestakingToken;
+  restakingTokenPriceUSD?: Maybe<Scalars['BigDecimal']['output']>;
   sender: Scalars['Bytes']['output'];
   timestamp: Scalars['BigInt']['output'];
   tx: Scalars['Bytes']['output'];
@@ -523,6 +524,16 @@ export type Deposit_Filter = {
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
   or?: InputMaybe<Array<InputMaybe<Deposit_Filter>>>;
   restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingTokenPriceUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  restakingTokenPriceUSD_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_not_in?: InputMaybe<
+    Array<Scalars['BigDecimal']['input']>
+  >;
   restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
   restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
   restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -634,6 +645,7 @@ export enum Deposit_OrderBy {
   BlockNumber = 'blockNumber',
   Id = 'id',
   RestakingToken = 'restakingToken',
+  RestakingTokenPriceUsd = 'restakingTokenPriceUSD',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
@@ -2742,6 +2754,7 @@ export type WithdrawalClaim = {
   id: Scalars['ID']['output'];
   requests?: Maybe<Array<WithdrawalRequest>>;
   restakingToken: LiquidRestakingToken;
+  restakingTokenPriceUSD?: Maybe<Scalars['BigDecimal']['output']>;
   sender: Scalars['Bytes']['output'];
   timestamp: Scalars['BigInt']['output'];
   tx: Scalars['Bytes']['output'];
@@ -2830,6 +2843,16 @@ export type WithdrawalClaim_Filter = {
   or?: InputMaybe<Array<InputMaybe<WithdrawalClaim_Filter>>>;
   requests_?: InputMaybe<WithdrawalRequest_Filter>;
   restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingTokenPriceUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  restakingTokenPriceUSD_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_not_in?: InputMaybe<
+    Array<Scalars['BigDecimal']['input']>
+  >;
   restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
   restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
   restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -2938,6 +2961,7 @@ export enum WithdrawalClaim_OrderBy {
   Id = 'id',
   Requests = 'requests',
   RestakingToken = 'restakingToken',
+  RestakingTokenPriceUsd = 'restakingTokenPriceUSD',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
@@ -3401,6 +3425,7 @@ export type WithdrawalRequest = {
   isClaimed: Scalars['Boolean']['output'];
   logIndex: Scalars['BigInt']['output'];
   restakingToken: LiquidRestakingToken;
+  restakingTokenPriceUSD?: Maybe<Scalars['BigDecimal']['output']>;
   sender: Scalars['Bytes']['output'];
   sharesOwed: Scalars['BigDecimal']['output'];
   timestamp: Scalars['BigInt']['output'];
@@ -3516,6 +3541,16 @@ export type WithdrawalRequest_Filter = {
   logIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   or?: InputMaybe<Array<InputMaybe<WithdrawalRequest_Filter>>>;
   restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingTokenPriceUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  restakingTokenPriceUSD_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_not_in?: InputMaybe<
+    Array<Scalars['BigDecimal']['input']>
+  >;
   restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
   restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
   restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
@@ -3636,6 +3671,7 @@ export enum WithdrawalRequest_OrderBy {
   ClaimAmountOut = 'claim__amountOut',
   ClaimBlockNumber = 'claim__blockNumber',
   ClaimId = 'claim__id',
+  ClaimRestakingTokenPriceUsd = 'claim__restakingTokenPriceUSD',
   ClaimSender = 'claim__sender',
   ClaimTimestamp = 'claim__timestamp',
   ClaimTx = 'claim__tx',
@@ -3657,6 +3693,7 @@ export enum WithdrawalRequest_OrderBy {
   IsClaimed = 'isClaimed',
   LogIndex = 'logIndex',
   RestakingToken = 'restakingToken',
+  RestakingTokenPriceUsd = 'restakingTokenPriceUSD',
   RestakingTokenAddress = 'restakingToken__address',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
@@ -3765,6 +3802,7 @@ export type DepositFieldsFragment = {
   sender: any;
   amountIn: any;
   amountOut: any;
+  restakingTokenPriceUSD?: any | null;
   userBalanceAfter: any;
   valueUSD?: any | null;
   timestamp: any;
@@ -3780,6 +3818,7 @@ export type WithdrawalRequestFieldsFragment = {
   sender: any;
   sharesOwed: any;
   amountIn: any;
+  restakingTokenPriceUSD?: any | null;
   userBalanceAfter: any;
   valueUSD?: any | null;
   timestamp: any;
@@ -3803,6 +3842,7 @@ export type WithdrawalClaimFieldsFragment = {
   id: string;
   sender: any;
   amountOut: any;
+  restakingTokenPriceUSD?: any | null;
   valueUSD?: any | null;
   timestamp: any;
   blockNumber: any;
@@ -3956,6 +3996,7 @@ export type ManyDepositsQuery = {
     sender: any;
     amountIn: any;
     amountOut: any;
+    restakingTokenPriceUSD?: any | null;
     userBalanceAfter: any;
     valueUSD?: any | null;
     timestamp: any;
@@ -3982,6 +4023,7 @@ export type ManyWithdrawalRequestsQuery = {
     sender: any;
     sharesOwed: any;
     amountIn: any;
+    restakingTokenPriceUSD?: any | null;
     userBalanceAfter: any;
     valueUSD?: any | null;
     timestamp: any;
@@ -4016,6 +4058,7 @@ export type ManyWithdrawalClaimsQuery = {
     id: string;
     sender: any;
     amountOut: any;
+    restakingTokenPriceUSD?: any | null;
     valueUSD?: any | null;
     timestamp: any;
     blockNumber: any;
@@ -4262,6 +4305,10 @@ export const DepositFieldsFragmentDoc = {
               ]
             }
           },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingTokenPriceUSD' }
+          },
           { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
           { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
@@ -4324,6 +4371,10 @@ export const WithdrawalRequestFieldsFragmentDoc = {
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } }
               ]
             }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingTokenPriceUSD' }
           },
           { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
           { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
@@ -4392,6 +4443,10 @@ export const WithdrawalClaimFieldsFragmentDoc = {
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } }
               ]
             }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingTokenPriceUSD' }
           },
           {
             kind: 'Field',
@@ -5129,6 +5184,10 @@ export const ManyDepositsDocument = {
               ]
             }
           },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingTokenPriceUSD' }
+          },
           { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
           { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
@@ -5310,6 +5369,10 @@ export const ManyWithdrawalRequestsDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } }
               ]
             }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingTokenPriceUSD' }
           },
           { kind: 'Field', name: { kind: 'Name', value: 'userBalanceAfter' } },
           { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
@@ -5500,6 +5563,10 @@ export const ManyWithdrawalClaimsDocument = {
                 { kind: 'Field', name: { kind: 'Name', value: 'id' } }
               ]
             }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingTokenPriceUSD' }
           },
           {
             kind: 'Field',
