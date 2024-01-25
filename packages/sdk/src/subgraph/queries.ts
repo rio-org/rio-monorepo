@@ -74,6 +74,7 @@ export const DepositFields = graphql(`
     restakingToken {
       id
     }
+    restakingTokenPriceUSD
     userBalanceAfter
     valueUSD
     timestamp
@@ -100,6 +101,7 @@ export const WithdrawalRequestFields = graphql(`
     restakingToken {
       id
     }
+    restakingTokenPriceUSD
     userBalanceAfter
     valueUSD
     timestamp
@@ -128,6 +130,7 @@ export const WithdrawalClaimFields = graphql(`
     restakingToken {
       id
     }
+    restakingTokenPriceUSD
     requests {
       id
     }

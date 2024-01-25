@@ -63,6 +63,7 @@ export interface Deposit {
   timestamp: string;
   blockNumber: string;
   restakingToken: Address;
+  restakingTokenPriceUSD: string | null;
   userBalanceAfter: string;
   tx: string;
 }
@@ -84,6 +85,7 @@ export interface WithdrawalRequest {
   amountIn: string;
   valueUSD: string | null;
   restakingToken: Address;
+  restakingTokenPriceUSD: string | null;
   userBalanceAfter: string;
   timestamp: string;
   blockNumber: string;
@@ -103,6 +105,7 @@ export interface WithdrawalClaim {
   assetOut: Address;
   amountClaimed: string;
   restakingToken: Address;
+  restakingTokenPriceUSD: string | null;
   requestIds: string[];
   valueUSD: string | null;
   timestamp: string;
