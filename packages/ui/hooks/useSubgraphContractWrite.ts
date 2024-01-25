@@ -56,11 +56,12 @@ export const useSubgraphConstractWrite = <T extends Hash = Hash, R = unknown>({
   useEffect(() => {
     setTxState((prev) => ({
       ...prev,
-      isLoading: isLoading || isTxLoading,
-      error: txError,
+      isLoading:
+        error || txError || isTxSuccess ? false : isLoading || isTxLoading,
+      error: txError || error,
       success: isTxSuccess
     }));
-  }, [reset, txData, txError, isLoading, isTxLoading, isTxSuccess]);
+  }, [reset, txData, error, txError, isLoading, isTxLoading, isTxSuccess]);
 
   return useMemo(
     () => ({
