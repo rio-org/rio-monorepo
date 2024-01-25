@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import StakeField from './StakeField';
 import {
   erc20ABI,
@@ -70,16 +70,16 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     !!amount && amount > BigInt(0) && amount <= accountTokenBalance;
   const isEmpty = !amount;
 
-  const clearErrors = () => {
+  const clearErrors = useCallback(() => {
     setDepositError(null);
     setIsDepositLoading(false);
     setDepositTxHash(undefined);
-  };
+  }, []);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setAmount(null);
     clearErrors();
-  };
+  }, []);
 
   useEffect(() => {
     if (!data) return;
@@ -242,6 +242,22 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     refetchBalance().catch(console.error);
   }, [txReceipt]);
 
+  const handleChangeAmount = useCallback(
+    (amount: bigint | null) => {
+      if (depositTxHash || depositError) clearErrors();
+      setAmount(amount);
+    },
+    [clearErrors, depositTxHash, depositError]
+  );
+
+  const handleChangeActiveToken = useCallback(
+    (activeToken: AssetDetails) => {
+      if (depositTxHash || depositError) clearErrors();
+      setActiveToken(activeToken);
+    },
+    [clearErrors, depositTxHash, depositError]
+  );
+
   return (
     <>
       {isLoading && (
@@ -261,8 +277,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
             isDisabled={isDepositLoading}
             assets={assets}
             lrt={lrt}
-            setAmount={setAmount}
-            setActiveToken={setActiveToken}
+            setAmount={handleChangeAmount}
+            setActiveToken={handleChangeActiveToken}
           />
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex justify-between text-[14px]">

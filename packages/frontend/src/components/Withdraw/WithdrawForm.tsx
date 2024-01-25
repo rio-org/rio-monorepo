@@ -68,11 +68,6 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
     await refetchAssetBalance();
   }, [refetchLrtBalance, refetchAssetBalance]);
 
-  const resetAmount = useCallback(() => {
-    setAmount(null);
-    assets[0] && setActiveToken(assets[0]);
-  }, [assets]);
-
   const { txHash, isLoading, error, success, write, reset } =
     useSubgraphConstractWrite({
       execute,
@@ -85,12 +80,24 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
         isValidAmount
     });
 
-  useEffect(() => void (success && resetAmount()), [success, resetAmount]);
+  const resetAmount = useCallback(() => {
+    setAmount(null);
+  }, [assets]);
 
   const handleReset = useCallback(() => {
     reset();
     resetAmount();
   }, [reset, resetAmount]);
+
+  const handleChangeAmount = useCallback(
+    (amount: bigint | null) => {
+      if (txHash || error) reset();
+      setAmount(amount);
+    },
+    [error, reset, txHash]
+  );
+
+  useEffect(() => void (success && resetAmount()), [success, resetAmount]);
 
   return (
     <>
@@ -110,7 +117,7 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
               amount={amount}
               restakingTokenBalance={restakingTokenBalance}
               restakingToken={lrt}
-              setAmount={setAmount}
+              setAmount={handleChangeAmount}
             />
           )}
           {assets.length > 1 && (
