@@ -188,6 +188,7 @@ export interface TransactionEvent {
   valueUSD: number;
   amountChange: number;
   restakingToken: BaseAssetDetails;
+  restakingTokenPriceUSD: number;
   userBalanceAfter: number;
   tx: Hash;
 }

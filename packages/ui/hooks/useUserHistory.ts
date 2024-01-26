@@ -155,6 +155,7 @@ function buildParseTx(lrtLookup: Record<Address, BaseAssetDetails>) {
         valueUSD: Number(tx.valueUSD),
         amountChange: Number(isClaim ? _ctx.amountClaimed : _dtx.amountIn),
         restakingToken: lrtLookup[tx.restakingToken as Address],
+        restakingTokenPriceUSD: Number(tx.restakingTokenPriceUSD),
         tx: tx.tx,
         ...(!isClaim && {
           userBalanceAfter: Number(_dtx.userBalanceAfter)
