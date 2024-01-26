@@ -142,14 +142,14 @@ export const CustomConnectButton = () => {
                       </MenuHandler>
                       <MenuList>
                         <MenuItem>
-                          <span
+                          <button
                             onClick={() => {
                               disconnect();
                               setIsLoading(true);
                             }}
                           >
                             Disconnect
-                          </span>
+                          </button>
                         </MenuItem>
                       </MenuList>
                     </Menu>
