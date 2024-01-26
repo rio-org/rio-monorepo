@@ -13,13 +13,10 @@ import {
 } from '@rionetwork/sdk-react';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { Hash } from 'viem';
+import { SECONDS } from '../../lib/constants';
 
-type Props = {
-  transaction: WithdrawalRequest;
-};
-
-const TransactionStatusLabel = ({ transaction }: Props) => {
-  const thresholds = [
+dayjs.extend(relativeTime, {
+  thresholds: [
     { l: 's', r: 1 },
     { l: 'm', r: 1 },
     { l: 'mm', r: 59, d: 'm' },
@@ -31,34 +28,35 @@ const TransactionStatusLabel = ({ transaction }: Props) => {
     { l: 'MM', r: 11, d: 'm' },
     { l: 'y', r: 1 },
     { l: 'yy', d: 'y' }
-  ];
+  ]
+});
+dayjs.extend(updateLocale);
+dayjs.updateLocale('en', {
+  relativeTime: {
+    future: '',
+    past: '',
+    s: '%ds',
+    m: '%dm',
+    mm: '%dm',
+    h: '%dh',
+    hh: '%dh',
+    d: '%dd',
+    dd: '%dd',
+    M: '',
+    MM: '',
+    y: '',
+    yy: ''
+  }
+});
 
-  const config = {
-    thresholds: thresholds
-  };
-  dayjs.extend(relativeTime, config);
-  dayjs.extend(updateLocale);
-  dayjs.updateLocale('en', {
-    relativeTime: {
-      future: '',
-      past: '',
-      s: '%ds',
-      m: '%dm',
-      mm: '%dm',
-      h: '%dh',
-      hh: '%dh',
-      d: '%dd',
-      dd: '%dd',
-      M: '',
-      MM: '',
-      y: '',
-      yy: ''
-    }
-  });
+type Props = {
+  transaction: WithdrawalRequest;
+};
 
-  const today = new Date();
-  const endDateTime = today.setDate(today.getDate() + 7) / 1000;
-  const timeLeft = dayjs.unix(endDateTime);
+const TransactionStatusLabel = ({ transaction }: Props) => {
+  const lastTimeToBeAvailable =
+    Number(+transaction.timestamp) + SECONDS.DAYS * 8;
+  const timeLeft = dayjs.unix(lastTimeToBeAvailable);
 
   const status = useMemo<TransactionStatus>(() => {
     if (transaction.claimTx) return 'Claimed';

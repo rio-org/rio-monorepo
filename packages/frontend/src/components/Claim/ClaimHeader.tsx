@@ -17,7 +17,10 @@ const ClaimHeader = ({ symbol, amount }: Props) => {
               <Skeleton height={30} width={80} />
             ) : (
               <>
-                {amount} {symbol}
+                {amount?.toLocaleString(undefined, {
+                  maximumFractionDigits: 5
+                })}{' '}
+                {symbol}
               </>
             )}
           </strong>
