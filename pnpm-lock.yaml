@@ -106,11 +106,11 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@1.19.9)(wagmi@1.4.5)
       '@rio-monorepo/ui':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.19
-        version: 0.1.0-alpha.19(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.20
+        version: 0.1.0-alpha.20(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.19.9)
@@ -215,11 +215,11 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@1.19.9)(wagmi@1.4.5)
       '@rio-monorepo/ui':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.19
-        version: 0.1.0-alpha.19(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.20
+        version: 0.1.0-alpha.20(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.19.9)
@@ -383,8 +383,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@1.19.9)(wagmi@1.4.5)
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.19
-        version: 0.1.0-alpha.19(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.20
+        version: 0.1.0-alpha.20(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.19.9)
@@ -3339,14 +3339,14 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.19(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
-    resolution: {integrity: sha512-Q99Pvc+GcMKjrp6KPUAx6XPiBcV26nAu1qBH7CgolkUTPa+xonhkPe5WsQ99f8B/kgxCL3F9dHqj/aZHR8nyjA==}
+  /@rionetwork/sdk-react@0.1.0-alpha.20(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
+    resolution: {integrity: sha512-wX2b8oLs5TRyy2RGBIUubgurhiUQbLd98AjxXfej9cxfAnFubs03R8XhSG1ugtCaNW3HX5S75s5D4f4Snkijsg==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     peerDependencies:
       react: '>=16.13.1'
       wagmi: '>=1.2'
     dependencies:
-      '@rionetwork/sdk': 0.1.0-alpha.17(graphql@16.8.1)(typescript@5.2.2)
+      '@rionetwork/sdk': 0.1.0-alpha.18(graphql@16.8.1)(typescript@5.2.2)
       react: 18.2.0
       wagmi: 1.4.5(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)(viem@1.19.9)
     transitivePeerDependencies:

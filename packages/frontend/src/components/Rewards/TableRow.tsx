@@ -93,10 +93,10 @@ const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
           >
             <TableLabel textDirection="right">
               $
-              {(event.amountChange
-                ? event.valueUSD / event.amountChange
-                : 0
-              ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              {event.restakingTokenPriceUSD.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}
             </TableLabel>
           </motion.td>
           <motion.td
