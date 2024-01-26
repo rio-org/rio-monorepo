@@ -43,6 +43,7 @@ export interface NavItem {
   url?: string;
   external: boolean;
   icon?: string;
+  disabled?: boolean;
 }
 
 export interface LogoNavItem extends Omit<NavItem, 'url'> {
