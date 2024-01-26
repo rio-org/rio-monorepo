@@ -55,8 +55,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
     }
 
     function test_claimWithdrawalsForEpochSomeEtherPaidFromEigenLayer() public {
-        uint8[] memory operatorIds = addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
-        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorIds[0]).delegator;
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorId).delegator;
 
         // Deposit ETH, rebalance, verify the validator withdrawal credentials, and deposit again.
         reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
@@ -109,8 +109,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
     }
 
     function test_claimWithdrawalsForEpochAllEtherPaidFromEigenLayer() public {
-        uint8[] memory operatorIds = addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
-        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorIds[0]).delegator;
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorId).delegator;
 
         // Deposit ETH, rebalance, and verify the validator withdrawal credentials.
         reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
@@ -200,8 +200,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
     }
 
     function test_claimWithdrawalsForEpochSomeERC20sPaidFromEigenLayer() public {
-        uint8[] memory operatorIds = addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
-        address operatorDelegator = reLST.operatorRegistry.getOperatorDetails(operatorIds[0]).delegator;
+        uint8 operatorId = addOperatorDelegator(reLST.operatorRegistry, address(reLST.rewardDistributor));
+        address operatorDelegator = reLST.operatorRegistry.getOperatorDetails(operatorId).delegator;
 
         uint256 amount = 18e18;
         uint256 expectedTokensOut = amount * 2; // Two deposits of `amount`.
@@ -257,8 +257,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
     }
 
     function test_claimWithdrawalsForEpochAllERC20sPaidFromEigenLayer() public {
-        uint8[] memory operatorIds = addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
-        address operatorDelegator = reLST.operatorRegistry.getOperatorDetails(operatorIds[0]).delegator;
+        uint8 operatorId = addOperatorDelegator(reLST.operatorRegistry, address(reLST.rewardDistributor));
+        address operatorDelegator = reLST.operatorRegistry.getOperatorDetails(operatorId).delegator;
 
         uint256 amount = 8e18;
 

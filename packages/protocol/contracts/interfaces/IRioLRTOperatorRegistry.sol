@@ -317,7 +317,7 @@ interface IRioLRTOperatorRegistry {
         string calldata initialMetadataURI,
         StrategyShareCap[] calldata strategyShareCaps,
         uint40 validatorCap
-    ) external returns (uint8 operatorId, address operatorContract);
+    ) external returns (uint8 operatorId, address delegator);
 
     /// @notice Activates an operator.
     /// @param operatorId The operator's ID.

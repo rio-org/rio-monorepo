@@ -138,6 +138,13 @@ abstract contract RioDeployer is EigenLayerDeployer {
         });
     }
 
+    function addOperatorDelegator(RioLRTOperatorRegistry operatorRegistry, address rewardDistributor)
+        public
+        returns (uint8 operatorId)
+    {
+        return addOperatorDelegators(operatorRegistry, rewardDistributor, 1)[0];
+    }
+
     function addOperatorDelegators(RioLRTOperatorRegistry operatorRegistry, address rewardDistributor, uint8 count)
         public
         returns (uint8[] memory operatorIds)
@@ -185,7 +192,9 @@ abstract contract RioDeployer is EigenLayerDeployer {
             (operatorIds[i],) = operatorRegistry.addOperator(
                 operator, address(this), address(this), metadataURI, shareCaps, validatorCap
             );
-            operatorRegistry.addValidatorDetails(operatorIds[i], validatorCap, publicKeys, signatures);
+            if (validatorCap > 0) {
+                operatorRegistry.addValidatorDetails(operatorIds[i], validatorCap, publicKeys, signatures);
+            }
         }
 
         // Fast forward to allow validator keys time to confirm.
