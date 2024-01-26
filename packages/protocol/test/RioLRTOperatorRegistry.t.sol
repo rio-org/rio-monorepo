@@ -35,37 +35,14 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         vm.assume(validatorsPerOperator > 0);
         vm.assume(depositsToAllocate > 0 && depositsToAllocate <= 100);
 
-        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(validatorsPerOperator);
-
-        // Create 10 operators
-        for (uint256 i = 0; i < operatorCount; i++) {
-            address operator = address(uint160(i + 1));
-
-            vm.prank(operator);
-            delegationManager.registerAsOperator(
-                IDelegationManager.OperatorDetails({
-                    earningsReceiver: address(reETH.rewardDistributor),
-                    delegationApprover: address(0),
-                    stakerOptOutWindowBlocks: 0
-                }),
-                metadataURI
-            );
-
-            (uint8 operatorId,) = reETH.operatorRegistry.addOperator(
-                operator,
-                address(this),
-                address(this),
-                metadataURI,
-                new IRioLRTOperatorRegistry.StrategyShareCap[](0),
-                validatorsPerOperator
-            );
-
-            // Upload validator keys
-            reETH.operatorRegistry.addValidatorDetails(operatorId, validatorsPerOperator, publicKeys, signatures);
-
-            // Fast forward to allow validator keys time to confirm.
-            skip(reETH.operatorRegistry.validatorKeyReviewPeriod());
-        }
+        // Create 10 operator delegators and fast forward to allow keys to confirm.
+        addOperatorDelegators(
+            reETH.operatorRegistry,
+            address(reETH.rewardDistributor),
+            operatorCount,
+            emptyStrategyShareCaps,
+            validatorsPerOperator
+        );
 
         vm.prank(address(reETH.depositPool));
         (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
@@ -316,5 +293,123 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         assertEq(depositsAllocated, 0);
         assertEq(allocations.length, 0);
+    }
+
+    function test_allocateETHDepositsFullyAllocatedExact() public {
+        uint8 OPERATOR_COUNT = 10;
+        uint40 VALIDATORS_PER_OPERATOR = 5;
+
+        // Create 10 operator delegator with 5 validators each and fast forward to allow keys to confirm.
+        addOperatorDelegators(
+            reETH.operatorRegistry,
+            address(reETH.rewardDistributor),
+            OPERATOR_COUNT,
+            emptyStrategyShareCaps,
+            VALIDATORS_PER_OPERATOR
+        );
+
+        uint256 TOTAL_DEPOSITS_TO_ALLOCATE = OPERATOR_COUNT * VALIDATORS_PER_OPERATOR;
+
+        vm.prank(address(reETH.depositPool));
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
+            reETH.operatorRegistry.allocateETHDeposits(TOTAL_DEPOSITS_TO_ALLOCATE);
+        assertEq(depositsAllocated, TOTAL_DEPOSITS_TO_ALLOCATE);
+        assertEq(allocations.length, OPERATOR_COUNT);
+
+        for (uint256 i = 0; i < allocations.length; i++) {
+            assertEq(allocations[i].deposits, VALIDATORS_PER_OPERATOR);
+        }
+    }
+
+    function test_allocateETHDepositsOverAllocationIsCapped() public {
+        uint8 OPERATOR_COUNT = 10;
+        uint40 VALIDATORS_PER_OPERATOR = 5;
+
+        // Create 10 operator delegator with 5 validators each and fast forward to allow keys to confirm.
+        addOperatorDelegators(
+            reETH.operatorRegistry,
+            address(reETH.rewardDistributor),
+            OPERATOR_COUNT,
+            emptyStrategyShareCaps,
+            VALIDATORS_PER_OPERATOR
+        );
+
+        uint256 TOTAL_DEPOSITS_TO_ALLOCATE = OPERATOR_COUNT * VALIDATORS_PER_OPERATOR;
+
+        vm.prank(address(reETH.depositPool));
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = reETH
+            .operatorRegistry
+            .allocateETHDeposits(
+            TOTAL_DEPOSITS_TO_ALLOCATE + 2 // Requesting more than available
+        );
+        assertEq(depositsAllocated, TOTAL_DEPOSITS_TO_ALLOCATE);
+        assertEq(allocations.length, OPERATOR_COUNT);
+
+        for (uint256 i = 0; i < allocations.length; i++) {
+            assertEq(allocations[i].deposits, VALIDATORS_PER_OPERATOR);
+        }
+    }
+
+    function test_allocateETHDepositsPartiallyAllocated() public {
+        uint8 OPERATOR_COUNT = 10;
+        uint40 VALIDATORS_PER_OPERATOR = 5;
+
+        // Create 10 operator delegator with 5 validators each and fast forward to allow keys to confirm.
+        addOperatorDelegators(
+            reETH.operatorRegistry,
+            address(reETH.rewardDistributor),
+            OPERATOR_COUNT,
+            emptyStrategyShareCaps,
+            VALIDATORS_PER_OPERATOR
+        );
+
+        uint256 TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL = (VALIDATORS_PER_OPERATOR * 2) + (VALIDATORS_PER_OPERATOR / 2);
+
+        vm.prank(address(reETH.depositPool));
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
+            reETH.operatorRegistry.allocateETHDeposits(TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL);
+        assertEq(depositsAllocated, TOTAL_DEPOSITS_TO_ALLOCATE_PARTIAL);
+        assertEq(allocations.length, 3);
+
+        assertEq(allocations[0].deposits, VALIDATORS_PER_OPERATOR);
+        assertEq(allocations[1].deposits, VALIDATORS_PER_OPERATOR);
+        assertEq(allocations[2].deposits, VALIDATORS_PER_OPERATOR / 2);
+    }
+
+    function test_allocateETHDepositsSkipsOperatorsWithNoConfirmedKeys() public {
+        uint40 VALIDATORS_PER_OPERATOR = 10;
+
+        // Create an operator without uploading any keys.
+        address operator = address(99);
+        vm.prank(operator);
+        delegationManager.registerAsOperator(
+            IDelegationManager.OperatorDetails({
+                earningsReceiver: address(reETH.rewardDistributor),
+                delegationApprover: address(0),
+                stakerOptOutWindowBlocks: 0
+            }),
+            metadataURI
+        );
+        reETH.operatorRegistry.addOperator(
+            operator, address(this), address(this), metadataURI, emptyStrategyShareCaps, VALIDATORS_PER_OPERATOR
+        );
+
+        // Create an operator with confirmed keys.
+        uint8 operatorTwoId = addOperatorDelegator(
+            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, VALIDATORS_PER_OPERATOR
+        );
+        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorTwoId).delegator;
+
+        vm.prank(address(reETH.depositPool));
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) = reETH
+            .operatorRegistry
+            .allocateETHDeposits(
+            VALIDATORS_PER_OPERATOR * 2 // Try to allocate to both operators.
+        );
+        assertEq(depositsAllocated, VALIDATORS_PER_OPERATOR); // Only the operator with confirmed keys should be allocated to.
+        assertEq(allocations.length, 1);
+
+        assertEq(allocations[0].operator, operatorDelegator);
+        assertEq(allocations[0].deposits, VALIDATORS_PER_OPERATOR);
     }
 }
