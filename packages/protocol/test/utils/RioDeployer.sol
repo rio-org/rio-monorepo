@@ -138,6 +138,15 @@ abstract contract RioDeployer is EigenLayerDeployer {
         });
     }
 
+    function addOperatorDelegator(
+        RioLRTOperatorRegistry operatorRegistry,
+        address rewardDistributor,
+        IRioLRTOperatorRegistry.StrategyShareCap[] memory shareCaps,
+        uint40 validatorCap
+    ) public returns (uint8 operatorId) {
+        return addOperatorDelegators(operatorRegistry, rewardDistributor, 1, shareCaps, validatorCap)[0];
+    }
+
     function addOperatorDelegator(RioLRTOperatorRegistry operatorRegistry, address rewardDistributor)
         public
         returns (uint8 operatorId)

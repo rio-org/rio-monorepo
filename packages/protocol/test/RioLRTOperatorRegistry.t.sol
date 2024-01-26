@@ -13,6 +13,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
     string public metadataURI = 'https://ipfs.io/ipfs/bafkreiaps6k6yapebk2eac2kgh47ktv2dxsajtssyi5fgnkrhyu7spivye';
 
+    IRioLRTOperatorRegistry.StrategyShareCap[] public emptyStrategyShareCaps;
     IRioLRTOperatorRegistry.StrategyShareCap[] public defaultStrategyShareCaps;
 
     function setUp() public {
@@ -263,5 +264,57 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             assertEq(allocations[i].shares, STRATEGY_CAP);
             assertEq(allocations[i].tokens, STRATEGY_CAP);
         }
+    }
+
+    function test_allocateStrategySharesPartiallyAllocated() public {
+        uint128 STRATEGY_CAP = 1.5e18;
+
+        // Add 10 operator delegators
+        IRioLRTOperatorRegistry.StrategyShareCap[] memory strategyShareCaps =
+            new IRioLRTOperatorRegistry.StrategyShareCap[](1);
+        strategyShareCaps[0] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: CBETH_STRATEGY, cap: STRATEGY_CAP});
+
+        addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 10, strategyShareCaps, 0);
+
+        uint256 PARTIAL_ALLOCATION = (STRATEGY_CAP * 2) + (STRATEGY_CAP / 2);
+
+        vm.prank(address(reLST.depositPool));
+        (uint256 sharesAllocated, IRioLRTOperatorRegistry.OperatorStrategyAllocation[] memory allocations) =
+            reLST.operatorRegistry.allocateStrategyShares(CBETH_STRATEGY, PARTIAL_ALLOCATION);
+        assertEq(sharesAllocated, PARTIAL_ALLOCATION);
+        assertEq(allocations.length, 3);
+
+        assertEq(allocations[0].shares, STRATEGY_CAP);
+        assertEq(allocations[0].tokens, STRATEGY_CAP);
+        assertEq(allocations[1].shares, STRATEGY_CAP);
+        assertEq(allocations[1].tokens, STRATEGY_CAP);
+        assertEq(allocations[2].shares, STRATEGY_CAP / 2);
+        assertEq(allocations[2].tokens, STRATEGY_CAP / 2);
+    }
+
+    function test_allocateETHDepositsNoAvailableOperatorsReturnsZeroAllocation() public {
+        vm.prank(address(reETH.depositPool));
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
+            reETH.operatorRegistry.allocateETHDeposits(1);
+
+        assertEq(depositsAllocated, 0);
+        assertEq(allocations.length, 0);
+    }
+
+    function test_allocateETHDepositsWithNoConfirmedKeysReturnsZeroAllocation() public {
+        uint8 operatorId =
+            addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 0);
+
+        // Add validator keys, but do not allow enough time for them to confirm.
+        uint40 VALIDATOR_CAP = 10;
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(VALIDATOR_CAP);
+        reETH.operatorRegistry.addValidatorDetails(operatorId, VALIDATOR_CAP, publicKeys, signatures);
+
+        vm.prank(address(reETH.depositPool));
+        (uint256 depositsAllocated, IRioLRTOperatorRegistry.OperatorETHAllocation[] memory allocations) =
+            reETH.operatorRegistry.allocateETHDeposits(VALIDATOR_CAP);
+
+        assertEq(depositsAllocated, 0);
+        assertEq(allocations.length, 0);
     }
 }

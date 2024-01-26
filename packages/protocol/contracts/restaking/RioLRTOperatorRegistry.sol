@@ -491,8 +491,6 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param strategy The strategy to allocate the shares to.
     /// @param sharesToAllocate The amount of shares to allocate.
     function allocateStrategyShares(address strategy, uint256 sharesToAllocate) external onlyDepositPool returns (uint256 sharesAllocated, OperatorStrategyAllocation[] memory allocations) {
-        allocations = new OperatorStrategyAllocation[](activeOperatorCount);
-
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForStrategy(strategy);
         if (heap.isEmpty()) {
             return (sharesAllocated, allocations);
@@ -501,6 +499,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         uint256 allocationIndex;
         uint256 remainingShares = sharesToAllocate;
 
+        allocations = new OperatorStrategyAllocation[](activeOperatorCount);
         while (remainingShares > 0) {
             OperatorDetails storage operator = operatorDetails[heap.getMin().id];
             OperatorShareDetails memory operatorShares = operator.shareDetails[strategy];
@@ -543,8 +542,6 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @notice Allocates a specified amount of ETH deposits to the operators with the lowest utilization.
     /// @param depositsToAllocate The amount of deposits to allocate (32 ETH each)
     function allocateETHDeposits(uint256 depositsToAllocate) external onlyDepositPool returns (uint256 depositsAllocated, OperatorETHAllocation[] memory allocations) {
-        allocations = new OperatorETHAllocation[](activeOperatorCount);
-
         OperatorUtilizationHeap.Data memory heap = _getOperatorUtilizationHeapForETH();
         if (heap.isEmpty()) {
             return (depositsAllocated, allocations);
@@ -558,6 +555,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
         bytes memory pubKeyBatch;
         bytes memory signatureBatch;
+        allocations = new OperatorETHAllocation[](activeOperatorCount);
         while (remainingDeposits > 0 && !heap.isEmpty()) {
             uint8 operatorId = heap.getMin().id;
 
@@ -610,7 +608,7 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
         depositsAllocated = depositsToAllocate - remainingDeposits;
         if (depositsAllocated == 0) {
-            return (depositsAllocated, allocations);
+            return (depositsAllocated, new OperatorETHAllocation[](0));
         }
 
         // Reinsert skipped operators back into the heap.
