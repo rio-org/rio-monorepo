@@ -1,6 +1,8 @@
 import '@rio-monorepo/ui/styles/global.scss';
 import 'react-loading-skeleton/dist/skeleton.css';
 import '@rainbow-me/rainbowkit/styles.css';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/react';
 import type { AppProps } from 'next/app';
 import { RioNetworkProvider } from '@rionetwork/sdk-react';
 import {
@@ -114,6 +116,8 @@ function MyApp({ Component, pageProps }: AppProps) {
                   }}
                 >
                   <Component {...pageProps} />
+                  <Analytics />
+                  <SpeedInsights />
                 </Layout>
               </ThemeProvider>
             </RioTransactionStoreProvider>
