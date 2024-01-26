@@ -64,10 +64,14 @@ export const HydratedClaimForm = ({ lrt }: Props) => {
   return (
     <div>
       <ClaimHeader
-        symbol={
-          withdrawalAssets.length > 1 ? '＊ETH' : withdrawalAssets[0]?.symbol
-        }
         amount={withdrawalAssets.reduce((a, b) => a + b.amount, 0)}
+        symbol={
+          !lrt?.symbol
+            ? ''
+            : withdrawalAssets.length > 1
+            ? `＊${lrt.symbol.match(/[A-Z]+$/)?.[0] || 'ETH'}`
+            : withdrawalAssets[0]?.symbol
+        }
       />
       <AnimatePresence>
         {withdrawalAssets.length > 1 && (

@@ -15,9 +15,14 @@ import { getAddress } from 'viem';
 type Props = {
   transaction: WithdrawalRequest;
   index: number;
+  nextRebalanceTimestamp?: number;
 };
 
-const WithdrawalRequestRow = ({ transaction, index }: Props) => {
+const WithdrawalRequestRow = ({
+  transaction,
+  index,
+  nextRebalanceTimestamp
+}: Props) => {
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
@@ -52,12 +57,18 @@ const WithdrawalRequestRow = ({ transaction, index }: Props) => {
                 {dateFromTimestamp(+transaction.timestamp)}
               </span>
               {!isDesktopOrLaptop && (
-                <TransactionStatusLabel transaction={transaction} />
+                <TransactionStatusLabel
+                  nextRebalanceTimestamp={nextRebalanceTimestamp}
+                  transaction={transaction}
+                />
               )}
             </div>
             {isDesktopOrLaptop && (
               <div className="flex flex-row flex-1">
-                <TransactionStatusLabel transaction={transaction} />
+                <TransactionStatusLabel
+                  nextRebalanceTimestamp={nextRebalanceTimestamp}
+                  transaction={transaction}
+                />
               </div>
             )}
             <div className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">

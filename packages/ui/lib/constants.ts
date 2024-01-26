@@ -36,6 +36,19 @@ const GOERLI_ASSET_ADDRESS: AssetAddress = {
   '＊ETH': null
 };
 
+export const SECONDS = {
+  MINUTES: 60,
+  HOURS: 60 * 60,
+  DAYS: 24 * 60 * 60
+};
+
+export const MILLISECONDS = {
+  SECONDS: 1000,
+  MINUTES: SECONDS.MINUTES * 1000,
+  HOURS: SECONDS.HOURS * 1000,
+  DAYS: SECONDS.DAYS * 1000
+};
+
 // TODO: update mainnet addresses
 const MAINNET_ASSET_ADDRESS: AssetAddress = {
   ETH: '0x0000000000000000000000000000000000000000',

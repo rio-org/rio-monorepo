@@ -13,13 +13,10 @@ import {
 } from '@rionetwork/sdk-react';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { Hash } from 'viem';
+import { SECONDS } from '../../lib/constants';
 
-type Props = {
-  transaction: WithdrawalRequest;
-};
-
-const TransactionStatusLabel = ({ transaction }: Props) => {
-  const thresholds = [
+dayjs.extend(relativeTime, {
+  thresholds: [
     { l: 's', r: 1 },
     { l: 'm', r: 1 },
     { l: 'mm', r: 59, d: 'm' },
@@ -31,34 +28,44 @@ const TransactionStatusLabel = ({ transaction }: Props) => {
     { l: 'MM', r: 11, d: 'm' },
     { l: 'y', r: 1 },
     { l: 'yy', d: 'y' }
-  ];
+  ]
+});
+dayjs.extend(updateLocale);
+dayjs.updateLocale('en', {
+  relativeTime: {
+    future: '',
+    past: '',
+    s: '%ds',
+    m: '%dm',
+    mm: '%dm',
+    h: '%dh',
+    hh: '%dh',
+    d: '%dd',
+    dd: '%dd',
+    M: '',
+    MM: '',
+    y: '',
+    yy: ''
+  }
+});
 
-  const config = {
-    thresholds: thresholds
-  };
-  dayjs.extend(relativeTime, config);
-  dayjs.extend(updateLocale);
-  dayjs.updateLocale('en', {
-    relativeTime: {
-      future: '',
-      past: '',
-      s: '%ds',
-      m: '%dm',
-      mm: '%dm',
-      h: '%dh',
-      hh: '%dh',
-      d: '%dd',
-      dd: '%dd',
-      M: '',
-      MM: '',
-      y: '',
-      yy: ''
-    }
-  });
+type Props = {
+  transaction: WithdrawalRequest;
+  nextRebalanceTimestamp?: number;
+};
 
-  const today = new Date();
-  const endDateTime = today.setDate(today.getDate() + 7) / 1000;
-  const timeLeft = dayjs.unix(endDateTime);
+const TransactionStatusLabel = ({
+  transaction,
+  nextRebalanceTimestamp
+}: Props) => {
+  const now = Date.now();
+  const requestTimestamp = Number(+transaction.timestamp);
+  const lastTimeToBeAvailable = requestTimestamp + SECONDS.DAYS * 8;
+  const timeLeft = dayjs.unix(lastTimeToBeAvailable);
+  const isBeforeNextRebalance =
+    typeof nextRebalanceTimestamp === 'number' &&
+    now / 1000 < nextRebalanceTimestamp &&
+    nextRebalanceTimestamp - requestTimestamp < SECONDS.DAYS;
 
   const status = useMemo<TransactionStatus>(() => {
     if (transaction.claimTx) return 'Claimed';
@@ -106,7 +113,7 @@ const TransactionStatusLabel = ({ transaction }: Props) => {
         {status === 'Pending' && (
           <div className="flex flex-row gap-1 items-center">
             <IconClock />
-            {timeLeft.fromNow(true)}
+            {`${isBeforeNextRebalance ? '1-' : ''}${timeLeft.fromNow(true)}`}
           </div>
         )}
         <span>{status}</span>
