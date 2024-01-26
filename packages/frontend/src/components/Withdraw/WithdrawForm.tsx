@@ -1,6 +1,10 @@
 import { Alert, Spinner } from '@material-tailwind/react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AssetDetails, LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import {
+  type AssetDetails,
+  type LRTDetails,
+  RioTransactionType
+} from '@rio-monorepo/ui/lib/typings';
 import WithdrawAssetSelector from './WithdrawAssetSelector';
 import WithdrawField from './WithdrawField';
 import WithdrawItemized from './WithdrawItemized';
@@ -63,20 +67,15 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
     });
   }, [restakingToken, amount, activeToken?.address, address, isValidAmount]);
 
-  const onReset = useCallback(async () => {
+  const refetch = useCallback(async () => {
     await refetchLrtBalance();
     await refetchAssetBalance();
   }, [refetchLrtBalance, refetchAssetBalance]);
 
-  const resetAmount = useCallback(() => {
-    setAmount(null);
-    assets[0] && setActiveToken(assets[0]);
-  }, [assets]);
-
   const { txHash, isLoading, error, success, write, reset } =
     useSubgraphConstractWrite({
       execute,
-      onReset,
+      onReset: refetch,
       enabled:
         !!amount &&
         !!restakingToken &&
@@ -85,12 +84,24 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
         isValidAmount
     });
 
-  useEffect(() => void (success && resetAmount()), [success, resetAmount]);
+  const resetAmount = useCallback(() => {
+    setAmount(null);
+  }, [assets]);
 
-  const handleReset = useCallback(() => {
+  const resetForm = useCallback(() => {
     reset();
     resetAmount();
   }, [reset, resetAmount]);
+
+  const handleChangeAmount = useCallback(
+    (amount: bigint | null) => {
+      if (txHash || error) reset();
+      setAmount(amount);
+    },
+    [error, reset, txHash]
+  );
+
+  useEffect(() => void (success && resetAmount()), [success, resetAmount]);
 
   return (
     <>
@@ -110,7 +121,7 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
               amount={amount}
               restakingTokenBalance={restakingTokenBalance}
               restakingToken={lrt}
-              setAmount={setAmount}
+              setAmount={handleChangeAmount}
             />
           )}
           {assets.length > 1 && (
@@ -128,11 +139,13 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
           />
 
           <TransactionButton
+            transactionType={RioTransactionType.WITHDRAW_REQUEST}
             hash={txHash}
+            refetch={refetch}
             disabled={!address || !amount || !isValidAmount || isLoading}
             isSigning={isLoading}
             error={error}
-            reset={handleReset}
+            reset={resetForm}
             clearErrors={reset}
             write={write}
           >

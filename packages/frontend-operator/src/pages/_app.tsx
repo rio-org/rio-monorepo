@@ -1,6 +1,8 @@
 import '@rio-monorepo/ui/styles/global.scss';
 import 'react-loading-skeleton/dist/skeleton.css';
 import '@rainbow-me/rainbowkit/styles.css';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/react';
 import type { AppProps } from 'next/app';
 import { RioNetworkProvider } from '@rionetwork/sdk-react';
 import {
@@ -26,6 +28,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Layout from '@rio-monorepo/ui/components/Layout';
 import { theme } from '@rio-monorepo/ui/lib/theme';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import RioTransactionStoreProvider from '@rio-monorepo/ui/contexts/RioTransactionStore';
 
 import {
   APP_TITLE,
@@ -98,22 +101,26 @@ function MyApp({ Component, pageProps }: AppProps) {
       <RainbowKitProvider appInfo={appInfo} chains={chains}>
         <QueryClientProvider client={queryClient}>
           <RioNetworkProvider>
-            <ThemeProvider value={theme}>
-              <CssBaseline />
-              <Layout
-                appTitle={APP_TITLE}
-                showExchangeRates={false}
-                nav={{
-                  logoItem: APP_NAV_LOGO_ITEM,
-                  items: APP_NAV_ITEMS,
-                  secondaryItems: APP_SECONDARY_NAV_ITEMS,
-                  tertiaryItems: APP_TERTIARY_NAV_ITEMS,
-                  socialItems: APP_SOCIAL_NAV_ITEMS
-                }}
-              >
-                <Component {...pageProps} />
-              </Layout>
-            </ThemeProvider>
+            <RioTransactionStoreProvider>
+              <ThemeProvider value={theme}>
+                <CssBaseline />
+                <Layout
+                  appTitle={APP_TITLE}
+                  showExchangeRates={false}
+                  nav={{
+                    logoItem: APP_NAV_LOGO_ITEM,
+                    items: APP_NAV_ITEMS,
+                    secondaryItems: APP_SECONDARY_NAV_ITEMS,
+                    tertiaryItems: APP_TERTIARY_NAV_ITEMS,
+                    socialItems: APP_SOCIAL_NAV_ITEMS
+                  }}
+                >
+                  <Component {...pageProps} />
+                  <Analytics />
+                  <SpeedInsights />
+                </Layout>
+              </ThemeProvider>
+            </RioTransactionStoreProvider>
           </RioNetworkProvider>
         </QueryClientProvider>
       </RainbowKitProvider>

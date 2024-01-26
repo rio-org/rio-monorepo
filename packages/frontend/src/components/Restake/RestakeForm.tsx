@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import StakeField from './StakeField';
 import {
   erc20ABI,
@@ -12,7 +12,8 @@ import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
 import {
   AssetDetails,
   ContractError,
-  LRTDetails
+  LRTDetails,
+  RioTransactionType
 } from '@rio-monorepo/ui/lib/typings';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
@@ -59,6 +60,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   });
   const { address } = useAccount();
 
+  const { refetch: refetchLrtBalance } = useAssetBalance(lrt);
+
   const {
     data,
     isError,
@@ -70,16 +73,16 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     !!amount && amount > BigInt(0) && amount <= accountTokenBalance;
   const isEmpty = !amount;
 
-  const clearErrors = () => {
+  const clearErrors = useCallback(() => {
     setDepositError(null);
     setIsDepositLoading(false);
     setDepositTxHash(undefined);
-  };
+  }, []);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setAmount(null);
     clearErrors();
-  };
+  }, []);
 
   useEffect(() => {
     if (!data) return;
@@ -237,10 +240,31 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     enabled: !!depositTxHash
   });
 
+  const refetchUserBalances = useCallback(() => {
+    refetchLrtBalance().catch(console.error);
+    refetchBalance().catch(console.error);
+  }, [refetchLrtBalance, refetchBalance]);
+
   useEffect(() => {
     if (!txReceipt) return;
-    refetchBalance().catch(console.error);
+    refetchUserBalances();
   }, [txReceipt]);
+
+  const handleChangeAmount = useCallback(
+    (amount: bigint | null) => {
+      if (depositTxHash || depositError) clearErrors();
+      setAmount(amount);
+    },
+    [clearErrors, depositTxHash, depositError]
+  );
+
+  const handleChangeActiveToken = useCallback(
+    (activeToken: AssetDetails) => {
+      if (depositTxHash || depositError) clearErrors();
+      setActiveToken(activeToken);
+    },
+    [clearErrors, depositTxHash, depositError]
+  );
 
   return (
     <>
@@ -261,8 +285,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
             isDisabled={isDepositLoading}
             assets={assets}
             lrt={lrt}
-            setAmount={setAmount}
-            setActiveToken={setActiveToken}
+            setAmount={handleChangeAmount}
+            setActiveToken={handleChangeActiveToken}
           />
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex justify-between text-[14px]">
@@ -299,6 +323,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
           {isAllowed && (
             <>
               <TransactionButton
+                transactionType={RioTransactionType.DEPOSIT}
+                refetch={refetchUserBalances}
                 hash={depositTxHash}
                 disabled={!isValidAmount || isEmpty || isDepositLoading}
                 isSigning={isDepositLoading}

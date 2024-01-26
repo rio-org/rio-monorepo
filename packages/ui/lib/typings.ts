@@ -188,6 +188,7 @@ export interface TransactionEvent {
   valueUSD: number;
   amountChange: number;
   restakingToken: BaseAssetDetails;
+  restakingTokenPriceUSD: number;
   userBalanceAfter: number;
   tx: Hash;
 }
@@ -266,4 +267,26 @@ export interface ValidatorKeyItem {
   eth2_network_name: string;
   deposit_message_root: string;
   deposit_data_root: string;
+}
+
+///////////////////////
+// Transaction Store
+///////////////////////
+
+export enum RioTransactionType {
+  // Restake
+  DEPOSIT = 'DEPOSIT',
+  WITHDRAW_REQUEST = 'WITHDRAW_REQUEST',
+  CLAIM = 'CLAIM',
+  // Operators
+  SUBMIT_KEYS = 'SUBMIT_KEYS'
+}
+
+export type PendingTransaction = {
+  hash: Hash;
+  type: RioTransactionType;
+};
+
+export interface TransactionStore {
+  [chainId: number]: PendingTransaction[];
 }

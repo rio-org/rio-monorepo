@@ -20,11 +20,11 @@ const Stats = ({ lrt }: Props) => {
 
   const stats = useMemo(
     () => [
-      { label: 'Restaking Points', value: 'Coming Soon', denominator: '' },
+      { label: 'EigenLayer points', value: 'Coming soon', denominator: '' },
       {
         label: 'Average APY',
-        value: lrt?.percentAPY?.toString() || '--',
-        denominator: '%'
+        value: `${lrt?.percentAPY?.toString() || '--'}%`,
+        denominator: ''
       }
     ],
     [lrt?.percentAPY]
