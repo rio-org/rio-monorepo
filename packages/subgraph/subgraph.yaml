@@ -8,8 +8,8 @@ dataSources:
     name: RioLRTIssuer
     source:
       abi: RioLRTIssuer
-      address: "0x502933537Ee5E6EBa274951502c221e7aDD0Ca70"
-      startBlock: 10401450
+      address: "0x677a3258E9D4A5b242DA9114F14d178E295deAb5"
+      startBlock: 10438119
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -34,7 +34,7 @@ dataSources:
     source:
       abi: DelegationManager
       address: "0x1b7b8F6b258f95Cf9596EabB9aa18B62940Eb0a8"
-      startBlock: 10401450
+      startBlock: 10438119
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

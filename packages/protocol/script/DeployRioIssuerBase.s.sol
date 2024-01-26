@@ -20,21 +20,11 @@ contract DeployRioIssuerBase is Script {
     address public immutable strategyManager;
     address public immutable eigenPodManager;
     address public immutable delegationManager;
-    address public immutable blsPublicKeyCompendium;
-    address public immutable slasher;
 
-    constructor(
-        address strategyManager_,
-        address eigenPodManager_,
-        address delegationManager_,
-        address blsPublicKeyCompendium_,
-        address slasher_
-    ) {
+    constructor(address strategyManager_, address eigenPodManager_, address delegationManager_) {
         strategyManager = strategyManager_;
         eigenPodManager = eigenPodManager_;
         delegationManager = delegationManager_;
-        blsPublicKeyCompendium = blsPublicKeyCompendium_;
-        slasher = slasher_;
     }
 
     function run() public returns (RioLRTIssuer issuer) {
