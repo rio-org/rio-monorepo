@@ -23,7 +23,7 @@ const Stats = ({ lrt }: Props) => {
       { label: 'EigenLayer points', value: 'Coming soon', denominator: '' },
       {
         label: 'Average APY',
-        value: `${lrt?.percentAPY?.toString()}%` || '--',
+        value: `${lrt?.percentAPY?.toString() || '--'}%`,
         denominator: ''
       }
     ],
