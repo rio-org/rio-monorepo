@@ -1,13 +1,13 @@
 import React from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '@/components/Withdraw/WithdrawWrapper';
-import WithdrawalRequestRow from '@/components/History/WithdrawalRequestRow';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
 import { Spinner } from '@material-tailwind/react';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { WithdrawalRequestHistory } from '@/components/History/WithdrawalRequestHistory';
 
 const History: NextPage = () => {
   const { data: lrts } = useGetLiquidRestakingTokens();
@@ -15,12 +15,14 @@ const History: NextPage = () => {
 
   const isMounted = useIsMounted();
   const { address } = useAccountIfMounted();
-  const { data, isLoading, isFetched } = useGetAccountWithdrawals(
+  const {
+    data: { withdrawalRequests },
+    isLoading,
+    isFetched
+  } = useGetAccountWithdrawals(
     { where: { sender: address, restakingToken: lrt?.address } },
     { enabled: !!address && !!lrt?.address }
   );
-
-  const { withdrawalRequests } = data || {};
 
   return (
     <WithdrawWrapper noPadding>
@@ -46,30 +48,10 @@ const History: NextPage = () => {
             </h2>
           )}
           {withdrawalRequests && withdrawalRequests.length > 0 ? (
-            <motion.div
-              className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200"
-              layoutId="withdraw-history"
-            >
-              <table className="min-w-full">
-                <AnimatePresence>
-                  <motion.tbody
-                    initial={{ height: 0 }}
-                    animate={{ height: 'auto' }}
-                    transition={{
-                      duration: 0.2
-                    }}
-                  >
-                    {withdrawalRequests?.map((item, index) => (
-                      <WithdrawalRequestRow
-                        key={index}
-                        transaction={item}
-                        index={index}
-                      />
-                    ))}
-                  </motion.tbody>
-                </AnimatePresence>
-              </table>
-            </motion.div>
+            <WithdrawalRequestHistory
+              lrt={lrt}
+              withdrawalRequests={withdrawalRequests}
+            />
           ) : (
             address && (
               <div className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200">

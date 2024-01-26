@@ -51,12 +51,21 @@ dayjs.updateLocale('en', {
 
 type Props = {
   transaction: WithdrawalRequest;
+  nextRebalanceTimestamp?: number;
 };
 
-const TransactionStatusLabel = ({ transaction }: Props) => {
-  const lastTimeToBeAvailable =
-    Number(+transaction.timestamp) + SECONDS.DAYS * 8;
+const TransactionStatusLabel = ({
+  transaction,
+  nextRebalanceTimestamp
+}: Props) => {
+  const now = Date.now();
+  const requestTimestamp = Number(+transaction.timestamp);
+  const lastTimeToBeAvailable = requestTimestamp + SECONDS.DAYS * 8;
   const timeLeft = dayjs.unix(lastTimeToBeAvailable);
+  const isBeforeNextRebalance =
+    typeof nextRebalanceTimestamp === 'number' &&
+    now / 1000 < nextRebalanceTimestamp &&
+    nextRebalanceTimestamp - requestTimestamp < SECONDS.DAYS;
 
   const status = useMemo<TransactionStatus>(() => {
     if (transaction.claimTx) return 'Claimed';
@@ -104,7 +113,7 @@ const TransactionStatusLabel = ({ transaction }: Props) => {
         {status === 'Pending' && (
           <div className="flex flex-row gap-1 items-center">
             <IconClock />
-            {timeLeft.fromNow(true)}
+            {`${isBeforeNextRebalance ? '1-' : ''}${timeLeft.fromNow(true)}`}
           </div>
         )}
         <span>{status}</span>

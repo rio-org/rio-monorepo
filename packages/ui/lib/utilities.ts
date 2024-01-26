@@ -316,3 +316,7 @@ export function isHexadecimal(hexString: string, length: number) {
   const regex = new RegExp(`^[a-fA-F0-9]{${length}}$`);
   return regex.test(hexString);
 }
+
+export function isUndefined(value: unknown): value is undefined {
+  return typeof value === 'undefined';
+}
