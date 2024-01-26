@@ -58,7 +58,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     /// @notice The LRT reward distributor.
     address public rewardDistributor;
 
-    /// @notice The operator's EigenPod.
+    /// @notice The operator delegator's EigenPod.
     IEigenPod public eigenPod;
 
     /// @notice Credentials to withdraw ETH on Consensus Layer via the EigenPod.
@@ -134,7 +134,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
         withdrawalCredentials = _computeWithdrawalCredentials(eigenPodAddress);
     }
 
-    /// @notice Returns the number of shares in the operator's EigenPod.
+    /// @notice Returns the number of shares in the operator delegator's EigenPod.
     function getEigenPodShares() external view returns (int256) {
         return eigenPodManager.podOwnerShares(address(this));
     }
@@ -158,7 +158,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
         );
     }
 
-    /// @notice Scrapes ETH sitting in the operator's EigenPod to the reward distributor.
+    /// @notice Scrapes ETH sitting in the operator delegator's EigenPod to the reward distributor.
     /// @dev Anyone can call this function.
     function scrapeEigenPodETHBalanceToRewardDistributor() external {
         eigenPod.withdrawNonBeaconChainETHBalanceWei(rewardDistributor, eigenPod.nonBeaconChainETHBalanceWei());
@@ -177,7 +177,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     }
 
     // forgefmt: disable-next-item
-    /// Stake ETH via the operator's EigenPod, using the provided validator information.
+    /// Stake ETH via the operator delegator's EigenPod, using the provided validator information.
     /// @param validatorCount The number of validators to deposit into.
     /// @param pubkeyBatch Batched validator public keys.
     /// @param signatureBatch Batched validator signatures.

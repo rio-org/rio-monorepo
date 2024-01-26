@@ -264,7 +264,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
                 ++i;
             }
         }
-        if (epochWithdrawals.aggregateRoot != keccak256(abi.encodePacked(roots))) {
+        if (epochWithdrawals.aggregateRoot != keccak256(abi.encode(roots))) {
             revert INVALID_AGGREGATE_WITHDRAWAL_ROOT();
         }
         epochWithdrawals.shareValueOfAssetsReceived = SafeCast.toUint120(epochWithdrawals.sharesOwed);

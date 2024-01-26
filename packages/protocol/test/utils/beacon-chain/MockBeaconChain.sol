@@ -18,7 +18,7 @@ struct CredentialsProofs {
 struct BeaconWithdrawal {
     uint64 oracleTimestamp;
     IBeaconChainProofs.StateRootProof stateRootProof;
-    BeaconChainProofs.WithdrawalProof[] withdrawalProofs;
+    IBeaconChainProofs.WithdrawalProof[] withdrawalProofs;
     bytes[] validatorFieldsProofs;
     bytes32[][] validatorFields;
     bytes32[][] withdrawalFields;
@@ -205,7 +205,7 @@ contract MockBeaconChain is Test {
         nextTimestamp++;
 
         // Initialize proof arrays
-        BeaconChainProofs.WithdrawalProof memory withdrawalProof = _initWithdrawalProof({
+        IBeaconChainProofs.WithdrawalProof memory withdrawalProof = _initWithdrawalProof({
             withdrawalEpoch: withdrawalEpoch,
             withdrawalIndex: WITHDRAWAL_INDEX,
             oracleTimestamp: withdrawal.oracleTimestamp
@@ -264,7 +264,7 @@ contract MockBeaconChain is Test {
             });
         }
 
-        withdrawal.withdrawalProofs = new BeaconChainProofs.WithdrawalProof[](1);
+        withdrawal.withdrawalProofs = new IBeaconChainProofs.WithdrawalProof[](1);
         withdrawal.withdrawalProofs[0] = withdrawalProof;
 
         // Calculate beaconBlockRoot using beaconStateRoot and an empty proof:
@@ -287,7 +287,7 @@ contract MockBeaconChain is Test {
     /// directly updated here.
     ///
     /// @return executionPayloadRoot
-    function _genExecPayloadProofs(BeaconChainProofs.WithdrawalProof memory withdrawalProof, bytes32 withdrawalRoot)
+    function _genExecPayloadProofs(IBeaconChainProofs.WithdrawalProof memory withdrawalProof, bytes32 withdrawalRoot)
         internal
         view
         returns (bytes32)
@@ -336,7 +336,7 @@ contract MockBeaconChain is Test {
     /// directly updated here.
     ///
     /// @return historical summary block root
-    function _genBlockRootProofs(BeaconChainProofs.WithdrawalProof memory withdrawalProof)
+    function _genBlockRootProofs(IBeaconChainProofs.WithdrawalProof memory withdrawalProof)
         internal
         view
         returns (bytes32)
@@ -387,7 +387,7 @@ contract MockBeaconChain is Test {
     ///
     /// @return beaconStateRoot
     function _genBeaconStateRootProofs(
-        BeaconChainProofs.WithdrawalProof memory withdrawalProof,
+        IBeaconChainProofs.WithdrawalProof memory withdrawalProof,
         bytes memory validatorFieldsProof,
         uint40 validatorIndex,
         bytes32 validatorRoot
@@ -579,9 +579,9 @@ contract MockBeaconChain is Test {
     function _initWithdrawalProof(uint64 withdrawalEpoch, uint64 withdrawalIndex, uint64 oracleTimestamp)
         internal
         view
-        returns (BeaconChainProofs.WithdrawalProof memory)
+        returns (IBeaconChainProofs.WithdrawalProof memory)
     {
-        return BeaconChainProofs.WithdrawalProof({
+        return IBeaconChainProofs.WithdrawalProof({
             withdrawalProof: new bytes(WITHDRAWAL_PROOF_LEN),
             slotProof: new bytes(SLOT_PROOF_LEN),
             executionPayloadProof: new bytes(EXECPAYLOAD_PROOF_LEN),
@@ -597,7 +597,7 @@ contract MockBeaconChain is Test {
         });
     }
 
-    function _calcBlockHeaderIndex(BeaconChainProofs.WithdrawalProof memory withdrawalProof)
+    function _calcBlockHeaderIndex(IBeaconChainProofs.WithdrawalProof memory withdrawalProof)
         internal
         view
         returns (uint256)

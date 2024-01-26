@@ -60,8 +60,8 @@ interface IRioLRTOperatorRegistry {
     struct OperatorPublicDetails {
         /// @dev Flag indicating if the operator can participate in further staking and reward distribution.
         bool active;
-        /// @dev The operator's contract address.
-        address operatorContract;
+        /// @dev The staker contract that delegates to the operator.
+        address delegator;
         /// @dev The address that manages the operator.
         address manager;
         /// @dev The address that will manage the operator once confirmed.

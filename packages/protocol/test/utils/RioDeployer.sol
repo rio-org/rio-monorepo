@@ -7,16 +7,18 @@ import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {RioLRTOperatorRegistry} from 'contracts/restaking/RioLRTOperatorRegistry.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
+import {CredentialsProofs, BeaconWithdrawal} from 'test/utils/beacon-chain/MockBeaconChain.sol';
+import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {RioLRTRewardDistributor} from 'contracts/restaking/RioLRTRewardDistributor.sol';
 import {RioLRTOperatorDelegator} from 'contracts/restaking/RioLRTOperatorDelegator.sol';
 import {RioLRTWithdrawalQueue} from 'contracts/restaking/RioLRTWithdrawalQueue.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {RioLRTAssetRegistry} from 'contracts/restaking/RioLRTAssetRegistry.sol';
-import {CredentialsProofs} from 'test/utils/beacon-chain/MockBeaconChain.sol';
 import {RioLRTCoordinator} from 'contracts/restaking/RioLRTCoordinator.sol';
 import {RioLRTDepositPool} from 'contracts/restaking/RioLRTDepositPool.sol';
 import {RioLRTAVSRegistry} from 'contracts/restaking/RioLRTAVSRegistry.sol';
+import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {RioLRTIssuer} from 'contracts/restaking/RioLRTIssuer.sol';
 import {MockPriceFeed} from 'test/utils/MockPriceFeed.sol';
@@ -138,13 +140,14 @@ abstract contract RioDeployer is EigenLayerDeployer {
 
     function addOperatorDelegators(RioLRTOperatorRegistry operatorRegistry, address rewardDistributor, uint8 count)
         public
+        returns (uint8[] memory operatorIds)
     {
         IRioLRTOperatorRegistry.StrategyShareCap[] memory shareCaps = new IRioLRTOperatorRegistry.StrategyShareCap[](2);
         shareCaps[0] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: RETH_STRATEGY, cap: 1_000 ether});
         shareCaps[1] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: CBETH_STRATEGY, cap: 1_000 ether});
         uint40 validatorCap = 100;
 
-        addOperatorDelegators(operatorRegistry, rewardDistributor, count, shareCaps, validatorCap);
+        operatorIds = addOperatorDelegators(operatorRegistry, rewardDistributor, count, shareCaps, validatorCap);
     }
 
     function addOperatorDelegators(
@@ -153,7 +156,9 @@ abstract contract RioDeployer is EigenLayerDeployer {
         uint8 count,
         IRioLRTOperatorRegistry.StrategyShareCap[] memory shareCaps,
         uint40 validatorCap
-    ) public {
+    ) public returns (uint8[] memory operatorIds) {
+        operatorIds = new uint8[](count);
+
         // Stub Ethereum POS deposits
         vm.mockCall(
             ETH_POS_ADDRESS,
@@ -177,10 +182,10 @@ abstract contract RioDeployer is EigenLayerDeployer {
                 metadataURI
             );
 
-            (uint8 operatorId,) = operatorRegistry.addOperator(
+            (operatorIds[i],) = operatorRegistry.addOperator(
                 operator, address(this), address(this), metadataURI, shareCaps, validatorCap
             );
-            operatorRegistry.addValidatorDetails(operatorId, validatorCap, publicKeys, signatures);
+            operatorRegistry.addValidatorDetails(operatorIds[i], validatorCap, publicKeys, signatures);
         }
 
         // Fast forward to allow validator keys time to confirm.
@@ -191,15 +196,18 @@ abstract contract RioDeployer is EigenLayerDeployer {
         RioLRTOperatorRegistry operatorRegistry,
         uint8 operatorId,
         uint8 validatorCount
-    ) public {
+    ) public returns (uint40[] memory validatorIndices) {
+        validatorIndices = new uint40[](validatorCount);
+
         IRioLRTOperatorRegistry.OperatorPublicDetails memory details = operatorRegistry.getOperatorDetails(operatorId);
-        RioLRTOperatorDelegator operatorDelegator = RioLRTOperatorDelegator(payable(details.operatorContract));
+        RioLRTOperatorDelegator operatorDelegator = RioLRTOperatorDelegator(payable(details.delegator));
 
         bytes32 withdrawalCredentials = operatorDelegator.withdrawalCredentials();
 
         beaconChain.setNextTimestamp(block.timestamp);
         for (uint8 i = 0; i < validatorCount; i++) {
-            (, CredentialsProofs memory proofs) = beaconChain.newValidator({
+            CredentialsProofs memory proofs;
+            (validatorIndices[i], proofs) = beaconChain.newValidator({
                 balanceWei: 32 ether,
                 withdrawalCreds: abi.encodePacked(withdrawalCredentials)
             });
@@ -212,6 +220,24 @@ abstract contract RioDeployer is EigenLayerDeployer {
                 proofs.validatorIndices,
                 proofs.validatorFieldsProofs,
                 proofs.validatorFields
+            );
+        }
+    }
+
+    function verifyAndProcessWithdrawalsForValidatorIndexes(address operatorDelegator, uint40[] memory validatorIndices)
+        public
+    {
+        for (uint256 i = 0; i < validatorIndices.length; i++) {
+            BeaconWithdrawal memory withdrawal = beaconChain.exitValidator(validatorIndices[i]);
+            IEigenPod pod = IRioLRTOperatorDelegator(operatorDelegator).eigenPod();
+
+            pod.verifyAndProcessWithdrawals(
+                withdrawal.oracleTimestamp,
+                withdrawal.stateRootProof,
+                withdrawal.withdrawalProofs,
+                withdrawal.validatorFieldsProofs,
+                withdrawal.validatorFields,
+                withdrawal.withdrawalFields
             );
         }
     }

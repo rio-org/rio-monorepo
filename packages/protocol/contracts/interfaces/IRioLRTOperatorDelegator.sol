@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.21;
 
+import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 
 interface IRioLRTOperatorDelegator {
@@ -44,6 +45,9 @@ interface IRioLRTOperatorDelegator {
     function initialize(address coordinator, address depositPool, address rewardDistributor, address operator)
         external;
 
+    /// @notice The operator delegator's EigenPod.
+    function eigenPod() external view returns (IEigenPod);
+
     /// @notice Returns the number of shares in the operator delegator's EigenPod.
     function getEigenPodShares() external view returns (int256);
 
@@ -69,7 +73,7 @@ interface IRioLRTOperatorDelegator {
     function stakeERC20(address strategy, address token, uint256 amount) external returns (uint256 shares);
 
     // forgefmt: disable-next-item
-    /// Stake ETH via the operator's EigenPod, using the provided validator information.
+    /// Stake ETH via the operator delegator's EigenPod, using the provided validator information.
     /// @param validatorCount The number of validators to deposit into.
     /// @param pubkeyBatch Batched validator public keys.
     /// @param signatureBatch Batched validator signatures.
