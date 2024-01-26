@@ -1,25 +1,26 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { Address, formatUnits, getAddress, zeroAddress } from 'viem';
+import { type Address, formatUnits, getAddress, zeroAddress } from 'viem';
 import { ASSETS, ASSET_LOGOS } from './constants';
 import {
-  AssetDetails,
-  AssetSubgraphResponse,
-  BaseAssetDetails,
-  BaseAssetSubgraphResponse,
-  BaseLRTSubgraphResponse,
-  CHAIN_ID_NUMBER,
-  LRTDetails,
-  LRTSubgraphResponse,
-  TokenSymbol,
-  UnderlyingAssetDetails,
-  UnderlyingAssetSubgraphResponse,
-  ValidatorKeyItem
+  type AssetDetails,
+  type AssetSubgraphResponse,
+  type BaseAssetDetails,
+  type BaseAssetSubgraphResponse,
+  type BaseLRTSubgraphResponse,
+  type CHAIN_ID_NUMBER,
+  type ContractError,
+  type LRTDetails,
+  type LRTSubgraphResponse,
+  type TokenSymbol,
+  type UnderlyingAssetDetails,
+  type UnderlyingAssetSubgraphResponse,
+  type ValidatorKeyItem
 } from './typings';
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
 import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
-import { SubgraphClient } from '@rionetwork/sdk-react';
+import { type SubgraphClient } from '@rionetwork/sdk-react';
 
 export const getChainName = (chainId: number) => {
   switch (chainId) {
@@ -280,6 +281,7 @@ export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(
 
 export const asType = <T>(item: unknown) => item as T;
 export const asError = asType<Error>;
+export const asContractError = asType<ContractError>;
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

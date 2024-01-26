@@ -43,21 +43,36 @@ const SecondaryMenuItems = ({
       <hr className="mx-2 my-2 border-t border-black border-opacity-10 bg-transparent " />
       <div className="mb-4">
         {tertiaryItems.map(
-          ({ label, url, external }, index) =>
+          ({ label, url, external, disabled }, index) =>
             url && (
-              <MenuItem className="group" key={label + index}>
-                <Link
-                  href={url}
-                  target={external ? '_blank' : undefined}
-                  rel={external ? 'noopener noreferrer' : undefined}
-                  className={twJoin(
-                    'py-0 px-0 flex flex-row gap-1 items-center',
-                    'text-black font-medium opacity-50',
-                    'group-hover:opacity-100 text-[14px]'
-                  )}
-                >
-                  {label} <IconLineArrow direction="external" />
-                </Link>
+              <MenuItem
+                disabled={disabled}
+                className="group"
+                key={`${label}-${index}`}
+              >
+                {disabled ? (
+                  <span
+                    className={twJoin(
+                      'py-0 px-0 flex flex-row gap-1 items-center',
+                      'text-black font-medium opacity-50 text-[14px]'
+                    )}
+                  >
+                    {label} <IconLineArrow direction="external" />
+                  </span>
+                ) : (
+                  <Link
+                    href={url}
+                    target={external ? '_blank' : undefined}
+                    rel={external ? 'noopener noreferrer' : undefined}
+                    className={twJoin(
+                      'py-0 px-0 flex flex-row gap-1 items-center',
+                      'text-black font-medium opacity-50 text-[14px]',
+                      'group-hover:opacity-100'
+                    )}
+                  >
+                    {label} <IconLineArrow direction="external" />
+                  </Link>
+                )}
               </MenuItem>
             )
         )}

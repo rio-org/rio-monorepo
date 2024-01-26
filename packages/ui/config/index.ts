@@ -45,9 +45,10 @@ export const APP_SECONDARY_NAV_ITEMS: NavItem[] = [
 
 export const APP_TERTIARY_NAV_ITEMS: NavItem[] = [
   {
-    label: 'Docs',
+    label: 'Docs (coming soon)',
     url: 'https://rio.gitbook.io/rio-network-updates/updates/introducing-rio-network',
-    external: true
+    external: true,
+    disabled: true
   },
   {
     label: 'News',
