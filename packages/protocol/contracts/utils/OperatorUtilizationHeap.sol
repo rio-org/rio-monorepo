@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {LibMap} from '@solady/utils/LibMap.sol';
 
-/// @title Operator Utilization Heap
+/// @title Operator Utilization Heap.
 /// @notice The `OperatorUtilizationHeap` library provides functionality for managing an in-memory heap data
 /// structure that organizes operators based on their utilization. The heap allows for efficient insertion,
 /// removal, and update of operator utilizations, as well as retrieval of the operators with the minimum

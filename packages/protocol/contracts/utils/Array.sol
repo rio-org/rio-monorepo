@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
-/// @title Array utility functions
+/// @title Array utility functions.
 library Array {
     /// @notice Convert a `uint256` element to an array.
     /// @param element The element to convert.

@@ -14,7 +14,7 @@ import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-/// @notice Administrative functions for the operator registry.
+/// @title Administrative functions for the operator registry.
 library OperatorRegistryV1Admin {
     using OperatorRegistryV1Admin for RioLRTOperatorRegistryStorageV1.StorageV1;
     using OperatorRegistryV1Admin for IRioLRTOperatorRegistry.OperatorDetails;

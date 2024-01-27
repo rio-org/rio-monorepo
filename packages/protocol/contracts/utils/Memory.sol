@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
-/// @title Memory utility functions
+/// @title Memory utility functions.
 /// @notice Modified from skozin's work for Lido. Switch over to the MCOPY
 /// instruction once available - https://eips.ethereum.org/EIPS/eip-5656.
 library Memory {

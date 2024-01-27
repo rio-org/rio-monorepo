@@ -8,6 +8,7 @@ import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegis
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {BEACON_CHAIN_STRATEGY, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 
+/// @title Operator delegator deposit and withdrawal operations.
 library OperatorOperations {
     using FixedPointMathLib for uint256;
     using SafeERC20 for IERC20;

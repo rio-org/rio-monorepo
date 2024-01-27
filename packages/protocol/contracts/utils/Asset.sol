@@ -5,7 +5,7 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 
-/// @title Asset utility functions
+/// @title Asset utility functions.
 library Asset {
     using SafeERC20 for IERC20;
     using Asset for address;
