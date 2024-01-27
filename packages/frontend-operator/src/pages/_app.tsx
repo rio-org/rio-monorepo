@@ -39,6 +39,7 @@ import {
   APP_SOCIAL_NAV_ITEMS,
   CHAIN_ID
 } from '../../config';
+import { RainbowKitDisclaimer } from '@rio-monorepo/ui/components/Shared/RainbowKitDisclaimer';
 
 // Create the cache client
 const queryClient = new QueryClient();
@@ -67,7 +68,8 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 
 const appInfo = {
   appName: APP_TITLE,
-  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'CI'
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'CI',
+  disclaimer: RainbowKitDisclaimer
 };
 const projectId = appInfo.projectId;
 
@@ -98,7 +100,7 @@ const wagmiConfig = createConfig({
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider appInfo={appInfo} chains={chains}>
+      <RainbowKitProvider modalSize="compact" appInfo={appInfo} chains={chains}>
         <QueryClientProvider client={queryClient}>
           <RioNetworkProvider>
             <RioTransactionStoreProvider>
