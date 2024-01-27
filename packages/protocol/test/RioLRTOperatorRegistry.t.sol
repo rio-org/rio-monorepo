@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
@@ -62,36 +62,42 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
     function test_addOperatorWithoutOperatorReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.INVALID_OPERATOR.selector));
         reETH.operatorRegistry.addOperator(
-            address(0),
-            address(this),
-            address(this),
-            metadataURI,
-            new IRioLRTOperatorRegistry.StrategyShareCap[](0),
-            100
+            IRioLRTOperatorRegistry.OperatorConfig({
+                operator: address(0), // No operator
+                initialManager: address(this),
+                initialEarningsReceiver: address(this),
+                initialMetadataURI: metadataURI,
+                strategyShareCaps: emptyStrategyShareCaps,
+                validatorCap: 100
+            })
         );
     }
 
     function test_addOperatorWithoutManagerReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.INVALID_MANAGER.selector));
         reETH.operatorRegistry.addOperator(
-            address(1),
-            address(0), // No manager
-            address(this),
-            metadataURI,
-            new IRioLRTOperatorRegistry.StrategyShareCap[](0),
-            100
+            IRioLRTOperatorRegistry.OperatorConfig({
+                operator: address(1),
+                initialManager: address(0), // No manager
+                initialEarningsReceiver: address(this),
+                initialMetadataURI: metadataURI,
+                strategyShareCaps: emptyStrategyShareCaps,
+                validatorCap: 100
+            })
         );
     }
 
     function test_addOperatorWithoutEarningsReceiverReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.INVALID_EARNINGS_RECEIVER.selector));
         reETH.operatorRegistry.addOperator(
-            address(1),
-            address(this),
-            address(0), // No earnings receiver
-            metadataURI,
-            new IRioLRTOperatorRegistry.StrategyShareCap[](0),
-            100
+            IRioLRTOperatorRegistry.OperatorConfig({
+                operator: address(1),
+                initialManager: address(this),
+                initialEarningsReceiver: address(0), // No earnings receiver
+                initialMetadataURI: metadataURI,
+                strategyShareCaps: emptyStrategyShareCaps,
+                validatorCap: 100
+            })
         );
     }
 
@@ -110,7 +116,14 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         );
 
         (uint8 operatorId, address delegator) = reETH.operatorRegistry.addOperator(
-            operator, address(this), address(this), metadataURI, defaultStrategyShareCaps, validatorCap
+            IRioLRTOperatorRegistry.OperatorConfig({
+                operator: operator,
+                initialManager: address(this),
+                initialEarningsReceiver: address(this),
+                initialMetadataURI: metadataURI,
+                strategyShareCaps: defaultStrategyShareCaps,
+                validatorCap: validatorCap
+            })
         );
         assertEq(operatorId, 1);
         assertNotEq(delegator, address(0));
@@ -391,7 +404,14 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             metadataURI
         );
         reETH.operatorRegistry.addOperator(
-            operator, address(this), address(this), metadataURI, emptyStrategyShareCaps, VALIDATORS_PER_OPERATOR
+            IRioLRTOperatorRegistry.OperatorConfig({
+                operator: operator,
+                initialManager: address(this),
+                initialEarningsReceiver: address(this),
+                initialMetadataURI: metadataURI,
+                strategyShareCaps: emptyStrategyShareCaps,
+                validatorCap: VALIDATORS_PER_OPERATOR
+            })
         );
 
         // Create an operator with confirmed keys.

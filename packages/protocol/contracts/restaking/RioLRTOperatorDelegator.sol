@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
@@ -194,16 +194,12 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
         bytes32 withdrawalCredentials_ = withdrawalCredentials;
         bytes memory publicKey = Memory.unsafeAllocateBytes(PUBLIC_KEY_LENGTH);
         bytes memory signature = Memory.unsafeAllocateBytes(SIGNATURE_LENGTH);
-        for (uint256 i = 0; i < validatorCount;) {
+        for (uint256 i = 0; i < validatorCount; ++i) {
             Memory.copyBytes(pubkeyBatch, publicKey, i * PUBLIC_KEY_LENGTH, 0, PUBLIC_KEY_LENGTH);
             Memory.copyBytes(signatureBatch, signature, i * SIGNATURE_LENGTH, 0, SIGNATURE_LENGTH);
             depositDataRoot = _computeDepositDataRoot(withdrawalCredentials_, publicKey, signature);
 
             eigenPodManager.stake{value: DEPOSIT_SIZE}(publicKey, signature, depositDataRoot);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 

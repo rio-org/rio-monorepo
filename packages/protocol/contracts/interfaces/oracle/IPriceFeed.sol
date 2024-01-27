@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 interface IPriceFeed {
     /// @dev Thrown when the oracle price is invalid.

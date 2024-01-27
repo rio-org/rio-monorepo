@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 /// @title Memory utility functions
 /// @notice Modified from skozin's work for Lido. Switch over to the MCOPY

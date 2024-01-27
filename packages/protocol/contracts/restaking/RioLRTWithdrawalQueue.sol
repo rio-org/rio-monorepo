@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
@@ -131,12 +131,8 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         uint256 requestLength = requests.length;
 
         amountsOut = new uint256[](requestLength);
-        for (uint256 i; i < requestLength;) {
+        for (uint256 i; i < requestLength; ++i) {
             amountsOut[i] = claimWithdrawalsForEpoch(requests[i]);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -254,15 +250,11 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         bytes32[] memory roots = new bytes32[](queuedWithdrawalCount);
 
         IDelegationManager.Withdrawal memory queuedWithdrawal;
-        for (uint256 i; i < queuedWithdrawalCount;) {
+        for (uint256 i; i < queuedWithdrawalCount; ++i) {
             queuedWithdrawal = queuedWithdrawals[i];
 
             roots[i] = _computeWithdrawalRoot(queuedWithdrawal);
             delegationManager.completeQueuedWithdrawal(queuedWithdrawal, assets, middlewareTimesIndexes[i], true);
-
-            unchecked {
-                ++i;
-            }
         }
         if (epochWithdrawals.aggregateRoot != keccak256(abi.encode(roots))) {
             revert INVALID_AGGREGATE_WITHDRAWAL_ROOT();

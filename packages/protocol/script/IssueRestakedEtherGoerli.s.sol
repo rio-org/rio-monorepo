@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {Script} from 'forge-std/Script.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';

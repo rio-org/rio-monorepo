@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {Test} from 'forge-std/Test.sol';
 import {MockERC20} from 'test/utils/MockERC20.sol';

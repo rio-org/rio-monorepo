@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 library Endian {
     /// @notice Converts a little endian-formatted uint64 to a big endian-formatted uint64

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {EigenLayerDeployer} from 'test/utils/EigenLayerDeployer.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
@@ -200,7 +200,14 @@ abstract contract RioDeployer is EigenLayerDeployer {
             );
 
             (operatorIds[i],) = operatorRegistry.addOperator(
-                operator, address(this), address(this), metadataURI, shareCaps, validatorCap
+                IRioLRTOperatorRegistry.OperatorConfig({
+                    operator: operator,
+                    initialManager: address(this),
+                    initialEarningsReceiver: address(this),
+                    initialMetadataURI: metadataURI,
+                    strategyShareCaps: shareCaps,
+                    validatorCap: validatorCap
+                })
             );
             if (validatorCap > 0) {
                 operatorRegistry.addValidatorDetails(operatorIds[i], validatorCap, publicKeys, signatures);

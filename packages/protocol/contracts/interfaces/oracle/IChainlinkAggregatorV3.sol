@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 interface IChainlinkAggregatorV3 {
     /// @notice Returns the number of decimals for the data returned by `latestRoundData`.

@@ -8,7 +8,7 @@ export const RioLRTOperatorRegistryABI = [
         internalType: 'address'
       },
       {
-        name: 'operatorImpl_',
+        name: 'operatorDelegatorImpl_',
         type: 'address',
         internalType: 'address'
       }
@@ -441,7 +441,7 @@ export const RioLRTOperatorRegistryABI = [
   },
   {
     type: 'function',
-    name: 'operatorBeaconImpl',
+    name: 'operatorDelegatorBeaconImpl',
     inputs: [],
     outputs: [{ name: '', type: 'address', internalType: 'address' }],
     stateMutability: 'view'
