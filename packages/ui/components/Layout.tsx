@@ -16,7 +16,7 @@ import {
   SocialNavItem
 } from '../lib/typings';
 
-type LayoutProps = {
+export type LayoutProps = {
   appTitle?: string;
   nav: {
     items: InternalAppNavItem[];
