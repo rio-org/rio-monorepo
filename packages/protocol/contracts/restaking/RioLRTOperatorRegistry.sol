@@ -9,6 +9,7 @@ import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
+import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
@@ -17,12 +18,16 @@ import {IRioLRTAVSRegistry} from 'contracts/interfaces/IRioLRTAVSRegistry.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 import {BEACON_CHAIN_STRATEGY} from 'contracts/utils/Constants.sol';
+import {Asset} from 'contracts/utils/Asset.sol';
+import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, UUPSUpgradeable {
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
     using ValidatorDetails for bytes32;
     using FixedPointMathLib for *;
+    using Asset for address;
     using LibMap for *;
+    using Array for *;
 
     /// @notice The maximum number of operators allowed in the registry.
     uint8 public constant MAX_OPERATOR_COUNT = 254;
@@ -35,6 +40,9 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
     /// @notice The operator beacon contract implementation.
     address public immutable operatorBeaconImpl;
+
+    /// @notice The primary delegation contract for EigenLayer.
+    IDelegationManager public immutable delegationManager;
 
     /// @notice The LRT coordinator contract.
     IRioLRTCoordinator public coordinator;
@@ -108,10 +116,12 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
 
     /// @param initialBeaconOwner The initial owner who can upgrade the operator beacon contract.
     /// @param operatorImpl_ The operator contract implementation.
-    constructor(address initialBeaconOwner, address operatorImpl_) {
+    /// @param delegationManager_ The primary delegation contract for EigenLayer.
+    constructor(address initialBeaconOwner, address operatorImpl_, address delegationManager_) {
         _disableInitializers();
 
         operatorBeaconImpl = address(new UpgradeableBeacon(operatorImpl_, initialBeaconOwner));
+        delegationManager = IDelegationManager(delegationManager_);
     }
 
     // forgefmt: disable-next-item
@@ -155,6 +165,13 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
     /// @param strategy The strategy to get the share details for.
     function getOperatorShareDetails(uint8 operatorId, address strategy) external view returns (OperatorShareDetails memory) {
         return operatorDetails[operatorId].shareDetails[strategy];
+    }
+
+    /// @notice Returns true if the exit root is valid for the provided operator ID.
+    /// @param operatorId The operator's ID.
+    /// @param exitRoot The exit root to check.
+    function isValidStrategyExitRootForOperator(uint8 operatorId, bytes32 exitRoot) public view returns (bool) {
+        return operatorDetails[operatorId].isValidStrategyExitRoot[exitRoot];
     }
 
     /// @notice Adds a new operator to the registry, deploying a delegator contract and
@@ -280,6 +297,35 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         activeOperatorCount -= 1;
 
         emit OperatorDeactivated(operatorId);
+    }
+
+    /// @notice Completes an exit from an EigenLayer strategy for the provided `operatorId`.
+    /// @param operatorId The ID of the operator who is exiting the strategy.
+    /// @param queuedWithdrawal The queued strategy withdrawal for the operator.
+    /// @param middlewareTimesIndex The index of the middleware times for the operator.
+    function completeOperatorStrategyExit(
+        uint8 operatorId,
+        IDelegationManager.Withdrawal calldata queuedWithdrawal,
+        uint256 middlewareTimesIndex
+    ) external {
+        // Only allow one strategy exit at a time.
+        if (queuedWithdrawal.strategies.length != 1) revert INVALID_STRATEGY_LENGTH_FOR_EXIT();
+
+        // Ensure that the exit was queued by the operator manager.
+        bytes32 exitRoot = keccak256(abi.encode(queuedWithdrawal));
+        if (!isValidStrategyExitRootForOperator(operatorId, exitRoot)) {
+            revert INVALID_STRATEGY_EXIT_ROOT();
+        }
+        address strategy = queuedWithdrawal.strategies[0];
+        address asset = strategy == BEACON_CHAIN_STRATEGY ? address(0) : IStrategy(strategy).underlyingToken();
+
+        // Complete the withdrawal from EigenLayer and transfer received assets to the deposit pool.
+        // ETH is forwarded via the receive function.
+        delegationManager.completeQueuedWithdrawal(queuedWithdrawal, asset.toArray(), middlewareTimesIndex, true);
+        if (asset != address(0)) {
+            asset.transferTo(depositPool, asset.getSelfBalance());
+        }
+        emit OperatorStrategyExitCompleted(operatorId, strategy, exitRoot);
     }
 
     // forgefmt: disable-next-item
@@ -727,6 +773,11 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
     }
 
+    /// @dev Receives ETH from operator exits and forwards it to the deposit pool.
+    receive() external payable {
+        depositPool.transferETH(msg.value);
+    }
+
     /// @dev Sets the amount of time (in seconds) before uploaded validator keys are considered "vetted".
     /// @param newValidatorKeyReviewPeriod The new validator key review period.
     function _setValidatorKeyReviewPeriod(uint24 newValidatorKeyReviewPeriod) internal {
@@ -751,9 +802,10 @@ contract RioLRTOperatorRegistry is IRioLRTOperatorRegistry, OwnableUpgradeable, 
         }
         if (sharesToExit == 0) revert CANNOT_EXIT_ZERO_SHARES();
 
-        delegator.queueWithdrawal(strategy, sharesToExit, depositPool);
+        bytes32 exitRoot = delegator.queueWithdrawal(strategy, sharesToExit, address(this));
+        operator.isValidStrategyExitRoot[exitRoot] = true;
 
-        emit OperatorStrategyExitQueued(operatorId, strategy, sharesToExit);
+        emit OperatorStrategyExitQueued(operatorId, strategy, sharesToExit, exitRoot);
     }
 
     // forgefmt: disable-next-item

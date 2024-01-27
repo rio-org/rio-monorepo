@@ -5,20 +5,6 @@ interface IRioLRTDepositPool {
     /// @notice Thrown when the caller is not the LRT coordinator.
     error ONLY_COORDINATOR();
 
-    /// @notice Thrown when the rebalance delay has not been met.
-    error REBALANCE_DELAY_NOT_MET();
-
-    /// @notice Thrown when there is insufficient ETH in the deposit pool
-    /// to make at least one deposit.
-    error INSUFFICIENT_ETH_FOR_DEPOSIT();
-
-    /// @notice Thrown when the amount of shares received is not the expected amount.
-    error INCORRECT_NUMBER_OF_SHARES_RECEIVED();
-
-    /// @notice Emitted when the rebalance delay is set.
-    /// @param newRebalanceDelay The new rebalance delay.
-    event RebalanceDelaySet(uint24 newRebalanceDelay);
-
     /// @notice Initializes the deposit pool contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param assetRegistry The address of the asset registry contract.

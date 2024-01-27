@@ -54,6 +54,8 @@ interface IRioLRTOperatorRegistry {
         OperatorValidatorDetails validatorDetails;
         /// @dev Operator strategy share allocation caps and current allocations.
         mapping(address => OperatorShareDetails) shareDetails;
+        /// @dev Records the existence of withdrawal roots for each strategy exit.
+        mapping(bytes32 => bool) isValidStrategyExitRoot;
     }
 
     /// @dev Details for a single operator, excluding the share details, so we can expose externally.
@@ -153,6 +155,12 @@ interface IRioLRTOperatorRegistry {
 
     /// @notice Thrown when an invalid index is provided.
     error INVALID_INDEX();
+
+    /// @notice Thrown when the strategy length in a strategy exit is not equal to 1.
+    error INVALID_STRATEGY_LENGTH_FOR_EXIT();
+
+    /// @notice Thrown when the provided strategy exit root is invalid.
+    error INVALID_STRATEGY_EXIT_ROOT();
 
     /// @notice Thrown when attempting an operation that requires the operator to be active.
     error OPERATOR_NOT_ACTIVE();
@@ -265,7 +273,16 @@ interface IRioLRTOperatorRegistry {
     /// @param operatorId The operator's ID.
     /// @param strategy The strategy to exit.
     /// @param sharesToExit The number of shares to exit.
-    event OperatorStrategyExitQueued(uint8 indexed operatorId, address strategy, uint256 sharesToExit);
+    /// @param exitRoot The withdrawal root for the exit.
+    event OperatorStrategyExitQueued(
+        uint8 indexed operatorId, address strategy, uint256 sharesToExit, bytes32 exitRoot
+    );
+
+    /// @notice Emitted when a strategy exit is completed for an operator.
+    /// @param operatorId The operator's ID.
+    /// @param strategy The strategy to exit.
+    /// @param exitRoot The withdrawal root for the exit.
+    event OperatorStrategyExitCompleted(uint8 indexed operatorId, address strategy, bytes32 exitRoot);
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.
@@ -288,6 +305,11 @@ interface IRioLRTOperatorRegistry {
         external
         view
         returns (OperatorShareDetails memory);
+
+    /// @notice Returns true if the withdrawal exit root is valid for the provided operator ID.
+    /// @param operatorId The operator's ID.
+    /// @param exitRoot The exit root to check.
+    function isValidStrategyExitRootForOperator(uint8 operatorId, bytes32 exitRoot) external view returns (bool);
 
     /// @notice Returns the total number of operators in the registry.
     function operatorCount() external view returns (uint8);

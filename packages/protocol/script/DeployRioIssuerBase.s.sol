@@ -39,7 +39,8 @@ contract DeployRioIssuerBase is Script {
                 address(
                     new RioLRTOperatorRegistry(
                         vm.addr(deployerKey),
-                        address(new RioLRTOperatorDelegator(strategyManager, eigenPodManager, delegationManager))
+                        address(new RioLRTOperatorDelegator(strategyManager, eigenPodManager, delegationManager)),
+                        delegationManager
                     )
                 ),
                 address(new RioLRTAVSRegistry()),

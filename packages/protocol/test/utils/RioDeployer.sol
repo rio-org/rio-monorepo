@@ -54,7 +54,8 @@ abstract contract RioDeployer is EigenLayerDeployer {
                             new RioLRTOperatorDelegator(
                                 STRATEGY_MANAGER_ADDRESS, EIGEN_POD_MANAGER_ADDRESS, DELEGATION_MANAGER_ADDRESS
                             )
-                        )
+                        ),
+                        DELEGATION_MANAGER_ADDRESS
                     )
                 ),
                 address(new RioLRTAVSRegistry()),
@@ -92,7 +93,7 @@ abstract contract RioDeployer is EigenLayerDeployer {
             token: IERC20(deployment.token),
             coordinator: RioLRTCoordinator(payable(deployment.coordinator)),
             assetRegistry: RioLRTAssetRegistry(deployment.assetRegistry),
-            operatorRegistry: RioLRTOperatorRegistry(deployment.operatorRegistry),
+            operatorRegistry: RioLRTOperatorRegistry(payable(deployment.operatorRegistry)),
             avsRegistry: RioLRTAVSRegistry(deployment.avsRegistry),
             depositPool: RioLRTDepositPool(payable(deployment.depositPool)),
             withdrawalQueue: RioLRTWithdrawalQueue(payable(deployment.withdrawalQueue)),
@@ -130,7 +131,7 @@ abstract contract RioDeployer is EigenLayerDeployer {
             token: IERC20(deployment.token),
             coordinator: RioLRTCoordinator(payable(deployment.coordinator)),
             assetRegistry: RioLRTAssetRegistry(deployment.assetRegistry),
-            operatorRegistry: RioLRTOperatorRegistry(deployment.operatorRegistry),
+            operatorRegistry: RioLRTOperatorRegistry(payable(deployment.operatorRegistry)),
             avsRegistry: RioLRTAVSRegistry(deployment.avsRegistry),
             depositPool: RioLRTDepositPool(payable(deployment.depositPool)),
             withdrawalQueue: RioLRTWithdrawalQueue(payable(deployment.withdrawalQueue)),
