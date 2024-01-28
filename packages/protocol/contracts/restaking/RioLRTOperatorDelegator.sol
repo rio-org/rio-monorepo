@@ -10,12 +10,12 @@ import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager
 import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager.sol';
 import {ISignatureUtils} from 'contracts/interfaces/eigenlayer/ISignatureUtils.sol';
 import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
-import {LRTCore} from 'contracts/utils/LRTCore.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Memory} from 'contracts/utils/Memory.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, LRTCore {
+contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     using SafeERC20 for IERC20;
     using Asset for address;
     using Array for *;
@@ -65,7 +65,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, LRTCore {
     /// @param eigenPodManager_ The contract used for creating and managing EigenPods.
     /// @param delegationManager_ The primary delegation contract for EigenLayer.
     constructor(address issuer_, address strategyManager_, address eigenPodManager_, address delegationManager_)
-        LRTCore(issuer_)
+        RioLRTCore(issuer_)
     {
         strategyManager = IStrategyManager(strategyManager_);
         eigenPodManager = IEigenPodManager(eigenPodManager_);
@@ -77,7 +77,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, LRTCore {
     /// @param token_ The address of the liquid restaking token.
     /// @param operator The operator's address.
     function initialize(address token_, address operator) external initializer {
-        __LRTCore_init_noVerify(token_);
+        __RioLRTCore_init_noVerify(token_);
 
         if (msg.sender != address(operatorRegistry())) revert ONLY_OPERATOR_REGISTRY();
 

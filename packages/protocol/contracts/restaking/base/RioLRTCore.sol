@@ -13,7 +13,7 @@ import {LRTAddressCalculator} from 'contracts/utils/LRTAddressCalculator.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 
 /// @title Utilities inherited by all core LRT contracts.
-abstract contract LRTCore is Initializable {
+abstract contract RioLRTCore is Initializable {
     using LRTAddressCalculator for address;
 
     /// @notice Thrown when the initializer is not the LRT issuer.
@@ -62,7 +62,7 @@ abstract contract LRTCore is Initializable {
 
     /// @notice Initializes the restaking contract.
     /// @param token_ The address of the liquid restaking token.
-    function __LRTCore_init(address token_) internal onlyInitializing {
+    function __RioLRTCore_init(address token_) internal onlyInitializing {
         if (msg.sender != issuer) revert ONLY_ISSUER();
 
         token = IRioLRT(token_);
@@ -70,7 +70,7 @@ abstract contract LRTCore is Initializable {
 
     /// @notice Initializes the restaking contract without verifying the caller.
     /// @param token_ The address of the liquid restaking token.
-    function __LRTCore_init_noVerify(address token_) internal onlyInitializing {
+    function __RioLRTCore_init_noVerify(address token_) internal onlyInitializing {
         token = IRioLRT(token_);
     }
 

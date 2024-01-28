@@ -4,10 +4,10 @@ pragma solidity 0.8.23;
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IRioLRTRewardDistributor} from 'contracts/interfaces/IRioLRTRewardDistributor.sol';
-import {LRTCore} from 'contracts/utils/LRTCore.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable, UUPSUpgradeable, LRTCore {
+contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using Asset for address;
 
     /// @notice The maximum basis points value (100%).
@@ -26,7 +26,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
     uint16 public operatorETHValidatorRewardShareBPS;
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    constructor(address issuer_) LRTCore(issuer_) {}
+    constructor(address issuer_) RioLRTCore(issuer_) {}
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.
@@ -37,7 +37,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
     function initialize(address initialOwner, address token_, address treasury_, address operatorRewardPool_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        __LRTCore_init(token_);
+        __RioLRTCore_init(token_);
 
         treasury = treasury_;
         operatorRewardPool = operatorRewardPool_;

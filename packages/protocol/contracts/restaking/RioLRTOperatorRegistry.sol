@@ -14,10 +14,10 @@ import {OperatorRegistryV1Admin} from 'contracts/utils/OperatorRegistryV1Admin.s
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
-import {LRTCore} from 'contracts/utils/LRTCore.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, LRTCore, RioLRTOperatorRegistryStorageV1 {
+contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCore, RioLRTOperatorRegistryStorageV1 {
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
     using OperatorRegistryV1Admin for StorageV1;
     using ValidatorDetails for bytes32;
@@ -56,7 +56,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, LRTCore,
     /// @param operatorDelegatorImpl_ The operator contract implementation.
     /// @param delegationManager_ The primary delegation contract for EigenLayer.
     constructor(address issuer_, address initialBeaconOwner, address operatorDelegatorImpl_, address delegationManager_)
-        LRTCore(issuer_)
+        RioLRTCore(issuer_)
     {
         operatorDelegatorBeaconImpl = address(new UpgradeableBeacon(operatorDelegatorImpl_, initialBeaconOwner));
         delegationManager = IDelegationManager(delegationManager_);
@@ -68,7 +68,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, LRTCore,
     function initialize(address initialOwner, address token_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        __LRTCore_init(token_);
+        __RioLRTCore_init(token_);
 
         s.setValidatorKeyReviewPeriod(1 days);
     }

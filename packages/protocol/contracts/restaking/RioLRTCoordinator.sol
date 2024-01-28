@@ -9,11 +9,11 @@ import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Own
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
-import {LRTCore} from 'contracts/utils/LRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable, LRTCore {
+contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using Asset for address;
     using SafeERC20 for *;
 
@@ -53,7 +53,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     }
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    constructor(address issuer_) LRTCore(issuer_) {}
+    constructor(address issuer_) RioLRTCore(issuer_) {}
 
     /// @dev Initializes the contract.
     /// @param initialOwner The owner of the contract.
@@ -61,7 +61,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     function initialize(address initialOwner, address token_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        __LRTCore_init(token_);
+        __RioLRTCore_init(token_);
 
         _setRebalanceDelay(24 hours);
     }

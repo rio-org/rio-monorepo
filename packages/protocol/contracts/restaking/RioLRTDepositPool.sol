@@ -6,16 +6,16 @@ import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
-import {LRTCore} from 'contracts/utils/LRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgradeable, LRTCore {
+contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using FixedPointMathLib for uint256;
     using Asset for address;
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    constructor(address issuer_) LRTCore(issuer_) {}
+    constructor(address issuer_) RioLRTCore(issuer_) {}
 
     /// @notice Initializes the deposit pool contract.
     /// @param initialOwner The initial owner of the contract.
@@ -23,7 +23,7 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
     function initialize(address initialOwner, address token_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        __LRTCore_init(token_);
+        __RioLRTCore_init(token_);
     }
 
     /// @notice Deposits the entire deposit pool balance of the specified `asset` into EigenLayer.

@@ -9,9 +9,9 @@ import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
-import {LRTCore} from 'contracts/utils/LRTCore.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 
-contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUpgradeable, LRTCore {
+contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     /// @notice The number of decimals that all asset price feeds must use.
     uint8 public priceFeedDecimals;
 
@@ -33,7 +33,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     }
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    constructor(address issuer_) LRTCore(issuer_) {}
+    constructor(address issuer_) RioLRTCore(issuer_) {}
 
     /// @notice Initializes the asset registry contract.
     /// @param initialOwner The initial owner of the contract.
@@ -48,7 +48,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     ) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        __LRTCore_init(token_);
+        __RioLRTCore_init(token_);
 
         // Non-ETH pairs must use 8 decimals, while ETH pairs must use 18.
         if (priceFeedDecimals_ != 8 && priceFeedDecimals_ != 18) revert INVALID_PRICE_FEED_DECIMALS();

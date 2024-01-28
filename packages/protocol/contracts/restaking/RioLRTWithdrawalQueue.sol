@@ -7,11 +7,11 @@ import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationMan
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
-import {LRTCore} from 'contracts/utils/LRTCore.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable, LRTCore {
+contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using FixedPointMathLib for *;
     using Asset for address;
     using Array for *;
@@ -29,7 +29,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
     /// @param delegationManager_ The EigenLayer delegation manager.
-    constructor(address issuer_, address delegationManager_) LRTCore(issuer_) {
+    constructor(address issuer_, address delegationManager_) RioLRTCore(issuer_) {
         delegationManager = IDelegationManager(delegationManager_);
     }
 
@@ -39,7 +39,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     function initialize(address initialOwner, address token_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-        __LRTCore_init(token_);
+        __RioLRTCore_init(token_);
     }
 
     /// @notice Retrieve the current withdrawal epoch for a given asset.
