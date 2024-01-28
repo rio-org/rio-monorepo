@@ -9,6 +9,7 @@ import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDele
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
+import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {Array} from 'contracts/utils/Array.sol';
@@ -33,10 +34,12 @@ library OperatorRegistryV1Admin {
     /// @notice Adds a new operator to the registry, deploying a delegator contract and
     /// delegating to the provided `operator`.
     /// @param s The operator registry v1 storage accessor.
+    /// @param token The address of the liquid restaking token.
     /// @param operatorDelegatorBeaconImpl The operator beacon implementation address.
     /// @param config The new operator's configuration.
     function addOperator(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
+        address token,
         address operatorDelegatorBeaconImpl,
         IRioLRTOperatorRegistry.OperatorConfig memory config
     ) external returns (uint8 operatorId, address delegator) {
@@ -55,9 +58,7 @@ library OperatorRegistryV1Admin {
 
         // Create the operator with the provided salt and initialize it.
         delegator = address(new BeaconProxy(operatorDelegatorBeaconImpl, ''));
-        IRioLRTOperatorDelegator(delegator).initialize(
-            address(s.coordinator), s.depositPool, s.rewardDistributor, config.operator
-        );
+        IRioLRTOperatorDelegator(delegator).initialize(token, config.operator);
 
         IRioLRTOperatorRegistry.OperatorDetails storage _operator = s.operatorDetails[operatorId];
         _operator.active = true;
@@ -103,15 +104,20 @@ library OperatorRegistryV1Admin {
     /// Deactivates an operator, exiting all remaining stake to the
     /// asset manager.
     /// @param s The operator registry v1 storage accessor.
+    /// @param assetRegistry The asset registry contract.
     /// @param operatorId The operator's ID.
-    function deactivateOperator(RioLRTOperatorRegistryStorageV1.StorageV1 storage s, uint8 operatorId) external {
+    function deactivateOperator(
+        RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
+        IRioLRTAssetRegistry assetRegistry,
+        uint8 operatorId
+    ) external {
         IRioLRTOperatorRegistry.OperatorDetails storage operator = s.operatorDetails[operatorId];
 
         if (operator.delegator == address(0)) revert IRioLRTOperatorRegistry.INVALID_OPERATOR_DELEGATOR();
         if (!operator.active) revert IRioLRTOperatorRegistry.OPERATOR_ALREADY_INACTIVE();
 
         // Queue exits for all strategies with non-zero allocations.
-        address[] memory strategies = s.assetRegistry.getAssetStrategies();
+        address[] memory strategies = assetRegistry.getAssetStrategies();
         for (uint256 i = 0; i < strategies.length; ++i) {
             s.setOperatorStrategyCap(
                 operatorId, IRioLRTOperatorRegistry.StrategyShareCap({strategy: strategies[i], cap: 0})
@@ -131,12 +137,16 @@ library OperatorRegistryV1Admin {
     /// forwarding the received assets to the deposit pool.
     /// @param s The operator registry v1 storage accessor.
     /// @param delegationManager The delegation manager contract.
+    /// @param assetRegistry The asset registry contract.
+    /// @param depositPool The deposit pool contract address.
     /// @param operatorId The ID of the operator who is exiting the strategy.
     /// @param queuedWithdrawal The queued strategy withdrawal for the operator.
     /// @param middlewareTimesIndex The index of the middleware times for the operator.
     function completeOperatorStrategyExit(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
         IDelegationManager delegationManager,
+        IRioLRTAssetRegistry assetRegistry,
+        address depositPool,
         uint8 operatorId,
         IDelegationManager.Withdrawal calldata queuedWithdrawal,
         uint256 middlewareTimesIndex
@@ -149,14 +159,13 @@ library OperatorRegistryV1Admin {
         if (!s.operatorDetails[operatorId].isValidStrategyExitRoot[exitRoot]) {
             revert IRioLRTOperatorRegistry.INVALID_STRATEGY_EXIT_ROOT();
         }
-        // TODO: Need to decrease the shares held.
-
         address strategy = queuedWithdrawal.strategies[0];
         address asset = strategy == BEACON_CHAIN_STRATEGY ? ETH_ADDRESS : IStrategy(strategy).underlyingToken();
 
         // Complete the withdrawal from EigenLayer and transfer received assets to the deposit pool.
         delegationManager.completeQueuedWithdrawal(queuedWithdrawal, asset.toArray(), middlewareTimesIndex, true);
-        asset.transferTo(s.depositPool, asset.getSelfBalance());
+        assetRegistry.decreaseSharesHeldForAsset(asset, queuedWithdrawal.shares[0]);
+        asset.transferTo(depositPool, asset.getSelfBalance());
 
         emit IRioLRTOperatorRegistry.OperatorStrategyExitCompleted(operatorId, strategy, exitRoot);
     }

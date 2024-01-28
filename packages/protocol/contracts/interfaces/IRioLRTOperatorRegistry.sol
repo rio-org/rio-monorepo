@@ -137,12 +137,6 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when the caller is not the operator's manager or OR the security daemon.
     error ONLY_OPERATOR_MANAGER_OR_SECURITY_DAEMON();
 
-    /// @notice Thrown when the caller is not the coordinator.
-    error ONLY_COORDINATOR();
-
-    /// @notice Thrown when the caller is not the deposit pool.
-    error ONLY_DEPOSIT_POOL();
-
     /// @notice Thrown when the caller is not the operator's pending manager.
     error ONLY_OPERATOR_PENDING_MANAGER();
 
@@ -288,12 +282,8 @@ interface IRioLRTOperatorRegistry {
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param coordinator The LRT coordinator.
-    /// @param assetRegistry The LRT asset registry.
-    /// @param avsRegistry The AVS registry.
-    /// @param depositPool The LRT deposit pool.
-    /// @param rewardDistributor The LRT reward distributor.
-    function initialize(address initialOwner, address coordinator, address assetRegistry, address avsRegistry, address depositPool, address rewardDistributor) external;
+    /// @param token The address of the liquid restaking token.
+    function initialize(address initialOwner, address token) external;
 
     /// @notice Returns the operator details for the provided operator ID.
     /// @param operatorId The operator's ID.

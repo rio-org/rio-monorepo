@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
+import {CREATE3} from '@solady/utils/CREATE3.sol';
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
@@ -11,10 +12,14 @@ import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.so
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {IRioLRTAVSRegistry} from 'contracts/interfaces/IRioLRTAVSRegistry.sol';
 import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
+import {LRTAddressCalculator} from 'contracts/utils/LRTAddressCalculator.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
+import {ContractType} from 'contracts/utils/Constants.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 
 contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
+    using LRTAddressCalculator for address;
+
     /// @notice The liquid restaking token (LRT) implementation.
     address public immutable tokenImpl;
 
@@ -89,27 +94,53 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         d.token = address(new ERC1967Proxy(tokenImpl, ''));
 
         // Deploy the supporting contracts using the LRT address as the salt.
-        bytes32 salt = bytes32(uint256(uint160(d.token)) << 96);
-
-        d.coordinator = address(new ERC1967Proxy{salt: salt}(coordinatorImpl, ''));
-        d.assetRegistry = address(new ERC1967Proxy{salt: salt}(assetRegistryImpl, ''));
-        d.operatorRegistry = address(new ERC1967Proxy{salt: salt}(operatorRegistryImpl, ''));
-        d.avsRegistry = address(new ERC1967Proxy{salt: salt}(avsRegistryImpl, ''));
-        d.depositPool = address(new ERC1967Proxy{salt: salt}(depositPoolImpl, ''));
-        d.withdrawalQueue = address(new ERC1967Proxy{salt: salt}(withdrawalQueueImpl, ''));
-        d.rewardDistributor = address(new ERC1967Proxy{salt: salt}(rewardDistributorImpl, ''));
+        d.coordinator = CREATE3.deploy(
+            d.token.computeSalt(ContractType.Coordinator),
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(coordinatorImpl, '')),
+            0
+        );
+        d.assetRegistry = CREATE3.deploy(
+            d.token.computeSalt(ContractType.AssetRegistry),
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(assetRegistryImpl, '')),
+            0
+        );
+        d.operatorRegistry = CREATE3.deploy(
+            d.token.computeSalt(ContractType.OperatorRegistry),
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(operatorRegistryImpl, '')),
+            0
+        );
+        d.avsRegistry = CREATE3.deploy(
+            d.token.computeSalt(ContractType.AVSRegistry),
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(avsRegistryImpl, '')),
+            0
+        );
+        d.depositPool = CREATE3.deploy(
+            d.token.computeSalt(ContractType.DepositPool),
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(depositPoolImpl, '')),
+            0
+        );
+        d.withdrawalQueue = CREATE3.deploy(
+            d.token.computeSalt(ContractType.WithdrawalQueue),
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(withdrawalQueueImpl, '')),
+            0
+        );
+        d.rewardDistributor = CREATE3.deploy(
+            d.token.computeSalt(ContractType.RewardDistributor),
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(rewardDistributorImpl, '')),
+            0
+        );
 
         address initialOwner = msg.sender;
 
         // Initialize all supporting contracts.
-        IRioLRT(d.token).initialize(initialOwner, name, symbol, d.coordinator);
-        IRioLRTCoordinator(d.coordinator).initialize(initialOwner, d.token, d.assetRegistry, d.operatorRegistry, d.depositPool, d.withdrawalQueue);
-        IRioLRTAssetRegistry(d.assetRegistry).initialize(initialOwner, d.coordinator, config.priceFeedDecimals, config.assets);
-        IRioLRTOperatorRegistry(d.operatorRegistry).initialize(initialOwner, d.coordinator, d.assetRegistry, d.avsRegistry, d.depositPool, d.rewardDistributor);
-        IRioLRTAVSRegistry(d.avsRegistry).initialize(initialOwner);
-        IRioLRTDepositPool(d.depositPool).initialize(initialOwner, d.assetRegistry, d.operatorRegistry, d.coordinator);
-        IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(initialOwner, d.token, d.coordinator);
-        IRioLRTRewardDistributor(d.rewardDistributor).initialize(initialOwner, config.treasury, config.operatorRewardPool, d.depositPool);
+        IRioLRT(d.token).initialize(initialOwner, name, symbol);
+        IRioLRTCoordinator(d.coordinator).initialize(initialOwner, d.token);
+        IRioLRTAssetRegistry(d.assetRegistry).initialize(initialOwner, d.token, config.priceFeedDecimals, config.assets);
+        IRioLRTOperatorRegistry(d.operatorRegistry).initialize(initialOwner, d.token);
+        IRioLRTAVSRegistry(d.avsRegistry).initialize(initialOwner, d.token);
+        IRioLRTDepositPool(d.depositPool).initialize(initialOwner, d.token);
+        IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(initialOwner, d.token);
+        IRioLRTRewardDistributor(d.rewardDistributor).initialize(initialOwner, d.token, config.treasury, config.operatorRewardPool);
 
         isTokenFromFactory[d.token] = true;
         emit LiquidRestakingTokenIssued(name, symbol, config, d);

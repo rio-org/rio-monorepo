@@ -3,9 +3,6 @@ pragma solidity 0.8.23;
 
 import {LibMap} from '@solady/utils/LibMap.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
-import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
-import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
-import {IRioLRTAVSRegistry} from 'contracts/interfaces/IRioLRTAVSRegistry.sol';
 
 abstract contract RioLRTOperatorRegistryStorageV1 is IRioLRTOperatorRegistry {
     /// @notice The V1 storage layout for the RioLRTOperatorRegistry contract.
@@ -13,16 +10,6 @@ abstract contract RioLRTOperatorRegistryStorageV1 is IRioLRTOperatorRegistry {
 
     /// @notice The storage struct for the RioLRTOperatorRegistry contract.
     struct StorageV1 {
-        /// @notice The LRT coordinator contract.
-        IRioLRTCoordinator coordinator;
-        /// @notice The contract that stores information about supported underlying assets.
-        IRioLRTAssetRegistry assetRegistry;
-        /// @notice The AVS registry.
-        IRioLRTAVSRegistry avsRegistry;
-        /// @notice The contract that holds funds awaiting deposit into EigenLayer.
-        address depositPool;
-        /// @notice The LRT reward distributor.
-        address rewardDistributor;
         /// @notice The security daemon, which is responsible for removal of duplicate
         /// or invalid validator keys.
         address securityDaemon;

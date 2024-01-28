@@ -9,3 +9,14 @@ address constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
 /// @dev The per-validator ETH deposit amount.
 uint256 constant ETH_DEPOSIT_SIZE = 32 ether;
+
+/// @dev LRT supporting contract types.
+enum ContractType {
+    Coordinator,
+    AssetRegistry,
+    OperatorRegistry,
+    AVSRegistry,
+    DepositPool,
+    WithdrawalQueue,
+    RewardDistributor
+}

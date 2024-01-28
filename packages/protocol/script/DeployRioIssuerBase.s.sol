@@ -31,22 +31,28 @@ contract DeployRioIssuerBase is Script {
         uint256 deployerKey = vm.envUint('DEPLOYER_PRIVATE_KEY');
         vm.startBroadcast(deployerKey);
 
+        address issuerAddress = computeCreateAddress(address(this), vm.getNonce(address(this)) + 10);
         address issuerImpl = address(
             new RioLRTIssuer(
-                address(new RioLRT()),
-                address(new RioLRTCoordinator()),
-                address(new RioLRTAssetRegistry()),
+                address(new RioLRT(issuerAddress)),
+                address(new RioLRTCoordinator(issuerAddress)),
+                address(new RioLRTAssetRegistry(issuerAddress)),
                 address(
                     new RioLRTOperatorRegistry(
+                        issuerAddress,
                         vm.addr(deployerKey),
-                        address(new RioLRTOperatorDelegator(strategyManager, eigenPodManager, delegationManager)),
+                        address(
+                            new RioLRTOperatorDelegator(
+                                issuerAddress, strategyManager, eigenPodManager, delegationManager
+                            )
+                        ),
                         delegationManager
                     )
                 ),
-                address(new RioLRTAVSRegistry()),
-                address(new RioLRTDepositPool()),
-                address(new RioLRTWithdrawalQueue(delegationManager)),
-                address(new RioLRTRewardDistributor())
+                address(new RioLRTAVSRegistry(issuerAddress)),
+                address(new RioLRTDepositPool(issuerAddress)),
+                address(new RioLRTWithdrawalQueue(issuerAddress, delegationManager)),
+                address(new RioLRTRewardDistributor(issuerAddress))
             )
         );
         issuer = RioLRTIssuer(

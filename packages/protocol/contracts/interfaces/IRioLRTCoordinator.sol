@@ -41,26 +41,11 @@ interface IRioLRTCoordinator {
 
     /// @dev Initializes the contract.
     /// @param initialOwner The owner of the contract.
-    /// @param restakingToken The liquid restaking token (LRT).
-    /// @param assetRegistry The contract that stores information about supported underlying assets.
-    /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
-    /// @param depositPool The contract in charge of holding funds awaiting deposit into EigenLayer.
-    /// @param withdrawalQueue The contract used to queue and process withdrawals.
-    function initialize(
-        address initialOwner,
-        address restakingToken,
-        address assetRegistry,
-        address operatorRegistry,
-        address depositPool,
-        address withdrawalQueue
-    ) external;
+    /// @param token The address of the liquid restaking token.
+    function initialize(address initialOwner, address token) external;
 
     /// @notice Returns the total value of all underlying assets in the unit of account.
     function getTVL() external view returns (uint256);
-
-    /// @notice Returns the total value of the underlying asset in the unit of account.
-    /// @param asset The address of the asset.
-    function getTVLForAsset(address asset) external view returns (uint256);
 
     /// @notice Converts an amount of restaking tokens to its equivalent value in the unit of account.
     /// The unit of account is the price feed's quote asset.
@@ -89,9 +74,9 @@ interface IRioLRTCoordinator {
     function convertToSharesFromRestakingTokens(address asset, uint256 amount) external view returns (uint256);
 
     /// @notice Deposits ERC20 tokens and mints restaking token(s) to the caller.
-    /// @param token The token being deposited.
+    /// @param asset The asset being deposited.
     /// @param amountIn The amount of the asset being deposited.
-    function deposit(address token, uint256 amountIn) external returns (uint256);
+    function deposit(address asset, uint256 amountIn) external returns (uint256);
 
     /// @notice Deposits ETH and mints restaking token(s) to the caller.
     function depositETH() external payable returns (uint256);

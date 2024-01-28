@@ -2,16 +2,10 @@
 pragma solidity 0.8.23;
 
 interface IRioLRTDepositPool {
-    /// @notice Thrown when the caller is not the LRT coordinator.
-    error ONLY_COORDINATOR();
-
     /// @notice Initializes the deposit pool contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param assetRegistry The address of the asset registry contract.
-    /// @param operatorRegistry The address of the operator registry contract.
-    /// @param coordinator The address of the coordinator contract.
-    function initialize(address initialOwner, address assetRegistry, address operatorRegistry, address coordinator)
-        external;
+    /// @param token The address of the liquid restaking token.
+    function initialize(address initialOwner, address token) external;
 
     /// @notice Deposits the entire deposit pool balance of the specified `asset` into EigenLayer.
     function depositBalanceIntoEigenLayer(address asset) external returns (uint256);

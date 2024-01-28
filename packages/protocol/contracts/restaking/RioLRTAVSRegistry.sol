@@ -4,8 +4,9 @@ pragma solidity 0.8.23;
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IRioLRTAVSRegistry} from 'contracts/interfaces/IRioLRTAVSRegistry.sol';
+import {LRTCore} from 'contracts/utils/LRTCore.sol';
 
-contract RioLRTAVSRegistry is IRioLRTAVSRegistry, OwnableUpgradeable, UUPSUpgradeable {
+contract RioLRTAVSRegistry is IRioLRTAVSRegistry, OwnableUpgradeable, UUPSUpgradeable, LRTCore {
     /// @notice The number of AVS in the registry (all-time).
     uint128 public avsCount;
 
@@ -21,16 +22,16 @@ contract RioLRTAVSRegistry is IRioLRTAVSRegistry, OwnableUpgradeable, UUPSUpgrad
     /// @dev Whether a registry contract is active.
     mapping(address => bool) private _isActiveRegistryContract;
 
-    /// @dev Prevent any future reinitialization.
-    constructor() {
-        _disableInitializers();
-    }
+    /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
+    constructor(address issuer_) LRTCore(issuer_) {}
 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    function initialize(address initialOwner) external initializer {
+    /// @param token_ The address of the liquid restaking token.
+    function initialize(address initialOwner, address token_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
+        __LRTCore_init(token_);
     }
 
     /// @notice Returns the AVS with the given ID.

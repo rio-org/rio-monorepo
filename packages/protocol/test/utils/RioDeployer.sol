@@ -42,26 +42,31 @@ abstract contract RioDeployer is EigenLayerDeployer {
     function deployRio() public {
         deployEigenLayer();
 
+        address issuerAddress = computeCreateAddress(address(this), vm.getNonce(address(this)) + 10);
         address issuerImpl = address(
             new RioLRTIssuer(
-                address(new RioLRT()),
-                address(new RioLRTCoordinator()),
-                address(new RioLRTAssetRegistry()),
+                address(new RioLRT(issuerAddress)),
+                address(new RioLRTCoordinator(issuerAddress)),
+                address(new RioLRTAssetRegistry(issuerAddress)),
                 address(
                     new RioLRTOperatorRegistry(
+                        issuerAddress,
                         address(this),
                         address(
                             new RioLRTOperatorDelegator(
-                                STRATEGY_MANAGER_ADDRESS, EIGEN_POD_MANAGER_ADDRESS, DELEGATION_MANAGER_ADDRESS
+                                issuerAddress,
+                                STRATEGY_MANAGER_ADDRESS,
+                                EIGEN_POD_MANAGER_ADDRESS,
+                                DELEGATION_MANAGER_ADDRESS
                             )
                         ),
                         DELEGATION_MANAGER_ADDRESS
                     )
                 ),
-                address(new RioLRTAVSRegistry()),
-                address(new RioLRTDepositPool()),
-                address(new RioLRTWithdrawalQueue(DELEGATION_MANAGER_ADDRESS)),
-                address(new RioLRTRewardDistributor())
+                address(new RioLRTAVSRegistry(issuerAddress)),
+                address(new RioLRTDepositPool(issuerAddress)),
+                address(new RioLRTWithdrawalQueue(issuerAddress, DELEGATION_MANAGER_ADDRESS)),
+                address(new RioLRTRewardDistributor(issuerAddress))
             )
         );
         issuer = RioLRTIssuer(

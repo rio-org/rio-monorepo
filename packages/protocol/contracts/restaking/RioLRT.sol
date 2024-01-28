@@ -8,22 +8,28 @@ import {ERC20PermitUpgradeable} from '@openzeppelin/contracts-upgradeable/token/
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {NoncesUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/NoncesUpgradeable.sol';
+import {LRTAddressCalculator} from 'contracts/utils/LRTAddressCalculator.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 
 contract RioLRT is IRioLRT, ERC20BurnableUpgradeable, ERC20PermitUpgradeable, ERC20VotesUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
-    /// @notice The liquid restaking token coordinator.
-    address public coordinator;
+    using LRTAddressCalculator for address;
+
+    /// @notice The LRT issuer that's authorized to deploy this contract.
+    address public immutable issuer;
 
     /// @notice Require that the caller is the LRT coordinator.
     modifier onlyCoordinator() {
-        if (msg.sender != coordinator) revert ONLY_COORDINATOR();
+        if (msg.sender != issuer.getCoordinator(address(this))) revert ONLY_COORDINATOR();
         _;
     }
 
     /// @dev Prevent any future reinitialization.
-    constructor() {
+    /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
+    constructor(address issuer_) {
         _disableInitializers();
+
+        issuer = issuer_;
     }
 
     // forgefmt: disable-next-item
@@ -31,8 +37,9 @@ contract RioLRT is IRioLRT, ERC20BurnableUpgradeable, ERC20PermitUpgradeable, ER
     /// @param initialOwner The initial owner of the contract.
     /// @param name The name of the token.
     /// @param symbol The symbol of the token.
-    /// @param coordinator_ The liquid restaking token coordinator.
-    function initialize(address initialOwner, string memory name, string memory symbol, address coordinator_) external initializer {
+    function initialize(address initialOwner, string memory name, string memory symbol) external initializer {
+        if (msg.sender != issuer) revert ONLY_ISSUER();
+        
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
 
@@ -40,8 +47,6 @@ contract RioLRT is IRioLRT, ERC20BurnableUpgradeable, ERC20PermitUpgradeable, ER
         __ERC20Permit_init(name);
         __ERC20Burnable_init();
         __ERC20Votes_init();
-
-        coordinator = coordinator_;
     }
 
     /// @notice Mint `amount` tokens to the specified address.
@@ -64,7 +69,7 @@ contract RioLRT is IRioLRT, ERC20BurnableUpgradeable, ERC20PermitUpgradeable, ER
     /// @dev This function grants an infinite allowance to the LRT coordinator,
     /// which is an internal, trusted contract that pulls tokens on withdrawal.
     function allowance(address owner, address spender) public view override(ERC20Upgradeable, IERC20) returns (uint256) {
-        if (spender == coordinator) {
+        if (spender == issuer.getCoordinator(address(this))) {
             return type(uint256).max;
         }
         return super.allowance(owner, spender);

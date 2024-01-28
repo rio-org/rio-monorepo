@@ -49,7 +49,8 @@ interface IRioLRTAVSRegistry {
 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    function initialize(address initialOwner) external;
+    /// @param token The address of the liquid restaking token.
+    function initialize(address initialOwner, address token) external;
 
     /// @notice Returns the AVS associated with the given ID.
     /// @param avsId The ID of the AVS to retrieve.

@@ -5,6 +5,7 @@ import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
+import {LRTCore} from 'contracts/utils/LRTCore.sol';
 import {TestUtils} from 'test/utils/TestUtils.sol';
 
 contract RioLRTOperatorRegistryTest is RioDeployer {
@@ -191,7 +192,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
     }
 
     function test_allocateStrategySharesInvalidCallerReverts() public {
-        vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.ONLY_DEPOSIT_POOL.selector));
+        vm.expectRevert(abi.encodeWithSelector(LRTCore.ONLY_DEPOSIT_POOL.selector));
         reLST.operatorRegistry.allocateStrategyShares(CBETH_STRATEGY, 1);
     }
 

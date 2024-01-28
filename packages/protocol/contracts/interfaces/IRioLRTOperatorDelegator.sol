@@ -5,12 +5,6 @@ import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 
 interface IRioLRTOperatorDelegator {
-    /// @notice Thrown when the caller is not the operator registry.
-    error ONLY_OPERATOR_REGISTRY();
-
-    /// @notice Thrown when the caller is not the deposit pool.
-    error ONLY_DEPOSIT_POOL();
-
     /// @notice Thrown when the caller is not the LRT's coordinator
     /// or the operator registry.
     error ONLY_COORDINATOR_OR_OPERATOR_REGISTRY();
@@ -38,12 +32,9 @@ interface IRioLRTOperatorDelegator {
     error INVALID_SIGNATURES_BATCH_LENGTH(uint256 actual, uint256 expected);
 
     /// @notice Initializes the contract by delegating to the provided EigenLayer operator.
-    /// @param coordinator The LRT coordinator.
-    /// @param depositPool The LRT deposit pool.
-    /// @param rewardDistributor The LRT reward distributor.
+    /// @param token The address of the liquid restaking token.
     /// @param operator The operator's address.
-    function initialize(address coordinator, address depositPool, address rewardDistributor, address operator)
-        external;
+    function initialize(address token, address operator) external;
 
     /// @notice The operator delegator's EigenPod.
     function eigenPod() external view returns (IEigenPod);

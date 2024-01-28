@@ -12,14 +12,12 @@ import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainPr
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {OperatorRegistryV1Admin} from 'contracts/utils/OperatorRegistryV1Admin.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
-import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
-import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
-import {IRioLRTAVSRegistry} from 'contracts/interfaces/IRioLRTAVSRegistry.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
+import {LRTCore} from 'contracts/utils/LRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTOperatorRegistry is RioLRTOperatorRegistryStorageV1, OwnableUpgradeable, UUPSUpgradeable {
+contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, LRTCore, RioLRTOperatorRegistryStorageV1 {
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
     using OperatorRegistryV1Admin for StorageV1;
     using ValidatorDetails for bytes32;
@@ -35,18 +33,6 @@ contract RioLRTOperatorRegistry is RioLRTOperatorRegistryStorageV1, OwnableUpgra
 
     /// @notice The primary delegation contract for EigenLayer.
     IDelegationManager public immutable delegationManager;
-
-    /// @notice Require that the caller is the coordinator.
-    modifier onlyCoordinator() {
-        if (msg.sender != address(s.coordinator)) revert ONLY_COORDINATOR();
-        _;
-    }
-
-    /// @notice Require that the caller is the deposit pool.
-    modifier onlyDepositPool() {
-        if (msg.sender != s.depositPool) revert ONLY_DEPOSIT_POOL();
-        _;
-    }
 
     /// @notice Require that the caller is the operator's manager.
     /// @param operatorId The operator's ID.
@@ -65,33 +51,24 @@ contract RioLRTOperatorRegistry is RioLRTOperatorRegistryStorageV1, OwnableUpgra
         _;
     }
 
+    /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
     /// @param initialBeaconOwner The initial owner who can upgrade the operator beacon contract.
     /// @param operatorDelegatorImpl_ The operator contract implementation.
     /// @param delegationManager_ The primary delegation contract for EigenLayer.
-    constructor(address initialBeaconOwner, address operatorDelegatorImpl_, address delegationManager_) {
-        _disableInitializers();
-
+    constructor(address issuer_, address initialBeaconOwner, address operatorDelegatorImpl_, address delegationManager_)
+        LRTCore(issuer_)
+    {
         operatorDelegatorBeaconImpl = address(new UpgradeableBeacon(operatorDelegatorImpl_, initialBeaconOwner));
         delegationManager = IDelegationManager(delegationManager_);
     }
 
-    // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param coordinator_ The LRT coordinator contract address.
-    /// @param assetRegistry_ The LRT asset registry.
-    /// @param avsRegistry_ The AVS registry.
-    /// @param depositPool_ The LRT deposit pool.
-    /// @param rewardDistributor_ The LRT reward distributor.
-    function initialize(address initialOwner, address coordinator_, address assetRegistry_, address avsRegistry_, address depositPool_, address rewardDistributor_) external initializer {
+    /// @param token_ The address of the liquid restaking token.
+    function initialize(address initialOwner, address token_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-
-        s.coordinator = IRioLRTCoordinator(coordinator_);
-        s.assetRegistry = IRioLRTAssetRegistry(assetRegistry_);
-        s.avsRegistry = IRioLRTAVSRegistry(avsRegistry_);
-        s.depositPool = depositPool_;
-        s.rewardDistributor = rewardDistributor_;
+        __LRTCore_init(token_);
 
         s.setValidatorKeyReviewPeriod(1 days);
     }
@@ -160,7 +137,7 @@ contract RioLRTOperatorRegistry is RioLRTOperatorRegistryStorageV1, OwnableUpgra
         onlyOwner
         returns (uint8 operatorId, address delegator)
     {
-        return s.addOperator(operatorDelegatorBeaconImpl, config);
+        return s.addOperator(address(token), operatorDelegatorBeaconImpl, config);
     }
 
     /// @notice Activates an operator.
@@ -173,7 +150,7 @@ contract RioLRTOperatorRegistry is RioLRTOperatorRegistryStorageV1, OwnableUpgra
     /// asset manager.
     /// @param operatorId The operator's ID.
     function deactivateOperator(uint8 operatorId) external onlyOwner {
-        s.deactivateOperator(operatorId);
+        s.deactivateOperator(assetRegistry(), operatorId);
     }
 
     /// @notice Completes an exit from an EigenLayer strategy for the provided `operatorId`.
@@ -185,7 +162,14 @@ contract RioLRTOperatorRegistry is RioLRTOperatorRegistryStorageV1, OwnableUpgra
         IDelegationManager.Withdrawal calldata queuedWithdrawal,
         uint256 middlewareTimesIndex
     ) external {
-        s.completeOperatorStrategyExit(delegationManager, operatorId, queuedWithdrawal, middlewareTimesIndex);
+        s.completeOperatorStrategyExit(
+            delegationManager,
+            assetRegistry(),
+            address(depositPool()),
+            operatorId,
+            queuedWithdrawal,
+            middlewareTimesIndex
+        );
     }
 
     // forgefmt: disable-next-item
