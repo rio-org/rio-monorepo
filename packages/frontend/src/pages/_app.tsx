@@ -1,5 +1,6 @@
 import type { AppProps } from 'next/app';
 import Providers from '@rio-monorepo/ui/components/Providers';
+import { useInitDataDog } from '@rio-monorepo/ui/hooks/useInitDataDog';
 import {
   APP_TITLE,
   APP_NAV_ITEMS,
@@ -10,6 +11,7 @@ import {
 } from '../../config';
 
 export default function RestakingApp({ Component, pageProps }: AppProps) {
+  useInitDataDog('rio-network-app');
   return (
     <Providers
       appTitle={APP_TITLE}

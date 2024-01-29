@@ -17,7 +17,7 @@ import {
 } from '../lib/typings';
 
 export type LayoutProps = {
-  appTitle?: string;
+  appTitle: string;
   nav: {
     items: InternalAppNavItem[];
     logoItem: LogoNavItem;

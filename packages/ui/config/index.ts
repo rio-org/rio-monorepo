@@ -5,23 +5,25 @@ import iconX from '../assets/icon-x.svg';
 import iconTelegram from '../assets/icon-telegram.svg';
 import iconGithub from '../assets/icon-github.svg';
 import iconMail from '../assets/icon-mail.svg';
-import { CHAIN_ID_NUMBER } from '../lib/typings';
 import { getAddress } from 'viem';
-import { NavItem, SocialNavItem } from '../lib/typings';
+import {
+  AppEnv,
+  type CHAIN_ID_NUMBER,
+  type NavItem,
+  type SocialNavItem
+} from '../lib/typings';
 
 export const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID
   ? (parseInt(process.env.NEXT_PUBLIC_CHAIN_ID) as CHAIN_ID_NUMBER)
   : (5 as CHAIN_ID_NUMBER);
 
-// Temporary so that the UI correctly switches between states for
-// single asset (only ETH) or multi asset (ETH + LSTs)
-export const ALLOW_ALL_LSTS = false;
-export const ASSET_SYMBOLS_ALLOWED: { [symbol: string]: boolean | undefined } =
-  {
-    ETH: true,
-    WETH: true,
-    reETH: true
-  };
+export const APP_ENV = (process.env.NEXT_PUBLIC_APP_ENV ||
+  AppEnv.DEVELOPMENT) as AppEnv;
+
+export const DATADOG_APPLICATION_ID =
+  process.env.NEXT_PUBLIC_DATADOG_APPLICATION_ID ?? '';
+export const DATADOG_CLIENT_TOKEN =
+  process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN ?? '';
 
 // We internally use this instead of the zero address when referencing native ETH
 export const NATIVE_ETH_ADDRESS = getAddress(

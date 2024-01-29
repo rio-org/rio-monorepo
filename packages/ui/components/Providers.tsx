@@ -10,6 +10,7 @@ import { mainnet, sepolia, goerli } from 'wagmi/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
+import { useMemo } from 'react';
 import {
   RainbowKitProvider,
   getDefaultWallets,
@@ -30,7 +31,6 @@ import { RainbowKitDisclaimer } from './Shared/RainbowKitDisclaimer';
 import Layout, { type LayoutProps } from './Layout';
 import { theme } from '../lib/theme';
 import { CHAIN_ID } from '../config';
-import { useMemo } from 'react';
 
 // Create the cache client
 const queryClient = new QueryClient();
@@ -77,7 +77,7 @@ export function Providers({
   const { wallets } = useMemo(
     () =>
       getDefaultWallets({
-        appName: appInfo.appName!,
+        appName: appInfo.appName,
         projectId: appInfo.projectId,
         chains
       }) as { wallets: WalletList },
