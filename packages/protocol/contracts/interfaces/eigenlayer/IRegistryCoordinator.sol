@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 /// @title Interface for a contract that coordinates between various registries for an AVS.
 /// @author Layr Labs, Inc.

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 
@@ -34,4 +34,8 @@ interface IRioLRTIssuer {
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     function initialize(address initialOwner) external;
+
+    /// @notice Returns whether the provided token was issued by this factory.
+    /// @param token The token to check.
+    function isTokenFromFactory(address token) external view returns (bool);
 }

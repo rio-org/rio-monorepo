@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CC0-1.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 /// @notice This is the Ethereum 2.0 deposit contract interface.
 /// @dev This interface is designed to be compatible with the Vyper version.

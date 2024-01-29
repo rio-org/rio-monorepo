@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
-/// @title Library for managing validator details in storage
-/// @notice Modified from KRogLA's work for Lido
+/// @title Library for managing validator details in storage.
+/// @notice Modified from KRogLA's work for Lido.
 library ValidatorDetails {
     using ValidatorDetails for bytes32;
 

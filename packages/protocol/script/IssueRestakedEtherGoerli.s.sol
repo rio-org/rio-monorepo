@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {Script} from 'forge-std/Script.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
@@ -15,7 +15,7 @@ contract IssueRestakedEtherGoerli is Script {
     address public constant ETH_STRATEGY_ADDRESS = 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0;
 
     // Rio
-    address public constant ISSUER_ADDRESS = 0x502933537Ee5E6EBa274951502c221e7aDD0Ca70;
+    address public constant ISSUER_ADDRESS = 0x677a3258E9D4A5b242DA9114F14d178E295deAb5;
 
     function run() public returns (IRioLRTIssuer.LRTDeployment memory deployment) {
         uint256 deployerKey = vm.envUint('DEPLOYER_PRIVATE_KEY');

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 interface IRioLRTAssetRegistry {
     /// @notice The configuration used to add a new asset.
@@ -20,11 +20,16 @@ interface IRioLRTAssetRegistry {
         uint96 depositCap;
         /// @dev The price feed for the asset.
         address priceFeed;
+        /// @dev The number of EigenLayer strategy shares held for the asset.
+        uint256 shares;
         /// @dev The EigenLayer strategy used by the asset.
         address strategy;
         /// @dev The number of decimals used to get its user representation.
         uint8 decimals;
     }
+
+    /// @notice Thrown when the caller is not the LRT coordinator or operator registry.
+    error ONLY_WITHDRAWAL_QUEUE_OR_OPERATOR_REGISTRY();
 
     /// @notice Thrown when attempting an action on an unsupported asset.
     /// @param asset The address of the asset.
@@ -70,17 +75,38 @@ interface IRioLRTAssetRegistry {
     /// @param newPriceFeed The new price feed.
     event AssetPriceFeedSet(address indexed asset, address newPriceFeed);
 
-    /// @notice Initializes the asset manager contract.
+    /// @notice Emitted when the number of EigenLayer shares held for an asset is increased.
+    /// @param asset The address of the asset.
+    /// @param amount The amount of EigenLayer shares to increase.
+    event AssetSharesIncreased(address indexed asset, uint256 amount);
+
+    /// @notice Emitted when the number of EigenLayer shares held for an asset is decreased.
+    /// @param asset The address of the asset.
+    /// @param amount The amount of EigenLayer shares to decrease.
+    event AssetSharesDecreased(address indexed asset, uint256 amount);
+
+    /// @notice Initializes the asset registry contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param coordinator The liquid restaking token coordinator.
+    /// @param token The address of the liquid restaking token.
     /// @param priceFeedDecimals The number of decimals that all price feeds must use.
     /// @param initialAssets The initial supported asset configurations.
     function initialize(
         address initialOwner,
-        address coordinator,
+        address token,
         uint8 priceFeedDecimals,
         AssetConfig[] calldata initialAssets
     ) external;
+
+    /// @notice Returns the total value of all assets in the unit of account.
+    function getTVL() external view returns (uint256 value);
+
+    /// @notice Returns the total value of the underlying asset in the unit of account.
+    /// @param asset The address of the asset.
+    function getTVLForAsset(address asset) external view returns (uint256);
+
+    /// @notice Returns the total balance of the asset, including the deposit pool and EigenLayer.
+    /// @param asset The address of the asset.
+    function getTotalBalanceForAsset(address asset) external view returns (uint256);
 
     /// @notice Checks if a given asset is supported.
     /// @param asset The address of the asset to check.
@@ -94,6 +120,10 @@ interface IRioLRTAssetRegistry {
     /// @param asset The address of the asset.
     function getAssetStrategy(address asset) external view returns (address);
 
+    /// @notice Returns the amount of EigenLayer shares held for an asset.
+    /// @param asset The address of the asset.
+    function getAssetSharesHeld(address asset) external view returns (uint256);
+
     /// @notice Returns the asset's current deposit cap.
     /// @param asset The address of the asset.
     function getAssetDepositCap(address asset) external view returns (uint256);
@@ -103,6 +133,16 @@ interface IRioLRTAssetRegistry {
 
     /// @notice Returns the EigenLayer strategies for all supported assets.
     function getAssetStrategies() external view returns (address[] memory);
+
+    /// @notice Increases the number of EigenLayer shares held for an asset.
+    /// @param asset The address of the asset.
+    /// @param amount The amount of EigenLayer shares to increase.
+    function increaseSharesHeldForAsset(address asset, uint256 amount) external;
+
+    /// @notice Decreases the number of EigenLayer shares held for an asset.
+    /// @param asset The address of the asset.
+    /// @param amount The amount of EigenLayer shares to decrease.
+    function decreaseSharesHeldForAsset(address asset, uint256 amount) external;
 
     /// @notice Converts an asset amount to its equivalent value in the unit of account. The unit of
     /// account is the price feed's quote asset.

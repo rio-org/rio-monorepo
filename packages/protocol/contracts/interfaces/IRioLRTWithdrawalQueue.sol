@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 interface IRioLRTWithdrawalQueue {
     /// @notice How many shares are owed to a user in a given epoch,
@@ -56,8 +56,8 @@ interface IRioLRTWithdrawalQueue {
         uint256 epoch;
     }
 
-    /// @notice Thrown when the caller is not the LRT coordinator.
-    error ONLY_COORDINATOR();
+    /// @notice Thrown when attempting to queue a withdrawal with no shares owed.
+    error NO_SHARES_OWED();
 
     /// @notice Thrown when attempting an operation on an epoch in which no shares are owed.
     error NO_SHARES_OWED_IN_EPOCH();
@@ -130,9 +130,8 @@ interface IRioLRTWithdrawalQueue {
 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param restakingToken The liquid restaking token.
-    /// @param coordinator The liquid restaking token coordinator.
-    function initialize(address initialOwner, address restakingToken, address coordinator) external;
+    /// @param token The address of the liquid restaking token.
+    function initialize(address initialOwner, address token) external;
 
     /// @notice Retrieve the current withdrawal epoch for a given asset.
     /// @param asset The asset to retrieve the current epoch for.

@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IRioLRTRewardDistributor} from 'contracts/interfaces/IRioLRTRewardDistributor.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable, UUPSUpgradeable {
+contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using Asset for address;
 
     /// @notice The maximum basis points value (100%).
@@ -18,36 +19,31 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
     /// @notice The operator reward pool address.
     address public operatorRewardPool;
 
-    /// @notice The contract that holds funds awaiting deposit into EigenLayer.
-    address public depositPool;
-
     /// @notice The treasury share of the ETH validator rewards in basis points.
     uint16 public treasuryETHValidatorRewardShareBPS;
 
     /// @notice The operator share of the ETH validator rewards in basis points.
     uint16 public operatorETHValidatorRewardShareBPS;
 
-    /// @dev Prevent any future reinitialization.
-    constructor() {
-        _disableInitializers();
-    }
+    /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
+    constructor(address issuer_) RioLRTCore(issuer_) {}
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
+    /// @param token_ The address of the liquid restaking token.
     /// @param treasury_ The treasury address.
     /// @param operatorRewardPool_ The operator reward pool address.
-    /// @param depositPool_ The contract that holds funds awaiting deposit into EigenLayer.
-    function initialize(address initialOwner, address treasury_, address operatorRewardPool_, address depositPool_) external initializer {
+    function initialize(address initialOwner, address token_, address treasury_, address operatorRewardPool_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-
-        _setTreasuryETHValidatorRewardShareBPS(500); // 5%
-        _setOperatorETHValidatorRewardShareBPS(500); // 5%
+        __RioLRTCore_init(token_);
 
         treasury = treasury_;
         operatorRewardPool = operatorRewardPool_;
-        depositPool = depositPool_;
+
+        _setTreasuryETHValidatorRewardShareBPS(500); // 5%
+        _setOperatorETHValidatorRewardShareBPS(500); // 5%
     }
 
     /// @notice Sets the treasury's share of ETH validator rewards.
@@ -92,7 +88,7 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
 
         if (treasuryShare > 0) treasury.transferETH(treasuryShare);
         if (operatorShare > 0) operatorRewardPool.transferETH(operatorShare);
-        if (poolShare > 0) depositPool.transferETH(poolShare);
+        if (poolShare > 0) address(depositPool()).transferETH(poolShare);
 
         emit ETHValidatorRewardsDistributed(treasuryShare, operatorShare, poolShare);
     }

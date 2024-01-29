@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
+import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {MockPriceFeed} from 'test/utils/MockPriceFeed.sol';
@@ -11,30 +12,42 @@ contract RioLRTIssuerTest is RioDeployer {
         deployRio();
     }
 
-    function test_issuesLRTWithValidParams() public {
-        address _rETH = address(rETH);
-        address _stETH = address(stETH);
+    function test_issueLRTNonOwnerReverts() public {
+        vm.prank(address(42));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
+        issuer.issueLRT(
+            'Restaked Tokens',
+            'reTKN',
+            IRioLRTIssuer.LRTConfig({
+                assets: new IRioLRTAssetRegistry.AssetConfig[](1),
+                priceFeedDecimals: 18,
+                operatorRewardPool: address(this),
+                treasury: address(this)
+            })
+        );
+    }
 
+    function test_issuesLRTWithValidParams() public {
         address rETHPriceFeed = address(new MockPriceFeed(1.09 ether));
-        address stETHPriceFeed = address(new MockPriceFeed(1 ether));
+        address cbETHPriceFeed = address(new MockPriceFeed(1.05 ether));
 
         IRioLRTAssetRegistry.AssetConfig[] memory assets = new IRioLRTAssetRegistry.AssetConfig[](2);
         assets[0] = IRioLRTAssetRegistry.AssetConfig({
-            asset: _rETH,
+            asset: RETH_ADDRESS,
             depositCap: 1_000_000 ether,
             strategy: RETH_STRATEGY,
             priceFeed: rETHPriceFeed
         });
         assets[1] = IRioLRTAssetRegistry.AssetConfig({
-            asset: _stETH,
+            asset: CBETH_ADDRESS,
             depositCap: 2_000_000 ether,
-            strategy: STETH_STRATEGY,
-            priceFeed: stETHPriceFeed
+            strategy: CBETH_STRATEGY,
+            priceFeed: cbETHPriceFeed
         });
 
         IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
             'Restaked LSTs',
-            'reST',
+            'reLST',
             IRioLRTIssuer.LRTConfig({
                 assets: assets,
                 priceFeedDecimals: 18,
@@ -42,6 +55,8 @@ contract RioLRTIssuerTest is RioDeployer {
                 treasury: address(this)
             })
         );
+        assertTrue(issuer.isTokenFromFactory(deployment.token));
+
         assertNotEq(deployment.token, address(0));
         assertNotEq(deployment.coordinator, address(0));
         assertNotEq(deployment.assetRegistry, address(0));
@@ -55,7 +70,7 @@ contract RioLRTIssuerTest is RioDeployer {
         address[] memory supportedAssets = assetRegistry.getSupportedAssets();
         assertEq(supportedAssets.length, 2);
 
-        assertEq(supportedAssets[0], _rETH);
-        assertEq(supportedAssets[1], _stETH);
+        assertEq(supportedAssets[0], RETH_ADDRESS);
+        assertEq(supportedAssets[1], CBETH_ADDRESS);
     }
 }

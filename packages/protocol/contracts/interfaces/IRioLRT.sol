@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
-interface IRioLRT {
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+
+interface IRioLRT is IERC20 {
+    /// @notice Thrown when the initializer is not the LRT issuer.
+    error ONLY_ISSUER();
+
     /// @notice Thrown when the caller is not the LRT coordinator.
     error ONLY_COORDINATOR();
 
@@ -9,11 +14,7 @@ interface IRioLRT {
     /// @param initialOwner The initial owner of the contract.
     /// @param name The name of the token.
     /// @param symbol The symbol of the token.
-    /// @param coordinator The liquid restaking token coordinator.
-    function initialize(address initialOwner, string memory name, string memory symbol, address coordinator) external;
-
-    /// @notice Returns the amount of tokens in existence.
-    function totalSupply() external view returns (uint256);
+    function initialize(address initialOwner, string memory name, string memory symbol) external;
 
     /// @notice Mint `amount` tokens to the specified address.
     /// @param to The address to mint tokens to.

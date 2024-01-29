@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
@@ -7,23 +7,18 @@ import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationMan
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
-import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
+import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable {
+contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using FixedPointMathLib for *;
     using Asset for address;
     using Array for *;
 
     /// @notice The primary delegation contract for EigenLayer.
     IDelegationManager public immutable delegationManager;
-
-    /// @notice The liquid restaking token (LRT).
-    IRioLRT public restakingToken;
-
-    /// @notice The liquid restaking token coordinator.
-    address public coordinator;
 
     /// @notice Current asset withdrawal epochs. Incoming withdrawals are included
     /// in the current epoch, which will be processed by the asset manager.
@@ -33,30 +28,19 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     /// of the epoch's withdrawals.
     mapping(address asset => mapping(uint256 epoch => EpochWithdrawals withdrawals)) internal epochWithdrawalsByAsset;
 
-    /// @notice Require that the caller is the LRT's coordinator.
-    modifier onlyCoordinator() {
-        if (msg.sender != coordinator) revert ONLY_COORDINATOR();
-        _;
-    }
-
+    /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
     /// @param delegationManager_ The EigenLayer delegation manager.
-    constructor(address delegationManager_) {
-        _disableInitializers();
-
+    constructor(address issuer_, address delegationManager_) RioLRTCore(issuer_) {
         delegationManager = IDelegationManager(delegationManager_);
     }
 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param restakingToken_ The liquid restaking token.
-    /// @param coordinator_ The liquid restaking token coordinator.
-    function initialize(address initialOwner, address restakingToken_, address coordinator_) external initializer {
+    /// @param token_ The address of the liquid restaking token.
+    function initialize(address initialOwner, address token_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-
-        restakingToken = IRioLRT(restakingToken_);
-
-        coordinator = coordinator_;
+        __RioLRTCore_init(token_);
     }
 
     /// @notice Retrieve the current withdrawal epoch for a given asset.
@@ -131,12 +115,8 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         uint256 requestLength = requests.length;
 
         amountsOut = new uint256[](requestLength);
-        for (uint256 i; i < requestLength;) {
+        for (uint256 i; i < requestLength; ++i) {
             amountsOut[i] = claimWithdrawalsForEpoch(requests[i]);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -150,6 +130,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         external
         onlyCoordinator
     {
+        if (sharesOwed == 0) revert NO_SHARES_OWED();
         uint256 currentEpoch = getCurrentEpoch(asset);
 
         EpochWithdrawals storage epochWithdrawals = _getEpochWithdrawals(asset, currentEpoch);
@@ -180,7 +161,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         epochWithdrawals.assetsReceived = SafeCast.toUint120(assetsReceived);
         epochWithdrawals.shareValueOfAssetsReceived = SafeCast.toUint120(shareValueOfAssetsReceived);
 
-        restakingToken.burn(epochWithdrawals.amountToBurnAtSettlement);
+        token.burn(epochWithdrawals.amountToBurnAtSettlement);
         currentEpochsByAsset[asset] += 1;
 
         emit EpochSettledFromDepositPool(currentEpoch, asset, assetsReceived);
@@ -215,7 +196,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
             restakingTokensToBurn = epochWithdrawals.amountToBurnAtSettlement.mulWad(
                 shareValueOfAssetsReceived.divWad(epochWithdrawals.sharesOwed)
             );
-            restakingToken.burn(restakingTokensToBurn);
+            token.burn(restakingTokensToBurn);
 
             epochWithdrawals.amountToBurnAtSettlement -= restakingTokensToBurn;
         }
@@ -246,7 +227,15 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         if (queuedWithdrawalCount != middlewareTimesIndexes.length) revert INVALID_MIDDLEWARE_TIMES_INDEXES_LENGTH();
 
         epochWithdrawals.settled = true;
-        restakingToken.burn(epochWithdrawals.amountToBurnAtSettlement);
+
+        // Shares only need to be manually decreased for ERC20 tokens. For ETH, the
+        // actual contract balance is used, removing the need for manual share reduction.
+        if (asset != ETH_ADDRESS) {
+            assetRegistry().decreaseSharesHeldForAsset(
+                asset, epochWithdrawals.sharesOwed - epochWithdrawals.shareValueOfAssetsReceived
+            );
+        }
+        token.burn(epochWithdrawals.amountToBurnAtSettlement);
 
         uint256 balanceBefore = asset.getSelfBalance();
 
@@ -254,17 +243,13 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         bytes32[] memory roots = new bytes32[](queuedWithdrawalCount);
 
         IDelegationManager.Withdrawal memory queuedWithdrawal;
-        for (uint256 i; i < queuedWithdrawalCount;) {
+        for (uint256 i; i < queuedWithdrawalCount; ++i) {
             queuedWithdrawal = queuedWithdrawals[i];
 
             roots[i] = _computeWithdrawalRoot(queuedWithdrawal);
             delegationManager.completeQueuedWithdrawal(queuedWithdrawal, assets, middlewareTimesIndexes[i], true);
-
-            unchecked {
-                ++i;
-            }
         }
-        if (epochWithdrawals.aggregateRoot != keccak256(abi.encodePacked(roots))) {
+        if (epochWithdrawals.aggregateRoot != keccak256(abi.encode(roots))) {
             revert INVALID_AGGREGATE_WITHDRAWAL_ROOT();
         }
         epochWithdrawals.shareValueOfAssetsReceived = SafeCast.toUint120(epochWithdrawals.sharesOwed);

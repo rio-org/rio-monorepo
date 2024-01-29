@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IChainlinkAggregatorV3} from 'contracts/interfaces/oracle/IChainlinkAggregatorV3.sol';
 import {IPriceFeed} from 'contracts/interfaces/oracle/IPriceFeed.sol';

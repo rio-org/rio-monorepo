@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 interface IRioLRTRewardDistributor {
     /// @notice Thrown when the treasury ETH validator reward share is too high.

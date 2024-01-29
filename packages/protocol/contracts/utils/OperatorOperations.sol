@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
@@ -8,6 +8,7 @@ import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegis
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {BEACON_CHAIN_STRATEGY, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 
+/// @title Operator delegator deposit and withdrawal operations.
 library OperatorOperations {
     using FixedPointMathLib for uint256;
     using SafeERC20 for IERC20;
@@ -32,15 +33,12 @@ library OperatorOperations {
         );
         depositAmount = depositsAllocated * ETH_DEPOSIT_SIZE;
 
-        for (uint256 i = 0; i < allocations.length;) {
+        for (uint256 i = 0; i < allocations.length; ++i) {
             uint256 deposits = allocations[i].deposits;
 
             IRioLRTOperatorDelegator(allocations[i].operator).stakeETH{value: deposits * ETH_DEPOSIT_SIZE}(
                 deposits, allocations[i].pubKeyBatch, allocations[i].signatureBatch
             );
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -60,14 +58,11 @@ library OperatorOperations {
             strategy, sharesToAllocate
         );
 
-        for (uint256 i = 0; i < allocations.length;) {
+        for (uint256 i = 0; i < allocations.length; ++i) {
             IRioLRTOperatorRegistry.OperatorStrategyAllocation memory allocation = allocations[i];
 
             IERC20(token).safeTransfer(allocation.operator, allocation.tokens);
             sharesReceived += IRioLRTOperatorDelegator(allocation.operator).stakeERC20(strategy, token, allocation.tokens);
-            unchecked {
-                ++i;
-            }
         }
         if (sharesReceived != sharesAllocated) revert INCORRECT_NUMBER_OF_SHARES_RECEIVED();
     }
@@ -98,17 +93,18 @@ library OperatorOperations {
         (, IRioLRTOperatorRegistry.OperatorETHDeallocation[] memory operatorDepositDeallocations) = operatorRegistry.deallocateETHDeposits(
             depositCount
         );
-        bytes32[] memory roots = new bytes32[](operatorDepositDeallocations.length);
+        uint256 length = operatorDepositDeallocations.length;
+        bytes32[] memory roots = new bytes32[](length);
 
-        for (uint256 i = 0; i < operatorDepositDeallocations.length;) {
+        uint256 remainingAmount = amount;
+        for (uint256 i = 0; i < length; ++i) {
             address operator = operatorDepositDeallocations[i].operator;
 
-            uint256 sharesToWithdraw = operatorDepositDeallocations[i].deposits * ETH_DEPOSIT_SIZE;
-            roots[i] = IRioLRTOperatorDelegator(operator).queueWithdrawal(BEACON_CHAIN_STRATEGY, sharesToWithdraw, withdrawalQueue);
+            // Ensure we do not send more than needed to the withdrawal queue. The remaining will stay in the Eigen Pod.
+            uint256 amountToWithdraw = (i == length - 1) ? remainingAmount : operatorDepositDeallocations[i].deposits * ETH_DEPOSIT_SIZE;
 
-            unchecked {
-                ++i;
-            }
+            remainingAmount -= amountToWithdraw;
+            roots[i] = IRioLRTOperatorDelegator(operator).queueWithdrawal(BEACON_CHAIN_STRATEGY, amountToWithdraw, withdrawalQueue);
         }
         aggregateRoot = keccak256(abi.encode(roots));
     }
@@ -130,16 +126,12 @@ library OperatorOperations {
         bytes32[] memory roots = new bytes32[](operatorDeallocations.length);
 
         uint256 sharesQueued;
-        for (uint256 i = 0; i < operatorDeallocations.length;) {
+        for (uint256 i = 0; i < operatorDeallocations.length; ++i) {
             address operator = operatorDeallocations[i].operator;
             uint256 shares = operatorDeallocations[i].shares;
 
             sharesQueued += shares;
             roots[i] = IRioLRTOperatorDelegator(operator).queueWithdrawal(strategy, shares, address(withdrawalQueue));
-
-            unchecked {
-                ++i;
-            }
         }
         if (sharesToWithdraw != sharesQueued) revert INCORRECT_NUMBER_OF_SHARES_QUEUED();
 

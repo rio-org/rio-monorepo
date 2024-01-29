@@ -1,7 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 interface IRioLRTOperatorRegistry {
+    /// @dev The information needed to add a new operator.
+    struct OperatorConfig {
+        /// @dev The operator's address.
+        address operator;
+        /// @dev The initial manager of the operator.
+        address initialManager;
+        /// @dev The initial reward address of the operator.
+        address initialEarningsReceiver;
+        /// @dev The initial metadata URI of the operator.
+        string initialMetadataURI;
+        /// @dev The maximum number of shares that can be allocated to
+        /// the operator for each strategy.
+        StrategyShareCap[] strategyShareCaps;
+        /// @dev The maximum number of active validators allowed.
+        uint40 validatorCap;
+    }
+
     /// @dev Configuration used to track the maximum number of shares that can be
     /// allocated to an operator for a given strategy.
     struct StrategyShareCap {
@@ -54,14 +71,16 @@ interface IRioLRTOperatorRegistry {
         OperatorValidatorDetails validatorDetails;
         /// @dev Operator strategy share allocation caps and current allocations.
         mapping(address => OperatorShareDetails) shareDetails;
+        /// @dev Records the existence of withdrawal roots for each strategy exit.
+        mapping(bytes32 => bool) isValidStrategyExitRoot;
     }
 
     /// @dev Details for a single operator, excluding the share details, so we can expose externally.
     struct OperatorPublicDetails {
         /// @dev Flag indicating if the operator can participate in further staking and reward distribution.
         bool active;
-        /// @dev The operator's contract address.
-        address operatorContract;
+        /// @dev The staker contract that delegates to the operator.
+        address delegator;
         /// @dev The address that manages the operator.
         address manager;
         /// @dev The address that will manage the operator once confirmed.
@@ -115,23 +134,14 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when the caller is not the operator's manager.
     error ONLY_OPERATOR_MANAGER();
 
-    /// @notice Thrown when the caller is not the operator's manager or OR the security daemon.
+    /// @notice Thrown when the caller is not the operator's manager OR the security daemon.
     error ONLY_OPERATOR_MANAGER_OR_SECURITY_DAEMON();
 
-    /// @notice Thrown when the caller is not the coordinator.
-    error ONLY_COORDINATOR();
-
-    /// @notice Thrown when the caller is not the deposit pool.
-    error ONLY_DEPOSIT_POOL();
+    /// @notice Thrown when the caller is not the operator's manager OR the proof uploader.
+    error ONLY_OPERATOR_MANAGER_OR_PROOF_UPLOADER();
 
     /// @notice Thrown when the caller is not the operator's pending manager.
     error ONLY_OPERATOR_PENDING_MANAGER();
-
-    /// @notice Thrown when the maximum number of operators has been reached.
-    error MAX_OPERATOR_COUNT_EXCEEDED();
-
-    /// @notice Thrown when the maximum number of active operators has been reached.
-    error MAX_ACTIVE_OPERATOR_COUNT_EXCEEDED();
 
     /// @notice Thrown when the operator is `address(0)`.
     error INVALID_OPERATOR();
@@ -139,14 +149,20 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when the manager is `address(0)`.
     error INVALID_MANAGER();
 
-    /// @notice Thrown when the pending manager is `address(0)`.
-    error INVALID_PENDING_MANAGER();
-
     /// @notice Thrown when the operator's earnings receiver is `address(0)`.
     error INVALID_EARNINGS_RECEIVER();
 
     /// @notice Thrown when an invalid (non-existent) operator delegator contract address is provided.
     error INVALID_OPERATOR_DELEGATOR();
+
+    /// @notice Thrown when the strategy length in a strategy exit is not equal to 1.
+    error INVALID_STRATEGY_LENGTH_FOR_EXIT();
+
+    /// @notice Thrown when the provided strategy exit root is invalid.
+    error INVALID_STRATEGY_EXIT_ROOT();
+
+    /// @notice Thrown when the pending manager is `address(0)`.
+    error INVALID_PENDING_MANAGER();
 
     /// @notice Thrown when the provided validator count is invalid (zero).
     error INVALID_VALIDATOR_COUNT();
@@ -154,8 +170,11 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when an invalid index is provided.
     error INVALID_INDEX();
 
-    /// @notice Thrown when attempting an operation that requires the operator to be active.
-    error OPERATOR_NOT_ACTIVE();
+    /// @notice Thrown when the maximum number of operators has been reached.
+    error MAX_OPERATOR_COUNT_EXCEEDED();
+
+    /// @notice Thrown when the maximum number of active operators has been reached.
+    error MAX_ACTIVE_OPERATOR_COUNT_EXCEEDED();
 
     /// @notice Thrown when attempting to activate an operator that is already active.
     error OPERATOR_ALREADY_ACTIVE();
@@ -163,24 +182,11 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when attempting to deactivate an operator that is already inactive.
     error OPERATOR_ALREADY_INACTIVE();
 
-    /// @notice Thrown when an attempt is made to complete a natural exit for an operator that
-    /// still has shares allocated.
-    error OPERATOR_STILL_HAS_ALLOCATED_SHARES();
+    /// @notice Thrown when attempting to queue the exit of zero shares.
+    error CANNOT_EXIT_ZERO_SHARES();
 
     /// @notice Thrown when there are no available operators for deallocation.
     error NO_AVAILABLE_OPERATORS_FOR_DEALLOCATION();
-
-    /// @notice Thrown when attempting an operation that requires the AVS to be active.
-    error AVS_NOT_ACTIVE();
-
-    /// @notice Thrown when attempting an operation that requires the AVS to be registered.
-    error AVS_NOT_REGISTERED();
-
-    /// @notice Thrown when attempting to opt into slashing for an AVS that has no slashing contract.
-    error NO_SLASHING_CONTRACT_FOR_AVS();
-
-    /// @notice Thrown when attempting to queue the exit of zero shares.
-    error CANNOT_EXIT_ZERO_SHARES();
 
     /// @notice Emitted when a new operator is added to the registry.
     /// @param operatorId The operator's ID.
@@ -221,12 +227,31 @@ interface IRioLRTOperatorRegistry {
     /// @param securityDaemon The new security daemon.
     event SecurityDaemonSet(address securityDaemon);
 
+    /// @notice Emitted when the proof uploader is set.
+    /// @param proofUploader The new proof uploader.
+    event ProofUploaderSet(address proofUploader);
+
     /// @notice Emitted when the min staker opt out blocks is set.
     event MinStakerOptOutBlocksSet(uint24 minStakerOptOutBlocks);
 
     /// @notice Emitted when the validator key review period is set.
     /// @param validatorKeyReviewPeriod The new validator key review period.
     event ValidatorKeyReviewPeriodSet(uint24 validatorKeyReviewPeriod);
+
+    /// @notice Emitted when a strategy exit is queued for an operator.
+    /// @param operatorId The operator's ID.
+    /// @param strategy The strategy to exit.
+    /// @param sharesToExit The number of shares to exit.
+    /// @param exitRoot The withdrawal root for the exit.
+    event OperatorStrategyExitQueued(
+        uint8 indexed operatorId, address strategy, uint256 sharesToExit, bytes32 exitRoot
+    );
+
+    /// @notice Emitted when a strategy exit is completed for an operator.
+    /// @param operatorId The operator's ID.
+    /// @param strategy The strategy to exit.
+    /// @param exitRoot The withdrawal root for the exit.
+    event OperatorStrategyExitCompleted(uint8 indexed operatorId, address strategy, bytes32 exitRoot);
 
     /// @notice Emitted when an operator's earnings receiver is set.
     /// @param operatorId The operator's ID.
@@ -261,21 +286,37 @@ interface IRioLRTOperatorRegistry {
     /// @param validatorCount The number of pending validator details that were removed.
     event OperatorPendingValidatorDetailsRemoved(uint8 indexed operatorId, uint256 validatorCount);
 
-    /// @notice Emitted when a strategy exit is queued for an operator.
-    /// @param operatorId The operator's ID.
-    /// @param strategy The strategy to exit.
-    /// @param sharesToExit The number of shares to exit.
-    event OperatorStrategyExitQueued(uint8 indexed operatorId, address strategy, uint256 sharesToExit);
+    /// @notice Emitted when strategy shares have been allocated to operators.
+    /// @param strategy The strategy that the shares were allocated to.
+    /// @param sharesAllocated The amount of shares allocated.
+    /// @param allocations The allocations made.
+    event StrategySharesAllocated(
+        address indexed strategy, uint256 sharesAllocated, OperatorStrategyAllocation[] allocations
+    );
+
+    /// @notice Emitted when ETH deposits have been allocated to operators.
+    /// @param depositsAllocated The amount of deposits allocated.
+    /// @param allocations The allocations made.
+    event ETHDepositsAllocated(uint256 depositsAllocated, OperatorETHAllocation[] allocations);
+
+    /// @notice Emitted when strategy shares have been deallocated from operators.
+    /// @param strategy The strategy that the shares were deallocated from.
+    /// @param sharesDeallocated The amount of shares deallocated.
+    /// @param deallocations The deallocations made.
+    event StrategySharesDeallocated(
+        address indexed strategy, uint256 sharesDeallocated, OperatorStrategyDeallocation[] deallocations
+    );
+
+    /// @notice Emitted when ETH deposits have been deallocated from operators.
+    /// @param depositsDeallocated The amount of deposits deallocated.
+    /// @param deallocations The deallocations made.
+    event ETHDepositsDeallocated(uint256 depositsDeallocated, OperatorETHDeallocation[] deallocations);
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param coordinator The LRT coordinator.
-    /// @param assetRegistry The LRT asset registry.
-    /// @param avsRegistry The AVS registry.
-    /// @param depositPool The LRT deposit pool.
-    /// @param rewardDistributor The LRT reward distributor.
-    function initialize(address initialOwner, address coordinator, address assetRegistry, address avsRegistry, address depositPool, address rewardDistributor) external;
+    /// @param token The address of the liquid restaking token.
+    function initialize(address initialOwner, address token) external;
 
     /// @notice Returns the operator details for the provided operator ID.
     /// @param operatorId The operator's ID.
@@ -288,6 +329,11 @@ interface IRioLRTOperatorRegistry {
         external
         view
         returns (OperatorShareDetails memory);
+
+    /// @notice Returns true if the withdrawal exit root is valid for the provided operator ID.
+    /// @param operatorId The operator's ID.
+    /// @param exitRoot The exit root to check.
+    function isValidStrategyExitRootForOperator(uint8 operatorId, bytes32 exitRoot) external view returns (bool);
 
     /// @notice Returns the total number of operators in the registry.
     function operatorCount() external view returns (uint8);
@@ -303,21 +349,9 @@ interface IRioLRTOperatorRegistry {
     function validatorKeyReviewPeriod() external view returns (uint24);
 
     /// @notice Adds a new operator to the registry, deploying a delegator contract and
-    /// delegating to the provided `operator`.
-    /// @param operator The operator's address.
-    /// @param initialManager The initial manager of the operator.
-    /// @param initialEarningsReceiver The initial reward address of the operator.
-    /// @param strategyShareCaps The maximum number of shares that can be allocated to
-    /// the operator for each strategy.
-    /// @param validatorCap The maximum number of active validators allowed.
-    function addOperator(
-        address operator,
-        address initialManager,
-        address initialEarningsReceiver,
-        string calldata initialMetadataURI,
-        StrategyShareCap[] calldata strategyShareCaps,
-        uint40 validatorCap
-    ) external returns (uint8 operatorId, address operatorContract);
+    /// delegating to the provided operator address.
+    /// @param config The new operator's configuration.
+    function addOperator(OperatorConfig calldata config) external returns (uint8 operatorId, address delegator);
 
     /// @notice Activates an operator.
     /// @param operatorId The operator's ID.

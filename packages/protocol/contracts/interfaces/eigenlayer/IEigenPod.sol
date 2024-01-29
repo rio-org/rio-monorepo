@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
-import {IBeaconChainOracle} from 'contracts/interfaces/eigenlayer/IBeaconChainOracle.sol';
 import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager.sol';
 
 /// @title The implementation contract used for restaking beacon chain ETH on EigenLayer

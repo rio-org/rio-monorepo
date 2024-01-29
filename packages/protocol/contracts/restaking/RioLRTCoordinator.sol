@@ -1,47 +1,27 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
-import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
-import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
-import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
+import {ETH_ADDRESS, GWEI_TO_WEI} from 'contracts/utils/Constants.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable {
-    using SafeERC20 for IERC20;
+contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using Asset for address;
-
-    /// @notice The liquid restaking token (LRT).
-    IRioLRT public restakingToken;
-
-    /// @notice The contract that stores information about supported underlying assets.
-    IRioLRTAssetRegistry public assetRegistry;
-
-    /// @notice The operator registry used allocate to and deallocate from EigenLayer operators.
-    IRioLRTOperatorRegistry public operatorRegistry;
-
-    /// @notice The contract that holds funds awaiting deposit into EigenLayer.
-    IRioLRTDepositPool public depositPool;
-
-    /// @notice The contract used to queue and process withdrawals.
-    IRioLRTWithdrawalQueue public withdrawalQueue;
+    using SafeERC20 for *;
 
     /// @notice The required delay between rebalances.
     uint24 public rebalanceDelay;
 
     /// @notice Tracks the last timestamp when each asset was rebalanced.
     mapping(address asset => uint256 timestamp) public assetLastRebalancedAt;
-
-    /// @notice Tracks the amount of EigenLayer shares owned by the LRT.
-    mapping(address asset => uint256 shares) public assetSharesHeld;
 
     /// @notice Require that the asset is supported, the deposit amount is non-zero, and the
     /// deposit cap has not been reached.
@@ -72,87 +52,40 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         _;
     }
 
-    /// @dev Prevent any future reinitialization.
-    constructor() {
-        _disableInitializers();
-    }
+    /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
+    constructor(address issuer_) RioLRTCore(issuer_) {}
 
     /// @dev Initializes the contract.
     /// @param initialOwner The owner of the contract.
-    /// @param restakingToken_ The liquid restaking token (LRT).
-    /// @param assetRegistry_ The contract that stores information about supported underlying assets.
-    /// @param operatorRegistry_ The operator registry used allocate to and deallocate from EigenLayer operators.
-    /// @param depositPool_ The contract in charge of holding funds awaiting deposit into EigenLayer.
-    /// @param withdrawalQueue_ The contract used to queue and process withdrawals.
-    function initialize(
-        address initialOwner,
-        address restakingToken_,
-        address assetRegistry_,
-        address operatorRegistry_,
-        address depositPool_,
-        address withdrawalQueue_
-    ) external initializer {
+    /// @param token_ The address of the liquid restaking token.
+    function initialize(address initialOwner, address token_) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-
-        restakingToken = IRioLRT(restakingToken_);
-        assetRegistry = IRioLRTAssetRegistry(assetRegistry_);
-        operatorRegistry = IRioLRTOperatorRegistry(operatorRegistry_);
-        depositPool = IRioLRTDepositPool(depositPool_);
-        withdrawalQueue = IRioLRTWithdrawalQueue(withdrawalQueue_);
+        __RioLRTCore_init(token_);
 
         _setRebalanceDelay(24 hours);
     }
 
     /// @notice Returns the total value of all underlying assets in the unit of account.
     function getTVL() public view returns (uint256 value) {
-        address[] memory assets = assetRegistry.getSupportedAssets();
-        for (uint256 i = 0; i < assets.length; ++i) {
-            value += getTVLForAsset(assets[i]);
-        }
-    }
-
-    /// @notice Returns the total value of the underlying asset in the unit of account.
-    /// @param asset The address of the asset.
-    function getTVLForAsset(address asset) public view returns (uint256) {
-        uint256 balance = getTotalBalanceForAsset(asset);
-        if (asset == ETH_ADDRESS) {
-            return balance;
-        }
-        return assetRegistry.convertToUnitOfAccountFromAsset(asset, getTotalBalanceForAsset(asset));
-    }
-
-    /// @notice Returns the total balance of the asset, including the deposit pool and EigenLayer.
-    /// @param asset The address of the asset.
-    function getTotalBalanceForAsset(address asset) public view returns (uint256) {
-        uint256 sharesHeld = assetSharesHeld[asset];
-        if (asset == ETH_ADDRESS) {
-            return address(depositPool).balance + sharesHeld;
-        }
-
-        IRioLRTAssetRegistry.AssetInfo memory info = assetRegistry.getAssetInfoByAddress(asset);
-
-        uint256 tokensInRio = IERC20(asset).balanceOf(address(depositPool));
-        uint256 tokensInEigenLayer = assetRegistry.convertFromSharesToAsset(info.strategy, sharesHeld);
-
-        return tokensInRio + tokensInEigenLayer;
+        return assetRegistry().getTVL();
     }
 
     // forgefmt: disable-next-item
     /// @notice Deposits ERC20 tokens and mints restaking token(s) to the caller.
-    /// @param token The token being deposited.
+    /// @param asset The asset being deposited.
     /// @param amountIn The amount of the asset being deposited.
-    function deposit(address token, uint256 amountIn) external checkDeposit(token, amountIn) returns (uint256 amountOut) {
+    function deposit(address asset, uint256 amountIn) external checkDeposit(asset, amountIn) returns (uint256 amountOut) {
         // Convert deposited asset amount to restaking tokens.
-        amountOut = convertFromAssetToRestakingTokens(token, amountIn);
+        amountOut = convertFromAssetToRestakingTokens(asset, amountIn);
 
         // Pull tokens from the sender to the deposit pool.
-        IERC20(token).safeTransferFrom(msg.sender, address(depositPool), amountIn);
+        IERC20(asset).safeTransferFrom(msg.sender, address(depositPool()), amountIn);
 
         // Mint restaking tokens to the caller.
-        restakingToken.mint(msg.sender, amountOut);
+        token.mint(msg.sender, amountOut);
 
-        emit Deposited(msg.sender, token, amountIn, amountOut);
+        emit Deposited(msg.sender, asset, amountIn, amountOut);
     }
 
     /// @notice Deposits ETH and mints restaking token(s) to the caller.
@@ -168,36 +101,41 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         // Determine the amount of shares owed to the withdrawer using the current exchange rate.
         sharesOwed = convertToSharesFromRestakingTokens(asset, amountIn);
 
+        // If requesting ETH, reduce the precision of the shares owed to the nearest Gwei,
+        // which is the smallest unit of account supported by EigenLayer.
+        if (asset == ETH_ADDRESS) sharesOwed = _reducePrecisionToGwei(sharesOwed);
+
         // Pull restaking tokens from the sender to the withdrawal queue.
-        IERC20(address(restakingToken)).safeTransferFrom(msg.sender, address(withdrawalQueue), amountIn);
+        token.safeTransferFrom(msg.sender, address(withdrawalQueue()), amountIn);
 
         // Ensure there are enough shares to cover the withdrawal request, and queue the withdrawal.
-        uint256 availableShares = assetRegistry.convertToSharesFromAsset(asset, getTotalBalanceForAsset(asset));
-        if (sharesOwed > availableShares - withdrawalQueue.getSharesOwedInCurrentEpoch(asset)) {
+        uint256 availableShares = assetRegistry().convertToSharesFromAsset(asset, assetRegistry().getTotalBalanceForAsset(asset));
+        if (sharesOwed > availableShares - withdrawalQueue().getSharesOwedInCurrentEpoch(asset)) {
             revert INSUFFICIENT_SHARES_FOR_WITHDRAWAL();
         }
-        withdrawalQueue.queueWithdrawal(msg.sender, asset, sharesOwed, amountIn);
+        withdrawalQueue().queueWithdrawal(msg.sender, asset, sharesOwed, amountIn);
     }
 
     /// @notice Rebalances the provided `asset` by processing outstanding withdrawals and
     /// depositing remaining assets into EigenLayer.
     /// @param asset The asset to rebalance.
     function rebalance(address asset) external onRebalance(asset) {
-        if (!assetRegistry.isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+        if (!assetRegistry().isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
 
         // Process any outstanding withdrawals using funds from the deposit pool and EigenLayer.
-        uint256 sharesOwed = withdrawalQueue.getSharesOwedInCurrentEpoch(asset);
+        uint256 sharesOwed = withdrawalQueue().getSharesOwedInCurrentEpoch(asset);
         if (sharesOwed > 0) {
             _processUserWithdrawalsForCurrentEpoch(asset, sharesOwed);
         }
 
         // Deposit remaining assets into EigenLayer.
-        uint256 sharesReceived = depositPool.depositBalanceIntoEigenLayer(asset);
+        uint256 sharesReceived = depositPool().depositBalanceIntoEigenLayer(asset);
         if (sharesOwed == 0 && sharesReceived == 0) {
             revert NO_REBALANCE_NEEDED();
         }
-        assetSharesHeld[asset] += sharesReceived;
-
+        if (sharesReceived > 0) {
+            assetRegistry().increaseSharesHeldForAsset(asset, sharesReceived);
+        }
         emit Rebalanced(asset);
     }
 
@@ -212,7 +150,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @param value The restaking token's value in the unit of account.
     function convertFromUnitOfAccountToRestakingTokens(uint256 value) public view returns (uint256) {
         uint256 tvl = getTVL();
-        uint256 supply = restakingToken.totalSupply();
+        uint256 supply = token.totalSupply();
 
         if (supply == 0) {
             return value;
@@ -225,7 +163,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @param amount The amount of restaking tokens to convert.
     function convertToUnitOfAccountFromRestakingTokens(uint256 amount) public view returns (uint256) {
         uint256 tvl = getTVL();
-        uint256 supply = restakingToken.totalSupply();
+        uint256 supply = token.totalSupply();
 
         if (supply == 0) {
             return amount;
@@ -237,7 +175,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @param asset The address of the asset to convert.
     /// @param amount The amount of the asset to convert.
     function convertFromAssetToRestakingTokens(address asset, uint256 amount) public view returns (uint256) {
-        uint256 value = assetRegistry.convertToUnitOfAccountFromAsset(asset, amount);
+        uint256 value = assetRegistry().convertToUnitOfAccountFromAsset(asset, amount);
         return convertFromUnitOfAccountToRestakingTokens(value);
     }
 
@@ -246,7 +184,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @param amount The amount of restaking tokens to convert.
     function convertToAssetFromRestakingTokens(address asset, uint256 amount) public view returns (uint256) {
         uint256 value = convertToUnitOfAccountFromRestakingTokens(amount);
-        return assetRegistry.convertFromUnitOfAccountToAsset(asset, value);
+        return assetRegistry().convertFromUnitOfAccountToAsset(asset, value);
     }
 
     /// @notice Converts an amount of restaking tokens to the equivalent in the provided
@@ -255,7 +193,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @param amount The amount of restaking tokens to convert.
     function convertToSharesFromRestakingTokens(address asset, uint256 amount) public view returns (uint256 shares) {
         uint256 assetAmount = convertToAssetFromRestakingTokens(asset, amount);
-        return assetRegistry.convertToSharesFromAsset(asset, assetAmount);
+        return assetRegistry().convertToSharesFromAsset(asset, assetAmount);
     }
 
     /// @notice Deposits ETH and mints restaking token(s) to the caller.
@@ -270,10 +208,10 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         amountOut = convertFromUnitOfAccountToRestakingTokens(msg.value);
 
         // Forward ETH to the deposit pool.
-        address(depositPool).transferETH(msg.value);
+        address(depositPool()).transferETH(msg.value);
 
         // Mint restaking tokens to the caller.
-        restakingToken.mint(msg.sender, amountOut);
+        token.mint(msg.sender, amountOut);
 
         emit Deposited(msg.sender, ETH_ADDRESS, msg.value, amountOut);
     }
@@ -293,33 +231,34 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @param asset The asset being withdrawn.
     /// @param sharesOwed The amount of shares owed to users.
     function _processUserWithdrawalsForCurrentEpoch(address asset, uint256 sharesOwed) internal {
-        (uint256 assetsSent, uint256 sharesSent) = depositPool.transferMaxAssetsForShares(
+        IRioLRTWithdrawalQueue withdrawalQueue_ = withdrawalQueue();
+        (uint256 assetsSent, uint256 sharesSent) = depositPool().transferMaxAssetsForShares(
             asset,
             sharesOwed,
-            address(withdrawalQueue)
+            address(withdrawalQueue_)
         );
         uint256 sharesRemaining = sharesOwed - sharesSent;
 
         // Exit early if all pending withdrawals were paid from the deposit pool.
         if (sharesRemaining == 0) {
-            withdrawalQueue.settleCurrentEpoch(asset, sharesSent, assetsSent);
+            withdrawalQueue_.settleCurrentEpoch(asset, assetsSent, sharesSent);
             return;
         }
 
-        address strategy = assetRegistry.getAssetStrategy(asset);
+        address strategy = assetRegistry().getAssetStrategy(asset);
         bytes32 aggregateRoot = OperatorOperations.queueWithdrawals(
-            operatorRegistry,
+            operatorRegistry(),
             strategy,
             sharesRemaining,
-            address(withdrawalQueue)
+            address(withdrawalQueue_)
         );
-        withdrawalQueue.queueCurrentEpochSettlement(asset, sharesSent, assetsSent, aggregateRoot);
+        withdrawalQueue_.queueCurrentEpochSettlement(asset, assetsSent, sharesSent, aggregateRoot);
     }
 
     /// @dev Checks if the provided asset is supported.
     /// @param asset The address of the asset.
     function _checkAssetSupported(address asset) internal view {
-        if (!assetRegistry.isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+        if (!assetRegistry().isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
     }
 
     /// @dev Checks if the provided amount is greater than zero.
@@ -332,8 +271,10 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @param asset The address of the asset.
     /// @param amountIn The amount of the asset being deposited.
     function _checkDepositCapReached(address asset, uint256 amountIn) internal view {
-        uint256 depositCap = assetRegistry.getAssetDepositCap(asset);
-        uint256 existingBalance = getTotalBalanceForAsset(asset);
+        IRioLRTAssetRegistry assetRegistry_ = assetRegistry();
+
+        uint256 depositCap = assetRegistry_.getAssetDepositCap(asset);
+        uint256 existingBalance = assetRegistry_.getTotalBalanceForAsset(asset);
         if (depositCap > 0 && existingBalance + amountIn > depositCap) {
             revert DEPOSIT_CAP_REACHED(asset, depositCap);
         }
@@ -346,6 +287,12 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         if (lastRebalancedAt > 0 && block.timestamp - lastRebalancedAt < rebalanceDelay) {
             revert REBALANCE_DELAY_NOT_MET();
         }
+    }
+
+    /// @notice Reduces the precision of the given amount to the nearest Gwei.
+    /// @param amount The amount whose precision is to be reduced.
+    function _reducePrecisionToGwei(uint256 amount) internal pure returns (uint256) {
+        return amount - (amount % GWEI_TO_WEI);
     }
 
     /// @dev Allows the owner to upgrade the gateway implementation.

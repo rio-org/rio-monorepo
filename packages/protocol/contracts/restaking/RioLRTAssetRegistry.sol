@@ -1,23 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IPriceFeed} from 'contracts/interfaces/oracle/IPriceFeed.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
-import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 
-contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUpgradeable {
-    /// @notice The amount of time after which an asset price is considered stale.
-    /// @dev This accounts for a daily update + a one hour buffer.
-    uint256 public constant PRICE_STALE_AFTER = 25 hours;
-
-    /// @notice The liquid restaking token coordinator.
-    IRioLRTCoordinator public coordinator;
-
+contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     /// @notice The number of decimals that all asset price feeds must use.
     uint8 public priceFeedDecimals;
 
@@ -30,26 +25,31 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @notice Information about a supported asset.
     mapping(address asset => AssetInfo) public assetInfo;
 
-    /// @dev Prevent any future reinitialization.
-    constructor() {
-        _disableInitializers();
+    /// @notice Require that the caller is the withdrawal queue or operator registry.
+    modifier onlyWithdrawalQueueOrOperatorRegistry() {
+        if (msg.sender != address(withdrawalQueue()) && msg.sender != address(operatorRegistry())) {
+            revert ONLY_WITHDRAWAL_QUEUE_OR_OPERATOR_REGISTRY();
+        }
+        _;
     }
 
-    /// @notice Initializes the asset manager contract.
+    /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
+    constructor(address issuer_) RioLRTCore(issuer_) {}
+
+    /// @notice Initializes the asset registry contract.
     /// @param initialOwner The initial owner of the contract.
-    /// @param coordinator_ The liquid restaking token coordinator.
+    /// @param token_ The address of the liquid restaking token.
     /// @param priceFeedDecimals_ The number of decimals that all price feeds must use.
     /// @param initialAssets The initial supported asset configurations.
     function initialize(
         address initialOwner,
-        address coordinator_,
+        address token_,
         uint8 priceFeedDecimals_,
         AssetConfig[] calldata initialAssets
     ) external initializer {
         __Ownable_init(initialOwner);
         __UUPSUpgradeable_init();
-
-        coordinator = IRioLRTCoordinator(coordinator_);
+        __RioLRTCore_init(token_);
 
         // Non-ETH pairs must use 8 decimals, while ETH pairs must use 18.
         if (priceFeedDecimals_ != 8 && priceFeedDecimals_ != 18) revert INVALID_PRICE_FEED_DECIMALS();
@@ -63,6 +63,54 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         }
     }
 
+    /// @notice Returns the total value of all underlying assets in the unit of account.
+    function getTVL() public view returns (uint256 value) {
+        address[] memory assets = getSupportedAssets();
+        for (uint256 i = 0; i < assets.length; ++i) {
+            value += getTVLForAsset(assets[i]);
+        }
+    }
+
+    /// @notice Returns the total value of the underlying asset in the unit of account.
+    /// @param asset The address of the asset.
+    function getTVLForAsset(address asset) public view returns (uint256) {
+        uint256 balance = getTotalBalanceForAsset(asset);
+        if (asset == ETH_ADDRESS) {
+            return balance;
+        }
+        return convertToUnitOfAccountFromAsset(asset, balance);
+    }
+
+    /// @notice Returns the total balance of the asset, including the deposit pool and EigenLayer.
+    /// @param asset The address of the asset.
+    function getTotalBalanceForAsset(address asset) public view returns (uint256) {
+        if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+
+        address depositPool_ = address(depositPool());
+        if (asset == ETH_ADDRESS) {
+            return depositPool_.balance + getETHBalanceInEigenLayer();
+        }
+
+        uint256 sharesHeld = getAssetSharesHeld(asset);
+        uint256 tokensInRio = IERC20(asset).balanceOf(depositPool_);
+        uint256 tokensInEigenLayer = convertFromSharesToAsset(getAssetStrategy(asset), sharesHeld);
+
+        return tokensInRio + tokensInEigenLayer;
+    }
+
+    /// @notice Returns the ETH balance held in EigenLayer.
+    function getETHBalanceInEigenLayer() public view returns (uint256 balance) {
+        // For ETH, `sharesHeld` refers to the amount of ETH in validators that have not
+        // yet been verified. Once verified, ETH is accounted for in the EigenPod shares.
+        balance = getAssetSharesHeld(ETH_ADDRESS);
+
+        IRioLRTOperatorRegistry operatorRegistry_ = operatorRegistry();
+        uint8 endAtID = operatorRegistry_.operatorCount() + 1; // Operator IDs start at 1.
+        for (uint8 id = 1; id < endAtID; ++id) {
+            balance += operatorDelegator(operatorRegistry_, id).getETHUnderManagement();
+        }
+    }
+
     /// @notice Checks if a given asset is supported.
     /// @param asset The address of the asset to check.
     function isSupportedAsset(address asset) public view returns (bool) {
@@ -71,7 +119,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
 
     /// @notice Returns information about an asset.
     /// @param asset The address of the asset.
-    function getAssetInfoByAddress(address asset) external view returns (AssetInfo memory) {
+    function getAssetInfoByAddress(address asset) public view returns (AssetInfo memory) {
         return assetInfo[asset];
     }
 
@@ -79,6 +127,12 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @param asset The address of the asset.
     function getAssetStrategy(address asset) public view returns (address) {
         return assetInfo[asset].strategy;
+    }
+
+    /// @notice Returns the amount of EigenLayer shares held for an asset.
+    /// @param asset The address of the asset.
+    function getAssetSharesHeld(address asset) public view returns (uint256) {
+        return assetInfo[asset].shares;
     }
 
     /// @notice Returns the asset's current price feed.
@@ -106,7 +160,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     }
 
     /// @notice Returns an array of all supported assets.
-    function getSupportedAssets() external view returns (address[] memory assets) {
+    function getSupportedAssets() public view returns (address[] memory assets) {
         uint256 assetCount = supportedAssets.length;
         assets = new address[](assetCount);
 
@@ -195,7 +249,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @param asset The address of the asset to remove.
     function removeAsset(address asset) external onlyOwner {
         if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
-        if (coordinator.getTVLForAsset(asset) > 0) revert ASSET_HAS_BALANCE();
+        if (getTVLForAsset(asset) > 0) revert ASSET_HAS_BALANCE();
 
         uint256 assetCount = supportedAssets.length;
         uint256 assetIndex = _findAssetIndex(asset);
@@ -227,6 +281,26 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         assetInfo[asset].priceFeed = newPriceFeed;
 
         emit AssetPriceFeedSet(asset, newPriceFeed);
+    }
+
+    /// @notice Increases the number of EigenLayer shares held for an asset.
+    /// @param asset The address of the asset.
+    /// @param amount The amount of EigenLayer shares to increase.
+    function increaseSharesHeldForAsset(address asset, uint256 amount) external onlyCoordinator {
+        if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+
+        assetInfo[asset].shares += amount;
+        emit AssetSharesIncreased(asset, amount);
+    }
+
+    /// @notice Decreases the number of EigenLayer shares held for an asset.
+    /// @param asset The address of the asset.
+    /// @param amount The amount of EigenLayer shares to decrease.
+    function decreaseSharesHeldForAsset(address asset, uint256 amount) external onlyWithdrawalQueueOrOperatorRegistry {
+        if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+
+        assetInfo[asset].shares -= amount;
+        emit AssetSharesDecreased(asset, amount);
     }
 
     /// @dev Adds a new underlying asset to the liquid restaking token.

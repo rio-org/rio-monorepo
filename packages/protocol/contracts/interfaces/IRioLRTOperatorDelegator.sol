@@ -1,15 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
+import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 
 interface IRioLRTOperatorDelegator {
-    /// @notice Thrown when the caller is not the operator registry.
-    error ONLY_OPERATOR_REGISTRY();
-
-    /// @notice Thrown when the caller is not the deposit pool.
-    error ONLY_DEPOSIT_POOL();
-
     /// @notice Thrown when the caller is not the LRT's coordinator
     /// or the operator registry.
     error ONLY_COORDINATOR_OR_OPERATOR_REGISTRY();
@@ -37,15 +32,20 @@ interface IRioLRTOperatorDelegator {
     error INVALID_SIGNATURES_BATCH_LENGTH(uint256 actual, uint256 expected);
 
     /// @notice Initializes the contract by delegating to the provided EigenLayer operator.
-    /// @param coordinator The LRT coordinator.
-    /// @param depositPool The LRT deposit pool.
-    /// @param rewardDistributor The LRT reward distributor.
+    /// @param token The address of the liquid restaking token.
     /// @param operator The operator's address.
-    function initialize(address coordinator, address depositPool, address rewardDistributor, address operator)
-        external;
+    function initialize(address token, address operator) external;
+
+    /// @notice The operator delegator's EigenPod.
+    function eigenPod() external view returns (IEigenPod);
 
     /// @notice Returns the number of shares in the operator delegator's EigenPod.
     function getEigenPodShares() external view returns (int256);
+
+    /// @notice Returns the total amount of ETH under management by the operator delegator.
+    /// @dev This includes EigenPod shares (verified validator balances minus queued withdrawals)
+    /// and ETH in the operator delegator's EigenPod.
+    function getETHUnderManagement() external view returns (uint256);
 
     /// @notice Verifies withdrawal credentials of validator(s) owned by this operator.
     /// It also verifies the effective balance of the validator(s).
@@ -69,7 +69,7 @@ interface IRioLRTOperatorDelegator {
     function stakeERC20(address strategy, address token, uint256 amount) external returns (uint256 shares);
 
     // forgefmt: disable-next-item
-    /// Stake ETH via the operator's EigenPod, using the provided validator information.
+    /// Stake ETH via the operator delegator's EigenPod, using the provided validator information.
     /// @param validatorCount The number of validators to deposit into.
     /// @param pubkeyBatch Batched validator public keys.
     /// @param signatureBatch Batched validator signatures.

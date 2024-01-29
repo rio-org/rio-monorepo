@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.21;
+pragma solidity 0.8.23;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {Initializable} from '@openzeppelin/contracts/proxy/utils/Initializable.sol';
-import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
@@ -12,11 +10,14 @@ import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager
 import {IEigenPodManager} from 'contracts/interfaces/eigenlayer/IEigenPodManager.sol';
 import {ISignatureUtils} from 'contracts/interfaces/eigenlayer/ISignatureUtils.sol';
 import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
+import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Memory} from 'contracts/utils/Memory.sol';
 import {Array} from 'contracts/utils/Array.sol';
+import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
+contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     using SafeERC20 for IERC20;
+    using Asset for address;
     using Array for *;
 
     /// @dev The length of a BLS12-381 public key.
@@ -44,80 +45,48 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     /// @notice The primary delegation contract for EigenLayer.
     IDelegationManager public immutable delegationManager;
 
-    /// @notice The address of the LRT operator registry.
-    address public operatorRegistry;
-
-    /// @notice The address of the LRT coordinator.
-    address public coordinator;
-
-    /// @notice The LRT deposit pool.
-    address public depositPool;
-
-    /// @notice The LRT reward distributor.
-    address public rewardDistributor;
-
-    /// @notice The operator's EigenPod.
+    /// @notice The operator delegator's EigenPod.
     IEigenPod public eigenPod;
 
     /// @notice Credentials to withdraw ETH on Consensus Layer via the EigenPod.
     bytes32 public withdrawalCredentials;
 
-    /// @notice Require that the caller is the LRT's operator registry.
-    modifier onlyOperatorRegistry() {
-        if (msg.sender != operatorRegistry) revert ONLY_OPERATOR_REGISTRY();
-        _;
-    }
-
-    /// @notice Require that the caller is the LRT's deposit pool.
-    modifier onlyDepositPool() {
-        if (msg.sender != depositPool) revert ONLY_DEPOSIT_POOL();
-        _;
-    }
-
     /// @notice Require that the caller is the LRT's coordinator
     /// or the operator registry.
     modifier onlyCoordinatorOrOperatorRegistry() {
-        if (msg.sender != coordinator && msg.sender != operatorRegistry) {
+        if (msg.sender != address(coordinator()) && msg.sender != address(operatorRegistry())) {
             revert ONLY_COORDINATOR_OR_OPERATOR_REGISTRY();
         }
         _;
     }
 
+    /// @param issuer_ The issuer of the LRT instance that this contract is deployed for.
     /// @param strategyManager_ The primary entry and exit-point for funds into and out of EigenLayer.
     /// @param eigenPodManager_ The contract used for creating and managing EigenPods.
     /// @param delegationManager_ The primary delegation contract for EigenLayer.
-    constructor(address strategyManager_, address eigenPodManager_, address delegationManager_) {
-        _disableInitializers();
-
+    constructor(address issuer_, address strategyManager_, address eigenPodManager_, address delegationManager_)
+        RioLRTCore(issuer_)
+    {
         strategyManager = IStrategyManager(strategyManager_);
         eigenPodManager = IEigenPodManager(eigenPodManager_);
         delegationManager = IDelegationManager(delegationManager_);
     }
 
     // forgefmt: disable-next-item
-    /// @notice Initializes the contract by registering the operator with EigenLayer.
-    /// @param coordinator_ The LRT coordinator.
-    /// @param depositPool_ The LRT deposit pool.
-    /// @param rewardDistributor_ The LRT reward distributor.
+    /// @notice Initializes the contract by delegating to the provided EigenLayer operator.
+    /// @param token_ The address of the liquid restaking token.
     /// @param operator The operator's address.
-    function initialize(
-        address coordinator_,
-        address depositPool_,
-        address rewardDistributor_,
-        address operator
-    ) external initializer {
-        operatorRegistry = msg.sender;
+    function initialize(address token_, address operator) external initializer {
+        __RioLRTCore_init_noVerify(token_);
 
-        coordinator = coordinator_;
-        depositPool = depositPool_;
-        rewardDistributor = rewardDistributor_;
-
-        IRioLRTOperatorRegistry registry = IRioLRTOperatorRegistry(msg.sender);
+        if (msg.sender != address(operatorRegistry())) revert ONLY_OPERATOR_REGISTRY();
 
         IDelegationManager.OperatorDetails memory operatorDetails = delegationManager.operatorDetails(operator);
-        if (operatorDetails.earningsReceiver != rewardDistributor_) revert INVALID_EARNINGS_RECEIVER();
+        if (operatorDetails.earningsReceiver != address(rewardDistributor())) revert INVALID_EARNINGS_RECEIVER();
         if (operatorDetails.delegationApprover != address(0)) revert INVALID_DELEGATION_APPROVER();
-        if (operatorDetails.stakerOptOutWindowBlocks < registry.minStakerOptOutBlocks()) revert INVALID_STAKER_OPT_OUT_BLOCKS();
+        if (operatorDetails.stakerOptOutWindowBlocks < operatorRegistry().minStakerOptOutBlocks()) {
+            revert INVALID_STAKER_OPT_OUT_BLOCKS();
+        }
 
         delegationManager.delegateTo(
             operator,
@@ -132,9 +101,16 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
         withdrawalCredentials = _computeWithdrawalCredentials(eigenPodAddress);
     }
 
-    /// @notice Returns the number of shares in the operator's EigenPod.
-    function getEigenPodShares() external view returns (int256) {
+    /// @notice Returns the number of shares in the operator delegator's EigenPod.
+    function getEigenPodShares() public view returns (int256) {
         return eigenPodManager.podOwnerShares(address(this));
+    }
+
+    /// @notice Returns the total amount of ETH under management by the operator delegator.
+    /// @dev This includes EigenPod shares (verified validator balances minus queued withdrawals)
+    /// and ETH in the operator delegator's EigenPod.
+    function getETHUnderManagement() external view returns (uint256) {
+        return uint256(getEigenPodShares()) + address(eigenPod).balance;
     }
 
     /// @notice Verifies withdrawal credentials of validator(s) owned by this operator.
@@ -156,10 +132,12 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
         );
     }
 
-    /// @notice Scrapes ETH sitting in the operator's EigenPod to the reward distributor.
+    /// @notice Scrapes ETH sitting in the operator delegator's EigenPod to the reward distributor.
     /// @dev Anyone can call this function.
     function scrapeEigenPodETHBalanceToRewardDistributor() external {
-        eigenPod.withdrawNonBeaconChainETHBalanceWei(rewardDistributor, eigenPod.nonBeaconChainETHBalanceWei());
+        eigenPod.withdrawNonBeaconChainETHBalanceWei(
+            address(rewardDistributor()), eigenPod.nonBeaconChainETHBalanceWei()
+        );
     }
 
     // forgefmt: disable-next-item
@@ -175,7 +153,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
     }
 
     // forgefmt: disable-next-item
-    /// Stake ETH via the operator's EigenPod, using the provided validator information.
+    /// Stake ETH via the operator delegator's EigenPod, using the provided validator information.
     /// @param validatorCount The number of validators to deposit into.
     /// @param pubkeyBatch Batched validator public keys.
     /// @param signatureBatch Batched validator signatures.
@@ -192,16 +170,12 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
         bytes32 withdrawalCredentials_ = withdrawalCredentials;
         bytes memory publicKey = Memory.unsafeAllocateBytes(PUBLIC_KEY_LENGTH);
         bytes memory signature = Memory.unsafeAllocateBytes(SIGNATURE_LENGTH);
-        for (uint256 i = 0; i < validatorCount;) {
+        for (uint256 i = 0; i < validatorCount; ++i) {
             Memory.copyBytes(pubkeyBatch, publicKey, i * PUBLIC_KEY_LENGTH, 0, PUBLIC_KEY_LENGTH);
             Memory.copyBytes(signatureBatch, signature, i * SIGNATURE_LENGTH, 0, SIGNATURE_LENGTH);
             depositDataRoot = _computeDepositDataRoot(withdrawalCredentials_, publicKey, signature);
 
             eigenPodManager.stake{value: DEPOSIT_SIZE}(publicKey, signature, depositDataRoot);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -218,6 +192,12 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, Initializable {
             withdrawer: withdrawer
         });
         root = delegationManager.queueWithdrawals(withdrawalParams)[0];
+    }
+
+    /// @notice Forwards ETH rewards to the reward distributor. This includes partial
+    /// withdrawals and any amount in excess of 32 ETH for full withdrawals.
+    receive() external payable {
+        address(rewardDistributor()).transferETH(msg.value);
     }
 
     /// @dev Compute withdrawal credentials for the given EigenPod.
