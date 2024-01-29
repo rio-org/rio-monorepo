@@ -2,13 +2,13 @@ import { useNetwork, useSwitchNetwork, useWaitForTransaction } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { twJoin } from 'tailwind-merge';
 import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 import { cn, getChainName } from '../../lib/utilities';
 import { ViewTransactionLink } from './ViewTransactionLink';
 import Alert from './Alert';
-import { TX_BUTTON_VARIANTS } from '../../lib/constants';
+import { ACCEPTED_TOS_KEY, TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { CHAIN_ID } from '../../config';
 import { ContractError, RioTransactionType } from '../../lib/typings';
 import type { Hash } from '@wagmi/core';
@@ -16,6 +16,7 @@ import {
   useAddTransaction,
   usePendingTransactions
 } from '../../contexts/RioTransactionStore';
+import { AcceptTermsModal } from './AcceptTermsModal';
 
 export type TransactionButtonProps = {
   transactionType: RioTransactionType;
@@ -49,6 +50,7 @@ const TransactionButton = ({
   const addTransaction = useAddTransaction();
   const { isLoading: isSwitchNetworkLoading, switchNetwork } =
     useSwitchNetwork();
+  const [modalOpen, setModalOpen] = useState(false);
 
   const lastPendingTx = !pendingTxs.length
     ? null
@@ -96,11 +98,14 @@ const TransactionButton = ({
       return;
     }
 
-    !address
-      ? openConnectModal?.()
-      : wrongNetwork
-      ? switchNetwork?.(CHAIN_ID)
-      : write?.();
+    if (!address) {
+      localStorage.getItem(ACCEPTED_TOS_KEY) === 'true'
+        ? openConnectModal?.()
+        : setModalOpen(true);
+      return;
+    }
+
+    wrongNetwork ? switchNetwork?.(CHAIN_ID) : write?.();
   }, [isDisabled, address, wrongNetwork, switchNetwork, write]);
 
   return (
@@ -176,6 +181,12 @@ const TransactionButton = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AcceptTermsModal
+        isOpen={modalOpen}
+        handler={() => setModalOpen(false)}
+        onAccept={openConnectModal}
+      />
     </div>
   );
 };

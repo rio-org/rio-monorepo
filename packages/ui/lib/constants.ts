@@ -188,3 +188,5 @@ export const TX_HISTORY_TABLE_HEADER_LABELS = [
   'Historical reETH price',
   'Amount (USD)'
 ];
+
+export const ACCEPTED_TOS_KEY = 'accepted-tos' as const;
