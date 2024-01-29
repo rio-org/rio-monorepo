@@ -5,6 +5,7 @@ import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Own
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {MockPriceFeed} from 'test/utils/MockPriceFeed.sol';
+import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 
 contract RioLRTIssuerTest is RioDeployer {
@@ -22,7 +23,8 @@ contract RioLRTIssuerTest is RioDeployer {
                 assets: new IRioLRTAssetRegistry.AssetConfig[](1),
                 priceFeedDecimals: 18,
                 operatorRewardPool: address(this),
-                treasury: address(this)
+                treasury: address(this),
+                deposit: IRioLRTIssuer.SacrificialDeposit({asset: address(0), amount: 0})
             })
         );
     }
@@ -45,6 +47,7 @@ contract RioLRTIssuerTest is RioDeployer {
             priceFeed: cbETHPriceFeed
         });
 
+        cbETH.approve(address(issuer), 0.01 ether);
         IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
             'Restaked LSTs',
             'reLST',
@@ -52,7 +55,8 @@ contract RioLRTIssuerTest is RioDeployer {
                 assets: assets,
                 priceFeedDecimals: 18,
                 operatorRewardPool: address(this),
-                treasury: address(this)
+                treasury: address(this),
+                deposit: IRioLRTIssuer.SacrificialDeposit({asset: CBETH_ADDRESS, amount: 0.01 ether})
             })
         );
         assertTrue(issuer.isTokenFromFactory(deployment.token));
@@ -72,5 +76,10 @@ contract RioLRTIssuerTest is RioDeployer {
 
         assertEq(supportedAssets[0], RETH_ADDRESS);
         assertEq(supportedAssets[1], CBETH_ADDRESS);
+
+        uint256 EXPECTED_RETH = (MockPriceFeed(cbETHPriceFeed).getPrice() * 0.01 ether) / 1e18;
+
+        assertEq(IRioLRT(deployment.token).totalSupply(), EXPECTED_RETH);
+        assertEq(IRioLRT(deployment.token).balanceOf(address(issuer)), EXPECTED_RETH);
     }
 }

@@ -29,14 +29,15 @@ contract IssueRestakedEtherGoerli is Script {
             strategy: BEACON_CHAIN_STRATEGY
         });
 
-        deployment = RioLRTIssuer(ISSUER_ADDRESS).issueLRT(
+        deployment = RioLRTIssuer(ISSUER_ADDRESS).issueLRT{value: 0.01 ether}(
             'Restaked Ether',
             'reETH',
             IRioLRTIssuer.LRTConfig({
                 assets: assets,
                 priceFeedDecimals: 18,
                 operatorRewardPool: vm.addr(deployerKey),
-                treasury: vm.addr(deployerKey)
+                treasury: vm.addr(deployerKey),
+                deposit: IRioLRTIssuer.SacrificialDeposit({asset: ETH_ADDRESS, amount: 0.01 ether})
             })
         );
 
