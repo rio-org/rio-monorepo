@@ -13,13 +13,13 @@ export const useInitDataDog = (service: string) => {
     datadogRum.init({
       applicationId: DATADOG_APPLICATION_ID,
       clientToken: DATADOG_CLIENT_TOKEN,
-      site: 'us5.datadoghq.com',
+      site: 'datadoghq.com',
       service,
       env: APP_ENV,
       // Specify a version number to identify the deployed version of your application in Datadog
       // version: '1.0.0',
       sessionSampleRate: 100,
-      sessionReplaySampleRate: 20,
+      sessionReplaySampleRate: 100,
       trackUserInteractions: true,
       trackResources: true,
       trackLongTasks: true,
