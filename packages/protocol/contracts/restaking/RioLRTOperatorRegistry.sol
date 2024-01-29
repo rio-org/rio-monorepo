@@ -51,6 +51,16 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         _;
     }
 
+    /// @notice Require that the caller is the operator's manager OR the proof uploader
+    // wallet that has been configured by the DAO.
+    /// @param operatorId The operator's ID.
+    modifier onlyOperatorManagerOrProofUploader(uint8 operatorId) {
+        if (msg.sender != s.operatorDetails[operatorId].manager && msg.sender != s.proofUploader) {
+            revert ONLY_OPERATOR_MANAGER_OR_PROOF_UPLOADER();
+        }
+        _;
+    }
+
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
     /// @param initialBeaconOwner The initial owner who can upgrade the operator beacon contract.
     /// @param operatorDelegatorImpl_ The operator contract implementation.
@@ -193,6 +203,12 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         s.setSecurityDaemon(newSecurityDaemon);
     }
 
+    /// @notice Sets the proof uploader to a new account (`newSecurityDaemon`).
+    /// @param newProofUploader The new proof uploader address.
+    function setProofUploader(address newProofUploader) external onlyOwner {
+        s.setProofUploader(newProofUploader);
+    }
+
     /// @notice Sets the minimum acceptable delay between an operator signaling intent to register
     // for an AVS and completing registration.
     /// @param newMinStakerOptOutBlocks The new min staker opt out blocks.
@@ -257,7 +273,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         uint40[] calldata validatorIndices,
         bytes[] calldata validatorFieldsProofs,
         bytes32[][] calldata validatorFields
-    ) external onlyOperatorManager(operatorId) {
+    ) external onlyOperatorManagerOrProofUploader(operatorId) {
         OperatorDetails storage operator = s.operatorDetails[operatorId];
         IRioLRTOperatorDelegator(operator.delegator).verifyWithdrawalCredentials(
             oracleTimestamp, stateRootProof, validatorIndices, validatorFieldsProofs, validatorFields

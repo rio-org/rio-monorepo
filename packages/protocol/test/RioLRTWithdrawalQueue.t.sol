@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
-import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
+import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS, ETH_DEPOSIT_SIZE, GWEI_TO_WEI} from 'contracts/utils/Constants.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
@@ -108,6 +108,67 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertEq(address(this).balance - balanceBefore, withdrawalAmount);
     }
 
+    function test_claimWithdrawalsForEpochSomeEtherPaidFromEigenLayerPreciseDecimals() public {
+        // This test is important as shares requested for withdrawal from EigenLayer MUST
+        // be whole gwei amounts. This test ensures that precise payments from the deposit pool
+        // in combination with EigenLayer are handled correctly.
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorId).delegator;
+
+        uint256 amountInDP = ETH_DEPOSIT_SIZE + (10 ** 17 - 1);
+
+        // Deposit ETH, rebalance, verify the validator withdrawal credentials, and deposit again.
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+        uint40[] memory validatorIndices = verifyCredentialsForValidators(reETH.operatorRegistry, 1, 1);
+        reETH.coordinator.depositETH{value: amountInDP}();
+
+        // Request a withdrawal and rebalance.
+        uint256 withdrawalAmount = ETH_DEPOSIT_SIZE + 10 ** 18 * 2 - 1;
+        uint256 expectedAmountOut = reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
+        skip(reETH.coordinator.rebalanceDelay());
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        uint256 expectedShareWithdrawal = expectedAmountOut - (amountInDP - (amountInDP % GWEI_TO_WEI));
+
+        // Validate reETH total supply and process withdrawals.
+        assertApproxEqAbs(reETH.token.totalSupply(), ETH_DEPOSIT_SIZE, GWEI_TO_WEI);
+        verifyAndProcessWithdrawalsForValidatorIndexes(operatorDelegator, validatorIndices);
+
+        // Settle the withdrawal epoch.
+        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
+        IDelegationManager.Withdrawal[] memory withdrawals = new IDelegationManager.Withdrawal[](1);
+        withdrawals[0] = IDelegationManager.Withdrawal({
+            staker: operatorDelegator,
+            delegatedTo: address(1),
+            withdrawer: address(reETH.withdrawalQueue),
+            nonce: 0,
+            startBlock: 1,
+            strategies: BEACON_CHAIN_STRATEGY.toArray(),
+            shares: expectedShareWithdrawal.toArray()
+        });
+        reETH.withdrawalQueue.settleEpochFromEigenLayer(ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1));
+
+        // Assert epoch summary details.
+        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
+            reETH.withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch);
+        assertTrue(epochSummary.settled);
+        assertEq(epochSummary.assetsReceived, expectedAmountOut);
+        assertEq(epochSummary.shareValueOfAssetsReceived, expectedAmountOut);
+
+        // Claim and assert withdrawal.
+        uint256 balanceBefore = address(this).balance;
+        uint256 amountOut = reETH.withdrawalQueue.claimWithdrawalsForEpoch(
+            IRioLRTWithdrawalQueue.ClaimRequest({asset: ETH_ADDRESS, epoch: withdrawalEpoch})
+        );
+        IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary =
+            reETH.withdrawalQueue.getUserWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch, address(this));
+
+        assertTrue(userSummary.claimed);
+        assertEq(amountOut, expectedAmountOut);
+        assertEq(address(this).balance - balanceBefore, expectedAmountOut);
+    }
+
     function test_claimWithdrawalsForEpochAllEtherPaidFromEigenLayer() public {
         uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
         address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorId).delegator;
@@ -159,6 +220,61 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertTrue(userSummary.claimed);
         assertEq(amountOut, withdrawalAmount);
         assertEq(address(this).balance - balanceBefore, withdrawalAmount);
+    }
+
+    function test_claimWithdrawalsForEpochAllEtherPaidFromEigenLayerPreciseDecimals() public {
+        // This test is important as shares requested for withdrawal from EigenLayer MUST
+        // be whole gwei amounts.
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorId).delegator;
+
+        // Deposit ETH, rebalance, and verify the validator withdrawal credentials.
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+        uint40[] memory validatorIndices = verifyCredentialsForValidators(reETH.operatorRegistry, 1, 1);
+
+        // Request a withdrawal for an amount with very precise decimals and rebalance.
+        uint256 withdrawalAmount = 10 ** 18 - 1;
+        uint256 expectedAmountOut = reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
+        skip(reETH.coordinator.rebalanceDelay());
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        // Ensure no reETH has been burned yet and process withdrawals.
+        assertEq(reETH.token.totalSupply(), ETH_DEPOSIT_SIZE);
+        verifyAndProcessWithdrawalsForValidatorIndexes(operatorDelegator, validatorIndices);
+
+        // Settle the withdrawal epoch.
+        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
+        IDelegationManager.Withdrawal[] memory withdrawals = new IDelegationManager.Withdrawal[](1);
+        withdrawals[0] = IDelegationManager.Withdrawal({
+            staker: operatorDelegator,
+            delegatedTo: address(1),
+            withdrawer: address(reETH.withdrawalQueue),
+            nonce: 0,
+            startBlock: 1,
+            strategies: BEACON_CHAIN_STRATEGY.toArray(),
+            shares: expectedAmountOut.toArray()
+        });
+        reETH.withdrawalQueue.settleEpochFromEigenLayer(ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1));
+
+        // Assert epoch summary details.
+        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
+            reETH.withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch);
+        assertTrue(epochSummary.settled);
+        assertEq(epochSummary.assetsReceived, expectedAmountOut);
+        assertEq(epochSummary.shareValueOfAssetsReceived, expectedAmountOut);
+
+        // Claim and assert withdrawal.
+        uint256 balanceBefore = address(this).balance;
+        uint256 amountOut = reETH.withdrawalQueue.claimWithdrawalsForEpoch(
+            IRioLRTWithdrawalQueue.ClaimRequest({asset: ETH_ADDRESS, epoch: withdrawalEpoch})
+        );
+        IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary =
+            reETH.withdrawalQueue.getUserWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch, address(this));
+
+        assertTrue(userSummary.claimed);
+        assertEq(amountOut, expectedAmountOut);
+        assertEq(address(this).balance - balanceBefore, expectedAmountOut);
     }
 
     function test_claimWithdrawalsForEpochAllERC20sPaidFromDepositPool() public {

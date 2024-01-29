@@ -5,12 +5,12 @@ import {LibMap} from '@solady/utils/LibMap.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {BeaconProxy} from '@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol';
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
+import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS, GWEI_TO_WEI} from 'contracts/utils/Constants.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
-import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
@@ -180,7 +180,8 @@ library OperatorRegistryV1Admin {
 
         uint256 sharesToExit;
         if (strategy == BEACON_CHAIN_STRATEGY) {
-            sharesToExit = uint256(delegator.getEigenPodShares());
+            // It is not possible to exit ETH with precision less than 1 Gwei.
+            sharesToExit = reducePrecisionToGwei(uint256(delegator.getEigenPodShares()));
         } else {
             sharesToExit = operator.shareDetails[strategy].allocation;
         }
@@ -215,6 +216,15 @@ library OperatorRegistryV1Admin {
         s.securityDaemon = newSecurityDaemon;
 
         emit IRioLRTOperatorRegistry.SecurityDaemonSet(newSecurityDaemon);
+    }
+
+    /// @notice Sets the proof uploader to a new account (`newProofUploader`).
+    /// @param s The operator registry v1 storage accessor.
+    /// @param newProofUploader The new proof uploader address.
+    function setProofUploader(RioLRTOperatorRegistryStorageV1.StorageV1 storage s, address newProofUploader) external {
+        s.proofUploader = newProofUploader;
+
+        emit IRioLRTOperatorRegistry.ProofUploaderSet(newProofUploader);
     }
 
     /// @notice Sets the minimum acceptable delay between an operator signaling intent to register
@@ -401,5 +411,11 @@ library OperatorRegistryV1Admin {
             }
             heap.count = i;
         }
+    }
+
+    /// @notice Reduces the precision of the given amount to the nearest Gwei.
+    /// @param amount The amount whose precision is to be reduced.
+    function reducePrecisionToGwei(uint256 amount) internal pure returns (uint256) {
+        return amount - (amount % GWEI_TO_WEI);
     }
 }

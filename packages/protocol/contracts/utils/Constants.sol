@@ -10,6 +10,9 @@ address constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 /// @dev The per-validator ETH deposit amount.
 uint256 constant ETH_DEPOSIT_SIZE = 32 ether;
 
+/// @dev The conversion factor from gwei to wei.
+uint256 constant GWEI_TO_WEI = 1e9;
+
 /// @dev LRT supporting contract types.
 enum ContractType {
     Coordinator,

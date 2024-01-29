@@ -10,9 +10,6 @@ abstract contract RioLRTOperatorRegistryStorageV1 is IRioLRTOperatorRegistry {
 
     /// @notice The storage struct for the RioLRTOperatorRegistry contract.
     struct StorageV1 {
-        /// @notice The security daemon, which is responsible for removal of duplicate
-        /// or invalid validator keys.
-        address securityDaemon;
         /// @notice The total number of operators in the registry.
         uint8 operatorCount;
         /// @notice The number of active operators in the registry.
@@ -22,6 +19,12 @@ abstract contract RioLRTOperatorRegistryStorageV1 is IRioLRTOperatorRegistry {
         uint24 minStakerOptOutBlocks;
         /// @notice The amount of time (in seconds) before uploaded validator keys are considered "vetted".
         uint24 validatorKeyReviewPeriod;
+        /// @notice The security daemon, which is responsible for removal of duplicate
+        /// or invalid validator keys.
+        address securityDaemon;
+        /// @notice The proof uploader, which is has permission to upload proofs that verify
+        /// validator withdrawal credentials on behalf of operators.
+        address proofUploader;
         /// @notice The packed operator IDs, stored in a utilization priority queue, for ETH validators.
         LibMap.Uint8Map activeOperatorsByETHDepositUtilization;
         /// @notice The packed operator IDs, stored in a utilization priority queue, indexed by strategy address.

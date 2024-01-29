@@ -9,8 +9,8 @@ import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Own
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
+import {ETH_ADDRESS, GWEI_TO_WEI} from 'contracts/utils/Constants.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
-import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
@@ -101,6 +101,10 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         // Determine the amount of shares owed to the withdrawer using the current exchange rate.
         sharesOwed = convertToSharesFromRestakingTokens(asset, amountIn);
 
+        // If requesting ETH, reduce the precision of the shares owed to the nearest Gwei,
+        // which is the smallest unit of account supported by EigenLayer.
+        if (asset == ETH_ADDRESS) sharesOwed = _reducePrecisionToGwei(sharesOwed);
+
         // Pull restaking tokens from the sender to the withdrawal queue.
         token.safeTransferFrom(msg.sender, address(withdrawalQueue()), amountIn);
 
@@ -129,8 +133,9 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         if (sharesOwed == 0 && sharesReceived == 0) {
             revert NO_REBALANCE_NEEDED();
         }
-        assetRegistry().increaseSharesHeldForAsset(asset, sharesReceived);
-
+        if (sharesReceived > 0) {
+            assetRegistry().increaseSharesHeldForAsset(asset, sharesReceived);
+        }
         emit Rebalanced(asset);
     }
 
@@ -282,6 +287,12 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         if (lastRebalancedAt > 0 && block.timestamp - lastRebalancedAt < rebalanceDelay) {
             revert REBALANCE_DELAY_NOT_MET();
         }
+    }
+
+    /// @notice Reduces the precision of the given amount to the nearest Gwei.
+    /// @param amount The amount whose precision is to be reduced.
+    function _reducePrecisionToGwei(uint256 amount) internal pure returns (uint256) {
+        return amount - (amount % GWEI_TO_WEI);
     }
 
     /// @dev Allows the owner to upgrade the gateway implementation.

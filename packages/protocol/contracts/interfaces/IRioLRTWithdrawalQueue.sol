@@ -56,6 +56,9 @@ interface IRioLRTWithdrawalQueue {
         uint256 epoch;
     }
 
+    /// @notice Thrown when attempting to queue a withdrawal with no shares owed.
+    error NO_SHARES_OWED();
+
     /// @notice Thrown when attempting an operation on an epoch in which no shares are owed.
     error NO_SHARES_OWED_IN_EPOCH();
 

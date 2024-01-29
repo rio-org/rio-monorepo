@@ -6,8 +6,8 @@ import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
+import {ETH_ADDRESS, GWEI_TO_WEI} from 'contracts/utils/Constants.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
-import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
@@ -29,6 +29,7 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
     /// @notice Deposits the entire deposit pool balance of the specified `asset` into EigenLayer.
     function depositBalanceIntoEigenLayer(address asset) external onlyCoordinator returns (uint256) {
         uint256 currentBalance = asset.getSelfBalance();
+        if (currentBalance == 0) return 0;
         if (asset == ETH_ADDRESS) {
             return OperatorOperations.depositETH(operatorRegistry(), currentBalance);
         }
@@ -68,7 +69,13 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
         }
 
         // Transfer the maximum possible assets from the deposit pool if it
-        // cannot cover the requested shares.
+        // cannot cover the requested shares. If withdrawing ETH, we reduce the
+        // precision of the shares owed to the nearest Gwei, which is the smallest
+        // unit of account supported by EigenLayer.
+        if (asset == ETH_ADDRESS) {
+            poolBalance = _reducePrecisionToGwei(poolBalance);
+            poolBalanceShareValue = _reducePrecisionToGwei(poolBalanceShareValue);
+        }
         asset.transferTo(recipient, poolBalance);
 
         return (poolBalance, poolBalanceShareValue);
@@ -76,6 +83,13 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
 
     /// @dev Receives ETH for deposit into EigenLayer.
     receive() external payable {}
+
+
+    /// @notice Reduces the precision of the given amount to the nearest Gwei.
+    /// @param amount The amount whose precision is to be reduced.
+    function _reducePrecisionToGwei(uint256 amount) internal pure returns (uint256) {
+        return amount - (amount % GWEI_TO_WEI);
+    }
 
     /// @dev Allows the owner to upgrade the deposit pool implementation.
     /// @param newImplementation The implementation to upgrade to.

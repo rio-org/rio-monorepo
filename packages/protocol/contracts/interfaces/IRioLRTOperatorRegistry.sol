@@ -134,8 +134,11 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when the caller is not the operator's manager.
     error ONLY_OPERATOR_MANAGER();
 
-    /// @notice Thrown when the caller is not the operator's manager or OR the security daemon.
+    /// @notice Thrown when the caller is not the operator's manager OR the security daemon.
     error ONLY_OPERATOR_MANAGER_OR_SECURITY_DAEMON();
+
+    /// @notice Thrown when the caller is not the operator's manager OR the proof uploader.
+    error ONLY_OPERATOR_MANAGER_OR_PROOF_UPLOADER();
 
     /// @notice Thrown when the caller is not the operator's pending manager.
     error ONLY_OPERATOR_PENDING_MANAGER();
@@ -223,6 +226,10 @@ interface IRioLRTOperatorRegistry {
     /// @notice Emitted when the security daemon is set.
     /// @param securityDaemon The new security daemon.
     event SecurityDaemonSet(address securityDaemon);
+
+    /// @notice Emitted when the proof uploader is set.
+    /// @param proofUploader The new proof uploader.
+    event ProofUploaderSet(address proofUploader);
 
     /// @notice Emitted when the min staker opt out blocks is set.
     event MinStakerOptOutBlocksSet(uint24 minStakerOptOutBlocks);

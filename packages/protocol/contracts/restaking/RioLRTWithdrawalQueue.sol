@@ -129,6 +129,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         external
         onlyCoordinator
     {
+        if (sharesOwed == 0) revert NO_SHARES_OWED();
         uint256 currentEpoch = getCurrentEpoch(asset);
 
         EpochWithdrawals storage epochWithdrawals = _getEpochWithdrawals(asset, currentEpoch);
