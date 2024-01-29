@@ -7,6 +7,7 @@ import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.so
 import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
@@ -86,16 +87,28 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
 
         address depositPool_ = address(depositPool());
-        uint256 sharesHeld = getAssetSharesHeld(asset);
-
         if (asset == ETH_ADDRESS) {
-            return depositPool_.balance + sharesHeld;
+            return depositPool_.balance + getETHBalanceInEigenLayer();
         }
 
+        uint256 sharesHeld = getAssetSharesHeld(asset);
         uint256 tokensInRio = IERC20(asset).balanceOf(depositPool_);
         uint256 tokensInEigenLayer = convertFromSharesToAsset(getAssetStrategy(asset), sharesHeld);
 
         return tokensInRio + tokensInEigenLayer;
+    }
+
+    /// @notice Returns the ETH balance held in EigenLayer.
+    function getETHBalanceInEigenLayer() public view returns (uint256 balance) {
+        // For ETH, `sharesHeld` refers to the amount of ETH in validators that have not
+        // yet been verified. Once verified, ETH is accounted for in the EigenPod shares.
+        balance = getAssetSharesHeld(ETH_ADDRESS);
+
+        IRioLRTOperatorRegistry operatorRegistry_ = operatorRegistry();
+        uint8 endAtID = operatorRegistry_.operatorCount() + 1; // Operator IDs start at 1.
+        for (uint8 id = 1; id < endAtID; ++id) {
+            balance += operatorDelegator(operatorRegistry_, id).getETHUnderManagement();
+        }
     }
 
     /// @notice Checks if a given asset is supported.

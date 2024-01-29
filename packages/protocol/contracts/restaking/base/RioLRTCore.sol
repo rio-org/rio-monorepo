@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import {IRioLRTRewardDistributor} from 'contracts/interfaces/IRioLRTRewardDistributor.sol';
+import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
@@ -75,37 +76,45 @@ abstract contract RioLRTCore is Initializable {
     }
 
     /// @notice The LRT coordinator contract.
-    function coordinator() public view returns (IRioLRTCoordinator) {
+    function coordinator() internal view returns (IRioLRTCoordinator) {
         return IRioLRTCoordinator(issuer.getCoordinator(address(token)));
     }
 
     /// @notice The LRT asset registry contract.
-    function assetRegistry() public view returns (IRioLRTAssetRegistry) {
+    function assetRegistry() internal view returns (IRioLRTAssetRegistry) {
         return IRioLRTAssetRegistry(issuer.getAssetRegistry(address(token)));
     }
 
     /// @notice The LRT operator registry contract.
-    function operatorRegistry() public view returns (IRioLRTOperatorRegistry) {
+    function operatorRegistry() internal view returns (IRioLRTOperatorRegistry) {
         return IRioLRTOperatorRegistry(issuer.getOperatorRegistry(address(token)));
     }
 
     /// @notice The LRT AVS registry contract.
-    function avsRegistry() public view returns (IRioLRTAVSRegistry) {
+    function avsRegistry() internal view returns (IRioLRTAVSRegistry) {
         return IRioLRTAVSRegistry(issuer.getAVSRegistry(address(token)));
     }
 
     /// @notice The LRT deposit pool contract.
-    function depositPool() public view returns (IRioLRTDepositPool) {
+    function depositPool() internal view returns (IRioLRTDepositPool) {
         return IRioLRTDepositPool(issuer.getDepositPool(address(token)));
     }
 
     /// @notice The LRT withdrawal queue contract.
-    function withdrawalQueue() public view returns (IRioLRTWithdrawalQueue) {
+    function withdrawalQueue() internal view returns (IRioLRTWithdrawalQueue) {
         return IRioLRTWithdrawalQueue(issuer.getWithdrawalQueue(address(token)));
     }
 
     /// @notice The LRT reward distributor contract.
-    function rewardDistributor() public view returns (IRioLRTRewardDistributor) {
+    function rewardDistributor() internal view returns (IRioLRTRewardDistributor) {
         return IRioLRTRewardDistributor(issuer.getRewardDistributor(address(token)));
+    }
+
+    // forgefmt: disable-next-item
+    /// @notice Calculates the address of an operator delegator.
+    /// @param registry The operator registry address.
+    /// @param operatorId The operator's ID.
+    function operatorDelegator(IRioLRTOperatorRegistry registry, uint8 operatorId) internal pure returns (IRioLRTOperatorDelegator) {
+        return IRioLRTOperatorDelegator(address(registry).getOperatorDelegatorAddress(operatorId));
     }
 }

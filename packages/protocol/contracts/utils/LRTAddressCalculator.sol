@@ -55,6 +55,13 @@ library LRTAddressCalculator {
         return getContractAddress(issuer, token, ContractType.RewardDistributor);
     }
 
+    /// @notice Calculates the address of an operator delegator.
+    /// @param operatorRegistry The operator registry address.
+    /// @param operatorId The operator's ID.
+    function getOperatorDelegatorAddress(address operatorRegistry, uint8 operatorId) internal pure returns (address) {
+        return CREATE3.getDeployed(computeOperatorSalt(operatorId), operatorRegistry);
+    }
+
     // forgefmt: disable-next-item
     /// @notice Calculates the address of a deployed contract using CREATE3,
     /// based on a computed salt (token & contract type), and the deployer's address.
@@ -71,5 +78,12 @@ library LRTAddressCalculator {
     /// @param contractType The contract type.
     function computeSalt(address token, ContractType contractType) internal pure returns (bytes32) {
         return bytes32(uint256(uint160(token)) << 96 | uint8(contractType));
+    }
+
+    /// @notice Computes the salt for an operator delegator, which is the
+    /// operator ID converted to `bytes32`.
+    /// @param operatorId The operator's ID.
+    function computeOperatorSalt(uint8 operatorId) internal pure returns (bytes32) {
+        return bytes32(uint256(operatorId));
     }
 }

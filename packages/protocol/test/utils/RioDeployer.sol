@@ -181,13 +181,6 @@ abstract contract RioDeployer is EigenLayerDeployer {
     ) public returns (uint8[] memory operatorIds) {
         operatorIds = new uint8[](count);
 
-        // Stub Ethereum POS deposits
-        vm.mockCall(
-            ETH_POS_ADDRESS,
-            abi.encodeWithSelector(0x22895118), // deposit(bytes,bytes,bytes,bytes32)
-            new bytes(0)
-        );
-
         (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(validatorCap);
         for (uint8 i = 0; i < count; i++) {
             address operator = address(uint160(i + 1));

@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {LibMap} from '@solady/utils/LibMap.sol';
+import {CREATE3} from '@solady/utils/CREATE3.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {BeaconProxy} from '@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol';
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
@@ -57,7 +58,11 @@ library OperatorRegistryV1Admin {
         s.activeOperatorCount += 1;
 
         // Create the operator with the provided salt and initialize it.
-        delegator = address(new BeaconProxy(operatorDelegatorBeaconImpl, ''));
+        delegator = CREATE3.deploy(
+            computeOperatorSalt(operatorId),
+            abi.encodePacked(type(BeaconProxy).creationCode, abi.encode(operatorDelegatorBeaconImpl, '')),
+            0
+        );
         IRioLRTOperatorDelegator(delegator).initialize(token, config.operator);
 
         IRioLRTOperatorRegistry.OperatorDetails storage _operator = s.operatorDetails[operatorId];
@@ -160,11 +165,17 @@ library OperatorRegistryV1Admin {
             revert IRioLRTOperatorRegistry.INVALID_STRATEGY_EXIT_ROOT();
         }
         address strategy = queuedWithdrawal.strategies[0];
-        address asset = strategy == BEACON_CHAIN_STRATEGY ? ETH_ADDRESS : IStrategy(strategy).underlyingToken();
+
+        address asset = ETH_ADDRESS;
+        if (strategy != BEACON_CHAIN_STRATEGY) {
+            // Shares only need to be manually decreased for ERC20 tokens. For ETH, the
+            // actual contract balance is used, removing the need for manual share reduction.
+            asset = IStrategy(strategy).underlyingToken();
+            assetRegistry.decreaseSharesHeldForAsset(asset, queuedWithdrawal.shares[0]);
+        }
 
         // Complete the withdrawal from EigenLayer and transfer received assets to the deposit pool.
         delegationManager.completeQueuedWithdrawal(queuedWithdrawal, asset.toArray(), middlewareTimesIndex, true);
-        assetRegistry.decreaseSharesHeldForAsset(asset, queuedWithdrawal.shares[0]);
         asset.transferTo(depositPool, asset.getSelfBalance());
 
         emit IRioLRTOperatorRegistry.OperatorStrategyExitCompleted(operatorId, strategy, exitRoot);
@@ -411,6 +422,13 @@ library OperatorRegistryV1Admin {
             }
             heap.count = i;
         }
+    }
+
+    /// @notice Computes the salt for an operator delegator, which is the
+    /// operator ID converted to `bytes32`.
+    /// @param operatorId The operator's ID.
+    function computeOperatorSalt(uint8 operatorId) internal pure returns (bytes32) {
+        return bytes32(uint256(operatorId));
     }
 
     /// @notice Reduces the precision of the given amount to the nearest Gwei.

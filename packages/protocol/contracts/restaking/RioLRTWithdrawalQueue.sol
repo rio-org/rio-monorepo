@@ -8,6 +8,7 @@ import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueu
 import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
+import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
@@ -226,9 +227,14 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         if (queuedWithdrawalCount != middlewareTimesIndexes.length) revert INVALID_MIDDLEWARE_TIMES_INDEXES_LENGTH();
 
         epochWithdrawals.settled = true;
-        assetRegistry().decreaseSharesHeldForAsset(
-            asset, epochWithdrawals.sharesOwed - epochWithdrawals.shareValueOfAssetsReceived
-        );
+
+        // Shares only need to be manually decreased for ERC20 tokens. For ETH, the
+        // actual contract balance is used, removing the need for manual share reduction.
+        if (asset != ETH_ADDRESS) {
+            assetRegistry().decreaseSharesHeldForAsset(
+                asset, epochWithdrawals.sharesOwed - epochWithdrawals.shareValueOfAssetsReceived
+            );
+        }
         token.burn(epochWithdrawals.amountToBurnAtSettlement);
 
         uint256 balanceBefore = asset.getSelfBalance();

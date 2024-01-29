@@ -12,6 +12,7 @@ import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainPr
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {OperatorRegistryV1Admin} from 'contracts/utils/OperatorRegistryV1Admin.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
+import {ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
@@ -278,6 +279,10 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         IRioLRTOperatorDelegator(operator.delegator).verifyWithdrawalCredentials(
             oracleTimestamp, stateRootProof, validatorIndices, validatorFieldsProofs, validatorFields
         );
+
+        // Once verified, shares are tracked as EigenPod shares.
+        assetRegistry().decreaseSharesHeldForAsset(ETH_ADDRESS, validatorIndices.length * ETH_DEPOSIT_SIZE);
+
         emit OperatorWithdrawalCredentialsVerified(operatorId, oracleTimestamp, validatorIndices);
     }
 

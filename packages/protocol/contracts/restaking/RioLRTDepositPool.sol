@@ -84,7 +84,6 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
     /// @dev Receives ETH for deposit into EigenLayer.
     receive() external payable {}
 
-
     /// @notice Reduces the precision of the given amount to the nearest Gwei.
     /// @param amount The amount whose precision is to be reduced.
     function _reducePrecisionToGwei(uint256 amount) internal pure returns (uint256) {
