@@ -5,6 +5,7 @@ import {IPriceFeed} from 'contracts/interfaces/oracle/IPriceFeed.sol';
 
 contract MockPriceFeed is IPriceFeed {
     uint256 internal _price;
+    uint8 internal _decimals = 18;
 
     constructor(uint256 price) {
         _price = price;
@@ -16,15 +17,19 @@ contract MockPriceFeed is IPriceFeed {
         return address(this);
     }
 
-    function decimals() external pure override returns (uint8) {
-        return 18;
+    function decimals() external view returns (uint8) {
+        return _decimals;
     }
 
-    function description() external pure override returns (string memory) {
+    function description() external pure returns (string memory) {
         return 'Mock Price Feed';
     }
 
-    function getPrice() external view override returns (uint256) {
+    function getPrice() external view returns (uint256) {
         return _price;
+    }
+
+    function setDecimals(uint8 decimals_) external {
+        _decimals = decimals_;
     }
 }
