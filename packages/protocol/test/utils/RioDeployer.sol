@@ -39,6 +39,12 @@ abstract contract RioDeployer is EigenLayerDeployer {
 
     RioLRTIssuer issuer;
 
+    address constant REETH_TREASURY = address(0x101);
+    address constant REETH_OPERATOR_REWARD_POOL = address(0x102);
+
+    address constant RELST_TREASURY = address(0x201);
+    address constant RELST_OPERATOR_REWARD_POOL = address(0x202);
+
     function deployRio() public {
         deployEigenLayer();
 
@@ -90,8 +96,8 @@ abstract contract RioDeployer is EigenLayerDeployer {
             IRioLRTIssuer.LRTConfig({
                 assets: assets,
                 priceFeedDecimals: 18,
-                operatorRewardPool: address(this),
-                treasury: address(this),
+                operatorRewardPool: REETH_OPERATOR_REWARD_POOL,
+                treasury: REETH_TREASURY,
                 deposit: IRioLRTIssuer.SacrificialDeposit({asset: ETH_ADDRESS, amount: 0.01 ether})
             })
         );
@@ -130,8 +136,8 @@ abstract contract RioDeployer is EigenLayerDeployer {
             IRioLRTIssuer.LRTConfig({
                 assets: assets,
                 priceFeedDecimals: 18,
-                operatorRewardPool: address(this),
-                treasury: address(this),
+                operatorRewardPool: RELST_OPERATOR_REWARD_POOL,
+                treasury: RELST_TREASURY,
                 deposit: IRioLRTIssuer.SacrificialDeposit({asset: RETH_ADDRESS, amount: 0.01 ether})
             })
         );
