@@ -31,6 +31,12 @@ export const enum CHAIN_ID {
   FOUNDRY = 31337
 }
 
+export enum AppEnv {
+  PRODUCTION = 'production',
+  PREVIEW = 'preview',
+  DEVELOPMENT = 'development'
+}
+
 export type Not<T, R> = T extends R ? never : T;
 
 export interface InternalAppNavItem {
