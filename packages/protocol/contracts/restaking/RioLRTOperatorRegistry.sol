@@ -29,8 +29,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     /// @dev The validator details storage position.
     bytes32 internal constant VALIDATOR_DETAILS_POSITION = keccak256('RIO.OPERATOR_REGISTRY.VALIDATOR_DETAILS');
 
-    /// @notice The operator beacon contract implementation.
-    address public immutable operatorDelegatorBeaconImpl;
+    /// @notice The operator delegator beacon contract.
+    address public immutable operatorDelegatorBeacon;
 
     /// @notice The primary delegation contract for EigenLayer.
     IDelegationManager public immutable delegationManager;
@@ -63,13 +63,13 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     }
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    /// @param initialBeaconOwner The initial owner who can upgrade the operator beacon contract.
+    /// @param initialBeaconOwner The initial owner who can upgrade the operator delegator beacon contract.
     /// @param operatorDelegatorImpl_ The operator contract implementation.
     /// @param delegationManager_ The primary delegation contract for EigenLayer.
     constructor(address issuer_, address initialBeaconOwner, address operatorDelegatorImpl_, address delegationManager_)
         RioLRTCore(issuer_)
     {
-        operatorDelegatorBeaconImpl = address(new UpgradeableBeacon(operatorDelegatorImpl_, initialBeaconOwner));
+        operatorDelegatorBeacon = address(new UpgradeableBeacon(operatorDelegatorImpl_, initialBeaconOwner));
         delegationManager = IDelegationManager(delegationManager_);
     }
 
@@ -148,7 +148,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         onlyOwner
         returns (uint8 operatorId, address delegator)
     {
-        return s.addOperator(address(token), operatorDelegatorBeaconImpl, config);
+        return s.addOperator(address(token), operatorDelegatorBeacon, config);
     }
 
     /// @notice Activates an operator.

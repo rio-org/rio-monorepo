@@ -36,12 +36,12 @@ library OperatorRegistryV1Admin {
     /// delegating to the provided `operator`.
     /// @param s The operator registry v1 storage accessor.
     /// @param token The address of the liquid restaking token.
-    /// @param operatorDelegatorBeaconImpl The operator beacon implementation address.
+    /// @param operatorDelegatorBeacon The operator delegator beacon address.
     /// @param config The new operator's configuration.
     function addOperator(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
         address token,
-        address operatorDelegatorBeaconImpl,
+        address operatorDelegatorBeacon,
         IRioLRTOperatorRegistry.OperatorConfig memory config
     ) external returns (uint8 operatorId, address delegator) {
         if (config.operator == address(0)) revert IRioLRTOperatorRegistry.INVALID_OPERATOR();
@@ -60,7 +60,7 @@ library OperatorRegistryV1Admin {
         // Create the operator with the provided salt and initialize it.
         delegator = CREATE3.deploy(
             computeOperatorSalt(operatorId),
-            abi.encodePacked(type(BeaconProxy).creationCode, abi.encode(operatorDelegatorBeaconImpl, '')),
+            abi.encodePacked(type(BeaconProxy).creationCode, abi.encode(operatorDelegatorBeacon, '')),
             0
         );
         IRioLRTOperatorDelegator(delegator).initialize(token, config.operator);
