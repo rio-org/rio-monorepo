@@ -337,6 +337,7 @@ library OperatorRegistryV1Admin {
             // If there are active deposits, queue the operator for strategy exit.
             if (activeDeposits > 0) {
                 operatorDetails.queueOperatorStrategyExit(operatorId, BEACON_CHAIN_STRATEGY);
+                s.operatorDetails[operatorId].validatorDetails.exited += activeDeposits;
             }
             // Remove the operator from the utilization heap.
             utilizationHeap.removeByID(operatorId);
