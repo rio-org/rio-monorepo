@@ -84,14 +84,15 @@ abstract contract RioDeployer is EigenLayerDeployer {
             strategy: BEACON_CHAIN_STRATEGY
         });
 
-        IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
+        IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT{ value: 0.01 ether }(
             'Restaked Ether',
             'reETH',
             IRioLRTIssuer.LRTConfig({
                 assets: assets,
                 priceFeedDecimals: 18,
                 operatorRewardPool: address(this),
-                treasury: address(this)
+                treasury: address(this),
+                deposit: IRioLRTIssuer.SacrificialDeposit({asset: ETH_ADDRESS, amount: 0.01 ether})
             })
         );
         td = TestLRTDeployment({
@@ -122,6 +123,7 @@ abstract contract RioDeployer is EigenLayerDeployer {
             strategy: CBETH_STRATEGY
         });
 
+        rETH.approve(address(issuer), 0.01 ether);
         IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
             'Restaked LSTs',
             'reLST',
@@ -129,7 +131,8 @@ abstract contract RioDeployer is EigenLayerDeployer {
                 assets: assets,
                 priceFeedDecimals: 18,
                 operatorRewardPool: address(this),
-                treasury: address(this)
+                treasury: address(this),
+                deposit: IRioLRTIssuer.SacrificialDeposit({asset: RETH_ADDRESS, amount: 0.01 ether})
             })
         );
         td = TestLRTDeployment({

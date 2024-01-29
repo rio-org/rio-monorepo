@@ -4,9 +4,16 @@ pragma solidity 0.8.23;
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 
 interface IRioLRTIssuer {
+    /// @notice A sacrificial deposit used to prevent inflation attacks.
+    struct SacrificialDeposit {
+        address asset;
+        uint256 amount;
+    }
+
     /// @notice Information required to issue a new liquid restaking token.
     struct LRTConfig {
         IRioLRTAssetRegistry.AssetConfig[] assets;
+        SacrificialDeposit deposit;
         uint8 priceFeedDecimals;
         address operatorRewardPool;
         address treasury;
@@ -23,6 +30,9 @@ interface IRioLRTIssuer {
         address withdrawalQueue;
         address rewardDistributor;
     }
+
+    /// @notice Emitted when an incorrect amount of ETH is provided for a sacrificial deposit.
+    error INVALID_ETH_PROVIDED();
 
     /// @notice Emitted when a new liquid restaking token is issued.
     /// @param name The name of the new LRT.

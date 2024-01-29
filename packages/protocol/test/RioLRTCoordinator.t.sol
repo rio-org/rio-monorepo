@@ -179,7 +179,8 @@ contract RioLRTCoordinatorTest is RioDeployer {
         addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
 
         // Deposit and push the balance into EigenLayer.
-        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+        uint256 initialDepositAmount = ETH_DEPOSIT_SIZE - address(reETH.depositPool).balance;
+        reETH.coordinator.depositETH{value: initialDepositAmount}();
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         // Verify validator withdrawal credentials.
@@ -208,14 +209,15 @@ contract RioLRTCoordinatorTest is RioDeployer {
         addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
 
         // Deposit and push the balance into EigenLayer.
-        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+        uint256 depositAmount = ETH_DEPOSIT_SIZE - address(reETH.depositPool).balance;
+        reETH.coordinator.depositETH{value: depositAmount}();
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         // Verify validator withdrawal credentials.
         verifyCredentialsForValidators(reETH.operatorRegistry, 1, 1);
 
         // Request a withdrawal. There is no ETH in the deposit pool.
-        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, ETH_DEPOSIT_SIZE);
+        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, depositAmount);
 
         skip(reETH.coordinator.rebalanceDelay());
 
@@ -234,7 +236,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
 
-        uint256 amount = 1_000e18;
+        uint256 amount = 500e18;
 
         cbETH.approve(address(reLST.coordinator), amount);
 
@@ -306,6 +308,36 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertNotEq(epochSummary.aggregateRoot, bytes32(0));
         assertEq(epochSummary.assetsReceived, 0);
         assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), 0);
+    }
+
+    function test_inflationAttackFails() public {
+        address attacker = address(0xa);
+        address victim = address(0xb);
+
+        vm.deal(attacker, 100 ether);
+        vm.deal(victim, 100 ether);
+
+        // Attaker deposits 1 wei to mint 1 share.
+        vm.prank(attacker);
+        reETH.coordinator.depositETH{value: 1}();
+
+        // Attaker frontruns victim's deposit, sending 10 ETH to the deposit pool.
+        vm.prank(attacker);
+        address(reETH.depositPool).call{value: 10 ether}('');
+
+        // The victim deposits 10 ETH.
+        vm.prank(victim);
+        uint256 reETHOut = reETH.coordinator.depositETH{value: 10 ether}();
+
+        vm.prank(victim);
+        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, reETHOut);
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        vm.prank(victim);
+        uint256 amountOut = reETH.withdrawalQueue.claimWithdrawalsForEpoch(
+            IRioLRTWithdrawalQueue.ClaimRequest({asset: ETH_ADDRESS, epoch: 0})
+        );
+        assertApproxEqAbs(amountOut, 10 ether, 1e9); // 1 gwei tolerance
     }
 
     receive() external payable {}

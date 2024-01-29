@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 import {CREATE3} from '@solady/utils/CREATE3.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
@@ -13,12 +15,13 @@ import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {IRioLRTAVSRegistry} from 'contracts/interfaces/IRioLRTAVSRegistry.sol';
 import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {LRTAddressCalculator} from 'contracts/utils/LRTAddressCalculator.sol';
+import {ContractType, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
-import {ContractType} from 'contracts/utils/Constants.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 
 contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
     using LRTAddressCalculator for address;
+    using SafeERC20 for IERC20;
 
     /// @notice The liquid restaking token (LRT) implementation.
     address public immutable tokenImpl;
@@ -89,7 +92,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
     /// @param name The name of the token.
     /// @param symbol The symbol of the token.
     /// @param config The token configuration.
-    function issueLRT(string calldata name, string calldata symbol, LRTConfig calldata config) external onlyOwner returns (LRTDeployment memory d) {
+    function issueLRT(string calldata name, string calldata symbol, LRTConfig calldata config) external payable onlyOwner returns (LRTDeployment memory d) {
         // Deploy the liquid restaking token (LRT).
         d.token = address(new ERC1967Proxy(tokenImpl, ''));
 
@@ -142,8 +145,32 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(initialOwner, d.token);
         IRioLRTRewardDistributor(d.rewardDistributor).initialize(initialOwner, d.token, config.treasury, config.operatorRewardPool);
 
+        // Make a sacrificial deposit to prevent inflation attacks.
+        _deposit(
+            IRioLRTCoordinator(d.coordinator),
+            config.deposit.asset,
+            config.deposit.amount
+        );
+
         isTokenFromFactory[d.token] = true;
         emit LiquidRestakingTokenIssued(name, symbol, config, d);
+    }
+
+    /// @dev Makes a sacrificial deposit to prevent inflation attacks.
+    /// @param coordinator The LRT coordinator.
+    /// @param asset The asset to deposit.
+    /// @param amount The amount to deposit.
+    function _deposit(IRioLRTCoordinator coordinator, address asset, uint256 amount) internal {
+        if (asset == ETH_ADDRESS) {
+            if (amount != msg.value) revert INVALID_ETH_PROVIDED();
+            coordinator.depositETH{value: amount}();
+            return;
+        }
+
+        IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(asset).approve(address(coordinator), amount);
+
+        coordinator.deposit(asset, amount);
     }
 
     /// @dev Allows the owner to upgrade the LRT issuer implementation.
