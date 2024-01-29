@@ -387,6 +387,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 mstore(allocations, allocationIndex)
             }
         }
+        emit StrategySharesAllocated(strategy, sharesAllocated, allocations);
     }
 
     // forgefmt: disable-next-item
@@ -474,6 +475,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 mstore(allocations, allocationIndex)
             }
         }
+        emit ETHDepositsAllocated(depositsAllocated, allocations);
     }
 
     // forgefmt: disable-next-item
@@ -525,6 +527,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 mstore(deallocations, deallocationIndex)
             }
         }
+        emit StrategySharesDeallocated(strategy, sharesDeallocated, deallocations);
     }
 
     // forgefmt: disable-next-item
@@ -576,6 +579,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 mstore(deallocations, deallocationIndex)
             }
         }
+        emit ETHDepositsDeallocated(depositsDeallocated, deallocations);
     }
 
     /// @dev Receives ETH from operator exits.

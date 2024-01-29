@@ -286,6 +286,32 @@ interface IRioLRTOperatorRegistry {
     /// @param validatorCount The number of pending validator details that were removed.
     event OperatorPendingValidatorDetailsRemoved(uint8 indexed operatorId, uint256 validatorCount);
 
+    /// @notice Emitted when strategy shares have been allocated to operators.
+    /// @param strategy The strategy that the shares were allocated to.
+    /// @param sharesAllocated The amount of shares allocated.
+    /// @param allocations The allocations made.
+    event StrategySharesAllocated(
+        address indexed strategy, uint256 sharesAllocated, OperatorStrategyAllocation[] allocations
+    );
+
+    /// @notice Emitted when ETH deposits have been allocated to operators.
+    /// @param depositsAllocated The amount of deposits allocated.
+    /// @param allocations The allocations made.
+    event ETHDepositsAllocated(uint256 depositsAllocated, OperatorETHAllocation[] allocations);
+
+    /// @notice Emitted when strategy shares have been deallocated from operators.
+    /// @param strategy The strategy that the shares were deallocated from.
+    /// @param sharesDeallocated The amount of shares deallocated.
+    /// @param deallocations The deallocations made.
+    event StrategySharesDeallocated(
+        address indexed strategy, uint256 sharesDeallocated, OperatorStrategyDeallocation[] deallocations
+    );
+
+    /// @notice Emitted when ETH deposits have been deallocated from operators.
+    /// @param depositsDeallocated The amount of deposits deallocated.
+    /// @param deallocations The deallocations made.
+    event ETHDepositsDeallocated(uint256 depositsDeallocated, OperatorETHDeallocation[] deallocations);
+
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
