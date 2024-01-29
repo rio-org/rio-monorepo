@@ -8,8 +8,8 @@ dataSources:
     name: RioLRTIssuer
     source:
       abi: RioLRTIssuer
-      address: "0x677a3258E9D4A5b242DA9114F14d178E295deAb5"
-      startBlock: 10438119
+      address: "0x74ff9755c22E97E1acB35f273784e21375a9f0c8"
+      startBlock: 10452854
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -26,7 +26,7 @@ dataSources:
         - name: PriceFeed
           file: ./abis/PriceFeed.json
       eventHandlers:
-        - event: LiquidRestakingTokenIssued(string,string,((address,uint96,address,address)[],uint8,address,address),(address,address,address,address,address,address,address,address))
+        - event: LiquidRestakingTokenIssued(string,string,((address,uint96,address,address)[],(address,uint256),uint8,address,address),(address,address,address,address,address,address,address,address))
           handler: handleLiquidRestakingTokenIssued
     network: goerli
   - kind: ethereum/contract
@@ -34,7 +34,7 @@ dataSources:
     source:
       abi: DelegationManager
       address: "0x1b7b8F6b258f95Cf9596EabB9aa18B62940Eb0a8"
-      startBlock: 10438119
+      startBlock: 10452854
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

@@ -31,7 +31,8 @@ contract DeployRioIssuerBase is Script {
         uint256 deployerKey = vm.envUint('DEPLOYER_PRIVATE_KEY');
         vm.startBroadcast(deployerKey);
 
-        address issuerAddress = computeCreateAddress(address(this), vm.getNonce(address(this)) + 10);
+        address deployer = vm.addr(deployerKey);
+        address issuerAddress = computeCreateAddress(deployer, vm.getNonce(deployer) + 10);
         address issuerImpl = address(
             new RioLRTIssuer(
                 address(new RioLRT(issuerAddress)),
@@ -40,7 +41,7 @@ contract DeployRioIssuerBase is Script {
                 address(
                     new RioLRTOperatorRegistry(
                         issuerAddress,
-                        vm.addr(deployerKey),
+                        deployer,
                         address(
                             new RioLRTOperatorDelegator(
                                 issuerAddress, strategyManager, eigenPodManager, delegationManager
@@ -56,7 +57,7 @@ contract DeployRioIssuerBase is Script {
             )
         );
         issuer = RioLRTIssuer(
-            address(new ERC1967Proxy(issuerImpl, abi.encodeCall(IRioLRTIssuer.initialize, (vm.addr(deployerKey)))))
+            address(new ERC1967Proxy(issuerImpl, abi.encodeCall(IRioLRTIssuer.initialize, (deployer))))
         );
 
         vm.stopBroadcast();

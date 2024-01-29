@@ -145,15 +145,15 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         IRioLRTWithdrawalQueue(d.withdrawalQueue).initialize(initialOwner, d.token);
         IRioLRTRewardDistributor(d.rewardDistributor).initialize(initialOwner, d.token, config.treasury, config.operatorRewardPool);
 
+        isTokenFromFactory[d.token] = true;
+        emit LiquidRestakingTokenIssued(name, symbol, config, d);
+
         // Make a sacrificial deposit to prevent inflation attacks.
         _deposit(
             IRioLRTCoordinator(d.coordinator),
             config.deposit.asset,
             config.deposit.amount
         );
-
-        isTokenFromFactory[d.token] = true;
-        emit LiquidRestakingTokenIssued(name, symbol, config, d);
     }
 
     /// @dev Makes a sacrificial deposit to prevent inflation attacks.
