@@ -152,7 +152,9 @@ const TransactionButton = ({
               ) {
                 return (
                   <LoadingTransactionContent>
-                    {!prevTx?.isSame && 'Awaiting previous transaction'}
+                    {prevTx &&
+                      !prevTx?.isSame &&
+                      'Awaiting previous transaction'}
                   </LoadingTransactionContent>
                 );
               }
