@@ -100,7 +100,7 @@ contract RioLRTAVSRegistry is IRioLRTAVSRegistry, OwnableUpgradeable, UUPSUpgrad
     /// @notice Deactivates an AVS in the registry, preventing operators from
     /// opting-in to its slashing contract and calling its registry contract.
     /// @param avsId The ID of the AVS.
-    function deactivateAVS(uint128 avsId) external {
+    function deactivateAVS(uint128 avsId) external onlyOwner {
         AVS memory avs = _avs[avsId];
         if (avs.registryContract == address(0)) revert AVS_NOT_REGISTERED();
         if (!avs.active) revert AVS_ALREADY_INACTIVE();
