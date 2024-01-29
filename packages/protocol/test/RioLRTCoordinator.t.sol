@@ -323,7 +323,8 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         // Attaker frontruns victim's deposit, sending 10 ETH to the deposit pool.
         vm.prank(attacker);
-        address(reETH.depositPool).call{value: 10 ether}('');
+        (bool success,) = address(reETH.depositPool).call{value: 10 ether}('');
+        assertTrue(success);
 
         // The victim deposits 10 ETH.
         vm.prank(victim);
