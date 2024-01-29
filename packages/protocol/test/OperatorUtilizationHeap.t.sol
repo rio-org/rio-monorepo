@@ -344,4 +344,48 @@ contract OperatorUtilizationHeapTest is Test {
             heap.removeByID(heap.getMax().id);
         }
     }
+
+    function testFuzz_getMaxUpdateUtilizationByID(uint256[] memory utilizations) public {
+        vm.assume(utilizations.length > 0 && utilizations.length < 50);
+
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
+        for (uint8 i = 0; i < utilizations.length; i++) {
+            vm.assume(utilizations[i] < type(uint64).max);
+            heap.insert(OperatorUtilizationHeap.Operator({id: i, utilization: utilizations[i]}));
+            heap.updateUtilizationByID(i, utilizations[i] % 2 == 0 ? utilizations[i] * 2 : utilizations[i] / 2);
+        }
+
+        uint256 currentMaxUtilization;
+        uint256 previousMaxUtilization = type(uint256).max;
+        while (!heap.isEmpty()) {
+            currentMaxUtilization = heap.getMax().utilization;
+
+            assertTrue(currentMaxUtilization <= previousMaxUtilization);
+            previousMaxUtilization = currentMaxUtilization;
+
+            heap.removeByID(heap.getMax().id);
+        }
+    }
+
+    function testFuzz_getMinUpdateUtilizationByID(uint256[] memory utilizations) public {
+        vm.assume(utilizations.length > 0 && utilizations.length < 50);
+
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
+        for (uint8 i = 0; i < utilizations.length; i++) {
+            vm.assume(utilizations[i] < type(uint128).max);
+            heap.insert(OperatorUtilizationHeap.Operator({id: i, utilization: utilizations[i]}));
+            heap.updateUtilizationByID(i, utilizations[i] % 2 == 0 ? utilizations[i] * 2 : utilizations[i] / 2);
+        }
+
+        uint256 currentMinUtilization;
+        uint256 previousMinUtilization;
+        while (!heap.isEmpty()) {
+            currentMinUtilization = heap.getMin().utilization;
+
+            assertTrue(currentMinUtilization >= previousMinUtilization);
+            previousMinUtilization = currentMinUtilization;
+
+            heap.removeByID(heap.getMin().id);
+        }
+    }
 }

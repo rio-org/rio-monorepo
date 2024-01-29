@@ -433,4 +433,33 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         assertEq(allocations[0].operator, operatorDelegator);
         assertEq(allocations[0].deposits, VALIDATORS_PER_OPERATOR);
     }
+
+    function test_deallocateAllStrategyShares() public {
+        uint128 STRATEGY_CAP = 40e18;
+
+        // Add 10 operator delegators
+        IRioLRTOperatorRegistry.StrategyShareCap[] memory strategyShareCaps =
+            new IRioLRTOperatorRegistry.StrategyShareCap[](1);
+        strategyShareCaps[0] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: CBETH_STRATEGY, cap: STRATEGY_CAP});
+
+        addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 10, strategyShareCaps, 0);
+
+        uint256 TOTAL_ALLOCATION = STRATEGY_CAP * 10;
+
+        vm.prank(address(reLST.depositPool));
+        (uint256 sharesAllocated, IRioLRTOperatorRegistry.OperatorStrategyAllocation[] memory allocations) =
+            reLST.operatorRegistry.allocateStrategyShares(CBETH_STRATEGY, TOTAL_ALLOCATION);
+
+        vm.prank(address(reLST.coordinator));
+        (uint256 sharesDeallocated, IRioLRTOperatorRegistry.OperatorStrategyDeallocation[] memory deallocations) =
+            reLST.operatorRegistry.deallocateStrategyShares(CBETH_STRATEGY, TOTAL_ALLOCATION);
+
+        assertEq(sharesDeallocated, TOTAL_ALLOCATION);
+        assertEq(deallocations.length, 10);
+
+        for (uint256 i = 0; i < deallocations.length; i++) {
+            assertEq(deallocations[i].shares, STRATEGY_CAP);
+            assertEq(deallocations[i].tokens, STRATEGY_CAP);
+        }
+    }
 }

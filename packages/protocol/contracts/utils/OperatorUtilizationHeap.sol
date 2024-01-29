@@ -120,11 +120,8 @@ library OperatorUtilizationHeap {
 
         self.operators[index].utilization = newUtilization;
 
-        if (newUtilization > oldUtilization) {
-            self._bubbleDown(index);
-        } else {
-            self._bubbleUp(index);
-        }
+        self._bubbleUp(index);
+        self._bubbleDown(index);
     }
 
     /// @notice Updates the utilization of an operator in the heap by its ID.
@@ -194,6 +191,24 @@ library OperatorUtilizationHeap {
             maxIndex = 3;
         }
         return self.operators[maxIndex];
+    }
+
+    /// @notice Returns the index of the maximum operator from the heap.
+    /// @param self The heap.
+    function getMaxIndex(Data memory self) internal pure returns (uint8) {
+        if (self.isEmpty()) revert HEAP_UNDERFLOW();
+
+        // If the heap only contains one element, it's the root index.
+        if (self.count == 1) {
+            return ROOT_INDEX;
+        }
+
+        // If the heap has a second level, find the maximum value in that level.
+        uint8 maxIndex = 2;
+        if (self.count >= 3 && self.operators[3].utilization > self.operators[2].utilization) {
+            maxIndex = 3;
+        }
+        return maxIndex;
     }
 
     /// @dev Adjusts the position of an operator downwards in the heap to ensure the

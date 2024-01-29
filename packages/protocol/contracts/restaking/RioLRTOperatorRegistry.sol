@@ -511,7 +511,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             uint128 updatedAllocation = operatorShares.allocation - uint128(newShareDeallocation);
 
             operator.shareDetails[strategy].allocation = updatedAllocation;
-            heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, updatedAllocation.divWad(operatorShares.cap));
+            heap.updateUtilization(heap.getMaxIndex(), updatedAllocation.divWad(operatorShares.cap));
 
             unchecked {
                 ++deallocationIndex;
@@ -563,7 +563,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             remainingDeposits -= newDepositDeallocation;
 
             uint256 updatedAllocation = activeDeposits - newDepositDeallocation;
-            heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, updatedAllocation.divWad(validators.cap));
+            heap.updateUtilization(heap.getMaxIndex(), updatedAllocation.divWad(validators.cap));
 
             unchecked {
                 ++deallocationIndex;
