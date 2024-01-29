@@ -447,8 +447,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         uint256 TOTAL_ALLOCATION = STRATEGY_CAP * 10;
 
         vm.prank(address(reLST.depositPool));
-        (uint256 sharesAllocated, IRioLRTOperatorRegistry.OperatorStrategyAllocation[] memory allocations) =
-            reLST.operatorRegistry.allocateStrategyShares(CBETH_STRATEGY, TOTAL_ALLOCATION);
+        reLST.operatorRegistry.allocateStrategyShares(CBETH_STRATEGY, TOTAL_ALLOCATION);
 
         vm.prank(address(reLST.coordinator));
         (uint256 sharesDeallocated, IRioLRTOperatorRegistry.OperatorStrategyDeallocation[] memory deallocations) =
@@ -460,6 +459,36 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         for (uint256 i = 0; i < deallocations.length; i++) {
             assertEq(deallocations[i].shares, STRATEGY_CAP);
             assertEq(deallocations[i].tokens, STRATEGY_CAP);
+        }
+    }
+
+    function test_deallocateAllETHDeposits() public {
+        uint8 OPERATOR_COUNT = 10;
+        uint40 VALIDATORS_PER_OPERATOR = 5;
+
+        // Create 10 operator delegator with 5 validators each and fast forward to allow keys to confirm.
+        addOperatorDelegators(
+            reETH.operatorRegistry,
+            address(reETH.rewardDistributor),
+            OPERATOR_COUNT,
+            emptyStrategyShareCaps,
+            VALIDATORS_PER_OPERATOR
+        );
+
+        uint256 TOTAL_DEPOSITS = OPERATOR_COUNT * VALIDATORS_PER_OPERATOR;
+
+        vm.prank(address(reETH.depositPool));
+        reETH.operatorRegistry.allocateETHDeposits(TOTAL_DEPOSITS);
+
+        vm.prank(address(reETH.coordinator));
+        (uint256 depositsDeallocated, IRioLRTOperatorRegistry.OperatorETHDeallocation[] memory deallocations) =
+            reETH.operatorRegistry.deallocateETHDeposits(TOTAL_DEPOSITS);
+
+        assertEq(depositsDeallocated, TOTAL_DEPOSITS);
+        assertEq(deallocations.length, OPERATOR_COUNT);
+
+        for (uint256 i = 0; i < deallocations.length; i++) {
+            assertEq(deallocations[i].deposits, VALIDATORS_PER_OPERATOR);
         }
     }
 }
