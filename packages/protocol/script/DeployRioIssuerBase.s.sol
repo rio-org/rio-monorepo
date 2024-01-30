@@ -56,6 +56,7 @@ contract DeployRioIssuerBase is Script {
                 address(new RioLRTRewardDistributor(issuerAddress))
             )
         );
+        // forgefmt: disable-next-item
         issuer = RioLRTIssuer(
             address(new ERC1967Proxy(issuerImpl, abi.encodeCall(IRioLRTIssuer.initialize, (deployer))))
         );

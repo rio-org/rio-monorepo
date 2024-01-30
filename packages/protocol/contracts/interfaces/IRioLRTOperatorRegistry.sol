@@ -93,8 +93,8 @@ interface IRioLRTOperatorRegistry {
 
     /// @notice An operator address and strategy share allocation.
     struct OperatorStrategyAllocation {
-        /// @dev The operator's contract address.
-        address operator;
+        /// @dev The operator delegator's contract address.
+        address delegator;
         /// @dev The amount of shares allocated to the operator.
         uint256 shares;
         /// @dev The amount of tokens allocated to the operator.
@@ -103,8 +103,8 @@ interface IRioLRTOperatorRegistry {
 
     /// @notice An operator address, ETH deposit allocation, and validator details.
     struct OperatorETHAllocation {
-        /// @dev The operator's contract address.
-        address operator;
+        /// @dev The operator delegator's contract address.
+        address delegator;
         /// @dev The amount of ETH deposits allocated to the operator.
         uint256 deposits;
         /// @dev One or more validator public keys, concatenated together.
@@ -116,7 +116,7 @@ interface IRioLRTOperatorRegistry {
     /// @notice An operator address and strategy share deallocation.
     struct OperatorStrategyDeallocation {
         /// @dev The operator delegator's contract address.
-        address operator;
+        address delegator;
         /// @dev The amount of shares deallocated from the operator.
         uint256 shares;
         /// @dev The amount of tokens deallocated from the operator.
@@ -125,8 +125,8 @@ interface IRioLRTOperatorRegistry {
 
     /// @notice An operator address and ETH deposit deallocation.
     struct OperatorETHDeallocation {
-        /// @dev The operator's contract address.
-        address operator;
+        /// @dev The operator delegator's contract address.
+        address delegator;
         /// @dev The amount of ETH deposits deallocated from the operator.
         uint256 deposits;
     }

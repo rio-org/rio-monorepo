@@ -36,7 +36,7 @@ library OperatorOperations {
         for (uint256 i = 0; i < allocations.length; ++i) {
             uint256 deposits = allocations[i].deposits;
 
-            IRioLRTOperatorDelegator(allocations[i].operator).stakeETH{value: deposits * ETH_DEPOSIT_SIZE}(
+            IRioLRTOperatorDelegator(allocations[i].delegator).stakeETH{value: deposits * ETH_DEPOSIT_SIZE}(
                 deposits, allocations[i].pubKeyBatch, allocations[i].signatureBatch
             );
         }
@@ -61,8 +61,8 @@ library OperatorOperations {
         for (uint256 i = 0; i < allocations.length; ++i) {
             IRioLRTOperatorRegistry.OperatorStrategyAllocation memory allocation = allocations[i];
 
-            IERC20(token).safeTransfer(allocation.operator, allocation.tokens);
-            sharesReceived += IRioLRTOperatorDelegator(allocation.operator).stakeERC20(strategy, token, allocation.tokens);
+            IERC20(token).safeTransfer(allocation.delegator, allocation.tokens);
+            sharesReceived += IRioLRTOperatorDelegator(allocation.delegator).stakeERC20(strategy, token, allocation.tokens);
         }
         if (sharesReceived != sharesAllocated) revert INCORRECT_NUMBER_OF_SHARES_RECEIVED();
     }
@@ -98,13 +98,13 @@ library OperatorOperations {
 
         uint256 remainingAmount = amount;
         for (uint256 i = 0; i < length; ++i) {
-            address operator = operatorDepositDeallocations[i].operator;
+            address delegator = operatorDepositDeallocations[i].delegator;
 
             // Ensure we do not send more than needed to the withdrawal queue. The remaining will stay in the Eigen Pod.
             uint256 amountToWithdraw = (i == length - 1) ? remainingAmount : operatorDepositDeallocations[i].deposits * ETH_DEPOSIT_SIZE;
 
             remainingAmount -= amountToWithdraw;
-            roots[i] = IRioLRTOperatorDelegator(operator).queueWithdrawal(BEACON_CHAIN_STRATEGY, amountToWithdraw, withdrawalQueue);
+            roots[i] = IRioLRTOperatorDelegator(delegator).queueWithdrawal(BEACON_CHAIN_STRATEGY, amountToWithdraw, withdrawalQueue);
         }
         aggregateRoot = keccak256(abi.encode(roots));
     }
@@ -127,11 +127,11 @@ library OperatorOperations {
 
         uint256 sharesQueued;
         for (uint256 i = 0; i < operatorDeallocations.length; ++i) {
-            address operator = operatorDeallocations[i].operator;
+            address delegator = operatorDeallocations[i].delegator;
             uint256 shares = operatorDeallocations[i].shares;
 
             sharesQueued += shares;
-            roots[i] = IRioLRTOperatorDelegator(operator).queueWithdrawal(strategy, shares, address(withdrawalQueue));
+            roots[i] = IRioLRTOperatorDelegator(delegator).queueWithdrawal(strategy, shares, address(withdrawalQueue));
         }
         if (sharesToWithdraw != sharesQueued) revert INCORRECT_NUMBER_OF_SHARES_QUEUED();
 

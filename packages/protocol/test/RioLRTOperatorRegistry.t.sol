@@ -430,7 +430,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         assertEq(depositsAllocated, VALIDATORS_PER_OPERATOR); // Only the operator with confirmed keys should be allocated to.
         assertEq(allocations.length, 1);
 
-        assertEq(allocations[0].operator, operatorDelegator);
+        assertEq(allocations[0].delegator, operatorDelegator);
         assertEq(allocations[0].deposits, VALIDATORS_PER_OPERATOR);
     }
 
