@@ -200,15 +200,15 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   }, [txData, isTxLoading, isTxError, txError]);
 
   const handleJoin = async () => {
-    if (!activeToken || !restakingToken || isDepositLoading) {
+    if (!activeToken || !restakingToken || isDepositLoading || !amount) {
       return;
     }
 
     const depositFunction =
       activeToken.symbol === 'ETH'
-        ? restakingToken.depositETH({ amount: minAmountOut })
+        ? restakingToken.depositETH({ amount })
         : restakingToken.deposit({
-            amount: minAmountOut,
+            amount,
             tokenIn: activeToken.address
           });
 

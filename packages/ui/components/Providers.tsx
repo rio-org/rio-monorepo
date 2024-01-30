@@ -31,6 +31,7 @@ import { RainbowKitDisclaimer } from './Shared/RainbowKitDisclaimer';
 import Layout, { type LayoutProps } from './Layout';
 import { theme } from '../lib/theme';
 import { CHAIN_ID } from '../config';
+import WalletAndTermsStoreProvider from '../contexts/WalletAndTermsStore';
 
 // Create the cache client
 const queryClient = new QueryClient();
@@ -57,13 +58,18 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
   { batch: { multicall: true } }
 );
 
-interface Props extends LayoutProps {}
+interface Props extends LayoutProps {
+  requireGeofence?: boolean;
+  requireTerms?: boolean;
+}
 
 export function Providers({
   appTitle,
   showExchangeRates,
   nav,
-  children
+  children,
+  requireGeofence = false,
+  requireTerms = true
 }: Props) {
   const appInfo = useMemo(
     () => ({
@@ -117,18 +123,23 @@ export function Providers({
         <QueryClientProvider client={queryClient}>
           <RioNetworkProvider>
             <RioTransactionStoreProvider>
-              <ThemeProvider value={theme}>
-                <CssBaseline />
-                <Layout
-                  appTitle={appTitle}
-                  showExchangeRates={showExchangeRates}
-                  nav={nav}
-                >
-                  {children}
-                  <Analytics />
-                  <SpeedInsights />
-                </Layout>
-              </ThemeProvider>
+              <WalletAndTermsStoreProvider
+                requireGeofence={requireGeofence}
+                requireTerms={requireTerms}
+              >
+                <ThemeProvider value={theme}>
+                  <CssBaseline />
+                  <Layout
+                    appTitle={appTitle}
+                    showExchangeRates={showExchangeRates}
+                    nav={nav}
+                  >
+                    {children}
+                    <Analytics />
+                    <SpeedInsights />
+                  </Layout>
+                </ThemeProvider>
+              </WalletAndTermsStoreProvider>
             </RioTransactionStoreProvider>
           </RioNetworkProvider>
         </QueryClientProvider>

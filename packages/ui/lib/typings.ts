@@ -1,6 +1,7 @@
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { StaticImageData } from 'next/image';
+import { NextRequest } from 'next/server';
 import { Address, Hash } from 'viem';
 import { Chain as WagmiChain } from 'wagmi';
 export type NumberString = `${number}`;
@@ -302,7 +303,7 @@ export interface TransactionStore {
 export type Methods = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export type Handler = (req: NextApiRequest, res: NextApiResponse) => unknown;
-export type EdgeFunction = (req: Request) => Promise<unknown>;
+export type EdgeFunction = (req: Request | NextRequest) => Promise<unknown>;
 
 export type RequestHandlers = { [method in Methods]?: Handler };
 export type EdgeFunctionHandlers = { [method in Methods]?: EdgeFunction };

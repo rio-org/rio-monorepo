@@ -12,7 +12,7 @@ import {
   RainbowKitDisclaimer,
   RainbowKitDisclaimerType
 } from './RainbowKitDisclaimer';
-import { ACCEPTED_TOS_KEY } from '../../lib/constants';
+import { useAcceptedTerms } from '../../hooks/useAcceptedTerms';
 
 export function AcceptTermsModal({
   isOpen,
@@ -23,13 +23,16 @@ export function AcceptTermsModal({
   handler: () => void;
   onAccept?: () => void;
 }) {
-  const [accepted, setAccepted] = useState(false);
+  const [{ data: acceptedTerms }, { mutate: setAcceptedTerms }] =
+    useAcceptedTerms();
+  const [accepted, setAccepted] = useState(acceptedTerms);
+
   const handleClick = useCallback(() => {
     if (!accepted) return;
-    localStorage.setItem(ACCEPTED_TOS_KEY, 'true');
+    setAcceptedTerms(true);
     onAccept?.();
-    handler();
-  }, [accepted, handler, onAccept]);
+  }, [accepted, setAcceptedTerms, onAccept]);
+
   return (
     <Dialog size="sm" open={isOpen} handler={handler}>
       <DialogHeader>

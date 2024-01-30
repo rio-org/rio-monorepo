@@ -7,13 +7,17 @@ import {
   APP_SECONDARY_NAV_ITEMS,
   APP_TERTIARY_NAV_ITEMS,
   APP_NAV_LOGO_ITEM,
-  APP_SOCIAL_NAV_ITEMS
+  APP_SOCIAL_NAV_ITEMS,
+  REQUIRE_GEOFENCE,
+  REQUIRE_ACCEPTANCE_OF_TERMS
 } from '../../config';
 
 export default function RestakingApp({ Component, pageProps }: AppProps) {
   useInitDataDog('rio-network-app');
   return (
     <Providers
+      requireGeofence={REQUIRE_GEOFENCE}
+      requireTerms={REQUIRE_ACCEPTANCE_OF_TERMS}
       appTitle={APP_TITLE}
       nav={{
         logoItem: APP_NAV_LOGO_ITEM,

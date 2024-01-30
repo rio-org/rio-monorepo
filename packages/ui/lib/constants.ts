@@ -189,4 +189,10 @@ export const TX_HISTORY_TABLE_HEADER_LABELS = [
   'Amount (USD)'
 ];
 
+/////////////////////////////////////////////
+// Terms (Required) + Geofencing (optional)
+/////////////////////////////////////////////
+
+export const GEOFENCE_VERCEL_STORE_KEY = 'geofencing' as const;
+export const REGION_CHECKED_SESSION_KEY = 'region-checked' as const;
 export const ACCEPTED_TOS_KEY = 'accepted-tos' as const;
