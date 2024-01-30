@@ -13,6 +13,8 @@ import {
   type SocialNavItem
 } from '../lib/typings';
 
+export const GEOFENCE_STORE_KEY = 'geofencing' as const;
+
 export const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID
   ? (parseInt(process.env.NEXT_PUBLIC_CHAIN_ID) as CHAIN_ID_NUMBER)
   : (5 as CHAIN_ID_NUMBER);

@@ -25,6 +25,7 @@ coverage
 cache
 out
 
-# Next.js build output
+# Next.js/Vercel build output
+.vercel
 .next
 out

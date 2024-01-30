@@ -111,6 +111,12 @@ importers:
       '@rionetwork/sdk-react':
         specifier: 0.1.0-alpha.20
         version: 0.1.0-alpha.20(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+      '@vercel/edge':
+        specifier: ^1.1.1
+        version: 1.1.1
+      '@vercel/edge-config':
+        specifier: ^0.4.1
+        version: 0.4.1
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.19.9)
@@ -391,6 +397,12 @@ importers:
       '@vercel/analytics':
         specifier: ^1.1.2
         version: 1.1.2
+      '@vercel/edge':
+        specifier: ^1.1.1
+        version: 1.1.1
+      '@vercel/edge-config':
+        specifier: ^0.4.1
+        version: 0.4.1
       '@vercel/speed-insights':
         specifier: ^1.0.8
         version: 1.0.8(next@14.0.4)(react@18.2.0)
@@ -4256,6 +4268,21 @@ packages:
     resolution: {integrity: sha512-CodhkLCQ/EHzjX8k+Qg+OzTBY0UadykrcfolfSOJVZZY/ZJM5nbhztm9KdbYvMfqKlasAr1+OYy0ThZnDA/MYA==}
     dependencies:
       server-only: 0.0.1
+    dev: false
+
+  /@vercel/edge-config-fs@0.1.0:
+    resolution: {integrity: sha512-NRIBwfcS0bUoUbRWlNGetqjvLSwgYH/BqKqDN7vK1g32p7dN96k0712COgaz6VFizAm9b0g6IG6hR6+hc0KCPg==}
+    dev: false
+
+  /@vercel/edge-config@0.4.1:
+    resolution: {integrity: sha512-4Mc3H7lE+x4RrL17nY8CWeEorvJHbkNbQTy9p8H1tO7y11WeKj5xeZSr07wNgfWInKXDUwj5FZ3qd/jIzjPxug==}
+    engines: {node: '>=14.6'}
+    dependencies:
+      '@vercel/edge-config-fs': 0.1.0
+    dev: false
+
+  /@vercel/edge@1.1.1:
+    resolution: {integrity: sha512-NtKiIbn9Cq6HWGy+qRudz28mz5nxfOJWls5Pnckjw1yCfSX8rhXdvY/il3Sy3Zd5n/sKCM2h7VSCCpJF/oaDrQ==}
     dev: false
 
   /@vercel/speed-insights@1.0.8(next@14.0.4)(react@18.2.0):
