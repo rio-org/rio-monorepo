@@ -23,7 +23,7 @@ export const useInitDataDog = (service: string) => {
       trackUserInteractions: true,
       trackResources: true,
       trackLongTasks: true,
-      defaultPrivacyLevel: 'mask-user-input'
+      defaultPrivacyLevel: 'allow'
     });
   }, []);
 };
