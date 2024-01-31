@@ -322,3 +322,15 @@ export function isHexadecimal(hexString: string, length: number) {
 export function isUndefined(value: unknown): value is undefined {
   return typeof value === 'undefined';
 }
+
+export const storeBoolValueInStorage = (key: string, store?: Storage) => {
+  return async (value: boolean) =>
+    new Promise((resolve) => {
+      try {
+        store?.setItem(key, String(value));
+        return resolve(value);
+      } catch (e) {
+        return resolve(undefined);
+      }
+    });
+};

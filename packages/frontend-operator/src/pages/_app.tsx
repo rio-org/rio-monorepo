@@ -6,13 +6,17 @@ import {
   APP_SECONDARY_NAV_ITEMS,
   APP_TERTIARY_NAV_ITEMS,
   APP_NAV_LOGO_ITEM,
-  APP_SOCIAL_NAV_ITEMS
+  APP_SOCIAL_NAV_ITEMS,
+  REQUIRE_GEOFENCE,
+  REQUIRE_ACCEPTANCE_OF_TERMS
 } from '../../config';
 
 export default function OperatorApp({ Component, pageProps }: AppProps) {
   return (
     <Providers
       appTitle={APP_TITLE}
+      requireGeofence={REQUIRE_GEOFENCE}
+      requireTerms={REQUIRE_ACCEPTANCE_OF_TERMS}
       nav={{
         logoItem: APP_NAV_LOGO_ITEM,
         items: APP_NAV_ITEMS,

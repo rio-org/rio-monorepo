@@ -13,6 +13,10 @@ import {
   type SocialNavItem
 } from '../lib/typings';
 
+////////////////
+// Environment
+////////////////
+
 export const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID
   ? (parseInt(process.env.NEXT_PUBLIC_CHAIN_ID) as CHAIN_ID_NUMBER)
   : (5 as CHAIN_ID_NUMBER);
@@ -29,6 +33,10 @@ export const DATADOG_CLIENT_TOKEN =
 export const NATIVE_ETH_ADDRESS = getAddress(
   '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 );
+
+//////////////////////
+// Default Nav Items
+//////////////////////
 
 export const APP_SECONDARY_NAV_ITEMS: NavItem[] = [
   {

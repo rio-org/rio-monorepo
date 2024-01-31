@@ -9,8 +9,9 @@ import {
   useWaitForTransaction
 } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
-import { Address, zeroAddress } from 'viem';
+import { Address, getAddress, zeroAddress } from 'viem';
 import { AssetDetails } from '../../lib/typings';
+import { NATIVE_ETH_ADDRESS } from '../../config';
 
 type Props = {
   allowanceTarget?: Address;
@@ -49,7 +50,11 @@ const ApproveButton = ({
     abi: erc20ABI,
     functionName: 'approve',
     args: [allowanceTarget || zeroAddress, amount],
-    enabled: isValidAmount && allowanceTarget && accountAddress ? true : false,
+    enabled:
+      !!isValidAmount &&
+      !!allowanceTarget &&
+      getAddress(allowanceTarget) !== NATIVE_ETH_ADDRESS &&
+      !!accountAddress,
     onError(error) {
       setIsApprovalError(true);
       console.log('Prepare error', error);

@@ -1,5 +1,7 @@
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
+import { NextApiRequest, NextApiResponse } from 'next';
 import { StaticImageData } from 'next/image';
+import { NextRequest } from 'next/server';
 import { Address, Hash } from 'viem';
 import { Chain as WagmiChain } from 'wagmi';
 export type NumberString = `${number}`;
@@ -19,6 +21,7 @@ export type CHAIN_ID_NUMBER =
   | 7777777
   | 999
   | 31337;
+
 export const enum CHAIN_ID {
   ETHEREUM = 1,
   GOERLI = 5,
@@ -31,7 +34,7 @@ export const enum CHAIN_ID {
   FOUNDRY = 31337
 }
 
-export enum AppEnv {
+export const enum AppEnv {
   PRODUCTION = 'production',
   PREVIEW = 'preview',
   DEVELOPMENT = 'development'
@@ -39,6 +42,9 @@ export enum AppEnv {
 
 export type Not<T, R> = T extends R ? never : T;
 
+//////////////
+// Interface
+//////////////
 export interface InternalAppNavItem {
   label: string;
   slug: string;
@@ -66,8 +72,6 @@ export interface Chain extends WagmiChain {
   slug: string;
   icon: string;
 }
-
-export type ContractError = Error & { shortMessage?: string };
 
 export interface ConnectButtonProps {
   account?: {
@@ -97,12 +101,6 @@ export interface ConnectButtonProps {
   accountModalOpen: boolean;
   chainModalOpen: boolean;
   connectModalOpen: boolean;
-}
-
-// TODO: remove this when we have a proper type for the subgraph response
-export interface NetworkStats {
-  tvl: number;
-  apr: number;
 }
 
 ///////////////////////////
@@ -297,3 +295,48 @@ export type PendingTransaction = {
 export interface TransactionStore {
   [chainId: number]: PendingTransaction[];
 }
+
+////////
+// API
+////////
+
+export type Methods = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+export type Handler = (req: NextApiRequest, res: NextApiResponse) => unknown;
+export type EdgeFunction = (req: Request | NextRequest) => Promise<unknown>;
+
+export type RequestHandlers = { [method in Methods]?: Handler };
+export type EdgeFunctionHandlers = { [method in Methods]?: EdgeFunction };
+
+export type GeoFencingEdgeStore = {
+  'blocked-country-codes': string[];
+  'whitelist-ips': string[];
+};
+
+///////////
+// Errors
+///////////
+
+export type ContractError = Error & { shortMessage?: string };
+
+export type ApiErrorKind =
+  | 'TRANSACTION_ERROR'
+  | 'UNSUPPORTED_CONTRACT'
+  | 'SYSTEM_ERROR'
+  | 'REQUEST_FAILURE'
+  | 'ABI_ERROR'
+  | 'NOT_JSON'
+  | 'NON_200'
+  | 'NOT_FOUND'
+  | 'RETRY_LIMIT'
+  | 'MISCONFIGURATION'
+  | 'BAD_REQUEST'
+  | 'UNAUTHORIZED'
+  | 'METHOD_NOT_ALLOWED'
+  | 'FORBIDDEN'
+  | 'CONFLICT'
+  | 'HTTP_ERROR'
+  | 'SUBSYSTEM_ERROR'
+  | 'LOCKED'
+  | 'TEAPOT'
+  | 'FAHRENHEIT';

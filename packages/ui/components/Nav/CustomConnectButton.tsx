@@ -1,5 +1,5 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { ConnectButtonProps } from '../../lib/typings';
+import { CHAIN_ID_NUMBER, ConnectButtonProps } from '../../lib/typings';
 import {
   Menu,
   MenuHandler,
@@ -8,11 +8,11 @@ import {
   Drawer,
   Spinner
 } from '@material-tailwind/react';
-import { useBalance, useDisconnect } from 'wagmi';
+import { mainnet, useBalance, useDisconnect } from 'wagmi';
 import { useMediaQuery } from 'react-responsive';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReETHConversion from '../Shared/ReETHConversion';
-import { ACCEPTED_TOS_KEY, DESKTOP_MQ } from '../../lib/constants';
+import { DESKTOP_MQ } from '../../lib/constants';
 import cx from 'classnames';
 import { mainNavConnectVariants } from '../../lib/motion';
 import { motion } from 'framer-motion';
@@ -20,7 +20,9 @@ import { Address, formatEther, formatUnits } from 'viem';
 import { displayEthAmount } from '../../lib/utilities';
 import { useIsMounted } from '../../hooks/useIsMounted';
 import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
-import { AcceptTermsModal } from '../Shared/AcceptTermsModal';
+import { useWalletAndTermsStore } from '../../contexts/WalletAndTermsStore';
+import { useRegionChecked } from '../../hooks/useRegionChecked';
+import { CHAIN_ID } from '../../config';
 
 export const CustomConnectButton = () => {
   const isMounted = useIsMounted();
@@ -39,15 +41,16 @@ export const CustomConnectButton = () => {
         chain,
         mounted,
         authenticationStatus,
-        openChainModal,
-        openConnectModal,
-        connectModalOpen
+        openChainModal
       }: ConnectButtonProps) => {
-        const [modalOpen, setModalOpen] = useState(false);
+        const chainId = (chain?.id || CHAIN_ID) as CHAIN_ID_NUMBER;
+
         const [isLoading, setIsLoading] = useState(false);
         const [isDisconnected, setIsDisconnected] = useState(false);
         const ready = mounted && authenticationStatus !== 'loading';
         const { data: lrts } = useGetLiquidRestakingTokens();
+        const { openWalletModal, walletModalOpen } = useWalletAndTermsStore();
+        const [{ data: isInAllowedRegion }] = useRegionChecked();
 
         const { disconnect } = useDisconnect({
           onSuccess() {
@@ -69,15 +72,8 @@ export const CustomConnectButton = () => {
         }, [account]);
 
         useEffect(() => {
-          setIsLoading(connectModalOpen);
-        }, [connectModalOpen]);
-
-        const handleClickConnect = useCallback(() => {
-          const alreadyAccepted =
-            localStorage.getItem(ACCEPTED_TOS_KEY) === 'true';
-          if (alreadyAccepted) return openConnectModal();
-          setModalOpen(true);
-        }, [openConnectModal]);
+          setIsLoading(walletModalOpen);
+        }, [walletModalOpen]);
 
         return (
           <motion.div
@@ -94,10 +90,14 @@ export const CustomConnectButton = () => {
             variants={mainNavConnectVariants}
           >
             {(() => {
+              if (chainId === mainnet.id && isInAllowedRegion === false) {
+                return null;
+              }
+
               if (isDisconnected || !account) {
                 return (
                   <button
-                    onClick={handleClickConnect}
+                    onClick={openWalletModal}
                     type="button"
                     className="relative flex flex-col text-right items-end px-4 py-2 hover:bg-opacity-70 bg-black text-white rounded-full font-medium"
                   >
@@ -150,15 +150,13 @@ export const CustomConnectButton = () => {
                         </div>
                       </MenuHandler>
                       <MenuList>
-                        <MenuItem>
-                          <button
-                            onClick={() => {
-                              disconnect();
-                              setIsLoading(true);
-                            }}
-                          >
-                            Disconnect
-                          </button>
+                        <MenuItem
+                          onClick={() => {
+                            disconnect();
+                            setIsLoading(true);
+                          }}
+                        >
+                          Disconnect
                         </MenuItem>
                       </MenuList>
                     </Menu>
@@ -204,11 +202,6 @@ export const CustomConnectButton = () => {
                 </div>
               );
             })()}
-            <AcceptTermsModal
-              isOpen={modalOpen}
-              handler={() => setModalOpen(false)}
-              onAccept={openConnectModal}
-            />
           </motion.div>
         );
       }}
