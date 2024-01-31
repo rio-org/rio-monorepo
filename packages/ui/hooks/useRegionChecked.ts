@@ -1,24 +1,22 @@
 import { useQueryClient, useQuery, useMutation } from 'react-query';
 import { REGION_CHECKED_SESSION_KEY } from '../lib/constants';
 import { storeBoolValueInStorage } from '../lib/utilities';
-import { useEffect, useState } from 'react';
 
 const QUERY_KEY = [REGION_CHECKED_SESSION_KEY] as const;
 
 export function useRegionChecked() {
-  const [storage, setStorage] = useState<Storage>();
-  useEffect(() => setStorage(localStorage), []);
-
   const queryClient = useQueryClient();
-  const query = useQuery<boolean | undefined, Error>(
-    QUERY_KEY,
-    () => {
-      const item = storage?.getItem(REGION_CHECKED_SESSION_KEY);
-      if (!item) return undefined;
-      return item === 'true';
-    },
-    { staleTime: 0, enabled: true }
-  );
+
+  const fetcher = () => {
+    const item = global.localStorage?.getItem(REGION_CHECKED_SESSION_KEY);
+    if (!item) return undefined;
+    return item === 'true';
+  };
+
+  const query = useQuery<boolean | undefined, Error>(QUERY_KEY, fetcher, {
+    staleTime: 1,
+    enabled: true
+  });
 
   const mutation = useMutation({
     mutationKey: QUERY_KEY,
@@ -26,7 +24,7 @@ export function useRegionChecked() {
       const { status } = (await fetch('/api/geofence')) || { status: 500 };
       const storeFxn = storeBoolValueInStorage(
         REGION_CHECKED_SESSION_KEY,
-        storage
+        global.localStorage
       );
 
       if (status >= 400 && status !== 451) {

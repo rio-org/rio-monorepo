@@ -40,7 +40,7 @@ export function AcceptTermsModal({
       </DialogHeader>
       <DialogBody>
         <Checkbox
-          crossOrigin={false}
+          crossOrigin="false"
           checked={accepted}
           onChange={() => setAccepted((prev) => !prev)}
           className="shrink-0 min-w-[20px]"
