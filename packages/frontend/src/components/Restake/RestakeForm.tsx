@@ -22,10 +22,11 @@ import {
   LiquidRestakingTokenClient,
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
-import { Address, Hash, formatUnits, zeroAddress } from 'viem';
+import { Address, Hash, formatUnits, getAddress, zeroAddress } from 'viem';
 import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
 import Skeleton from 'react-loading-skeleton';
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
+import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -104,7 +105,11 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     functionName: 'allowance',
     args: [address || zeroAddress, allowanceTarget || zeroAddress],
     enabled:
-      address && allowanceTarget && activeToken && activeToken.symbol !== 'ETH'
+      !!address &&
+      !!allowanceTarget &&
+      getAddress(allowanceTarget) !== NATIVE_ETH_ADDRESS &&
+      !!activeToken &&
+      activeToken.symbol !== 'ETH'
   });
 
   const handleRefetchAllowance = () => {
