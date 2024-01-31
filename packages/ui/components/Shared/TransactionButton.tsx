@@ -1,22 +1,21 @@
 import { useNetwork, useSwitchNetwork, useWaitForTransaction } from 'wagmi';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Spinner } from '@material-tailwind/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import { twJoin } from 'tailwind-merge';
-import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
-import { cn, getChainName } from '../../lib/utilities';
-import { ViewTransactionLink } from './ViewTransactionLink';
-import Alert from './Alert';
-import { ACCEPTED_TOS_KEY, TX_BUTTON_VARIANTS } from '../../lib/constants';
-import { CHAIN_ID } from '../../config';
-import { ContractError, RioTransactionType } from '../../lib/typings';
 import type { Hash } from '@wagmi/core';
 import {
   useAddTransaction,
   usePendingTransactions
 } from '../../contexts/RioTransactionStore';
-import { AcceptTermsModal } from './AcceptTermsModal';
+import { useWalletAndTermsStore } from '../../contexts/WalletAndTermsStore';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
+import { ContractError, RioTransactionType } from '../../lib/typings';
+import { TX_BUTTON_VARIANTS } from '../../lib/constants';
+import { cn, getChainName } from '../../lib/utilities';
+import { ViewTransactionLink } from './ViewTransactionLink';
+import Alert from './Alert';
+import { CHAIN_ID } from '../../config';
 
 export type TransactionButtonProps = {
   transactionType: RioTransactionType;
@@ -44,13 +43,12 @@ const TransactionButton = ({
   children
 }: TransactionButtonProps) => {
   const wrongNetwork = useNetwork().chain?.unsupported;
-  const { openConnectModal } = useConnectModal();
+  const { openWalletModal } = useWalletAndTermsStore();
   const { address } = useAccountIfMounted();
   const pendingTxs = usePendingTransactions();
   const addTransaction = useAddTransaction();
   const { isLoading: isSwitchNetworkLoading, switchNetwork } =
     useSwitchNetwork();
-  const [modalOpen, setModalOpen] = useState(false);
 
   const lastPendingTx = !pendingTxs.length
     ? null
@@ -94,17 +92,8 @@ const TransactionButton = ({
     : isTxLoading || isSigning || disabled || !write || !!prevTx?.hash;
 
   const handleClick = useCallback((): void => {
-    if (isDisabled) {
-      return;
-    }
-
-    if (!address) {
-      localStorage.getItem(ACCEPTED_TOS_KEY) === 'true'
-        ? openConnectModal?.()
-        : setModalOpen(true);
-      return;
-    }
-
+    if (isDisabled) return;
+    if (!address) return openWalletModal();
     wrongNetwork ? switchNetwork?.(CHAIN_ID) : write?.();
   }, [isDisabled, address, wrongNetwork, switchNetwork, write]);
 
@@ -183,12 +172,6 @@ const TransactionButton = ({
           </motion.div>
         )}
       </AnimatePresence>
-
-      <AcceptTermsModal
-        isOpen={modalOpen}
-        handler={() => setModalOpen(false)}
-        onAccept={openConnectModal}
-      />
     </div>
   );
 };

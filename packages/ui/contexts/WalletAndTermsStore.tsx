@@ -60,7 +60,7 @@ export default function WalletAndTermsStoreProvider({
   const chainId = (chain?.id || defaultChainId) as CHAIN_ID_NUMBER;
   const { address } = useAccountIfMounted();
   const { disconnect } = useDisconnect();
-  const { openConnectModal } = useConnectModal();
+  const { openConnectModal, connectModalOpen } = useConnectModal();
   const [walletModalOpen, setWalletModalOpen] = useState(false);
   const [acceptedToS] = useAcceptedTerms();
   const [regionChecked, regionCheckedMutation] = useRegionChecked();
@@ -126,9 +126,8 @@ export default function WalletAndTermsStoreProvider({
   ]);
 
   useEffect(() => {
-    if (!address) return;
-    setWalletModalOpen(false);
-  }, [address]);
+    setWalletModalOpen(connectModalOpen);
+  }, [connectModalOpen]);
 
   useEffect(
     function openConnectModalWhenEligible() {
