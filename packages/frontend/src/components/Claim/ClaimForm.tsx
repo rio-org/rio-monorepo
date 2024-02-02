@@ -3,7 +3,7 @@ import {
   type LRTDetails,
   RioTransactionType
 } from '@rio-monorepo/ui/lib/typings';
-import ClaimHeader from './ClaimHeader';
+import { ClaimAmountViewer } from '@rio-monorepo/ui/components/Shared/ClaimAmountViewer';
 import ItemizedAsset from '@rio-monorepo/ui/components/Assets/ItemizedAsset';
 import { ASSETS } from '@rio-monorepo/ui/lib/constants';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
@@ -63,7 +63,8 @@ export const HydratedClaimForm = ({ lrt }: Props) => {
 
   return (
     <div>
-      <ClaimHeader
+      <ClaimAmountViewer
+        title="Available to claim now"
         amount={withdrawalAssets.reduce((a, b) => a + b.amount, 0)}
         symbol={
           !lrt?.symbol
@@ -126,7 +127,7 @@ export const ClaimForm = ({ lrt }: Partial<Props>) => {
   if (!lrt) {
     return (
       <div>
-        <ClaimHeader />
+        <ClaimAmountViewer title="Available to claim now" />
         <motion.button className="rounded-full w-full py-3 mt-4 font-bold bg-black duration-200 bg-opacity-20">
           <Skeleton height="1rem" width={100} className="opacity-30" />
         </motion.button>
