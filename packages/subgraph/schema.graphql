@@ -249,14 +249,38 @@ type OperatorMetadata @entity {
 
 type Operator @entity {
   id: ID!
-  operatorId: Int!
   address: Bytes!
-  delegator: Bytes!
-  manager: Bytes!
-  earningsReceiver: Bytes!
   metadataURI: String!
   metadata: OperatorMetadata
+  delegator: OperatorDelegator! @derivedFrom(field: "operator")
   delegationApprover: Bytes
   stakerOptOutWindowBlocks: BigInt
+}
+
+type OperatorDelegator @entity {
+  id: ID!
+  address: Bytes!
+  delegatorId: Int!
+  operator: Operator!
+  manager: Bytes!
+  earningsReceiver: Bytes!
   restakingToken: LiquidRestakingToken!
+  validators: [Validator!] @derivedFrom(field: "delegator")
+  unusedValidatorKeyCount: BigInt!
+  depositedValidatorKeyCount: BigInt!
+  exitedValidatorKeyCount: BigInt!
+  totalValidatorKeyCount: BigInt!
+}
+
+enum ValidatorStatus {
+  UNUSED
+  DEPOSITED
+  EXITED
+}
+
+type Validator @entity {
+  id: ID!
+  status: ValidatorStatus!
+  delegator: OperatorDelegator!
+  publicKey: Bytes!
 }

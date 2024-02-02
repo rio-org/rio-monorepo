@@ -8,9 +8,13 @@ export const ZERO_BI = BigInt.fromString('0');
 
 export const ZERO_BD = BigDecimal.fromString('0');
 
+export const ONE_BI = BigInt.fromString('1');
+
 export const STAT_UPDATE_MIN_TRADE = BigDecimal.fromString('0.0000000001');
 
 export const USD_PRICE_FEED_DECIMALS: u8 = 8;
+
+export const PUBKEY_LENGTH: i32 = 48;
 
 export const CHAINLINK_FEED_TYPE = 'CHAINLINK';
 
@@ -27,6 +31,12 @@ export namespace WithdrawalEpochStatus {
   export const ACTIVE = 'ACTIVE';
   export const QUEUED = 'QUEUED';
   export const SETTLED = 'SETTLED';
+}
+
+export namespace ValidatorStatus {
+  export const UNUSED = 'UNUSED';
+  export const DEPOSITED = 'DEPOSITED';
+  export const EXITED = 'EXITED';
 }
 
 export namespace SupportingContractName {

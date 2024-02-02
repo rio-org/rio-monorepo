@@ -1,6 +1,6 @@
 import { Address, BigDecimal, BigInt, Bytes, Entity, Value, dataSource, store } from '@graphprotocol/graph-ts';
 import { AVSRegistry, Asset, AssetRegistry, Coordinator, DepositPool, OperatorRegistry, PriceFeed, PriceSource, RewardDistributor, User, WithdrawalEpoch, WithdrawalQueue } from '../../generated/schema';
-import { CHAINLINK_FEED_TYPE, ETH_ADDRESS, ETH_USD_CHAINLINK_FEEDS, SupportingContractName, USD_PRICE_FEED_DECIMALS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD } from './constants';
+import { CHAINLINK_FEED_TYPE, ETH_ADDRESS, ETH_USD_CHAINLINK_FEEDS, PUBKEY_LENGTH, SupportingContractName, USD_PRICE_FEED_DECIMALS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD } from './constants';
 import { PriceFeed as PriceFeedContract } from '../../generated/RioLRTIssuer/PriceFeed';
 import { PriceSource as PriceSourceTemplate } from '../../generated/templates';
 import { ERC20Token } from '../../generated/RioLRTIssuer/ERC20Token';
@@ -33,6 +33,19 @@ export function getIPFSContentID(gatewayURL: string): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Split concatenated public keys into an array of public keys.
+ * @param concatKeys The concatenated public keys.
+ */
+export function splitPublicKeys(concatKeys: string): string[] {
+  let keys: string[] = [];
+
+  for (let i = 0; i < concatKeys.length; i += PUBKEY_LENGTH) {
+    keys.push(concatKeys.substring(i, i + PUBKEY_LENGTH));
+  }
+  return keys;
 }
 
 /**
@@ -302,4 +315,13 @@ export function getWithdrawalRequestID(restakingToken: string, epoch: BigInt, as
  */
 export function getWithdrawalClaimID(restakingToken: string, epoch: BigInt, asset: string, user: string): string {
   return `${getWithdrawalEpochUserSummaryID(restakingToken, epoch, asset, user)}-claim`;
+}
+
+/**
+ * Get the ID for an operator delegator.
+ * @param operatorRegistry The operator registry address.
+ * @param delegatorId The operator delegator ID.
+ */
+export function getOperatorDelegatorID(operatorRegistry: string, delegatorId: number): string {
+  return `${operatorRegistry}-${delegatorId}`;
 }
