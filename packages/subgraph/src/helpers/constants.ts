@@ -14,7 +14,7 @@ export const STAT_UPDATE_MIN_TRADE = BigDecimal.fromString('0.0000000001');
 
 export const USD_PRICE_FEED_DECIMALS: u8 = 8;
 
-export const PUBKEY_LENGTH: i32 = 48;
+export const PUBKEY_LENGTH: i32 = 96;
 
 export const CHAINLINK_FEED_TYPE = 'CHAINLINK';
 
