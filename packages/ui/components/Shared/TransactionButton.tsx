@@ -124,13 +124,15 @@ const TransactionButton = ({
               'text-white font-bold',
               'bg-black transition-colors duration-200',
               'hover:bg-[var(--color-dark-gray)]',
-              'disabled:!bg-opacity-20 disabled:!bg-black',
+              'disabled:!bg-opacity-5 disabled:!bg-black',
               'disabled:[&>span]:!opacity-20 disabled:[&>span]:!text-black'
             )}
           >
             {(() => {
               if (!address) {
-                return <>Connect your wallet</>;
+                <span className={cn(isDisabled && 'opacity-20 text-black')}>
+                  Connect your wallet
+                </span>;
               }
 
               if (

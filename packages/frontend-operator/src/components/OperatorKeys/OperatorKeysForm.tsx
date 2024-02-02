@@ -207,7 +207,7 @@ function OperatorKeysFormInternal({
         validation={handleValidation}
         onChange={handleChange}
         disabled={!address || isNotOperator}
-        autoFocus={!!address}
+        autoFocus={false}
         isOperator={!address || !isFetched ? undefined : !!operators?.length}
         value={
           !address

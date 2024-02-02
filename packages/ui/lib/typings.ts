@@ -4,6 +4,7 @@ import { StaticImageData } from 'next/image';
 import { NextRequest } from 'next/server';
 import { Address, Hash } from 'viem';
 import { Chain as WagmiChain } from 'wagmi';
+
 export type NumberString = `${number}`;
 export type EthereumTransactionHash = `0x${string}`;
 export type EthereumCalldata = string;
@@ -102,6 +103,27 @@ export interface ConnectButtonProps {
   chainModalOpen: boolean;
   connectModalOpen: boolean;
 }
+
+export type TableLabelProps = {
+  children: React.ReactNode;
+  textDirection?: 'left' | 'right';
+  isSecondary?: boolean;
+};
+
+export type TableColumn<T, R = keyof T> = {
+  key: R;
+  label?: string;
+  render?: (
+    TableLabelComponent: React.FC<TableLabelProps>,
+    item: T,
+    key: R
+  ) => React.ReactNode;
+};
+
+export type MobileTableColumns<T> = {
+  top: TableColumn<T>[];
+  expanded: TableColumn<T>[];
+};
 
 ///////////////////////////
 // asset types
@@ -284,7 +306,8 @@ export enum RioTransactionType {
   WITHDRAW_REQUEST = 'WITHDRAW_REQUEST',
   CLAIM = 'CLAIM',
   // Operators
-  SUBMIT_KEYS = 'SUBMIT_KEYS'
+  SUBMIT_KEYS = 'SUBMIT_KEYS',
+  CLAIM_EARNINGS = 'CLAIM_EARNINGS'
 }
 
 export type PendingTransaction = {

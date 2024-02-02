@@ -5,10 +5,11 @@ import { motion } from 'framer-motion';
 
 import type { InternalAppNavItem } from '../../lib/typings';
 import { buildUrlFromSegments, cn } from '../../lib/utilities';
+import { twMerge } from 'tailwind-merge';
 
 type FormCardContainerProps = {
-  title: React.ReactNode | React.ReactNode[];
-  header: React.ReactNode | React.ReactNode[];
+  title?: React.ReactNode | React.ReactNode[];
+  header?: React.ReactNode | React.ReactNode[];
   children: React.ReactNode;
   noPadding?: boolean;
 };
@@ -22,17 +23,30 @@ const Container = ({
   return (
     <div className="min-h-[inherit] w-full flex justify-center items-start">
       <div className="w-full lg:max-w-[588px]">
-        <h1 className="text-2xl mb-2 font-medium hidden lg:block">{title}</h1>
-        <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-2xl p-[2px]">
-          <div className="flex flex-col justify-start lg:flex-row lg:justify-between gap-2 lg:gap-8 w-full px-4 lg:px-5 pt-3 lg:pt-5 pb-3">
-            <h1 className="text-2xl mb-0 font-medium lg:hidden">{title}</h1>
-            <div className="flex gap-2 justify-center items-center">
-              {header}
-            </div>
+        {title && (
+          <h1 className="text-2xl mb-2 font-medium hidden lg:block">{title}</h1>
+        )}
+        <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-[16px] p-1">
+          <div
+            className={twMerge(
+              'flex flex-col lg:flex-row',
+              'justify-start lg:justify-between',
+              'w-full px-4 lg:px-5 lg-max:gap-2 lg-max:pt-3 lg-max:pb-3',
+              !!header && 'lg:gap-8 lg:pt-3 pb-3'
+            )}
+          >
+            {title && (
+              <h1 className="text-2xl mb-0 font-medium lg:hidden">{title}</h1>
+            )}
+            {header && (
+              <div className="flex gap-2 justify-center items-center">
+                {header}
+              </div>
+            )}
           </div>
           <motion.div
             className={cn(
-              'bg-white rounded-xl w-full m-[2px] flex flex-col gap-4',
+              'bg-white rounded-[14px] w-full flex flex-col gap-4',
               noPadding ? '' : ' p-4 lg:p-6'
             )}
           >

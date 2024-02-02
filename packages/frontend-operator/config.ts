@@ -17,6 +17,10 @@ export const APP_NAV_ITEMS: InternalAppNavItem[] = [
   {
     label: 'Keys',
     slug: '/'
+  },
+  {
+    label: 'Earnings',
+    slug: 'earnings'
   }
 ];
 

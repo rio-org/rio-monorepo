@@ -1,13 +1,10 @@
 import React from 'react';
 import cx from 'classnames';
+import { type TableLabelProps } from '../../lib/typings';
 
-type Props = {
-  children: React.ReactNode;
-  textDirection?: 'left' | 'right';
-  isSecondary?: boolean;
-};
+export type Props = TableLabelProps;
 
-const TableLabel = ({
+export const TableLabel = ({
   children,
   textDirection = 'left',
   isSecondary
@@ -23,5 +20,3 @@ const TableLabel = ({
     </span>
   );
 };
-
-export default TableLabel;
