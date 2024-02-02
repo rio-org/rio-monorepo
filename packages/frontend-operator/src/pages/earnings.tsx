@@ -14,8 +14,9 @@ const EarningsPage: NextPage = () => {
     [lrts]
   );
 
+  const manager = address?.toLowerCase();
   const { data: operators } = useGetOperators(
-    { where: { manager: address?.toLowerCase() } },
+    { where: { or: [{ manager }, { earningsReceiver: manager }] } },
     { enabled: !!address }
   );
 
@@ -32,7 +33,7 @@ const EarningsPage: NextPage = () => {
             {address
               ? operator
                 ? 'No earnings history yet.'
-                : 'Must be an operator manager to view earnings history.'
+                : 'Must be an operator to view earnings history.'
               : 'Connect to view earnings history.'}
           </span>
         </div>

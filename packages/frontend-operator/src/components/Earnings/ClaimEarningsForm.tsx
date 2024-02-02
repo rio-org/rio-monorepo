@@ -34,7 +34,14 @@ function HydratedClaimEarningsForm({ lrt }: Props) {
   const lrtClient = useLiquidRestakingToken(lrt.address);
   const { address } = useAccountIfMounted();
   const { data: operators } = useGetOperators(
-    { where: { manager: address?.toLowerCase() } },
+    {
+      where: {
+        or: [
+          { manager: address?.toLowerCase() },
+          { earningsReceiver: address?.toLowerCase() }
+        ]
+      }
+    },
     { enabled: !!address }
   );
 
@@ -86,8 +93,10 @@ function HydratedClaimEarningsForm({ lrt }: Props) {
       >
         {isLoading
           ? 'Claiming'
-          : !operator
-          ? 'Must be an operator manager to claim'
+          : !operator || !address
+          ? 'Must be an operator to claim'
+          : operator.earningsReceiver.toLowerCase() !== address.toLowerCase()
+          ? 'Must be the earnings receiver to claim'
           : canClaim
           ? 'Claim'
           : 'Nothing available to claim'}
