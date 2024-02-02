@@ -87,7 +87,7 @@ function HydratedClaimEarningsForm({ lrt }: Props) {
         {isLoading
           ? 'Claiming'
           : !operator
-          ? 'Must be operator manager to claim'
+          ? 'Must be an operator manager to claim'
           : canClaim
           ? 'Claim'
           : 'Nothing available to claim'}
