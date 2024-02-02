@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { type TableColumn } from '@rio-monorepo/ui/lib/typings';
-import TableLabel from './TableLabel';
-import { cn } from '@rio-monorepo/ui/lib/utilities';
-import { useMediaQuery } from 'react-responsive';
 import { AnimatePresence, motion } from 'framer-motion';
-import IconExpand from '@rio-monorepo/ui/components/Icons/IconExpand';
-import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
-import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { useMediaQuery } from 'react-responsive';
 import { twJoin } from 'tailwind-merge';
+import React, { useState } from 'react';
+import { type TableColumn } from '../../lib/typings';
+import { DESKTOP_MQ } from '../../lib/constants';
+import { cn } from '../../lib/utilities';
+import { useIsMounted } from '../../hooks/useIsMounted';
+import IconExpand from '../Icons/IconExpand';
+import { TableLabel } from './TableLabel';
 
 interface TableRowProps<T> {
   item: T;
@@ -68,7 +68,7 @@ const DesktopRow: DesktopTableRowComponent = ({
                       : undefined
                   }
                 >
-                  {item[key] as React.ReactNode}
+                  {item[key] as unknown as React.ReactNode}
                 </TableLabel>
               )}
             </motion.td>
@@ -194,7 +194,7 @@ const MobileRow: MobileTableRowComponent = ({
 
 type TableRowComponent = <T>(props: TableRowProps<T>) => React.ReactNode;
 
-const TableRow: TableRowComponent = ({
+export const TableRow: TableRowComponent = ({
   item,
   mobileColumns,
   columns,
@@ -230,5 +230,3 @@ const TableRow: TableRowComponent = ({
     />
   );
 };
-
-export default TableRow;

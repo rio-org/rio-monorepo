@@ -1,5 +1,5 @@
 import cx from 'classnames';
-import TableRow from './TableRow';
+import { TableRow } from '@rio-monorepo/ui/components/Shared/TableRow';
 import { useMediaQuery } from 'react-responsive';
 import {
   DESKTOP_MQ,
@@ -12,10 +12,10 @@ import Pagination from './Pagination';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { useTransactionHistory } from '@rio-monorepo/ui/hooks/useUserHistory';
 import {
-  LRTDetails,
-  MobileTableColumns,
-  TableColumn,
-  TransactionEvent,
+  type LRTDetails,
+  type MobileTableColumns,
+  type TableColumn,
+  type TransactionEvent,
   TransactionType
 } from '@rio-monorepo/ui/lib/typings';
 import { usePagination } from '@rio-monorepo/ui/hooks/usePagination';
