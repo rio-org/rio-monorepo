@@ -286,31 +286,35 @@ interface IRioLRTOperatorRegistry {
     /// @param validatorCount The number of pending validator details that were removed.
     event OperatorPendingValidatorDetailsRemoved(uint8 indexed operatorId, uint256 validatorCount);
 
-    /// @notice Emitted when strategy shares have been allocated to operators.
+    /// @notice Emitted when strategy shares have been allocated to an operator.
+    /// @param operatorId The operator's ID.
     /// @param strategy The strategy that the shares were allocated to.
     /// @param sharesAllocated The amount of shares allocated.
-    /// @param allocations The allocations made.
+    /// @param tokensAllocated The token value of the allocated shares.
     event StrategySharesAllocated(
-        address indexed strategy, uint256 sharesAllocated, OperatorStrategyAllocation[] allocations
+        uint8 indexed operatorId, address indexed strategy, uint256 sharesAllocated, uint256 tokensAllocated
     );
 
-    /// @notice Emitted when ETH deposits have been allocated to operators.
+    /// @notice Emitted when ETH deposits have been allocated to an operator.
+    /// @param operatorId The operator's ID.
     /// @param depositsAllocated The amount of deposits allocated.
-    /// @param allocations The allocations made.
-    event ETHDepositsAllocated(uint256 depositsAllocated, OperatorETHAllocation[] allocations);
+    /// @param pubKeyBatch The public keys of the validators that were allocated to.
+    event ETHDepositsAllocated(uint8 indexed operatorId, uint256 depositsAllocated, bytes pubKeyBatch);
 
-    /// @notice Emitted when strategy shares have been deallocated from operators.
+    /// @notice Emitted when strategy shares have been deallocated from an operator.
+    /// @param operatorId The operator's ID.
     /// @param strategy The strategy that the shares were deallocated from.
     /// @param sharesDeallocated The amount of shares deallocated.
-    /// @param deallocations The deallocations made.
+    /// @param tokensDeallocated The token value of the deallocated shares.
     event StrategySharesDeallocated(
-        address indexed strategy, uint256 sharesDeallocated, OperatorStrategyDeallocation[] deallocations
+        uint8 indexed operatorId, address indexed strategy, uint256 sharesDeallocated, uint256 tokensDeallocated
     );
 
-    /// @notice Emitted when ETH deposits have been deallocated from operators.
+    /// @notice Emitted when ETH deposits have been deallocated from an operator.
+    /// @param operatorId The operator's ID.
     /// @param depositsDeallocated The amount of deposits deallocated.
-    /// @param deallocations The deallocations made.
-    event ETHDepositsDeallocated(uint256 depositsDeallocated, OperatorETHDeallocation[] deallocations);
+    /// @param pubKeyBatch The public keys of the validators that must be exited.
+    event ETHDepositsDeallocated(uint8 indexed operatorId, uint256 depositsDeallocated, bytes pubKeyBatch);
 
     // forgefmt: disable-next-item
     /// @notice Initializes the contract.

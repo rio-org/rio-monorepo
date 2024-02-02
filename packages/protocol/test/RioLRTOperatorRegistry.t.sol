@@ -467,7 +467,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         uint40 VALIDATORS_PER_OPERATOR = 5;
 
         // Create 10 operator delegator with 5 validators each and fast forward to allow keys to confirm.
-        addOperatorDelegators(
+        uint8[] memory operatorIds = addOperatorDelegators(
             reETH.operatorRegistry,
             address(reETH.rewardDistributor),
             OPERATOR_COUNT,
@@ -480,6 +480,15 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         vm.prank(address(reETH.depositPool));
         reETH.operatorRegistry.allocateETHDeposits(TOTAL_DEPOSITS);
 
+        IRioLRTOperatorRegistry.OperatorValidatorDetails memory validatorDetails;
+        for (uint256 i = 0; i < operatorIds.length; i++) {
+            validatorDetails = reETH.operatorRegistry.getOperatorDetails(operatorIds[i]).validatorDetails;
+            assertEq(validatorDetails.total, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.confirmed, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.deposited, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.exited, 0);
+        }
+
         vm.prank(address(reETH.coordinator));
         (uint256 depositsDeallocated, IRioLRTOperatorRegistry.OperatorETHDeallocation[] memory deallocations) =
             reETH.operatorRegistry.deallocateETHDeposits(TOTAL_DEPOSITS);
@@ -490,5 +499,75 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         for (uint256 i = 0; i < deallocations.length; i++) {
             assertEq(deallocations[i].deposits, VALIDATORS_PER_OPERATOR);
         }
+        for (uint256 i = 0; i < operatorIds.length; i++) {
+            validatorDetails = reETH.operatorRegistry.getOperatorDetails(operatorIds[i]).validatorDetails;
+            assertEq(validatorDetails.total, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.confirmed, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.deposited, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.exited, VALIDATORS_PER_OPERATOR);
+        }
+    }
+
+    function test_deallocateSomeETHDeposits() public {
+        uint8 OPERATOR_COUNT = 10;
+        uint40 VALIDATORS_PER_OPERATOR = 5;
+
+        // Create 10 operator delegator with 5 validators each and fast forward to allow keys to confirm.
+        uint8[] memory operatorIds = addOperatorDelegators(
+            reETH.operatorRegistry,
+            address(reETH.rewardDistributor),
+            OPERATOR_COUNT,
+            emptyStrategyShareCaps,
+            VALIDATORS_PER_OPERATOR
+        );
+
+        uint256 TOTAL_DEPOSITS = OPERATOR_COUNT * VALIDATORS_PER_OPERATOR;
+
+        vm.prank(address(reETH.depositPool));
+        reETH.operatorRegistry.allocateETHDeposits(TOTAL_DEPOSITS);
+
+        IRioLRTOperatorRegistry.OperatorValidatorDetails memory validatorDetails;
+        for (uint256 i = 0; i < operatorIds.length; i++) {
+            validatorDetails = reETH.operatorRegistry.getOperatorDetails(operatorIds[i]).validatorDetails;
+            assertEq(validatorDetails.total, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.confirmed, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.deposited, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.exited, 0);
+        }
+
+        uint256 DEPOSITS_TO_DEALLOCATE = 17;
+
+        vm.prank(address(reETH.coordinator));
+        (uint256 depositsDeallocated, IRioLRTOperatorRegistry.OperatorETHDeallocation[] memory deallocations) =
+            reETH.operatorRegistry.deallocateETHDeposits(DEPOSITS_TO_DEALLOCATE);
+
+        assertEq(depositsDeallocated, DEPOSITS_TO_DEALLOCATE);
+        assertEq(deallocations.length, 4);
+
+        assertEq(deallocations[0].deposits, VALIDATORS_PER_OPERATOR);
+        assertEq(deallocations[1].deposits, VALIDATORS_PER_OPERATOR);
+        assertEq(deallocations[2].deposits, VALIDATORS_PER_OPERATOR);
+        assertEq(deallocations[3].deposits, 2);
+
+        uint256 fullyExitedCount;
+        uint256 partiallyExitedCount;
+        uint256 notExitedCount;
+        for (uint256 i = 0; i < operatorIds.length; i++) {
+            validatorDetails = reETH.operatorRegistry.getOperatorDetails(operatorIds[i]).validatorDetails;
+            assertEq(validatorDetails.total, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.confirmed, VALIDATORS_PER_OPERATOR);
+            assertEq(validatorDetails.deposited, VALIDATORS_PER_OPERATOR);
+
+            if (validatorDetails.exited == VALIDATORS_PER_OPERATOR) {
+                fullyExitedCount++;
+            } else if (validatorDetails.exited == 0) {
+                notExitedCount++;
+            } else {
+                partiallyExitedCount++;
+            }
+        }
+        assertEq(fullyExitedCount, 3);
+        assertEq(partiallyExitedCount, 1);
+        assertEq(notExitedCount, 6);
     }
 }

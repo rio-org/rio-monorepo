@@ -15,11 +15,12 @@ library TestUtils {
         signatures = new bytes(ValidatorDetails.SIGNATURE_LENGTH * validatorCount);
 
         // Validator keys cannot be empty.
-        for (uint256 i = 0; i < publicKeys.length; i += ValidatorDetails.PUBKEY_LENGTH) {
-            publicKeys[i] = bytes1(0x01);
-        }
-        for (uint256 i = 0; i < signatures.length; i += ValidatorDetails.SIGNATURE_LENGTH) {
-            signatures[i] = bytes1(0x01);
+        for (uint16 i = 0; i < validatorCount; ++i) {
+            bytes memory keySigBytes = abi.encodePacked(i + 1);
+            for (uint256 j = 0; j < keySigBytes.length; j++) {
+                publicKeys[i * ValidatorDetails.PUBKEY_LENGTH + j] = keySigBytes[j];
+                signatures[i * ValidatorDetails.SIGNATURE_LENGTH + j] = keySigBytes[j];
+            }
         }
     }
 }
