@@ -39,7 +39,7 @@ const Container = ({
               <h1 className="text-2xl mb-0 font-medium lg:hidden">{title}</h1>
             )}
             {header && (
-              <div className="flex gap-2 justify-center items-center">
+              <div className="flex gap-2 justify-center font-bold items-center">
                 {header}
               </div>
             )}

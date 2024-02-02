@@ -1,5 +1,6 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
+import { twJoin } from 'tailwind-merge';
 
 type Props = {
   title?: string;
@@ -13,7 +14,14 @@ export function ClaimAmountViewer({
   title = 'Available to claim now'
 }: Props) {
   return (
-    <div className="flex flex-col justify-center items-center w-full text-center p-4 rounded-xl bg-black bg-opacity-5 text-black min-h-[160px]">
+    <div
+      className={twJoin(
+        'flex flex-col justify-center items-center',
+        'w-full min-h-[160px] p-4',
+        'text-center text-black',
+        'rounded-xl bg-black bg-opacity-5'
+      )}
+    >
       <div>
         <p className="opacity-50">{title}</p>
         <p className="text-[30px]">
