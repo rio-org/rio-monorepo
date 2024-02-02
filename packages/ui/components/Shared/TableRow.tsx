@@ -111,7 +111,10 @@ const MobileRow: MobileTableRowComponent = ({
           'text-right';
 
         return (
-          <td key={_key} className={cn('text-left p-4 w-[50%]', rightColumn)}>
+          <td
+            key={`${_label}_${_key}_${keyIndex}`}
+            className={cn('text-left p-4 w-[50%]', rightColumn)}
+          >
             <span
               className={cn(
                 'text-[12px] font-normal opacity-50 w-full flex',
