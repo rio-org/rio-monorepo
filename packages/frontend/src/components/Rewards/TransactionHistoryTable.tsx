@@ -11,8 +11,19 @@ import { Spinner } from '@material-tailwind/react';
 import Pagination from './Pagination';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { useTransactionHistory } from '@rio-monorepo/ui/hooks/useUserHistory';
-import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import {
+  LRTDetails,
+  MobileTableColumns,
+  TableColumn,
+  TransactionEvent,
+  TransactionType
+} from '@rio-monorepo/ui/lib/typings';
 import { usePagination } from '@rio-monorepo/ui/hooks/usePagination';
+import { useMemo } from 'react';
+import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
+import { linkToTxOnBlockExplorer } from '@rio-monorepo/ui/lib/utilities';
+import { CHAIN_ID } from '@rio-monorepo/ui/config';
+import IconLineArrow from '@rio-monorepo/ui/components/Icons/IconLineArrow';
 
 interface Props {
   lrt?: LRTDetails;
@@ -31,6 +42,140 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
     items: txHistory,
     resultsPerPage: 10
   });
+
+  const tableColumns = useMemo<TableColumn<TransactionEvent>[]>(
+    () => [
+      {
+        key: 'date',
+        label: 'Date',
+        render(TableLabel, item) {
+          return (
+            <TableLabel>
+              <a
+                href={linkToTxOnBlockExplorer(item.tx, CHAIN_ID)}
+                target="_blank"
+                rel="noreferrer"
+                className={cx(
+                  'w-fit h-fit r-[8px] py-[4px]',
+                  'whitespace-nowrap text-sm leading-none',
+                  'flex items-center rounded-full gap-2',
+                  'transition-colors duration-200'
+                )}
+              >
+                <span className="pt-1">{item.date}</span>
+                <IconExternal transactionStatus="None" />
+              </a>
+            </TableLabel>
+          );
+        }
+      },
+      {
+        key: 'type',
+        label: 'Transaction'
+      },
+      {
+        key: 'restakingTokenPriceUSD',
+        label: 'Historical reETH Price',
+        render(TableLabel, item) {
+          return (
+            <TableLabel textDirection="right">
+              $
+              {item.restakingTokenPriceUSD.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}
+            </TableLabel>
+          );
+        }
+      },
+      {
+        key: 'amountChange',
+        label: 'Amount',
+        render(TableLabel, item) {
+          return (
+            <div className="flex flex-col">
+              <TableLabel textDirection="right">
+                {item.type === TransactionType.Request ? '-' : ''}
+                {item.amountChange} reETH
+              </TableLabel>
+              <TableLabel isSecondary={true} textDirection="right">
+                {item.type === TransactionType.Request ? '-' : ''}$
+                {item.valueUSD.toFixed(2).toLocaleString()}
+              </TableLabel>
+            </div>
+          );
+        }
+      }
+    ],
+    []
+  );
+
+  const mobileColumns = useMemo<MobileTableColumns<TransactionEvent>>(
+    () => ({
+      top: [
+        {
+          key: 'date',
+          label: 'Date',
+          render(TableLabel, item) {
+            return (
+              <TableLabel>
+                <a
+                  href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cx(
+                    'w-fit h-fit',
+                    'whitespace-nowrap text-sm leading-none',
+                    'flex items-center gap-1',
+                    'rounded-full transition-colors duration-200'
+                  )}
+                >
+                  <span className="pt-1">{item.date}</span>
+                  <IconLineArrow direction="external" />
+                </a>
+              </TableLabel>
+            );
+          }
+        },
+        {
+          key: 'amountChange',
+          label: 'Amount',
+          render(TableLabel, item) {
+            return (
+              <div className="flex flex-col">
+                <TableLabel textDirection="right">
+                  {item.type === TransactionType.Request ? '-' : ''}
+                  {item.amountChange} reETH
+                </TableLabel>
+                <TableLabel isSecondary={true} textDirection="right">
+                  {item.type === TransactionType.Request ? '-' : ''}$
+                  {item.valueUSD.toFixed(2).toLocaleString()}
+                </TableLabel>
+              </div>
+            );
+          }
+        }
+      ],
+      expanded: [
+        {
+          key: 'type',
+          label: 'Transaction'
+        },
+        {
+          key: 'valueUSD',
+          label: 'Historical reETH Price',
+          render(TableLabel, item) {
+            return (
+              <TableLabel textDirection="right">
+                ${item.valueUSD.toLocaleString()}
+              </TableLabel>
+            );
+          }
+        }
+      ]
+    }),
+    []
+  );
 
   return (
     <div>
@@ -52,7 +197,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
           <>
             {address && txHistory ? (
               <motion.div
-                className="bg-[var(--color-element-wrapper-bg)] p-[2px] rounded-t-2xl rounded-b-xl relative"
+                className="bg-[var(--color-element-wrapper-bg)] p-1 rounded-t-2xl rounded-b-xl relative"
                 layout
                 key={pagination.currentPage}
                 initial={false}
@@ -62,7 +207,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
                 {!!txHistory?.length && (
                   <motion.table
                     className={cx(
-                      'w-full min-w-fit table-auto text-left',
+                      'w-full min-w-fit table-auto text-left rounded-t-xl',
                       pagination.pageCount < 2 && 'rounded-b-xl overflow-hidden'
                     )}
                   >
@@ -98,7 +243,9 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
                       {pagination.currentPageItems?.map((event, i) => (
                         <TableRow
                           key={i}
-                          event={event}
+                          item={event}
+                          columns={tableColumns}
+                          mobileColumns={mobileColumns}
                           isFirst={i === 0}
                           index={i}
                         />

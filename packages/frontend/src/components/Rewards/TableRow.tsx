@@ -1,195 +1,190 @@
 import React, { useState } from 'react';
-import {
-  TransactionEvent,
-  TransactionType
-} from '@rio-monorepo/ui/lib/typings';
+import { type TableColumn } from '@rio-monorepo/ui/lib/typings';
 import TableLabel from './TableLabel';
-import cx from 'classnames';
-import { linkToTxOnBlockExplorer } from '@rio-monorepo/ui/lib/utilities';
-import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
+import { cn } from '@rio-monorepo/ui/lib/utilities';
 import { useMediaQuery } from 'react-responsive';
 import { AnimatePresence, motion } from 'framer-motion';
-import IconLineArrow from '@rio-monorepo/ui/components/Icons/IconLineArrow';
 import IconExpand from '@rio-monorepo/ui/components/Icons/IconExpand';
 import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
-import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { twJoin } from 'tailwind-merge';
 
-type Props = {
-  event: TransactionEvent;
+interface TableRowProps<T> {
+  item: T;
   isFirst?: boolean;
-  index: number;
-};
-
-type ScreenSizeRowProps = {
-  event: TransactionEvent;
-  isOpen: boolean;
-  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
-  isFirst?: boolean;
-  index: number;
-};
+  index?: number;
+  columns: TableColumn<T>[];
+  mobileColumns: {
+    top: TableColumn<T>[];
+    expanded?: TableColumn<T>[];
+  };
+}
 
 const animationDuration = 0.1;
 const animationDelay = 0.025;
 const exitDuration = 0.085;
 
-const DesktopRow = ({ event, isFirst, index }: ScreenSizeRowProps) => {
+interface DesktopTableRowProps<T>
+  extends Omit<TableRowProps<T>, 'mobileColumns'> {
+  isOpen: boolean;
+  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+type DesktopTableRowComponent = <T>(
+  props: DesktopTableRowProps<T>
+) => React.ReactNode;
+
+const DesktopRow: DesktopTableRowComponent = ({
+  item,
+  columns,
+  isFirst,
+  index = 0
+}) => {
   return (
     <AnimatePresence>
-      {event && (
+      {item && (
         <motion.tr className="group bg-white divide-gray-100">
-          <motion.td
-            className={cx(
-              'p-4 pl-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
-              isFirst && 'rounded-tl-xl'
-            )}
-            key={`${index}-date`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: exitDuration } }}
-            transition={{
-              duration: animationDuration,
-              delay: index * animationDelay
-            }}
-          >
-            <TableLabel>
-              <a
-                href={linkToTxOnBlockExplorer(event?.tx, CHAIN_ID)}
-                target="_blank"
-                rel="noreferrer"
-                className={cx(
-                  `pr-[8px] py-[4px] whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200 leading-none`
-                )}
-              >
-                <span className="pt-1">{event.date}</span>
-                <IconExternal transactionStatus="None" />
-              </a>
-            </TableLabel>
-          </motion.td>
-          <motion.td
-            className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
-            key={`${index}-type`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: exitDuration } }}
-            transition={{
-              duration: animationDuration,
-              delay: index * animationDelay
-            }}
-          >
-            <TableLabel>{event.type}</TableLabel>
-          </motion.td>
-
-          <motion.td
-            className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
-            key={`${index}-price`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: exitDuration } }}
-            transition={{
-              duration: animationDuration,
-              delay: index * animationDelay
-            }}
-          >
-            <TableLabel textDirection="right">
-              $
-              {event.restakingTokenPriceUSD.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}
-            </TableLabel>
-          </motion.td>
-          <motion.td
-            className="p-4 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors"
-            key={`${index}-amount`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: exitDuration } }}
-            transition={{
-              duration: animationDuration,
-              delay: index * animationDelay
-            }}
-          >
-            <div className="flex flex-col">
-              <TableLabel textDirection="right">
-                {event.type === TransactionType.Request ? '-' : ''}
-                {event.amountChange} reETH
-              </TableLabel>
-              <TableLabel isSecondary={true} textDirection="right">
-                {event.type === TransactionType.Request ? '-' : ''}$
-                {event.valueUSD.toFixed(2).toLocaleString()}
-              </TableLabel>
-            </div>
-          </motion.td>
+          {columns.map(({ key, render }, keyIndex) => (
+            <motion.td
+              className={cn(
+                'p-4 pl-6 text-right bg-white group-hover:bg-[var(--color-gray-hover)] transition-colors',
+                !keyIndex && isFirst && 'rounded-tl-xl',
+                keyIndex === columns.length - 1 && isFirst && 'rounded-tr-xl'
+              )}
+              key={`${index}-${keyIndex}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: exitDuration } }}
+              transition={{
+                duration: animationDuration,
+                delay: index * animationDelay
+              }}
+            >
+              {render?.(TableLabel, item, key) ?? (
+                <TableLabel
+                  textDirection={
+                    keyIndex >= Math.ceil((columns.length - 1) / 2)
+                      ? 'right'
+                      : undefined
+                  }
+                >
+                  {item[key] as React.ReactNode}
+                </TableLabel>
+              )}
+            </motion.td>
+          ))}
         </motion.tr>
       )}
     </AnimatePresence>
   );
 };
 
-const MobileRow = ({
-  event,
+interface MobileTableRowProps<T>
+  extends Omit<DesktopTableRowProps<T>, 'columns'> {
+  columns: TableRowProps<T>['mobileColumns'];
+}
+
+type MobileTableRowComponent = <T>(
+  props: MobileTableRowProps<T>
+) => React.ReactNode;
+
+const MobileRow: MobileTableRowComponent = ({
+  item,
+  columns,
   isOpen,
   setIsOpen,
   isFirst
-}: ScreenSizeRowProps) => {
+}) => {
   return (
     <tr
-      className={cx(
+      className={cn(
         'group bg-white flex flex-wrap lg:table-row',
         isFirst && 'rounded-t-xl'
       )}
     >
-      <td className={cx('text-left p-4 w-[50%]')}>
-        <span className="text-[12px] font-normal opacity-50 flex">Date</span>
-        <TableLabel>
-          <a
-            href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
-            target="_blank"
-            rel="noreferrer"
-            className={cx(
-              `whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-1 h-fit transition-colors duration-200 leading-none`
-            )}
-          >
-            <span className="pt-1">{event.date}</span>
-            <IconLineArrow direction="external" />
-          </a>
-        </TableLabel>
+      {columns.top.map(({ key, label, render }, keyIndex) => {
+        const _key = key.toString();
+        const _label = label || _key[0].toUpperCase() + _key.slice(1);
+        const rightColumn =
+          !!keyIndex &&
+          keyIndex >= Math.ceil((columns.top.length - 1) / 2) &&
+          'text-right';
 
-        <button
-          className="min-w-[90px] mt-1 text-[12px] rounded-full border border-[var(--color-blue)] text-[var(--color-blue)] px-3 py-[2px] transition-colors flex flex-row gap-1 justify-center items-center"
-          onClick={() => setIsOpen && setIsOpen(!isOpen)}
-        >
-          <span className="">{isOpen ? 'Collapse' : 'Expand'}</span>
-          <IconExpand isExpanded={isOpen} />
-        </button>
-      </td>
+        return (
+          <td key={_key} className={cn('text-left p-4 w-[50%]', rightColumn)}>
+            <span
+              className={cn(
+                'text-[12px] font-normal opacity-50 w-full flex',
+                rightColumn && 'justify-end'
+              )}
+            >
+              {_label}
+            </span>
+            {render?.(TableLabel, item, key) ?? (
+              <TableLabel textDirection={rightColumn ? 'right' : undefined}>
+                {item[key] as React.ReactNode}
+              </TableLabel>
+            )}
+            {!keyIndex && !!columns.expanded?.length && (
+              <button
+                onClick={() => setIsOpen && setIsOpen(!isOpen)}
+                className={twJoin(
+                  'flex flex-row gap-1 justify-center items-center',
+                  'min-w-[90px] mt-2 px-3 py-[2px]',
+                  'rounded-full border border-[var(--color-blue)]',
+                  'text-[12px] text-[var(--color-blue)] transition-colors'
+                )}
+              >
+                <span className="">{isOpen ? 'Collapse' : 'Expand'}</span>
+                <IconExpand isExpanded={isOpen} />
+              </button>
+            )}
+          </td>
+        );
+      })}
 
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && !!columns.expanded?.length && (
           <motion.td
-            className="mx-4 overflow-hidden w-full"
-            initial={{ height: 0 }}
-            animate={{ height: 'auto' }}
-            exit={{ height: 0 }}
+            className={twJoin(
+              'overflow-hidden w-full',
+              'flex flex-row justify-between gap-4',
+              'mx-4 px-4',
+              'rounded-xl bg-[var(--color-app-bg)] bg-opacity-25'
+            )}
+            initial={{ height: 0, marginBottom: 0 }}
+            animate={{ height: 'auto', marginBottom: '1rem' }}
+            exit={{ height: 0, marginBottom: 0 }}
             transition={{ type: 'spring', duration: 0.4, bounce: 0 }}
           >
-            <div className="border-t border-t-[var(--color-element-wrapper-bg)] flex flex-row justify-between gap-4 w-full">
-              <div className="pt-2 pb-3">
-                <span className="text-[12px] font-normal py-2 opacity-50 text-right w-full">
-                  Transaction
-                </span>
-                <TableLabel>{event.type}</TableLabel>
-              </div>
-              <div className="pt-2 pb-3">
-                <span className="text-[12px] font-normal py-2 opacity-50 text-right w-full">
-                  Historical reETH price
-                </span>
-                <TableLabel textDirection="right">
-                  ${event.valueUSD.toLocaleString()}
-                </TableLabel>
-              </div>
-            </div>
+            {columns.expanded.map(({ key, label, render }, keyIndex) => {
+              const _key = key.toString();
+              const _label = label || _key[0].toUpperCase() + _key.slice(1);
+              const rightColumn =
+                !!keyIndex &&
+                keyIndex >= Math.ceil((columns.top.length - 1) / 2) &&
+                'text-right';
+
+              return (
+                <div className="pt-2 pb-3">
+                  <span
+                    className={cn(
+                      'text-[12px] font-normal py-2 opacity-50 text-left w-full',
+                      rightColumn
+                    )}
+                  >
+                    {_label}
+                  </span>
+                  {render?.(TableLabel, item, key) ?? (
+                    <TableLabel
+                      textDirection={rightColumn ? 'right' : undefined}
+                    >
+                      {item[key] as React.ReactNode}
+                    </TableLabel>
+                  )}
+                </div>
+              );
+            })}
           </motion.td>
         )}
       </AnimatePresence>
@@ -197,7 +192,15 @@ const MobileRow = ({
   );
 };
 
-const TableRow = ({ event, isFirst, index }: Props) => {
+type TableRowComponent = <T>(props: TableRowProps<T>) => React.ReactNode;
+
+const TableRow: TableRowComponent = ({
+  item,
+  mobileColumns,
+  columns,
+  isFirst,
+  index
+}) => {
   const isMounted = useIsMounted();
   const [isOpen, setIsOpen] = useState(false);
   const isDesktopOrLaptop = useMediaQuery({
@@ -207,7 +210,8 @@ const TableRow = ({ event, isFirst, index }: Props) => {
   if (isMounted && !isDesktopOrLaptop) {
     return (
       <MobileRow
-        event={event}
+        item={item}
+        columns={mobileColumns}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         isFirst={isFirst}
@@ -217,7 +221,8 @@ const TableRow = ({ event, isFirst, index }: Props) => {
   }
   return (
     <DesktopRow
-      event={event}
+      item={item}
+      columns={columns}
       isOpen={isOpen}
       setIsOpen={setIsOpen}
       isFirst={isFirst}

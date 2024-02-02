@@ -1,11 +1,9 @@
 import React from 'react';
 import cx from 'classnames';
 
-type Props = {
-  children: React.ReactNode;
-  textDirection?: 'left' | 'right';
-  isSecondary?: boolean;
-};
+import { type TableLabelProps } from '@rio-monorepo/ui/lib/typings';
+
+export type Props = TableLabelProps;
 
 const TableLabel = ({
   children,
