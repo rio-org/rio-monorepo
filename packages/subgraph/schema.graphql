@@ -283,4 +283,7 @@ type Validator @entity {
   status: ValidatorStatus!
   delegator: OperatorDelegator!
   publicKey: Bytes!
+  keyUploadTimestamp: BigInt!
+  keyUploadLogIndex: BigInt!
+  keyUploadTx: Bytes!
 }

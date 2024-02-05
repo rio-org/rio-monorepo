@@ -57,6 +57,9 @@ export function handleValidatorDetailsAdded(event: ValidatorDetailsAdded): void 
   validator.status = ValidatorStatus.UNUSED;
   validator.delegator = operatorDelegator.id;
   validator.publicKey = event.params.pubkey;
+  validator.keyUploadTimestamp = event.block.timestamp;
+  validator.keyUploadLogIndex = event.logIndex;
+  validator.keyUploadTx = event.transaction.hash;
   validator.save();
 }
 
