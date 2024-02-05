@@ -10,7 +10,10 @@ export {
   WithdrawalEpochStatus,
   WithdrawalRequest,
   WithdrawalClaim,
-  Operator
+  OperatorDelegator,
+  Operator,
+  ValidatorStatus,
+  Validator
 } from './types';
 export {
   SUBGRAPH_URLS,

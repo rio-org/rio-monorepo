@@ -141,27 +141,47 @@ export const WithdrawalClaimFields = graphql(`
   }
 `);
 
-export const OperatorFields = graphql(`
-  fragment OperatorFields on Operator {
+export const OperatorDelegatorFields = graphql(`
+  fragment OperatorDelegatorFields on OperatorDelegator {
     id
-    operatorId
+    delegatorId
     address
-    delegator
+    operator {
+      address
+      metadataURI
+      metadata {
+        name
+        website
+        description
+        logo
+        twitter
+      }
+      delegationApprover
+      stakerOptOutWindowBlocks
+    }
     manager
     earningsReceiver
-    metadataURI
-    metadata {
-      name
-      website
-      description
-      logo
-      twitter
-    }
-    delegationApprover
-    stakerOptOutWindowBlocks
+    unusedValidatorKeyCount
+    depositedValidatorKeyCount
+    exitedValidatorKeyCount
+    totalValidatorKeyCount
     restakingToken {
       id
     }
+  }
+`);
+
+export const ValidatorFields = graphql(`
+  fragment ValidatorFields on Validator {
+    id
+    status
+    delegator {
+      id
+    }
+    publicKey
+    keyUploadTimestamp
+    keyUploadLogIndex
+    keyUploadTx
   }
 `);
 
@@ -269,22 +289,42 @@ export const ManyWithdrawalClaimsQuery = graphql(`
   }
 `);
 
-export const ManyOperatorsQuery = graphql(`
-  query manyOperators(
+export const ManyOperatorDelegatorsQuery = graphql(`
+  query manyOperatorDelegators(
     $first: Int!
     $skip: Int!
-    $orderBy: Operator_orderBy
+    $orderBy: OperatorDelegator_orderBy
     $orderDirection: OrderDirection
-    $where: Operator_filter
+    $where: OperatorDelegator_filter
   ) {
-    operators(
+    operatorDelegators(
       first: $first
       skip: $skip
       orderBy: $orderBy
       orderDirection: $orderDirection
       where: $where
     ) {
-      ...OperatorFields
+      ...OperatorDelegatorFields
+    }
+  }
+`);
+
+export const ManyValidatorsQuery = graphql(`
+  query manyValidators(
+    $first: Int!
+    $skip: Int!
+    $orderBy: Validator_orderBy
+    $orderDirection: OrderDirection
+    $where: Validator_filter
+  ) {
+    validators(
+      first: $first
+      skip: $skip
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+      where: $where
+    ) {
+      ...ValidatorFields
     }
   }
 `);

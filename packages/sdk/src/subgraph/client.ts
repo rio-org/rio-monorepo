@@ -13,8 +13,10 @@ import {
   WithdrawalRequest_Filter,
   WithdrawalClaim_OrderBy,
   WithdrawalClaim_Filter,
-  Operator_OrderBy,
-  Operator_Filter
+  OperatorDelegator_OrderBy,
+  OperatorDelegator_Filter,
+  Validator_OrderBy,
+  Validator_Filter
 } from './generated/graphql';
 import {
   IssuerQuery,
@@ -23,7 +25,8 @@ import {
   ManyWithdrawalRequestsQuery,
   ManyWithdrawalClaimsQuery,
   ManyLiquidRestakingTokensQuery,
-  ManyOperatorsQuery
+  ManyOperatorDelegatorsQuery,
+  ManyValidatorsQuery
 } from './queries';
 import {
   WithdrawalRequest,
@@ -33,7 +36,8 @@ import {
   QueryConfig,
   WithdrawalEpochStatus,
   WithdrawalClaim,
-  Operator
+  OperatorDelegator,
+  Validator
 } from './types';
 import { GraphQLClient } from 'graphql-request';
 import BN from 'big.js';
@@ -268,45 +272,91 @@ export class SubgraphClient {
   }
 
   /**
-   * Get information about one or more operators.
+   * Get information about one or more operator delegators, and their associated operators.
    * @param config Filtering, pagination, and ordering configuration.
    */
-  public async getOperators(
-    config: Partial<QueryConfig<Operator_OrderBy, Operator_Filter>> = {}
-  ): Promise<Operator[]> {
-    const { operators } = await this._gql.request(
-      ManyOperatorsQuery,
+  public async getOperatorDelegators(
+    config: Partial<
+      QueryConfig<OperatorDelegator_OrderBy, OperatorDelegator_Filter>
+    > = {}
+  ): Promise<OperatorDelegator[]> {
+    const { operatorDelegators } = await this._gql.request(
+      ManyOperatorDelegatorsQuery,
       toPaginated(
-        this.merge(getDefaultConfig(Operator_OrderBy.OperatorId), config)
+        this.merge(
+          getDefaultConfig(OperatorDelegator_OrderBy.OperatorId),
+          config
+        )
       )
     );
-    return operators.map(
+    return operatorDelegators.map(
       ({
-        operatorId,
+        delegatorId,
         address,
-        delegator,
+        operator: o,
         manager,
         earningsReceiver,
-        metadataURI,
-        metadata,
-        delegationApprover,
-        stakerOptOutWindowBlocks,
+        unusedValidatorKeyCount,
+        depositedValidatorKeyCount,
+        exitedValidatorKeyCount,
+        totalValidatorKeyCount,
         restakingToken
       }) => ({
-        operatorId,
+        delegatorId,
         address,
-        delegator,
         manager,
+        operator: {
+          address: o.address,
+          metadataURI: o.metadataURI,
+          name: o.metadata?.name ?? null,
+          website: o.metadata?.website ?? null,
+          description: o.metadata?.description ?? null,
+          logo: o.metadata?.logo ?? null,
+          twitter: o.metadata?.twitter ?? null,
+          delegationApprover: o.delegationApprover,
+          stakerOptOutWindowBlocks: o.stakerOptOutWindowBlocks
+        },
         earningsReceiver,
-        metadataURI,
-        name: metadata?.name ?? null,
-        website: metadata?.website ?? null,
-        description: metadata?.description ?? null,
-        logo: metadata?.logo ?? null,
-        twitter: metadata?.twitter ?? null,
-        delegationApprover,
-        stakerOptOutWindowBlocks,
+        unusedValidatorKeyCount,
+        depositedValidatorKeyCount,
+        exitedValidatorKeyCount,
+        totalValidatorKeyCount,
         restakingToken: restakingToken.id
+      })
+    );
+  }
+
+  /**
+   * Get information about one or more validators, and their operator delegators.
+   * @param config Filtering, pagination, and ordering configuration.
+   */
+  public async getValidators(
+    config: Partial<QueryConfig<Validator_OrderBy, Validator_Filter>> = {}
+  ): Promise<Validator[]> {
+    const { validators } = await this._gql.request(
+      ManyValidatorsQuery,
+      toPaginated(
+        this.merge(
+          getDefaultConfig(Validator_OrderBy.KeyUploadTimestamp),
+          config
+        )
+      )
+    );
+    return validators.map(
+      ({
+        status,
+        delegator,
+        publicKey,
+        keyUploadTimestamp,
+        keyUploadLogIndex,
+        keyUploadTx
+      }) => ({
+        status,
+        delegator: delegator.id,
+        publicKey,
+        keyUploadTimestamp,
+        keyUploadLogIndex,
+        keyUploadTx
       })
     );
   }

@@ -113,12 +113,21 @@ export interface WithdrawalClaim {
   tx: string;
 }
 
-export interface Operator {
-  operatorId: number;
+export interface OperatorDelegator {
+  delegatorId: number;
   address: Address;
-  delegator: Address;
   manager: Address;
+  operator: Operator;
   earningsReceiver: Address;
+  unusedValidatorKeyCount: string;
+  depositedValidatorKeyCount: string;
+  exitedValidatorKeyCount: string;
+  totalValidatorKeyCount: string;
+  restakingToken: Address;
+}
+
+export interface Operator {
+  address: Address;
   metadataURI: string;
   name: string | null;
   website: string | null;
@@ -127,7 +136,21 @@ export interface Operator {
   twitter: string | null;
   delegationApprover: Address;
   stakerOptOutWindowBlocks: number;
-  restakingToken: Address;
+}
+
+export enum ValidatorStatus {
+  Unused = 'UNUSED',
+  Deposited = 'DEPOSITED',
+  Exited = 'EXITED'
+}
+
+export interface Validator {
+  status: ValidatorStatus;
+  delegator: Address;
+  publicKey: string;
+  keyUploadTimestamp: string;
+  keyUploadLogIndex: string;
+  keyUploadTx: string;
 }
 
 //#endregion

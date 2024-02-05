@@ -23,8 +23,10 @@ const documents = {
     types.WithdrawalRequestFieldsFragmentDoc,
   '\n  fragment WithdrawalClaimFields on WithdrawalClaim {\n    id\n    sender\n    epoch {\n      epoch\n    }\n    assetOut {\n      id\n    }\n    amountOut\n    restakingToken {\n      id\n    }\n    restakingTokenPriceUSD\n    requests {\n      id\n    }\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n':
     types.WithdrawalClaimFieldsFragmentDoc,
-  '\n  fragment OperatorFields on Operator {\n    id\n    operatorId\n    address\n    delegator\n    manager\n    earningsReceiver\n    metadataURI\n    metadata {\n      name\n      website\n      description\n      logo\n      twitter\n    }\n    delegationApprover\n    stakerOptOutWindowBlocks\n    restakingToken {\n      id\n    }\n  }\n':
-    types.OperatorFieldsFragmentDoc,
+  '\n  fragment OperatorDelegatorFields on OperatorDelegator {\n    id\n    delegatorId\n    address\n    operator {\n      address\n      metadataURI\n      metadata {\n        name\n        website\n        description\n        logo\n        twitter\n      }\n      delegationApprover\n      stakerOptOutWindowBlocks\n    }\n    manager\n    earningsReceiver\n    unusedValidatorKeyCount\n    depositedValidatorKeyCount\n    exitedValidatorKeyCount\n    totalValidatorKeyCount\n    restakingToken {\n      id\n    }\n  }\n':
+    types.OperatorDelegatorFieldsFragmentDoc,
+  '\n  fragment ValidatorFields on Validator {\n    id\n    status\n    delegator {\n      id\n    }\n    publicKey\n    keyUploadTimestamp\n    keyUploadLogIndex\n    keyUploadTx\n  }\n':
+    types.ValidatorFieldsFragmentDoc,
   '\n  query issuer($id: ID!) {\n    issuer(id: $id) {\n      ...IssuerFields\n    }\n  }\n':
     types.IssuerDocument,
   '\n  query liquidRestakingToken($id: ID!) {\n    liquidRestakingToken(id: $id) {\n      ...LiquidRestakingTokenFields\n    }\n  }\n':
@@ -37,8 +39,10 @@ const documents = {
     types.ManyWithdrawalRequestsDocument,
   '\n  query manyWithdrawalClaims(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalClaim_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalClaim_filter\n  ) {\n    withdrawalClaims(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalClaimFields\n    }\n  }\n':
     types.ManyWithdrawalClaimsDocument,
-  '\n  query manyOperators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Operator_orderBy\n    $orderDirection: OrderDirection\n    $where: Operator_filter\n  ) {\n    operators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...OperatorFields\n    }\n  }\n':
-    types.ManyOperatorsDocument
+  '\n  query manyOperatorDelegators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: OperatorDelegator_orderBy\n    $orderDirection: OrderDirection\n    $where: OperatorDelegator_filter\n  ) {\n    operatorDelegators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...OperatorDelegatorFields\n    }\n  }\n':
+    types.ManyOperatorDelegatorsDocument,
+  '\n  query manyValidators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Validator_orderBy\n    $orderDirection: OrderDirection\n    $where: Validator_filter\n  ) {\n    validators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...ValidatorFields\n    }\n  }\n':
+    types.ManyValidatorsDocument
 };
 
 /**
@@ -89,8 +93,14 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  fragment OperatorFields on Operator {\n    id\n    operatorId\n    address\n    delegator\n    manager\n    earningsReceiver\n    metadataURI\n    metadata {\n      name\n      website\n      description\n      logo\n      twitter\n    }\n    delegationApprover\n    stakerOptOutWindowBlocks\n    restakingToken {\n      id\n    }\n  }\n'
-): (typeof documents)['\n  fragment OperatorFields on Operator {\n    id\n    operatorId\n    address\n    delegator\n    manager\n    earningsReceiver\n    metadataURI\n    metadata {\n      name\n      website\n      description\n      logo\n      twitter\n    }\n    delegationApprover\n    stakerOptOutWindowBlocks\n    restakingToken {\n      id\n    }\n  }\n'];
+  source: '\n  fragment OperatorDelegatorFields on OperatorDelegator {\n    id\n    delegatorId\n    address\n    operator {\n      address\n      metadataURI\n      metadata {\n        name\n        website\n        description\n        logo\n        twitter\n      }\n      delegationApprover\n      stakerOptOutWindowBlocks\n    }\n    manager\n    earningsReceiver\n    unusedValidatorKeyCount\n    depositedValidatorKeyCount\n    exitedValidatorKeyCount\n    totalValidatorKeyCount\n    restakingToken {\n      id\n    }\n  }\n'
+): (typeof documents)['\n  fragment OperatorDelegatorFields on OperatorDelegator {\n    id\n    delegatorId\n    address\n    operator {\n      address\n      metadataURI\n      metadata {\n        name\n        website\n        description\n        logo\n        twitter\n      }\n      delegationApprover\n      stakerOptOutWindowBlocks\n    }\n    manager\n    earningsReceiver\n    unusedValidatorKeyCount\n    depositedValidatorKeyCount\n    exitedValidatorKeyCount\n    totalValidatorKeyCount\n    restakingToken {\n      id\n    }\n  }\n'];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  fragment ValidatorFields on Validator {\n    id\n    status\n    delegator {\n      id\n    }\n    publicKey\n    keyUploadTimestamp\n    keyUploadLogIndex\n    keyUploadTx\n  }\n'
+): (typeof documents)['\n  fragment ValidatorFields on Validator {\n    id\n    status\n    delegator {\n      id\n    }\n    publicKey\n    keyUploadTimestamp\n    keyUploadLogIndex\n    keyUploadTx\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -131,8 +141,14 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  query manyOperators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Operator_orderBy\n    $orderDirection: OrderDirection\n    $where: Operator_filter\n  ) {\n    operators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...OperatorFields\n    }\n  }\n'
-): (typeof documents)['\n  query manyOperators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Operator_orderBy\n    $orderDirection: OrderDirection\n    $where: Operator_filter\n  ) {\n    operators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...OperatorFields\n    }\n  }\n'];
+  source: '\n  query manyOperatorDelegators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: OperatorDelegator_orderBy\n    $orderDirection: OrderDirection\n    $where: OperatorDelegator_filter\n  ) {\n    operatorDelegators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...OperatorDelegatorFields\n    }\n  }\n'
+): (typeof documents)['\n  query manyOperatorDelegators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: OperatorDelegator_orderBy\n    $orderDirection: OrderDirection\n    $where: OperatorDelegator_filter\n  ) {\n    operatorDelegators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...OperatorDelegatorFields\n    }\n  }\n'];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  query manyValidators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Validator_orderBy\n    $orderDirection: OrderDirection\n    $where: Validator_filter\n  ) {\n    validators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...ValidatorFields\n    }\n  }\n'
+): (typeof documents)['\n  query manyValidators(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Validator_orderBy\n    $orderDirection: OrderDirection\n    $where: Validator_filter\n  ) {\n    validators(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...ValidatorFields\n    }\n  }\n'];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
