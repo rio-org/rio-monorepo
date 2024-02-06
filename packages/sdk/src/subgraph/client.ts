@@ -336,10 +336,7 @@ export class SubgraphClient {
     const { validators } = await this._gql.request(
       ManyValidatorsQuery,
       toPaginated(
-        this.merge(
-          getDefaultConfig(Validator_OrderBy.KeyUploadTimestamp),
-          config
-        )
+        this.merge(getDefaultConfig(Validator_OrderBy.KeyIndex), config)
       )
     );
     return validators.map(
