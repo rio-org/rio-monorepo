@@ -20,7 +20,7 @@
     "@mui/material": "^5.14.17",
     "@rainbow-me/rainbowkit": "^1.2.0",
     "@rio-monorepo/ui": "workspace:*",
-    "@rionetwork/sdk-react": "0.1.0-alpha.20",
+    "@rionetwork/sdk-react": "0.1.0-alpha.21",
     "@vercel/edge": "^1.1.1",
     "@vercel/edge-config": "^0.4.1",
     "@wagmi/core": "^1.4.5",

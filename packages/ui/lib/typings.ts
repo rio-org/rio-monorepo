@@ -1,9 +1,11 @@
+import { AbiParametersToPrimitiveTypes, ExtractAbiFunction } from 'abitype';
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { StaticImageData } from 'next/image';
+import { Chain as WagmiChain } from 'wagmi';
 import { NextRequest } from 'next/server';
 import { Address, Hash } from 'viem';
-import { Chain as WagmiChain } from 'wagmi';
+import { RioLRTOperatorRegistryABI } from '../abi/RioLRTOperatorRegistryABI';
 
 export type NumberString = `${number}`;
 export type EthereumTransactionHash = `0x${string}`;
@@ -295,6 +297,13 @@ export interface ValidatorKeyItem {
   deposit_message_root: string;
   deposit_data_root: string;
 }
+
+export type OperatorDetails = AbiParametersToPrimitiveTypes<
+  ExtractAbiFunction<
+    typeof RioLRTOperatorRegistryABI,
+    'getOperatorDetails'
+  >['outputs']
+>[number];
 
 ///////////////////////
 // Transaction Store

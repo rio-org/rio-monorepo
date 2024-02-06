@@ -255,7 +255,7 @@ type SubgraphClienSimilarConfigs =
   | Parameters<SubgraphClient['getLiquidRestakingTokens']>[0]
   | Parameters<SubgraphClient['getDeposits']>[0]
   | Parameters<SubgraphClient['getWithdrawalRequests']>[0]
-  | Parameters<SubgraphClient['getOperators']>[0]
+  | Parameters<SubgraphClient['getOperatorDelegators']>[0]
   | Parameters<SubgraphClient['getWithdrawalClaims']>[0];
 
 export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(

@@ -109,8 +109,8 @@ importers:
         specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.20
-        version: 0.1.0-alpha.20(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.21
+        version: 0.1.0-alpha.21(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@vercel/edge':
         specifier: ^1.1.1
         version: 1.1.1
@@ -224,11 +224,14 @@ importers:
         specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.20
-        version: 0.1.0-alpha.20(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.21
+        version: 0.1.0-alpha.21(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.19.9)
+      abitype:
+        specifier: ^0.10.3
+        version: 0.10.3(typescript@5.2.2)
       classnames:
         specifier: ^2.3.2
         version: 2.3.2
@@ -392,8 +395,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@1.19.9)(wagmi@1.4.5)
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.20
-        version: 0.1.0-alpha.20(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.21
+        version: 0.1.0-alpha.21(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@vercel/analytics':
         specifier: ^1.1.2
         version: 1.1.2
@@ -409,6 +412,9 @@ importers:
       '@wagmi/core':
         specifier: ^1.4.5
         version: 1.4.5(@types/react@18.2.37)(react@18.2.0)(typescript@5.2.2)(viem@1.19.9)
+      abitype:
+        specifier: ^0.10.3
+        version: 0.10.3(typescript@5.2.2)
       classnames:
         specifier: ^2.3.2
         version: 2.3.2
@@ -3382,14 +3388,14 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.20(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
-    resolution: {integrity: sha512-wX2b8oLs5TRyy2RGBIUubgurhiUQbLd98AjxXfej9cxfAnFubs03R8XhSG1ugtCaNW3HX5S75s5D4f4Snkijsg==}
+  /@rionetwork/sdk-react@0.1.0-alpha.21(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
+    resolution: {integrity: sha512-auX5+vg3SsSfV8Ffgl0JTy+QWboR08s68oxn9bhZLOmU/MrJ6D7+XgjIca9VJraAe3kx2gJIoF0gVFrRM6HY2Q==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     peerDependencies:
       react: '>=16.13.1'
       wagmi: '>=1.2'
     dependencies:
-      '@rionetwork/sdk': 0.1.0-alpha.18(graphql@16.8.1)(typescript@5.2.2)
+      '@rionetwork/sdk': 0.1.0-alpha.19(graphql@16.8.1)(typescript@5.2.2)
       react: 18.2.0
       wagmi: 1.4.5(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)(viem@1.19.9)
     transitivePeerDependencies:
@@ -3403,25 +3409,6 @@ packages:
 
   /@rionetwork/sdk@0.1.0-alpha.17(graphql@16.8.1)(typescript@5.2.2):
     resolution: {integrity: sha512-nWKX3mFlk+nJDuPUnpMRX0kMy5flXFPQyk6QPE5O41Xnoi9Ui0KYcwnBiUQ7VFB7V4v5ju9nG86RLpqudQj54A==}
-    engines: {node: '>=16', pnpm: '>=7.5.1'}
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
-      abitype: 0.10.3(typescript@5.2.2)
-      big.js: 6.2.1
-      cacheables: 1.2.2
-      graphql-request: 6.1.0(graphql@16.8.1)
-      viem: 1.19.9(typescript@5.2.2)
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - graphql
-      - typescript
-      - utf-8-validate
-      - zod
-    dev: false
-
-  /@rionetwork/sdk@0.1.0-alpha.18(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-FzcZPLRpPL+AOBW1rBMx+6JwpFZfmghLHLz/Ne4Q2B8LhDi04yej1Ovzoakv1LmWQWpC+Wg7agPeFoFZ2u98YA==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
