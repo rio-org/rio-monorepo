@@ -181,19 +181,27 @@ library ValidatorDetails {
                 mstore(add(_ofs, 0x10), shr(128, sload(add(currentOffset, 1)))) // bytes 16..47
                 mstore(_ofs, sload(currentOffset)) // bytes 0..31
 
-                // Store signature
-                _ofs := add(add(signatures, 0x20), mul(add(bufferOffset, i), 96)) // SIGNATURE_LENGTH = 96
-                mstore(_ofs, sload(add(currentOffset, 2)))
-                mstore(add(_ofs, 0x20), sload(add(currentOffset, 3)))
-                mstore(add(_ofs, 0x40), sload(add(currentOffset, 4)))
+                // Store signature, if `signatures` is not empty
+                if gt(mload(signatures), 0) {
+                    _ofs := add(add(signatures, 0x20), mul(add(bufferOffset, i), 96)) // SIGNATURE_LENGTH = 96
+                    mstore(_ofs, sload(add(currentOffset, 2)))
+                    mstore(add(_ofs, 0x20), sload(add(currentOffset, 3)))
+                    mstore(add(_ofs, 0x40), sload(add(currentOffset, 4)))
+                }
                 i := add(i, 1)
             }
         }
     }
 
+    /// @notice Allocate memory for `keyCount` public keys.
+    /// @param keyCount The number of public keys.
+    function allocateMemoryForPubKeys(uint256 keyCount) internal pure returns (bytes memory) {
+        return new bytes(keyCount * PUBKEY_LENGTH);
+    }
+
     /// @notice Allocate memory for `count` validator details.
     /// @param count The number of validators.
     function allocateMemory(uint256 count) internal pure returns (bytes memory, bytes memory) {
-        return (new bytes(count * PUBKEY_LENGTH), new bytes(count * SIGNATURE_LENGTH));
+        return (allocateMemoryForPubKeys(count), new bytes(count * SIGNATURE_LENGTH));
     }
 }

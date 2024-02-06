@@ -352,7 +352,9 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
 
         allocations = new OperatorStrategyAllocation[](s.activeOperatorCount);
         while (remainingShares > 0) {
-            OperatorDetails storage operator = s.operatorDetails[heap.getMin().id];
+            uint8 operatorId = heap.getMin().id;
+
+            OperatorDetails storage operator = s.operatorDetails[operatorId];
             OperatorShareDetails memory operatorShares = operator.shareDetails[strategy];
 
             // If the allocation of the operator with the lowest utilization rate is maxed out,
@@ -373,6 +375,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             operator.shareDetails[strategy].allocation = updatedAllocation;
             heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, updatedAllocation.divWad(operatorShares.cap));
 
+            emit StrategySharesAllocated(operatorId, strategy, newShareAllocation, newTokenAllocation);
+
             unchecked {
                 ++allocationIndex;
             }
@@ -387,7 +391,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 mstore(allocations, allocationIndex)
             }
         }
-        emit StrategySharesAllocated(strategy, sharesAllocated, allocations);
     }
 
     // forgefmt: disable-next-item
@@ -427,7 +430,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             }
 
             // We can only allocate to confirmed keys that have not yet received a deposit.
-            uint256 unallocatedConfirmedKeys = validators.confirmed - validators.deposited - validators.exited;
+            uint256 unallocatedConfirmedKeys = validators.confirmed - validators.deposited;
             if (unallocatedConfirmedKeys == 0) {
                 skippedOperators[skippedOperatorCount++] = heap.extractMin();
                 continue;
@@ -451,6 +454,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 remainingDeposits -= newDepositAllocation;
 
                 updatedAllocation = activeDeposits + newDepositAllocation;
+
+                emit ETHDepositsAllocated(operatorId, newDepositAllocation, pubKeyBatch);
             }
             heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, updatedAllocation.divWad(validators.cap));
 
@@ -475,7 +480,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 mstore(allocations, allocationIndex)
             }
         }
-        emit ETHDepositsAllocated(depositsAllocated, allocations);
     }
 
     // forgefmt: disable-next-item
@@ -492,7 +496,9 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         uint256 remainingShares = sharesToDeallocate;
 
         while (remainingShares > 0) {
-            OperatorDetails storage operator = s.operatorDetails[heap.getMax().id];
+            uint8 operatorId = heap.getMax().id;
+
+            OperatorDetails storage operator = s.operatorDetails[operatorId];
             OperatorShareDetails memory operatorShares = operator.shareDetails[strategy];
 
             // Exit early if the operator with the highest utilization rate has no allocation,
@@ -513,6 +519,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             operator.shareDetails[strategy].allocation = updatedAllocation;
             heap.updateUtilization(heap.getMaxIndex(), updatedAllocation.divWad(operatorShares.cap));
 
+            emit StrategySharesDeallocated(operatorId, strategy, newShareDeallocation, newTokenDeallocation);
+
             unchecked {
                 ++deallocationIndex;
             }
@@ -527,7 +535,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 mstore(deallocations, deallocationIndex)
             }
         }
-        emit StrategySharesDeallocated(strategy, sharesDeallocated, deallocations);
     }
 
     // forgefmt: disable-next-item
@@ -542,6 +549,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         uint256 deallocationIndex;
         uint256 remainingDeposits = depositsToDeallocate;
 
+        bytes memory pubKeyBatch;
         while (remainingDeposits > 0) {
             uint8 operatorId = heap.getMax().id;
 
@@ -556,6 +564,10 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             // Each deallocation will trigger the withdrawal of a 32 ETH deposit. The specific validators
             // to withdraw from are chosen by the software run by the operator.
             uint256 newDepositDeallocation = FixedPointMathLib.min(activeDeposits, remainingDeposits);
+            pubKeyBatch = ValidatorDetails.allocateMemoryForPubKeys(newDepositDeallocation);
+            VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
+                operatorId, validators.exited, newDepositDeallocation, pubKeyBatch, new bytes(0), 0
+            );
 
             operator.validatorDetails.exited += uint40(newDepositDeallocation);
 
@@ -564,6 +576,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
 
             uint256 updatedAllocation = activeDeposits - newDepositDeallocation;
             heap.updateUtilization(heap.getMaxIndex(), updatedAllocation.divWad(validators.cap));
+
+            emit ETHDepositsDeallocated(operatorId, newDepositDeallocation, pubKeyBatch);
 
             unchecked {
                 ++deallocationIndex;
@@ -579,7 +593,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 mstore(deallocations, deallocationIndex)
             }
         }
-        emit ETHDepositsDeallocated(depositsDeallocated, deallocations);
     }
 
     /// @dev Receives ETH from operator exits.

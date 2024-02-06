@@ -138,6 +138,14 @@ templates:
         - event: OperatorAdded(indexed uint8,indexed address,indexed
             address,address,address,string)
           handler: handleOperatorAdded
+        - event: ValidatorDetailsAdded(indexed uint8,bytes)
+          handler: handleValidatorDetailsAdded
+        - event: ValidatorDetailsRemoved(indexed uint8,bytes)
+          handler: handleValidatorDetailsRemoved
+        - event: ETHDepositsAllocated(indexed uint8,uint256,bytes)
+          handler: handleETHDepositsAllocated
+        - event: ETHDepositsDeallocated(indexed uint8,uint256,bytes)
+          handler: handleETHDepositsDeallocated
     network: goerli
   - name: OperatorMetadata
     kind: file/ipfs

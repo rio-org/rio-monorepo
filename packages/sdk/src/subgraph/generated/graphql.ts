@@ -963,16 +963,203 @@ export type Operator = {
   __typename?: 'Operator';
   address: Scalars['Bytes']['output'];
   delegationApprover?: Maybe<Scalars['Bytes']['output']>;
-  delegator: Scalars['Bytes']['output'];
-  earningsReceiver: Scalars['Bytes']['output'];
+  delegator: OperatorDelegator;
   id: Scalars['ID']['output'];
-  manager: Scalars['Bytes']['output'];
   metadata?: Maybe<OperatorMetadata>;
   metadataURI: Scalars['String']['output'];
-  operatorId: Scalars['Int']['output'];
-  restakingToken: LiquidRestakingToken;
   stakerOptOutWindowBlocks?: Maybe<Scalars['BigInt']['output']>;
 };
+
+export type OperatorDelegator = {
+  __typename?: 'OperatorDelegator';
+  address: Scalars['Bytes']['output'];
+  delegatorId: Scalars['Int']['output'];
+  depositedValidatorKeyCount: Scalars['BigInt']['output'];
+  earningsReceiver: Scalars['Bytes']['output'];
+  exitedValidatorKeyCount: Scalars['BigInt']['output'];
+  id: Scalars['ID']['output'];
+  manager: Scalars['Bytes']['output'];
+  operator: Operator;
+  restakingToken: LiquidRestakingToken;
+  totalValidatorKeyCount: Scalars['BigInt']['output'];
+  unusedValidatorKeyCount: Scalars['BigInt']['output'];
+  validators?: Maybe<Array<Validator>>;
+};
+
+export type OperatorDelegatorValidatorsArgs = {
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Validator_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  where?: InputMaybe<Validator_Filter>;
+};
+
+export type OperatorDelegator_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  address?: InputMaybe<Scalars['Bytes']['input']>;
+  address_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  address_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  address_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  address_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<OperatorDelegator_Filter>>>;
+  delegatorId?: InputMaybe<Scalars['Int']['input']>;
+  delegatorId_gt?: InputMaybe<Scalars['Int']['input']>;
+  delegatorId_gte?: InputMaybe<Scalars['Int']['input']>;
+  delegatorId_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  delegatorId_lt?: InputMaybe<Scalars['Int']['input']>;
+  delegatorId_lte?: InputMaybe<Scalars['Int']['input']>;
+  delegatorId_not?: InputMaybe<Scalars['Int']['input']>;
+  delegatorId_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  depositedValidatorKeyCount?: InputMaybe<Scalars['BigInt']['input']>;
+  depositedValidatorKeyCount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  depositedValidatorKeyCount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  depositedValidatorKeyCount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  depositedValidatorKeyCount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  depositedValidatorKeyCount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  depositedValidatorKeyCount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  depositedValidatorKeyCount_not_in?: InputMaybe<
+    Array<Scalars['BigInt']['input']>
+  >;
+  earningsReceiver?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  earningsReceiver_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_not?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  earningsReceiver_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  exitedValidatorKeyCount?: InputMaybe<Scalars['BigInt']['input']>;
+  exitedValidatorKeyCount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  exitedValidatorKeyCount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  exitedValidatorKeyCount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  exitedValidatorKeyCount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  exitedValidatorKeyCount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  exitedValidatorKeyCount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  exitedValidatorKeyCount_not_in?: InputMaybe<
+    Array<Scalars['BigInt']['input']>
+  >;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  manager?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  manager_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_not?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  manager_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  operator?: InputMaybe<Scalars['String']['input']>;
+  operator_?: InputMaybe<Operator_Filter>;
+  operator_contains?: InputMaybe<Scalars['String']['input']>;
+  operator_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  operator_ends_with?: InputMaybe<Scalars['String']['input']>;
+  operator_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  operator_gt?: InputMaybe<Scalars['String']['input']>;
+  operator_gte?: InputMaybe<Scalars['String']['input']>;
+  operator_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  operator_lt?: InputMaybe<Scalars['String']['input']>;
+  operator_lte?: InputMaybe<Scalars['String']['input']>;
+  operator_not?: InputMaybe<Scalars['String']['input']>;
+  operator_not_contains?: InputMaybe<Scalars['String']['input']>;
+  operator_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  operator_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  operator_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  operator_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  operator_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  operator_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  operator_starts_with?: InputMaybe<Scalars['String']['input']>;
+  operator_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  or?: InputMaybe<Array<InputMaybe<OperatorDelegator_Filter>>>;
+  restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
+  restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_lt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_lte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_starts_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  restakingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  totalValidatorKeyCount?: InputMaybe<Scalars['BigInt']['input']>;
+  totalValidatorKeyCount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  totalValidatorKeyCount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  totalValidatorKeyCount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  totalValidatorKeyCount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  totalValidatorKeyCount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  totalValidatorKeyCount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  totalValidatorKeyCount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  unusedValidatorKeyCount?: InputMaybe<Scalars['BigInt']['input']>;
+  unusedValidatorKeyCount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  unusedValidatorKeyCount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  unusedValidatorKeyCount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  unusedValidatorKeyCount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  unusedValidatorKeyCount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  unusedValidatorKeyCount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  unusedValidatorKeyCount_not_in?: InputMaybe<
+    Array<Scalars['BigInt']['input']>
+  >;
+  validators_?: InputMaybe<Validator_Filter>;
+};
+
+export enum OperatorDelegator_OrderBy {
+  Address = 'address',
+  DelegatorId = 'delegatorId',
+  DepositedValidatorKeyCount = 'depositedValidatorKeyCount',
+  EarningsReceiver = 'earningsReceiver',
+  ExitedValidatorKeyCount = 'exitedValidatorKeyCount',
+  Id = 'id',
+  Manager = 'manager',
+  Operator = 'operator',
+  OperatorAddress = 'operator__address',
+  OperatorDelegationApprover = 'operator__delegationApprover',
+  OperatorId = 'operator__id',
+  OperatorMetadataUri = 'operator__metadataURI',
+  OperatorStakerOptOutWindowBlocks = 'operator__stakerOptOutWindowBlocks',
+  RestakingToken = 'restakingToken',
+  RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
+  RestakingTokenId = 'restakingToken__id',
+  RestakingTokenName = 'restakingToken__name',
+  RestakingTokenPercentApy = 'restakingToken__percentAPY',
+  RestakingTokenSymbol = 'restakingToken__symbol',
+  RestakingTokenTotalSupply = 'restakingToken__totalSupply',
+  RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
+  RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD',
+  TotalValidatorKeyCount = 'totalValidatorKeyCount',
+  UnusedValidatorKeyCount = 'unusedValidatorKeyCount',
+  Validators = 'validators'
+}
 
 export type OperatorMetadata = {
   __typename?: 'OperatorMetadata';
@@ -1204,26 +1391,7 @@ export type Operator_Filter = {
   delegationApprover_not?: InputMaybe<Scalars['Bytes']['input']>;
   delegationApprover_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   delegationApprover_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  delegator?: InputMaybe<Scalars['Bytes']['input']>;
-  delegator_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  delegator_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  delegator_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  delegator_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  delegator_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  delegator_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  delegator_not?: InputMaybe<Scalars['Bytes']['input']>;
-  delegator_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  delegator_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  earningsReceiver?: InputMaybe<Scalars['Bytes']['input']>;
-  earningsReceiver_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  earningsReceiver_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  earningsReceiver_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  earningsReceiver_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  earningsReceiver_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  earningsReceiver_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  earningsReceiver_not?: InputMaybe<Scalars['Bytes']['input']>;
-  earningsReceiver_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  earningsReceiver_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  delegator_?: InputMaybe<OperatorDelegator_Filter>;
   id?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
   id_gte?: InputMaybe<Scalars['ID']['input']>;
@@ -1232,16 +1400,6 @@ export type Operator_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  manager?: InputMaybe<Scalars['Bytes']['input']>;
-  manager_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  manager_gt?: InputMaybe<Scalars['Bytes']['input']>;
-  manager_gte?: InputMaybe<Scalars['Bytes']['input']>;
-  manager_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  manager_lt?: InputMaybe<Scalars['Bytes']['input']>;
-  manager_lte?: InputMaybe<Scalars['Bytes']['input']>;
-  manager_not?: InputMaybe<Scalars['Bytes']['input']>;
-  manager_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
-  manager_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   metadata?: InputMaybe<Scalars['String']['input']>;
   metadataURI?: InputMaybe<Scalars['String']['input']>;
   metadataURI_contains?: InputMaybe<Scalars['String']['input']>;
@@ -1283,38 +1441,7 @@ export type Operator_Filter = {
   metadata_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   metadata_starts_with?: InputMaybe<Scalars['String']['input']>;
   metadata_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  operatorId?: InputMaybe<Scalars['Int']['input']>;
-  operatorId_gt?: InputMaybe<Scalars['Int']['input']>;
-  operatorId_gte?: InputMaybe<Scalars['Int']['input']>;
-  operatorId_in?: InputMaybe<Array<Scalars['Int']['input']>>;
-  operatorId_lt?: InputMaybe<Scalars['Int']['input']>;
-  operatorId_lte?: InputMaybe<Scalars['Int']['input']>;
-  operatorId_not?: InputMaybe<Scalars['Int']['input']>;
-  operatorId_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
   or?: InputMaybe<Array<InputMaybe<Operator_Filter>>>;
-  restakingToken?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
-  restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_gt?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_gte?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  restakingToken_lt?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_lte?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_not?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_not_contains?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_not_ends_with?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
-  restakingToken_not_starts_with?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_not_starts_with_nocase?: InputMaybe<
-    Scalars['String']['input']
-  >;
-  restakingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
-  restakingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   stakerOptOutWindowBlocks?: InputMaybe<Scalars['BigInt']['input']>;
   stakerOptOutWindowBlocks_gt?: InputMaybe<Scalars['BigInt']['input']>;
   stakerOptOutWindowBlocks_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1331,9 +1458,16 @@ export enum Operator_OrderBy {
   Address = 'address',
   DelegationApprover = 'delegationApprover',
   Delegator = 'delegator',
-  EarningsReceiver = 'earningsReceiver',
+  DelegatorAddress = 'delegator__address',
+  DelegatorDelegatorId = 'delegator__delegatorId',
+  DelegatorDepositedValidatorKeyCount = 'delegator__depositedValidatorKeyCount',
+  DelegatorEarningsReceiver = 'delegator__earningsReceiver',
+  DelegatorExitedValidatorKeyCount = 'delegator__exitedValidatorKeyCount',
+  DelegatorId = 'delegator__id',
+  DelegatorManager = 'delegator__manager',
+  DelegatorTotalValidatorKeyCount = 'delegator__totalValidatorKeyCount',
+  DelegatorUnusedValidatorKeyCount = 'delegator__unusedValidatorKeyCount',
   Id = 'id',
-  Manager = 'manager',
   Metadata = 'metadata',
   MetadataUri = 'metadataURI',
   MetadataDescription = 'metadata__description',
@@ -1342,19 +1476,6 @@ export enum Operator_OrderBy {
   MetadataName = 'metadata__name',
   MetadataTwitter = 'metadata__twitter',
   MetadataWebsite = 'metadata__website',
-  OperatorId = 'operatorId',
-  RestakingToken = 'restakingToken',
-  RestakingTokenAddress = 'restakingToken__address',
-  RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
-  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
-  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
-  RestakingTokenId = 'restakingToken__id',
-  RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
-  RestakingTokenSymbol = 'restakingToken__symbol',
-  RestakingTokenTotalSupply = 'restakingToken__totalSupply',
-  RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
-  RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD',
   StakerOptOutWindowBlocks = 'stakerOptOutWindowBlocks'
 }
 
@@ -1663,6 +1784,8 @@ export type Query = {
   liquidRestakingToken?: Maybe<LiquidRestakingToken>;
   liquidRestakingTokens: Array<LiquidRestakingToken>;
   operator?: Maybe<Operator>;
+  operatorDelegator?: Maybe<OperatorDelegator>;
+  operatorDelegators: Array<OperatorDelegator>;
   operatorMetadata: Array<OperatorMetadata>;
   operatorRegistries: Array<OperatorRegistry>;
   operatorRegistry?: Maybe<OperatorRegistry>;
@@ -1677,6 +1800,10 @@ export type Query = {
   underlyingAssets: Array<UnderlyingAsset>;
   user?: Maybe<User>;
   users: Array<User>;
+  validator?: Maybe<Validator>;
+  validatorKeyIndex?: Maybe<ValidatorKeyIndex>;
+  validatorKeyIndexes: Array<ValidatorKeyIndex>;
+  validators: Array<Validator>;
   withdrawalClaim?: Maybe<WithdrawalClaim>;
   withdrawalClaims: Array<WithdrawalClaim>;
   withdrawalEpoch?: Maybe<WithdrawalEpoch>;
@@ -1827,6 +1954,22 @@ export type QueryOperatorArgs = {
   subgraphError?: _SubgraphErrorPolicy_;
 };
 
+export type QueryOperatorDelegatorArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryOperatorDelegatorsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<OperatorDelegator_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<OperatorDelegator_Filter>;
+};
+
 export type QueryOperatorMetadataArgs = {
   block?: InputMaybe<Block_Height>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -1941,6 +2084,38 @@ export type QueryUsersArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<User_Filter>;
+};
+
+export type QueryValidatorArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryValidatorKeyIndexArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryValidatorKeyIndexesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<ValidatorKeyIndex_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<ValidatorKeyIndex_Filter>;
+};
+
+export type QueryValidatorsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Validator_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<Validator_Filter>;
 };
 
 export type QueryWithdrawalClaimArgs = {
@@ -2116,6 +2291,8 @@ export type Subscription = {
   liquidRestakingToken?: Maybe<LiquidRestakingToken>;
   liquidRestakingTokens: Array<LiquidRestakingToken>;
   operator?: Maybe<Operator>;
+  operatorDelegator?: Maybe<OperatorDelegator>;
+  operatorDelegators: Array<OperatorDelegator>;
   operatorMetadata: Array<OperatorMetadata>;
   operatorRegistries: Array<OperatorRegistry>;
   operatorRegistry?: Maybe<OperatorRegistry>;
@@ -2130,6 +2307,10 @@ export type Subscription = {
   underlyingAssets: Array<UnderlyingAsset>;
   user?: Maybe<User>;
   users: Array<User>;
+  validator?: Maybe<Validator>;
+  validatorKeyIndex?: Maybe<ValidatorKeyIndex>;
+  validatorKeyIndexes: Array<ValidatorKeyIndex>;
+  validators: Array<Validator>;
   withdrawalClaim?: Maybe<WithdrawalClaim>;
   withdrawalClaims: Array<WithdrawalClaim>;
   withdrawalEpoch?: Maybe<WithdrawalEpoch>;
@@ -2280,6 +2461,22 @@ export type SubscriptionOperatorArgs = {
   subgraphError?: _SubgraphErrorPolicy_;
 };
 
+export type SubscriptionOperatorDelegatorArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionOperatorDelegatorsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<OperatorDelegator_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<OperatorDelegator_Filter>;
+};
+
 export type SubscriptionOperatorMetadataArgs = {
   block?: InputMaybe<Block_Height>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -2394,6 +2591,38 @@ export type SubscriptionUsersArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<User_Filter>;
+};
+
+export type SubscriptionValidatorArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionValidatorKeyIndexArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionValidatorKeyIndexesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<ValidatorKeyIndex_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<ValidatorKeyIndex_Filter>;
+};
+
+export type SubscriptionValidatorsArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Validator_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<Validator_Filter>;
 };
 
 export type SubscriptionWithdrawalClaimArgs = {
@@ -2743,6 +2972,181 @@ export enum User_OrderBy {
   Id = 'id',
   WithdrawalClaims = 'withdrawalClaims',
   WithdrawalRequests = 'withdrawalRequests'
+}
+
+export type Validator = {
+  __typename?: 'Validator';
+  delegator: OperatorDelegator;
+  id: Scalars['ID']['output'];
+  keyIndex: Scalars['BigInt']['output'];
+  keyUploadTimestamp: Scalars['BigInt']['output'];
+  keyUploadTx: Scalars['Bytes']['output'];
+  publicKey: Scalars['Bytes']['output'];
+  status: ValidatorStatus;
+};
+
+export type ValidatorKeyIndex = {
+  __typename?: 'ValidatorKeyIndex';
+  id: Scalars['ID']['output'];
+  keyIndex: Scalars['BigInt']['output'];
+  validator: Validator;
+};
+
+export type ValidatorKeyIndex_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<ValidatorKeyIndex_Filter>>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  keyIndex?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  keyIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<ValidatorKeyIndex_Filter>>>;
+  validator?: InputMaybe<Scalars['String']['input']>;
+  validator_?: InputMaybe<Validator_Filter>;
+  validator_contains?: InputMaybe<Scalars['String']['input']>;
+  validator_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_ends_with?: InputMaybe<Scalars['String']['input']>;
+  validator_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_gt?: InputMaybe<Scalars['String']['input']>;
+  validator_gte?: InputMaybe<Scalars['String']['input']>;
+  validator_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  validator_lt?: InputMaybe<Scalars['String']['input']>;
+  validator_lte?: InputMaybe<Scalars['String']['input']>;
+  validator_not?: InputMaybe<Scalars['String']['input']>;
+  validator_not_contains?: InputMaybe<Scalars['String']['input']>;
+  validator_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  validator_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  validator_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  validator_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_starts_with?: InputMaybe<Scalars['String']['input']>;
+  validator_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum ValidatorKeyIndex_OrderBy {
+  Id = 'id',
+  KeyIndex = 'keyIndex',
+  Validator = 'validator',
+  ValidatorId = 'validator__id',
+  ValidatorKeyIndex = 'validator__keyIndex',
+  ValidatorKeyUploadTimestamp = 'validator__keyUploadTimestamp',
+  ValidatorKeyUploadTx = 'validator__keyUploadTx',
+  ValidatorPublicKey = 'validator__publicKey',
+  ValidatorStatus = 'validator__status'
+}
+
+export enum ValidatorStatus {
+  Deposited = 'DEPOSITED',
+  Exited = 'EXITED',
+  Unused = 'UNUSED'
+}
+
+export type Validator_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<Validator_Filter>>>;
+  delegator?: InputMaybe<Scalars['String']['input']>;
+  delegator_?: InputMaybe<OperatorDelegator_Filter>;
+  delegator_contains?: InputMaybe<Scalars['String']['input']>;
+  delegator_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  delegator_ends_with?: InputMaybe<Scalars['String']['input']>;
+  delegator_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  delegator_gt?: InputMaybe<Scalars['String']['input']>;
+  delegator_gte?: InputMaybe<Scalars['String']['input']>;
+  delegator_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  delegator_lt?: InputMaybe<Scalars['String']['input']>;
+  delegator_lte?: InputMaybe<Scalars['String']['input']>;
+  delegator_not?: InputMaybe<Scalars['String']['input']>;
+  delegator_not_contains?: InputMaybe<Scalars['String']['input']>;
+  delegator_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  delegator_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  delegator_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  delegator_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  delegator_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  delegator_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  delegator_starts_with?: InputMaybe<Scalars['String']['input']>;
+  delegator_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  keyIndex?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  keyIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  keyUploadTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
+  keyUploadTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyUploadTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyUploadTimestamp_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  keyUploadTimestamp_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyUploadTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyUploadTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
+  keyUploadTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  keyUploadTx?: InputMaybe<Scalars['Bytes']['input']>;
+  keyUploadTx_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  keyUploadTx_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  keyUploadTx_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  keyUploadTx_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  keyUploadTx_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  keyUploadTx_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  keyUploadTx_not?: InputMaybe<Scalars['Bytes']['input']>;
+  keyUploadTx_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  keyUploadTx_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<Validator_Filter>>>;
+  publicKey?: InputMaybe<Scalars['Bytes']['input']>;
+  publicKey_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  publicKey_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  publicKey_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  publicKey_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  publicKey_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  publicKey_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  publicKey_not?: InputMaybe<Scalars['Bytes']['input']>;
+  publicKey_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  publicKey_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  status?: InputMaybe<ValidatorStatus>;
+  status_in?: InputMaybe<Array<ValidatorStatus>>;
+  status_not?: InputMaybe<ValidatorStatus>;
+  status_not_in?: InputMaybe<Array<ValidatorStatus>>;
+};
+
+export enum Validator_OrderBy {
+  Delegator = 'delegator',
+  DelegatorAddress = 'delegator__address',
+  DelegatorDelegatorId = 'delegator__delegatorId',
+  DelegatorDepositedValidatorKeyCount = 'delegator__depositedValidatorKeyCount',
+  DelegatorEarningsReceiver = 'delegator__earningsReceiver',
+  DelegatorExitedValidatorKeyCount = 'delegator__exitedValidatorKeyCount',
+  DelegatorId = 'delegator__id',
+  DelegatorManager = 'delegator__manager',
+  DelegatorTotalValidatorKeyCount = 'delegator__totalValidatorKeyCount',
+  DelegatorUnusedValidatorKeyCount = 'delegator__unusedValidatorKeyCount',
+  Id = 'id',
+  KeyIndex = 'keyIndex',
+  KeyUploadTimestamp = 'keyUploadTimestamp',
+  KeyUploadTx = 'keyUploadTx',
+  PublicKey = 'publicKey',
+  Status = 'status'
 }
 
 export type WithdrawalClaim = {
@@ -3853,26 +4257,44 @@ export type WithdrawalClaimFieldsFragment = {
   requests?: Array<{ __typename?: 'WithdrawalRequest'; id: string }> | null;
 };
 
-export type OperatorFieldsFragment = {
-  __typename?: 'Operator';
+export type OperatorDelegatorFieldsFragment = {
+  __typename?: 'OperatorDelegator';
   id: string;
-  operatorId: number;
+  delegatorId: number;
   address: any;
-  delegator: any;
   manager: any;
   earningsReceiver: any;
-  metadataURI: string;
-  delegationApprover?: any | null;
-  stakerOptOutWindowBlocks?: any | null;
-  metadata?: {
-    __typename?: 'OperatorMetadata';
-    name?: string | null;
-    website?: string | null;
-    description?: string | null;
-    logo?: string | null;
-    twitter?: string | null;
-  } | null;
+  unusedValidatorKeyCount: any;
+  depositedValidatorKeyCount: any;
+  exitedValidatorKeyCount: any;
+  totalValidatorKeyCount: any;
+  operator: {
+    __typename?: 'Operator';
+    address: any;
+    metadataURI: string;
+    delegationApprover?: any | null;
+    stakerOptOutWindowBlocks?: any | null;
+    metadata?: {
+      __typename?: 'OperatorMetadata';
+      name?: string | null;
+      website?: string | null;
+      description?: string | null;
+      logo?: string | null;
+      twitter?: string | null;
+    } | null;
+  };
   restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
+};
+
+export type ValidatorFieldsFragment = {
+  __typename?: 'Validator';
+  id: string;
+  status: ValidatorStatus;
+  keyIndex: any;
+  publicKey: any;
+  keyUploadTimestamp: any;
+  keyUploadTx: any;
+  delegator: { __typename?: 'OperatorDelegator'; id: string };
 };
 
 export type IssuerQueryVariables = Exact<{
@@ -4070,36 +4492,65 @@ export type ManyWithdrawalClaimsQuery = {
   }>;
 };
 
-export type ManyOperatorsQueryVariables = Exact<{
+export type ManyOperatorDelegatorsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   skip: Scalars['Int']['input'];
-  orderBy?: InputMaybe<Operator_OrderBy>;
+  orderBy?: InputMaybe<OperatorDelegator_OrderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
-  where?: InputMaybe<Operator_Filter>;
+  where?: InputMaybe<OperatorDelegator_Filter>;
 }>;
 
-export type ManyOperatorsQuery = {
+export type ManyOperatorDelegatorsQuery = {
   __typename?: 'Query';
-  operators: Array<{
-    __typename?: 'Operator';
+  operatorDelegators: Array<{
+    __typename?: 'OperatorDelegator';
     id: string;
-    operatorId: number;
+    delegatorId: number;
     address: any;
-    delegator: any;
     manager: any;
     earningsReceiver: any;
-    metadataURI: string;
-    delegationApprover?: any | null;
-    stakerOptOutWindowBlocks?: any | null;
-    metadata?: {
-      __typename?: 'OperatorMetadata';
-      name?: string | null;
-      website?: string | null;
-      description?: string | null;
-      logo?: string | null;
-      twitter?: string | null;
-    } | null;
+    unusedValidatorKeyCount: any;
+    depositedValidatorKeyCount: any;
+    exitedValidatorKeyCount: any;
+    totalValidatorKeyCount: any;
+    operator: {
+      __typename?: 'Operator';
+      address: any;
+      metadataURI: string;
+      delegationApprover?: any | null;
+      stakerOptOutWindowBlocks?: any | null;
+      metadata?: {
+        __typename?: 'OperatorMetadata';
+        name?: string | null;
+        website?: string | null;
+        description?: string | null;
+        logo?: string | null;
+        twitter?: string | null;
+      } | null;
+    };
     restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
+  }>;
+};
+
+export type ManyValidatorsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  skip: Scalars['Int']['input'];
+  orderBy?: InputMaybe<Validator_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<Validator_Filter>;
+}>;
+
+export type ManyValidatorsQuery = {
+  __typename?: 'Query';
+  validators: Array<{
+    __typename?: 'Validator';
+    id: string;
+    status: ValidatorStatus;
+    keyIndex: any;
+    publicKey: any;
+    keyUploadTimestamp: any;
+    keyUploadTx: any;
+    delegator: { __typename?: 'OperatorDelegator'; id: string };
   }>;
 };
 
@@ -4467,47 +4918,81 @@ export const WithdrawalClaimFieldsFragmentDoc = {
     }
   ]
 } as unknown as DocumentNode<WithdrawalClaimFieldsFragment, unknown>;
-export const OperatorFieldsFragmentDoc = {
+export const OperatorDelegatorFieldsFragmentDoc = {
   kind: 'Document',
   definitions: [
     {
       kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'OperatorFields' },
+      name: { kind: 'Name', value: 'OperatorDelegatorFields' },
       typeCondition: {
         kind: 'NamedType',
-        name: { kind: 'Name', value: 'Operator' }
+        name: { kind: 'Name', value: 'OperatorDelegator' }
       },
       selectionSet: {
         kind: 'SelectionSet',
         selections: [
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'operatorId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'delegatorId' } },
           { kind: 'Field', name: { kind: 'Name', value: 'address' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'delegator' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'metadataURI' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'metadata' },
+            name: { kind: 'Name', value: 'operator' },
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'website' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'description' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'logo' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'twitter' } }
+                { kind: 'Field', name: { kind: 'Name', value: 'address' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'metadataURI' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'metadata' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'website' }
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'description' }
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'logo' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'twitter' }
+                      }
+                    ]
+                  }
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'delegationApprover' }
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'stakerOptOutWindowBlocks' }
+                }
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'delegationApprover' }
+            name: { kind: 'Name', value: 'unusedValidatorKeyCount' }
           },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'stakerOptOutWindowBlocks' }
+            name: { kind: 'Name', value: 'depositedValidatorKeyCount' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'exitedValidatorKeyCount' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'totalValidatorKeyCount' }
           },
           {
             kind: 'Field',
@@ -4523,7 +5008,44 @@ export const OperatorFieldsFragmentDoc = {
       }
     }
   ]
-} as unknown as DocumentNode<OperatorFieldsFragment, unknown>;
+} as unknown as DocumentNode<OperatorDelegatorFieldsFragment, unknown>;
+export const ValidatorFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'ValidatorFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Validator' }
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'delegator' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'keyIndex' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'publicKey' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'keyUploadTimestamp' }
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'keyUploadTx' } }
+        ]
+      }
+    }
+  ]
+} as unknown as DocumentNode<ValidatorFieldsFragment, unknown>;
 export const IssuerDocument = {
   kind: 'Document',
   definitions: [
@@ -5590,13 +6112,13 @@ export const ManyWithdrawalClaimsDocument = {
   ManyWithdrawalClaimsQuery,
   ManyWithdrawalClaimsQueryVariables
 >;
-export const ManyOperatorsDocument = {
+export const ManyOperatorDelegatorsDocument = {
   kind: 'Document',
   definitions: [
     {
       kind: 'OperationDefinition',
       operation: 'query',
-      name: { kind: 'Name', value: 'manyOperators' },
+      name: { kind: 'Name', value: 'manyOperatorDelegators' },
       variableDefinitions: [
         {
           kind: 'VariableDefinition',
@@ -5625,7 +6147,7 @@ export const ManyOperatorsDocument = {
           },
           type: {
             kind: 'NamedType',
-            name: { kind: 'Name', value: 'Operator_orderBy' }
+            name: { kind: 'Name', value: 'OperatorDelegator_orderBy' }
           }
         },
         {
@@ -5647,7 +6169,7 @@ export const ManyOperatorsDocument = {
           },
           type: {
             kind: 'NamedType',
-            name: { kind: 'Name', value: 'Operator_filter' }
+            name: { kind: 'Name', value: 'OperatorDelegator_filter' }
           }
         }
       ],
@@ -5656,7 +6178,7 @@ export const ManyOperatorsDocument = {
         selections: [
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'operators' },
+            name: { kind: 'Name', value: 'operatorDelegators' },
             arguments: [
               {
                 kind: 'Argument',
@@ -5704,7 +6226,7 @@ export const ManyOperatorsDocument = {
               selections: [
                 {
                   kind: 'FragmentSpread',
-                  name: { kind: 'Name', value: 'OperatorFields' }
+                  name: { kind: 'Name', value: 'OperatorDelegatorFields' }
                 }
               ]
             }
@@ -5714,42 +6236,76 @@ export const ManyOperatorsDocument = {
     },
     {
       kind: 'FragmentDefinition',
-      name: { kind: 'Name', value: 'OperatorFields' },
+      name: { kind: 'Name', value: 'OperatorDelegatorFields' },
       typeCondition: {
         kind: 'NamedType',
-        name: { kind: 'Name', value: 'Operator' }
+        name: { kind: 'Name', value: 'OperatorDelegator' }
       },
       selectionSet: {
         kind: 'SelectionSet',
         selections: [
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'operatorId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'delegatorId' } },
           { kind: 'Field', name: { kind: 'Name', value: 'address' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'delegator' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'metadataURI' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'metadata' },
+            name: { kind: 'Name', value: 'operator' },
             selectionSet: {
               kind: 'SelectionSet',
               selections: [
-                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'website' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'description' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'logo' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'twitter' } }
+                { kind: 'Field', name: { kind: 'Name', value: 'address' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'metadataURI' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'metadata' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'website' }
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'description' }
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'logo' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'twitter' }
+                      }
+                    ]
+                  }
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'delegationApprover' }
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'stakerOptOutWindowBlocks' }
+                }
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'delegationApprover' }
+            name: { kind: 'Name', value: 'unusedValidatorKeyCount' }
           },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'stakerOptOutWindowBlocks' }
+            name: { kind: 'Name', value: 'depositedValidatorKeyCount' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'exitedValidatorKeyCount' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'totalValidatorKeyCount' }
           },
           {
             kind: 'Field',
@@ -5765,4 +6321,163 @@ export const ManyOperatorsDocument = {
       }
     }
   ]
-} as unknown as DocumentNode<ManyOperatorsQuery, ManyOperatorsQueryVariables>;
+} as unknown as DocumentNode<
+  ManyOperatorDelegatorsQuery,
+  ManyOperatorDelegatorsQueryVariables
+>;
+export const ManyValidatorsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'manyValidators' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'first' }
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderBy' }
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'Validator_orderBy' }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderDirection' }
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'OrderDirection' }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'where' }
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'Validator_filter' }
+          }
+        }
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'validators' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'first' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'first' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'skip' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'skip' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderBy' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderBy' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderDirection' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderDirection' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'where' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'where' }
+                }
+              }
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'ValidatorFields' }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'ValidatorFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Validator' }
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'delegator' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'keyIndex' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'publicKey' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'keyUploadTimestamp' }
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'keyUploadTx' } }
+        ]
+      }
+    }
+  ]
+} as unknown as DocumentNode<ManyValidatorsQuery, ManyValidatorsQueryVariables>;
