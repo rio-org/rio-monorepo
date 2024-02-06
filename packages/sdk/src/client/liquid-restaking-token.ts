@@ -98,11 +98,13 @@ export class LiquidRestakingTokenClient {
    * @param address The address of the restaking token issued by Rio.
    * @param publicClient The public client used to read data.
    * @param walletClient The optional wallet client used to write data.
+   * @param subgraphUrl An optional subgraph URL to use instead of the default.
    */
   constructor(
     address: Address,
     publicClient: PublicClient,
-    walletClient?: WalletClient
+    walletClient?: WalletClient,
+    subgraphUrl?: string
   ) {
     this._address = address;
 
@@ -111,7 +113,7 @@ export class LiquidRestakingTokenClient {
         'Chain ID is not available in the public client provided to `LiquidRestakingToken`.'
       );
     }
-    this._subgraph = new SubgraphClient(publicClient.chain.id);
+    this._subgraph = new SubgraphClient(publicClient.chain.id, subgraphUrl);
 
     this._public = publicClient;
     this._wallet = walletClient;

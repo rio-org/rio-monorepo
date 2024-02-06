@@ -53,16 +53,20 @@ export class SubgraphClient {
   /**
    * Returns a `SubgraphClient` instance for the provided chain ID
    * @param chainId The chain ID
+   * @param subgraphUrl An optional custom subgraph URL
    */
-  public static for(chainId: number) {
-    return new SubgraphClient(chainId);
+  public static for(chainId: number, subgraphUrl?: string) {
+    return new SubgraphClient(chainId, subgraphUrl);
   }
 
   /**
    * @param chainId The chain ID
+   * @param subgraphUrl An optional custom subgraph URL
    */
-  constructor(chainId: number) {
-    this._gql = new GraphQLClient(getSubgraphUrlForChainOrThrow(chainId));
+  constructor(chainId: number, subgraphUrl?: string) {
+    this._gql = new GraphQLClient(
+      subgraphUrl ?? getSubgraphUrlForChainOrThrow(chainId)
+    );
   }
 
   /**
