@@ -307,7 +307,8 @@ export enum RioTransactionType {
   CLAIM = 'CLAIM',
   // Operators
   SUBMIT_KEYS = 'SUBMIT_KEYS',
-  CLAIM_EARNINGS = 'CLAIM_EARNINGS'
+  CLAIM_EARNINGS = 'CLAIM_EARNINGS',
+  UPDATE_OPERATOR_VALUE = 'UPDATE_OPERATOR_VALUE'
 }
 
 export type PendingTransaction = {
