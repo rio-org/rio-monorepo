@@ -74,7 +74,7 @@ function OperatorKeysFormInternal({
   const [gas, setGas] = useState<bigint>();
 
   const args = useMemo(() => {
-    const _args = [operators?.[0]?.operatorId, 0n, '0x', '0x'] as [
+    const _args = [operators?.[0]?.delegatorId, 0n, '0x', '0x'] as [
       number,
       bigint,
       Hex,
@@ -100,7 +100,7 @@ function OperatorKeysFormInternal({
     } catch (e) {
       return DEFAULT_ARGS;
     }
-  }, [operators?.[0]?.operatorId, value]);
+  }, [operators?.[0]?.delegatorId, value]);
 
   const operatorAddress =
     (lrtClient?.token?.deployment?.operatorRegistry as Address | undefined) ||

@@ -1,12 +1,16 @@
 import React from 'react';
 
 type Props = {
-  direction: 'left' | 'right' | 'external';
+  direction: 'up' | 'down' | 'left' | 'right' | 'external';
 };
 
 const IconLineArrow = ({ direction = 'right' }: Props) => {
   const rotation = (direction: string) => {
     switch (direction) {
+      case 'up':
+        return 90;
+      case 'down':
+        return 270;
       case 'left':
         return 180;
       case 'right':

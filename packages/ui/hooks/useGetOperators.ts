@@ -1,24 +1,28 @@
 import { buildRioSdkRestakingKey } from '../lib/utilities';
 import { useQuery, UseQueryOptions } from 'react-query';
-import { Operator, SubgraphClient, useSubgraph } from '@rionetwork/sdk-react';
+import {
+  OperatorDelegator,
+  SubgraphClient,
+  useSubgraph
+} from '@rionetwork/sdk-react';
 
 function buildFetcherAndParser(
   subgraph: SubgraphClient,
-  config?: Parameters<SubgraphClient['getOperators']>[0]
+  config?: Parameters<SubgraphClient['getOperatorDelegators']>[0]
 ) {
-  return async (): Promise<Operator[]> => {
-    const operators = await subgraph.getOperators(config);
-    return operators;
+  return async (): Promise<OperatorDelegator[]> => {
+    const operatorDelegator = await subgraph.getOperatorDelegators(config);
+    return operatorDelegator;
   };
 }
 
 export function useGetOperators(
-  config?: Parameters<SubgraphClient['getOperators']>[0],
-  queryConfig?: UseQueryOptions<Operator[], Error>
+  config?: Parameters<SubgraphClient['getOperatorDelegators']>[0],
+  queryConfig?: UseQueryOptions<OperatorDelegator[], Error>
 ) {
   const subgraph = useSubgraph();
-  return useQuery<Operator[], Error>(
-    buildRioSdkRestakingKey('getOperators', config),
+  return useQuery<OperatorDelegator[], Error>(
+    buildRioSdkRestakingKey('getOperatorDelegators', config),
     buildFetcherAndParser(subgraph, config),
     {
       staleTime: 30 * 1000,

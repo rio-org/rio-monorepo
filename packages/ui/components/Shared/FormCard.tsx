@@ -11,50 +11,77 @@ type FormCardContainerProps = {
   title?: React.ReactNode | React.ReactNode[];
   header?: React.ReactNode | React.ReactNode[];
   children: React.ReactNode;
+  className?: string;
   noPadding?: boolean;
 };
+
+const Wrapper = ({
+  title,
+  header,
+  className,
+  children
+}: Omit<FormCardContainerProps, 'noPadding'>) => (
+  <div
+    className={cn(
+      'min-h-[inherit] w-full flex justify-center items-start',
+      className
+    )}
+  >
+    <div className="w-full lg:max-w-[588px]">
+      {title && (
+        <h1 className="text-2xl mb-2 font-medium hidden lg:block">{title}</h1>
+      )}
+      <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-[16px] p-1">
+        <div
+          className={twMerge(
+            'flex flex-col lg:flex-row',
+            'justify-start lg:justify-between',
+            'w-full px-4 lg:px-5 lg-max:gap-2 lg-max:pt-3 lg-max:pb-3',
+            !!header && 'lg:gap-8 lg:pt-3 pb-3'
+          )}
+        >
+          {title && (
+            <h1 className="text-2xl mb-0 font-medium lg:hidden">{title}</h1>
+          )}
+          {header && (
+            <div className="flex gap-2 justify-center font-bold items-center">
+              {header}
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col gap-1 w-full">{children}</div>
+      </div>
+    </div>
+  </div>
+);
+
+const Body = ({
+  noPadding,
+  className,
+  children
+}: Pick<FormCardContainerProps, 'children' | 'noPadding' | 'className'>) => (
+  <motion.div
+    className={cn(
+      'bg-white rounded-[14px] w-full flex flex-col gap-4',
+      noPadding ? '' : ' p-4 lg:p-6',
+      className
+    )}
+  >
+    {children}
+  </motion.div>
+);
 
 const Container = ({
   title,
   header,
   children,
+  className,
   noPadding
 }: FormCardContainerProps) => {
   return (
-    <div className="min-h-[inherit] w-full flex justify-center items-start">
-      <div className="w-full lg:max-w-[588px]">
-        {title && (
-          <h1 className="text-2xl mb-2 font-medium hidden lg:block">{title}</h1>
-        )}
-        <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-[16px] p-1">
-          <div
-            className={twMerge(
-              'flex flex-col lg:flex-row',
-              'justify-start lg:justify-between',
-              'w-full px-4 lg:px-5 lg-max:gap-2 lg-max:pt-3 lg-max:pb-3',
-              !!header && 'lg:gap-8 lg:pt-3 pb-3'
-            )}
-          >
-            {title && (
-              <h1 className="text-2xl mb-0 font-medium lg:hidden">{title}</h1>
-            )}
-            {header && (
-              <div className="flex gap-2 justify-center items-center">
-                {header}
-              </div>
-            )}
-          </div>
-          <motion.div
-            className={cn(
-              'bg-white rounded-[14px] w-full flex flex-col gap-4',
-              noPadding ? '' : ' p-4 lg:p-6'
-            )}
-          >
-            {children}
-          </motion.div>
-        </div>
-      </div>
-    </div>
+    <Wrapper title={title} header={header} className={className}>
+      <Body noPadding={noPadding}>{children}</Body>
+    </Wrapper>
   );
 };
 
@@ -106,5 +133,7 @@ const Tabs = ({ items, baseUrl }: TabsProps) => {
 
 export default {
   Container,
-  Tabs
+  Tabs,
+  Wrapper,
+  Body
 };

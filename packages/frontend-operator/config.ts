@@ -15,8 +15,12 @@ export const APP_NAV_LOGO_ITEM: LogoNavItem = {
 
 export const APP_NAV_ITEMS: InternalAppNavItem[] = [
   {
-    label: 'Keys',
+    label: 'Operators',
     slug: '/'
+  },
+  {
+    label: 'Keys',
+    slug: 'keys'
   },
   {
     label: 'Earnings',
