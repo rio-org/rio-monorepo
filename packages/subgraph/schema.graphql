@@ -278,12 +278,19 @@ enum ValidatorStatus {
   EXITED
 }
 
+# This entity is used for internal lookup purposes.
+type ValidatorKeyIndex @entity {
+  id: ID! # The ID is the concatenation of the delegator ID and the key index.
+  keyIndex: BigInt!
+  validator: Validator!
+}
+
 type Validator @entity {
-  id: ID!
+  id: ID! # The ID is the validator public key.
+  keyIndex: BigInt!
   status: ValidatorStatus!
   delegator: OperatorDelegator!
   publicKey: Bytes!
   keyUploadTimestamp: BigInt!
-  keyUploadLogIndex: BigInt!
   keyUploadTx: Bytes!
 }

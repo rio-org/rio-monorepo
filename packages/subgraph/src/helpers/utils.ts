@@ -302,7 +302,7 @@ export function getWithdrawalEpochUserSummaryID(restakingToken: string, epoch: B
  * @param user The address of the user.
  * @param requestIndex The index of the withdrawal request.
  */
-export function getWithdrawalRequestID(restakingToken: string, epoch: BigInt, asset: string, user: string, requestIndex: number): string {
+export function getWithdrawalRequestID(restakingToken: string, epoch: BigInt, asset: string, user: string, requestIndex: u64): string {
   return `${getWithdrawalEpochUserSummaryID(restakingToken, epoch, asset, user)}-request-${requestIndex}`;
 }
 
@@ -322,6 +322,15 @@ export function getWithdrawalClaimID(restakingToken: string, epoch: BigInt, asse
  * @param operatorRegistry The operator registry address.
  * @param delegatorId The operator delegator ID.
  */
-export function getOperatorDelegatorID(operatorRegistry: string, delegatorId: number): string {
+export function getOperatorDelegatorID(operatorRegistry: string, delegatorId: u64): string {
   return `${operatorRegistry}-${delegatorId}`;
+}
+
+/**
+ * Get the ID for a validator key index.
+ * @param operatorDelegator The operator delegator ID.
+ * @param keyIndex The key index.
+ */
+export function getValidatorKeyIndexID(operatorDelegator: string, keyIndex: BigInt): string {
+  return `${operatorDelegator}-${keyIndex.toString()}`;
 }

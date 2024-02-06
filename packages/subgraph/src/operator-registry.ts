@@ -2,9 +2,9 @@ import { ETHDepositsAllocated, ETHDepositsDeallocated, OperatorAdded, ValidatorD
 import { OperatorMetadata as OperatorMetadataTemplate } from '../generated/templates';
 import { DelegationManager } from '../generated/DelegationManager/DelegationManager';
 import { Address, Bytes, dataSource, store } from '@graphprotocol/graph-ts';
-import { OperatorRegistry, Operator, OperatorDelegator, Validator } from '../generated/schema';
+import { OperatorRegistry, Operator, OperatorDelegator, Validator, ValidatorKeyIndex } from '../generated/schema';
 import { DELEGATION_MANAGERS, ONE_BI, ValidatorStatus, ZERO_BI } from './helpers/constants';
-import { getIPFSContentID, getOperatorDelegatorID, splitPublicKeys } from './helpers/utils';
+import { getIPFSContentID, getOperatorDelegatorID, getValidatorKeyIndexID, splitPublicKeys } from './helpers/utils';
 
 export function handleOperatorAdded(event: OperatorAdded): void {
   const operatorRegistry = OperatorRegistry.load(event.address.toHex())!;
@@ -49,18 +49,24 @@ export function handleOperatorAdded(event: OperatorAdded): void {
 
 export function handleValidatorDetailsAdded(event: ValidatorDetailsAdded): void {
   const operatorDelegator = OperatorDelegator.load(getOperatorDelegatorID(event.address.toHex(), event.params.operatorId))!;
-  operatorDelegator.unusedValidatorKeyCount = operatorDelegator.unusedValidatorKeyCount.plus(ONE_BI);
-  operatorDelegator.totalValidatorKeyCount = operatorDelegator.totalValidatorKeyCount.plus(ONE_BI);
-  operatorDelegator.save();
+
+  const validatorKeyIndex = new ValidatorKeyIndex(getValidatorKeyIndexID(operatorDelegator.id, operatorDelegator.totalValidatorKeyCount));
+  validatorKeyIndex.validator = event.params.pubkey.toHex();
+  validatorKeyIndex.keyIndex = operatorDelegator.totalValidatorKeyCount;
+  validatorKeyIndex.save();
 
   const validator = new Validator(event.params.pubkey.toHex());
   validator.status = ValidatorStatus.UNUSED;
   validator.delegator = operatorDelegator.id;
+  validator.keyIndex = validatorKeyIndex.keyIndex;
   validator.publicKey = event.params.pubkey;
   validator.keyUploadTimestamp = event.block.timestamp;
-  validator.keyUploadLogIndex = event.logIndex;
   validator.keyUploadTx = event.transaction.hash;
   validator.save();
+
+  operatorDelegator.unusedValidatorKeyCount = operatorDelegator.unusedValidatorKeyCount.plus(ONE_BI);
+  operatorDelegator.totalValidatorKeyCount = operatorDelegator.totalValidatorKeyCount.plus(ONE_BI);
+  operatorDelegator.save();
 }
 
 export function handleValidatorDetailsRemoved(event: ValidatorDetailsRemoved): void {
@@ -69,7 +75,19 @@ export function handleValidatorDetailsRemoved(event: ValidatorDetailsRemoved): v
   operatorDelegator.totalValidatorKeyCount = operatorDelegator.totalValidatorKeyCount.minus(ONE_BI);
   operatorDelegator.save();
 
+  const validatorToRemove = Validator.load(event.params.pubkey.toHex())!;
+  const lastValidatorKeyIndex = ValidatorKeyIndex.load(getValidatorKeyIndexID(operatorDelegator.id, operatorDelegator.totalValidatorKeyCount))!;
+
+  // If the validator to remove is not the last validator, we need to move the last validator to the index of the removed validator.
+  if (validatorToRemove.keyIndex.lt(operatorDelegator.totalValidatorKeyCount)) {
+    const validatorToReplaceWith = Validator.load(lastValidatorKeyIndex.validator)!;
+    validatorToReplaceWith.keyIndex = validatorToRemove.keyIndex;
+    validatorToReplaceWith.save();
+  }
+
+  // Delete the removed validator and the last key index, which is now unused.
   store.remove('Validator', event.params.pubkey.toHex());
+  store.remove('ValidatorKeyIndex', lastValidatorKeyIndex.id);
 }
 
 export function handleETHDepositsAllocated(event: ETHDepositsAllocated): void {
@@ -80,7 +98,7 @@ export function handleETHDepositsAllocated(event: ETHDepositsAllocated): void {
 
   const publicKeys = splitPublicKeys(event.params.pubKeyBatch.toHex());
   for (let i = 0; i < publicKeys.length; i++) {
-    const validator = Validator.load(event.params.pubKeyBatch.toHex())!;
+    const validator = Validator.load(publicKeys[i])!;
     validator.status = ValidatorStatus.DEPOSITED;
     validator.save();
   }
@@ -94,7 +112,7 @@ export function handleETHDepositsDeallocated(event: ETHDepositsDeallocated): voi
 
   const publicKeys = splitPublicKeys(event.params.pubKeyBatch.toHex());
   for (let i = 0; i < publicKeys.length; i++) {
-    const validator = Validator.load(event.params.pubKeyBatch.toHex())!;
+    const validator = Validator.load(publicKeys[i])!;
     validator.status = ValidatorStatus.EXITED;
     validator.save();
   }
