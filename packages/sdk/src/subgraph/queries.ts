@@ -178,9 +178,9 @@ export const ValidatorFields = graphql(`
     delegator {
       id
     }
+    keyIndex
     publicKey
     keyUploadTimestamp
-    keyUploadLogIndex
     keyUploadTx
   }
 `);

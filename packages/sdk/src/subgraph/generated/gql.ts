@@ -25,7 +25,7 @@ const documents = {
     types.WithdrawalClaimFieldsFragmentDoc,
   '\n  fragment OperatorDelegatorFields on OperatorDelegator {\n    id\n    delegatorId\n    address\n    operator {\n      address\n      metadataURI\n      metadata {\n        name\n        website\n        description\n        logo\n        twitter\n      }\n      delegationApprover\n      stakerOptOutWindowBlocks\n    }\n    manager\n    earningsReceiver\n    unusedValidatorKeyCount\n    depositedValidatorKeyCount\n    exitedValidatorKeyCount\n    totalValidatorKeyCount\n    restakingToken {\n      id\n    }\n  }\n':
     types.OperatorDelegatorFieldsFragmentDoc,
-  '\n  fragment ValidatorFields on Validator {\n    id\n    status\n    delegator {\n      id\n    }\n    publicKey\n    keyUploadTimestamp\n    keyUploadLogIndex\n    keyUploadTx\n  }\n':
+  '\n  fragment ValidatorFields on Validator {\n    id\n    status\n    delegator {\n      id\n    }\n    keyIndex\n    publicKey\n    keyUploadTimestamp\n    keyUploadTx\n  }\n':
     types.ValidatorFieldsFragmentDoc,
   '\n  query issuer($id: ID!) {\n    issuer(id: $id) {\n      ...IssuerFields\n    }\n  }\n':
     types.IssuerDocument,
@@ -99,8 +99,8 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  fragment ValidatorFields on Validator {\n    id\n    status\n    delegator {\n      id\n    }\n    publicKey\n    keyUploadTimestamp\n    keyUploadLogIndex\n    keyUploadTx\n  }\n'
-): (typeof documents)['\n  fragment ValidatorFields on Validator {\n    id\n    status\n    delegator {\n      id\n    }\n    publicKey\n    keyUploadTimestamp\n    keyUploadLogIndex\n    keyUploadTx\n  }\n'];
+  source: '\n  fragment ValidatorFields on Validator {\n    id\n    status\n    delegator {\n      id\n    }\n    keyIndex\n    publicKey\n    keyUploadTimestamp\n    keyUploadTx\n  }\n'
+): (typeof documents)['\n  fragment ValidatorFields on Validator {\n    id\n    status\n    delegator {\n      id\n    }\n    keyIndex\n    publicKey\n    keyUploadTimestamp\n    keyUploadTx\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

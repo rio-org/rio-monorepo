@@ -1801,6 +1801,8 @@ export type Query = {
   user?: Maybe<User>;
   users: Array<User>;
   validator?: Maybe<Validator>;
+  validatorKeyIndex?: Maybe<ValidatorKeyIndex>;
+  validatorKeyIndexes: Array<ValidatorKeyIndex>;
   validators: Array<Validator>;
   withdrawalClaim?: Maybe<WithdrawalClaim>;
   withdrawalClaims: Array<WithdrawalClaim>;
@@ -2090,6 +2092,22 @@ export type QueryValidatorArgs = {
   subgraphError?: _SubgraphErrorPolicy_;
 };
 
+export type QueryValidatorKeyIndexArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryValidatorKeyIndexesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<ValidatorKeyIndex_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<ValidatorKeyIndex_Filter>;
+};
+
 export type QueryValidatorsArgs = {
   block?: InputMaybe<Block_Height>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -2290,6 +2308,8 @@ export type Subscription = {
   user?: Maybe<User>;
   users: Array<User>;
   validator?: Maybe<Validator>;
+  validatorKeyIndex?: Maybe<ValidatorKeyIndex>;
+  validatorKeyIndexes: Array<ValidatorKeyIndex>;
   validators: Array<Validator>;
   withdrawalClaim?: Maybe<WithdrawalClaim>;
   withdrawalClaims: Array<WithdrawalClaim>;
@@ -2577,6 +2597,22 @@ export type SubscriptionValidatorArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
   subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionValidatorKeyIndexArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionValidatorKeyIndexesArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<ValidatorKeyIndex_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<ValidatorKeyIndex_Filter>;
 };
 
 export type SubscriptionValidatorsArgs = {
@@ -2942,12 +2978,75 @@ export type Validator = {
   __typename?: 'Validator';
   delegator: OperatorDelegator;
   id: Scalars['ID']['output'];
-  keyUploadLogIndex: Scalars['BigInt']['output'];
+  keyIndex: Scalars['BigInt']['output'];
   keyUploadTimestamp: Scalars['BigInt']['output'];
   keyUploadTx: Scalars['Bytes']['output'];
   publicKey: Scalars['Bytes']['output'];
   status: ValidatorStatus;
 };
+
+export type ValidatorKeyIndex = {
+  __typename?: 'ValidatorKeyIndex';
+  id: Scalars['ID']['output'];
+  keyIndex: Scalars['BigInt']['output'];
+  validator: Validator;
+};
+
+export type ValidatorKeyIndex_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<ValidatorKeyIndex_Filter>>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  keyIndex?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  keyIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<ValidatorKeyIndex_Filter>>>;
+  validator?: InputMaybe<Scalars['String']['input']>;
+  validator_?: InputMaybe<Validator_Filter>;
+  validator_contains?: InputMaybe<Scalars['String']['input']>;
+  validator_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_ends_with?: InputMaybe<Scalars['String']['input']>;
+  validator_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_gt?: InputMaybe<Scalars['String']['input']>;
+  validator_gte?: InputMaybe<Scalars['String']['input']>;
+  validator_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  validator_lt?: InputMaybe<Scalars['String']['input']>;
+  validator_lte?: InputMaybe<Scalars['String']['input']>;
+  validator_not?: InputMaybe<Scalars['String']['input']>;
+  validator_not_contains?: InputMaybe<Scalars['String']['input']>;
+  validator_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  validator_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  validator_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  validator_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  validator_starts_with?: InputMaybe<Scalars['String']['input']>;
+  validator_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum ValidatorKeyIndex_OrderBy {
+  Id = 'id',
+  KeyIndex = 'keyIndex',
+  Validator = 'validator',
+  ValidatorId = 'validator__id',
+  ValidatorKeyIndex = 'validator__keyIndex',
+  ValidatorKeyUploadTimestamp = 'validator__keyUploadTimestamp',
+  ValidatorKeyUploadTx = 'validator__keyUploadTx',
+  ValidatorPublicKey = 'validator__publicKey',
+  ValidatorStatus = 'validator__status'
+}
 
 export enum ValidatorStatus {
   Deposited = 'DEPOSITED',
@@ -2988,14 +3087,14 @@ export type Validator_Filter = {
   id_lte?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
-  keyUploadLogIndex?: InputMaybe<Scalars['BigInt']['input']>;
-  keyUploadLogIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
-  keyUploadLogIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
-  keyUploadLogIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  keyUploadLogIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
-  keyUploadLogIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
-  keyUploadLogIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
-  keyUploadLogIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  keyIndex?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  keyIndex_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_not?: InputMaybe<Scalars['BigInt']['input']>;
+  keyIndex_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   keyUploadTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   keyUploadTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   keyUploadTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -3043,7 +3142,7 @@ export enum Validator_OrderBy {
   DelegatorTotalValidatorKeyCount = 'delegator__totalValidatorKeyCount',
   DelegatorUnusedValidatorKeyCount = 'delegator__unusedValidatorKeyCount',
   Id = 'id',
-  KeyUploadLogIndex = 'keyUploadLogIndex',
+  KeyIndex = 'keyIndex',
   KeyUploadTimestamp = 'keyUploadTimestamp',
   KeyUploadTx = 'keyUploadTx',
   PublicKey = 'publicKey',
@@ -4191,9 +4290,9 @@ export type ValidatorFieldsFragment = {
   __typename?: 'Validator';
   id: string;
   status: ValidatorStatus;
+  keyIndex: any;
   publicKey: any;
   keyUploadTimestamp: any;
-  keyUploadLogIndex: any;
   keyUploadTx: any;
   delegator: { __typename?: 'OperatorDelegator'; id: string };
 };
@@ -4447,9 +4546,9 @@ export type ManyValidatorsQuery = {
     __typename?: 'Validator';
     id: string;
     status: ValidatorStatus;
+    keyIndex: any;
     publicKey: any;
     keyUploadTimestamp: any;
-    keyUploadLogIndex: any;
     keyUploadTx: any;
     delegator: { __typename?: 'OperatorDelegator'; id: string };
   }>;
@@ -4935,12 +5034,12 @@ export const ValidatorFieldsFragmentDoc = {
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'keyIndex' } },
           { kind: 'Field', name: { kind: 'Name', value: 'publicKey' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'keyUploadTimestamp' }
           },
-          { kind: 'Field', name: { kind: 'Name', value: 'keyUploadLogIndex' } },
           { kind: 'Field', name: { kind: 'Name', value: 'keyUploadTx' } }
         ]
       }
@@ -6370,12 +6469,12 @@ export const ManyValidatorsDocument = {
               ]
             }
           },
+          { kind: 'Field', name: { kind: 'Name', value: 'keyIndex' } },
           { kind: 'Field', name: { kind: 'Name', value: 'publicKey' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'keyUploadTimestamp' }
           },
-          { kind: 'Field', name: { kind: 'Name', value: 'keyUploadLogIndex' } },
           { kind: 'Field', name: { kind: 'Name', value: 'keyUploadTx' } }
         ]
       }

@@ -147,9 +147,9 @@ export enum ValidatorStatus {
 export interface Validator {
   status: ValidatorStatus;
   delegator: Address;
+  keyIndex: string;
   publicKey: string;
   keyUploadTimestamp: string;
-  keyUploadLogIndex: string;
   keyUploadTx: string;
 }
 

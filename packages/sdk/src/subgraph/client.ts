@@ -346,16 +346,16 @@ export class SubgraphClient {
       ({
         status,
         delegator,
+        keyIndex,
         publicKey,
         keyUploadTimestamp,
-        keyUploadLogIndex,
         keyUploadTx
       }) => ({
         status,
         delegator: delegator.id,
+        keyIndex,
         publicKey,
         keyUploadTimestamp,
-        keyUploadLogIndex,
         keyUploadTx
       })
     );
