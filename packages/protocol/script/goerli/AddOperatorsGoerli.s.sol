@@ -6,7 +6,7 @@ import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegis
 
 contract AddOperatorsGoerli is ScriptBase {
     function run() public broadcast {
-        IRioLRTOperatorRegistry registry = IRioLRTOperatorRegistry(vm.envAddress('OPERATOR_REGISTRY_ADDRESS'));
+        IRioLRTOperatorRegistry registry = IRioLRTOperatorRegistry(vm.envAddress('OPERATOR_REGISTRY'));
 
         // Hashkey Cloud
         registry.addOperator(

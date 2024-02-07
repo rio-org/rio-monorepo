@@ -9,7 +9,7 @@ import {RioLRTIssuer} from 'contracts/restaking/RioLRTIssuer.sol';
 
 contract IssueRestakedEther is ScriptBase {
     function run() public broadcast returns (IRioLRTIssuer.LRTDeployment memory deployment) {
-        RioLRTIssuer issuer = RioLRTIssuer(vm.envAddress('ISSUER_ADDRESS'));
+        RioLRTIssuer issuer = RioLRTIssuer(vm.envAddress('ISSUER'));
 
         IRioLRTAssetRegistry.AssetConfig[] memory assets = new IRioLRTAssetRegistry.AssetConfig[](1);
         assets[0] = IRioLRTAssetRegistry.AssetConfig({
