@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
-import {Script} from 'forge-std/Script.sol';
+import {ScriptBase} from 'script/base/ScriptBase.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import {RioLRTOperatorRegistry} from 'contracts/restaking/RioLRTOperatorRegistry.sol';
@@ -15,23 +15,8 @@ import {RioLRTDepositPool} from 'contracts/restaking/RioLRTDepositPool.sol';
 import {RioLRTIssuer} from 'contracts/restaking/RioLRTIssuer.sol';
 import {RioLRT} from 'contracts/restaking/RioLRT.sol';
 
-contract DeployRioIssuerBase is Script {
-    // EigenLayer
-    address public immutable strategyManager;
-    address public immutable eigenPodManager;
-    address public immutable delegationManager;
-
-    constructor(address strategyManager_, address eigenPodManager_, address delegationManager_) {
-        strategyManager = strategyManager_;
-        eigenPodManager = eigenPodManager_;
-        delegationManager = delegationManager_;
-    }
-
-    function run() public returns (RioLRTIssuer issuer) {
-        uint256 deployerKey = vm.envUint('DEPLOYER_PRIVATE_KEY');
-        vm.startBroadcast(deployerKey);
-
-        address deployer = vm.addr(deployerKey);
+contract DeployRioIssuer is ScriptBase {
+    function run() public broadcast returns (RioLRTIssuer issuer) {
         address issuerAddress = computeCreateAddress(deployer, vm.getNonce(deployer) + 10);
         address issuerImpl = address(
             new RioLRTIssuer(
@@ -60,7 +45,5 @@ contract DeployRioIssuerBase is Script {
         issuer = RioLRTIssuer(
             address(new ERC1967Proxy(issuerImpl, abi.encodeCall(IRioLRTIssuer.initialize, (deployer))))
         );
-
-        vm.stopBroadcast();
     }
 }
