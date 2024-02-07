@@ -70,13 +70,13 @@ $ anvil
 #### Deploy (Goerli)
 
 ```shell
-forge script script/DeployRioIssuerGoerli.s.sol --chain 5 --rpc-url <your_rpc_url> --broadcast
+forge script script/DeployRioIssuer.s.sol --chain 5 --rpc-url <your_rpc_url> --broadcast
 ```
 
 #### Issue Restaked Ether (Goerli)
 
 ```shell
-forge script script/IssueRestakedEtherGoerli.s.sol --chain 5 --rpc-url <your_rpc_url> --broadcast
+forge script script/IssueRestakedEther.s.sol --chain 5 --rpc-url <your_rpc_url> --broadcast
 ```
 
 ### Cast

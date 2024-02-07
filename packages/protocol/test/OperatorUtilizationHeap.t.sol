@@ -303,7 +303,7 @@ contract OperatorUtilizationHeapTest is Test {
         }
     }
 
-    function testFuzz_getMin(uint256[] memory utilizations) public {
+    function testFuzz_getMin(uint256[] memory utilizations, uint8 random) public {
         vm.assume(utilizations.length > 0 && utilizations.length < 50);
 
         OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
@@ -320,11 +320,11 @@ contract OperatorUtilizationHeapTest is Test {
             assertTrue(currentMinUtilization >= previousMinUtilization);
             previousMinUtilization = currentMinUtilization;
 
-            heap.removeByID(heap.getMin().id);
+            heap.remove(random % heap.count + 1);
         }
     }
 
-    function testFuzz_getMax(uint256[] memory utilizations) public {
+    function testFuzz_getMax(uint256[] memory utilizations, uint8 random) public {
         vm.assume(utilizations.length > 0 && utilizations.length < 50);
 
         OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
@@ -341,11 +341,11 @@ contract OperatorUtilizationHeapTest is Test {
             assertTrue(currentMaxUtilization <= previousMaxUtilization);
             previousMaxUtilization = currentMaxUtilization;
 
-            heap.removeByID(heap.getMax().id);
+            heap.remove(random % heap.count + 1);
         }
     }
 
-    function testFuzz_getMaxUpdateUtilizationByID(uint256[] memory utilizations) public {
+    function testFuzz_getMaxUpdateUtilizationByID(uint256[] memory utilizations, uint8 random) public {
         vm.assume(utilizations.length > 0 && utilizations.length < 50);
 
         OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
@@ -363,11 +363,11 @@ contract OperatorUtilizationHeapTest is Test {
             assertTrue(currentMaxUtilization <= previousMaxUtilization);
             previousMaxUtilization = currentMaxUtilization;
 
-            heap.removeByID(heap.getMax().id);
+            heap.remove(random % heap.count + 1);
         }
     }
 
-    function testFuzz_getMinUpdateUtilizationByID(uint256[] memory utilizations) public {
+    function testFuzz_getMinUpdateUtilizationByID(uint256[] memory utilizations, uint8 random) public {
         vm.assume(utilizations.length > 0 && utilizations.length < 50);
 
         OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(uint8(utilizations.length));
@@ -385,7 +385,7 @@ contract OperatorUtilizationHeapTest is Test {
             assertTrue(currentMinUtilization >= previousMinUtilization);
             previousMinUtilization = currentMinUtilization;
 
-            heap.removeByID(heap.getMin().id);
+            heap.remove(random % heap.count + 1);
         }
     }
 }
