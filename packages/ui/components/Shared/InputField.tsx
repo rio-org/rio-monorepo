@@ -1,6 +1,5 @@
 import React, { forwardRef, useCallback, useRef, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
-import { motion } from 'framer-motion';
 import { useIsMounted } from '../../hooks/useIsMounted';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { cn } from '../../lib/utilities';
@@ -64,7 +63,7 @@ const InputField = forwardRef<HTMLInputElement, Props>(
               position: isMounted && isDesktopOrLaptop ? 'relative' : 'inherit'
             }}
           >
-            <motion.input
+            <input
               // eslint-disable-next-line
               // @ts-ignore
               ref={inputRef}

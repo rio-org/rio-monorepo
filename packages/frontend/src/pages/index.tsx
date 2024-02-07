@@ -1,25 +1,22 @@
+import Skeleton from 'react-loading-skeleton';
+import { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
 import RestakeWrapper from '@/components/Restake/RestakeWrapper';
-import Skeleton from 'react-loading-skeleton';
-import RestakeForm from '@/components/Restake/RestakeForm';
-import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
-import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
-import { useEffect, useState } from 'react';
+import { RestakeForm } from '@/components/Restake/RestakeForm';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { type LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import { cn } from '@rio-monorepo/ui/lib/utilities';
 
 const Home: NextPage = () => {
-  const isMounted = useIsMounted();
   // When more LRT products are available, we'll offer a way to switch these
+  const isMounted = useIsMounted();
   const { data: lrtList } = useGetLiquidRestakingTokens();
   const [activeLrt, setActiveLrt] = useState<LRTDetails | undefined>(
     lrtList?.[0]
   );
 
-  useEffect(() => {
-    if (!lrtList?.length || activeLrt) return;
-    setActiveLrt(lrtList[0]);
-  }, [lrtList]);
+  useEffect(() => setActiveLrt(lrtList?.[0]), [lrtList]);
 
   const networkStats = {
     tvl: activeLrt ? Math.trunc(activeLrt.totalValueETH ?? 0) : null,
@@ -54,7 +51,7 @@ const Home: NextPage = () => {
           </div>
         </div>
         <div className="bg-white rounded-xl p-4 lg:p-6 space-y-4 w-full">
-          {activeLrt && <RestakeForm lrt={activeLrt} />}
+          <RestakeForm lrtDetails={activeLrt} />
         </div>
       </div>
     </RestakeWrapper>
@@ -78,4 +75,5 @@ const HeaderBadge = ({
     {children}
   </span>
 );
+
 export default Home;

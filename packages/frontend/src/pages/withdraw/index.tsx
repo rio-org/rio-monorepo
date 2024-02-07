@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { NextPage } from 'next';
 import WithdrawWrapper from '@/components/Withdraw/WithdrawWrapper';
-import WithdrawForm from '@/components/Withdraw/WithdrawForm';
+import { WithdrawForm } from '@/components/Withdraw/WithdrawForm';
 import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 
@@ -11,13 +11,11 @@ const Withdraw: NextPage = () => {
     lrtList?.[0]
   );
 
-  useEffect(() => {
-    setActiveLrt(lrtList?.[0]);
-  }, [lrtList]);
+  useEffect(() => setActiveLrt(lrtList?.[0]), [lrtList]);
 
   return (
     <WithdrawWrapper>
-      {activeLrt && <WithdrawForm lrt={activeLrt} />}
+      <WithdrawForm lrtDetails={activeLrt} />
     </WithdrawWrapper>
   );
 };
