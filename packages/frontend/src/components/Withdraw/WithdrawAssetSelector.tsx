@@ -4,11 +4,12 @@ import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import AssetItemContent from '@rio-monorepo/ui/components/Assets/AssetItemContent';
 import WithdrawAssetItem from '@rio-monorepo/ui/components/Assets/WithdrawAssetItem';
 import IconSelectArrow from '@rio-monorepo/ui/components/Icons/IconSelectArrow';
-import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import { Drawer } from '@material-tailwind/react';
 import { useOutsideClick } from '@rio-monorepo/ui/hooks/useOutsideClick';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { cn } from '@rio-monorepo/ui/lib/utilities';
+import { twJoin } from 'tailwind-merge';
 
 type Props = {
   disabled?: boolean;
@@ -78,8 +79,14 @@ const WithdrawAssetSelector = ({
             Select asset
           </label>
           <button
-            className={cx(
-              'flex flex-row gap-4 lg:gap-4 items-center w-full text-left bg-black bg-opacity-5 text-black p-4 lg:px-[20px] lg:py-4 rounded-xl border border-transparent hover:border-gray-300',
+            className={cn(
+              twJoin(
+                'flex flex-row items-center gap-4 lg:gap-4',
+                'w-full p-4 lg:px-[20px] lg:py-4',
+                'text-left text-black',
+                'bg-black bg-opacity-5',
+                'rounded-xl border border-transparent hover:border-gray-300'
+              ),
               isListOpen && 'border-gray-400 hover:border-gray-400'
             )}
             disabled={disabled}
@@ -103,7 +110,11 @@ const WithdrawAssetSelector = ({
         {isDesktopOrLaptop && isListOpen && (
           <div
             ref={listRef}
-            className="absolute top-[calc(100%+10px)] left-0 w-full bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit"
+            className={twJoin(
+              'absolute z-10 top-[calc(100%+10px)]',
+              'left-0 w-full h-fit p-[2px] overflow-y-auto',
+              'bg-white rounded-xl shadow-xl'
+            )}
           >
             <List
               assetsList={assetsList}

@@ -1,17 +1,19 @@
-import React, { useMemo, useState } from 'react';
-import Image from 'next/image';
-import cx from 'classnames';
 import { Drawer } from '@material-tailwind/react';
 import { useMediaQuery } from 'react-responsive';
-import AssetList from './AssetList';
 import { twJoin, twMerge } from 'tailwind-merge';
 import Skeleton from 'react-loading-skeleton';
-
+import { useMemo, useState } from 'react';
+import Image from 'next/image';
 import IconSelectArrow from '@rio-monorepo/ui/components/Icons/IconSelectArrow';
-import { AssetDetails, TokenSymbol } from '@rio-monorepo/ui/lib/typings';
+import AssetList from './AssetList';
 import { useOutsideClick } from '@rio-monorepo/ui/hooks/useOutsideClick';
 import { ASSETS, DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { cn } from '@rio-monorepo/ui/lib/utilities';
+import {
+  type AssetDetails,
+  type TokenSymbol
+} from '@rio-monorepo/ui/lib/typings';
 
 type Props = {
   activeTokenSymbol?: TokenSymbol;
@@ -90,24 +92,35 @@ const AssetSelector = ({
 
   return (
     <>
-      {isDropdown ? (
-        <button
-          onClick={() => !isDisabled && handleClick()}
-          className={cx(
-            buttonClassName,
-            isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
+      {!activeTokenSymbol ? (
+        <Skeleton
+          className={cn(
+            '!px-3 !py-1 !w-[69px] !rounded-[200px]',
+            'before:content-normal before:h-6 before:w-6'
           )}
-          disabled={isDisabled}
-          onMouseEnter={() => setIsButtonHovered(true)}
-          onMouseLeave={() => setIsButtonHovered(false)}
-        >
-          {buttonInternal}
-          <div className="w-fit flex-none">
-            <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />
-          </div>
-        </button>
+        />
       ) : (
-        <div className={buttonClassName}>{buttonInternal}</div>
+        <>
+          {isDropdown ? (
+            <button
+              onClick={() => !isDisabled && handleClick()}
+              className={cn(
+                buttonClassName,
+                isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
+              )}
+              disabled={isDisabled}
+              onMouseEnter={() => setIsButtonHovered(true)}
+              onMouseLeave={() => setIsButtonHovered(false)}
+            >
+              {buttonInternal}
+              <div className="w-fit flex-none">
+                <IconSelectArrow direction={isListOpen ? 'up' : 'down'} />
+              </div>
+            </button>
+          ) : (
+            <div className={buttonClassName}>{buttonInternal}</div>
+          )}
+        </>
       )}
       {isDropdown && isDesktopOrLaptop && isListOpen && (
         <div

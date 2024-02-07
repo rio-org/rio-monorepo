@@ -44,7 +44,7 @@ export function MonospaceBox({
         twJoin(
           'flex items-center justify-between',
           'px-3 py-3 rounded-lg bg-gray-200 bg-opacity-50',
-          'font-mono'
+          'font-mono border border-gray-300'
         ),
         className
       )}

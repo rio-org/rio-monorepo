@@ -1,58 +1,84 @@
-import { Alert, Spinner } from '@material-tailwind/react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, Spinner } from '@material-tailwind/react';
+import {
+  useLiquidRestakingToken,
+  type LiquidRestakingTokenClient
+} from '@rionetwork/sdk-react';
+import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
+import WithdrawAssetSelector from './WithdrawAssetSelector';
+import WithdrawItemized from './WithdrawItemized';
+import WithdrawField from './WithdrawField';
+import { useSubgraphConstractWrite } from '@rio-monorepo/ui/hooks/useSubgraphContractWrite';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
 import {
   type AssetDetails,
   type LRTDetails,
   RioTransactionType
 } from '@rio-monorepo/ui/lib/typings';
-import WithdrawAssetSelector from './WithdrawAssetSelector';
-import WithdrawField from './WithdrawField';
-import WithdrawItemized from './WithdrawItemized';
-import {
-  useLiquidRestakingToken,
-  LiquidRestakingTokenClient
-} from '@rionetwork/sdk-react';
-import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
-import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
-import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
-import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
-import { useSubgraphConstractWrite } from '@rio-monorepo/ui/hooks/useSubgraphContractWrite';
 
-const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
+export function WithdrawForm({ lrtDetails }: { lrtDetails?: LRTDetails }) {
+  if (lrtDetails) {
+    return <WithdrawFormWithLRTWrapper lrtDetails={lrtDetails} />;
+  }
+
+  return (
+    <WithdrawFormBase lrtDetails={lrtDetails} restakingTokenClient={null} />
+  );
+}
+
+function WithdrawFormWithLRTWrapper({
+  lrtDetails
+}: {
+  lrtDetails: LRTDetails;
+}) {
+  const restakingTokenClient = useLiquidRestakingToken(lrtDetails.address);
+  return (
+    <WithdrawFormBase
+      restakingTokenClient={restakingTokenClient}
+      lrtDetails={lrtDetails}
+    />
+  );
+}
+
+function WithdrawFormBase({
+  restakingTokenClient,
+  lrtDetails
+}: {
+  restakingTokenClient: LiquidRestakingTokenClient | null;
+  lrtDetails?: LRTDetails;
+}) {
   const assets = useMemo(() => {
-    return lrt?.underlyingAssets.map((t) => t.asset) || [];
-  }, [lrt]);
+    return lrtDetails?.underlyingAssets.map((t) => t.asset) || [];
+  }, [lrtDetails]);
 
-  const isMounted = useIsMounted();
-  const [amount, setAmount] = useState<bigint | null>(null);
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets?.[0]);
   const [amountOut, setAmountOut] = useState<bigint>(BigInt(0));
-
-  const restakingToken = useLiquidRestakingToken(lrt?.address as string);
-  const { address } = useAccountIfMounted();
+  const [amount, setAmount] = useState<bigint | null>(null);
 
   const { refetch: refetchAssetBalance } = useAssetBalance(activeToken);
+  const { address } = useAccountIfMounted();
   const {
     data: balance,
     isError: balanceError,
     isLoading: isBalanceLoading,
     refetch: refetchLrtBalance
-  } = useAssetBalance(lrt);
+  } = useAssetBalance(lrtDetails);
 
   const restakingTokenBalance = balance?.value || BigInt(0);
   const isValidAmount =
     amount !== null && amount > BigInt(0) && amount <= restakingTokenBalance;
 
   useEffect(() => {
-    if (!restakingToken) return;
-    queryAmountOut(restakingToken, activeToken, amount)
+    if (!restakingTokenClient) return;
+    queryAmountOut(restakingTokenClient, activeToken, amount)
       .then((amount) => typeof amount !== 'undefined' && setAmountOut(amount))
       .catch(console.error);
-  }, [amount, restakingToken, activeToken]);
+  }, [amount, restakingTokenClient, activeToken]);
 
   const execute = useCallback(async () => {
     if (
-      !restakingToken ||
+      !restakingTokenClient ||
       !amount ||
       !address ||
       !activeToken?.address ||
@@ -61,11 +87,17 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
       return;
     }
 
-    return await restakingToken?.requestWithdrawal({
+    return await restakingTokenClient?.requestWithdrawal({
       amountIn: amount,
       assetOut: activeToken.address
     });
-  }, [restakingToken, amount, activeToken?.address, address, isValidAmount]);
+  }, [
+    restakingTokenClient,
+    amount,
+    activeToken?.address,
+    address,
+    isValidAmount
+  ]);
 
   const refetch = useCallback(async () => {
     await refetchLrtBalance();
@@ -78,7 +110,7 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
       onReset: refetch,
       enabled:
         !!amount &&
-        !!restakingToken &&
+        !!restakingTokenClient &&
         !!address &&
         !!activeToken?.address &&
         isValidAmount
@@ -113,55 +145,47 @@ const WithdrawForm = ({ lrt }: { lrt?: LRTDetails }) => {
       {!!address && balanceError && (
         <Alert color="red">Error loading account balance.</Alert>
       )}
-      {isMounted && !isBalanceLoading && (
-        <>
-          {!!lrt && (
-            <WithdrawField
-              disabled={isLoading || !address}
-              amount={amount}
-              restakingTokenBalance={restakingTokenBalance}
-              restakingToken={lrt}
-              setAmount={handleChangeAmount}
-            />
-          )}
-          {assets.length > 1 && (
-            <WithdrawAssetSelector
-              assetsList={assets}
-              activeToken={activeToken}
-              setActiveToken={setActiveToken}
-            />
-          )}
-          <WithdrawItemized
-            assets={assets}
-            restakingToken={lrt}
-            amount={amountOut}
-            activeToken={activeToken}
-          />
-
-          <TransactionButton
-            transactionType={RioTransactionType.WITHDRAW_REQUEST}
-            hash={txHash}
-            refetch={refetch}
-            disabled={!address || !amount || !isValidAmount || isLoading}
-            isSigning={isLoading}
-            error={error}
-            reset={resetForm}
-            clearErrors={reset}
-            write={write}
-          >
-            {!amount
-              ? 'Enter an amount'
-              : amount && !isValidAmount
-              ? 'Insufficient balance'
-              : 'Request withdrawal'}
-          </TransactionButton>
-        </>
+      <WithdrawField
+        disabled={isLoading || !address}
+        amount={amount}
+        restakingTokenBalance={restakingTokenBalance}
+        lrtDetails={lrtDetails}
+        setAmount={handleChangeAmount}
+      />
+      {assets.length > 1 && (
+        <WithdrawAssetSelector
+          assetsList={assets}
+          activeToken={activeToken}
+          setActiveToken={setActiveToken}
+        />
       )}
+      <WithdrawItemized
+        assets={assets}
+        lrtDetails={lrtDetails}
+        amount={amountOut}
+        activeToken={activeToken}
+      />
+
+      <TransactionButton
+        transactionType={RioTransactionType.WITHDRAW_REQUEST}
+        hash={txHash}
+        refetch={refetch}
+        disabled={!address || !amount || !isValidAmount || isLoading}
+        isSigning={isLoading}
+        error={error}
+        reset={resetForm}
+        clearErrors={reset}
+        write={write}
+      >
+        {!amount
+          ? 'Enter an amount'
+          : amount && !isValidAmount
+          ? 'Insufficient balance'
+          : 'Request withdrawal'}
+      </TransactionButton>
     </>
   );
-};
-
-export default WithdrawForm;
+}
 
 /////////////
 // helpers

@@ -16,7 +16,7 @@ type Props = {
   amount: bigint | null;
   disabled?: boolean;
   restakingTokenBalance: bigint;
-  restakingToken: LRTDetails;
+  lrtDetails?: LRTDetails;
   setAmount: (amount: bigint | null) => void;
 };
 
@@ -24,7 +24,7 @@ const WithdrawField = ({
   amount,
   disabled,
   restakingTokenBalance,
-  restakingToken,
+  lrtDetails,
   setAmount
 }: Props) => {
   const hasMounted = useIsMounted();
@@ -51,15 +51,12 @@ const WithdrawField = ({
         <label htmlFor="amount" className="mb-1 font-medium">
           reETH Amount
         </label>
-        {hasMounted && restakingTokenBalance !== undefined && restakingToken ? (
+        {hasMounted && restakingTokenBalance !== undefined && lrtDetails ? (
           <>
             <span className="opacity-50 text-[12px] -tracking-tight">
               Balance:{' '}
               {displayEthAmount(
-                formatUnits(
-                  restakingTokenBalance,
-                  restakingToken.decimals ?? 18
-                )
+                formatUnits(restakingTokenBalance, lrtDetails.decimals ?? 18)
               )}{' '}
               reETH
             </span>{' '}

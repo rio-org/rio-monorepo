@@ -1,16 +1,19 @@
-import React from 'react';
-import HR from '@rio-monorepo/ui/components/Shared/HR';
-import { AssetDetails, LRTDetails } from '@rio-monorepo/ui/lib/typings';
-import { formatUnits } from 'viem';
-import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
-import { twJoin } from 'tailwind-merge';
-import Image from 'next/image';
-import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
 import Skeleton from 'react-loading-skeleton';
+import { twJoin } from 'tailwind-merge';
+import { formatUnits } from 'viem';
+import Image from 'next/image';
+import React, { useMemo } from 'react';
+import HR from '@rio-monorepo/ui/components/Shared/HR';
+import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
+import { cn, displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
+import {
+  type AssetDetails,
+  type LRTDetails
+} from '@rio-monorepo/ui/lib/typings';
 
 type Props = {
-  activeToken: AssetDetails;
-  restakingToken?: LRTDetails;
+  activeToken?: AssetDetails;
+  lrtDetails?: LRTDetails;
   amount: bigint | null | undefined;
   assets: AssetDetails[];
 };
@@ -18,30 +21,42 @@ type Props = {
 const WithdrawItemized = ({
   assets,
   amount,
-  restakingToken,
+  lrtDetails,
   activeToken
 }: Props) => {
   const { data: exchangeRate } = useAssetExchangeRate({
     asset: activeToken,
-    lrt: restakingToken
+    lrt: lrtDetails
   });
 
-  const onlySingleAsset = assets.length === 1;
+  const onlySingleAsset = !assets.length || assets.length === 1;
 
-  const totalOut = (
-    <strong className="flex flex-row gap-2 items-center">
-      {amount
-        ? displayEthAmount(formatUnits(amount, activeToken.decimals))
-        : displayEthAmount(formatUnits(BigInt(0), activeToken.decimals))}
-      <span
-        className={twJoin(
-          'bg-[var(--color-element-wrapper-bg)] rounded-[4px] px-2 py-1',
-          'text-[12px] min-w-[60px] text-center block'
+  const totalOut = useMemo(
+    () => (
+      <strong className="flex flex-row gap-2 items-center">
+        {!activeToken ? (
+          <Skeleton width={40} />
+        ) : (
+          <>
+            {amount
+              ? displayEthAmount(formatUnits(amount, activeToken.decimals))
+              : displayEthAmount(formatUnits(BigInt(0), activeToken.decimals))}
+          </>
         )}
-      >
-        {activeToken.symbol}
-      </span>
-    </strong>
+        <span
+          className={cn(
+            twJoin(
+              'bg-[var(--color-element-wrapper-bg)] rounded-[4px] px-2 py-1',
+              'text-[12px] min-w-[60px] text-center block',
+              !activeToken && 'px-0 py-0 h-[26px]'
+            )
+          )}
+        >
+          {activeToken?.symbol || <Skeleton className="w-full h-full" />}
+        </span>
+      </strong>
+    ),
+    [amount, activeToken]
   );
 
   return (
@@ -54,7 +69,7 @@ const WithdrawItemized = ({
           ) : (
             <strong className="text-right">
               1.00 reETH = {(1 / exchangeRate?.lrt).toLocaleString()}{' '}
-              {activeToken.symbol}{' '}
+              {activeToken?.symbol || <Skeleton width={20} />}{' '}
               <span className="text-right font-bold opacity-50">
                 ($
                 {(exchangeRate.usd * (1 / exchangeRate?.lrt))?.toLocaleString()}
@@ -74,15 +89,25 @@ const WithdrawItemized = ({
           <strong>Estimated amount</strong>
           <div className="flex flex-row justify-between items-center">
             <div className="flex flex-row items-center gap-[6px] w-full">
-              <Image
-                src={activeToken.logo}
-                alt={`${activeToken.name} logo`}
-                width={20}
-                height={20}
-              />
-              <p className="opacity-50 text-[14px] w-[70%] bold lg:w-full truncate">
-                {activeToken.name}
-              </p>
+              {!activeToken ? (
+                <>
+                  <Skeleton width={20} height={20} />
+                  <Skeleton className="text-[14px] w-[70%] bold lg:w-full truncate" />
+                </>
+              ) : (
+                <>
+                  <Image
+                    src={activeToken.logo}
+                    alt={`${activeToken.name} logo`}
+                    width={20}
+                    height={20}
+                  />
+
+                  <p className="opacity-50 text-[14px] w-[70%] bold lg:w-full truncate">
+                    {activeToken?.name}
+                  </p>
+                </>
+              )}
             </div>
             {totalOut}
           </div>

@@ -1,31 +1,26 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import StakeField from './StakeField';
-import {
-  erc20ABI,
-  useAccount,
-  useContractRead,
-  useWaitForTransaction
-} from 'wagmi';
+import { Address, Hash, formatUnits, getAddress, zeroAddress } from 'viem';
+import { erc20ABI, useContractRead, useWaitForTransaction } from 'wagmi';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Spinner } from '@material-tailwind/react';
-import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
-import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
+import Skeleton from 'react-loading-skeleton';
 import {
-  AssetDetails,
-  ContractError,
-  LRTDetails,
+  type AssetDetails,
+  type ContractError,
+  type LRTDetails,
   RioTransactionType
 } from '@rio-monorepo/ui/lib/typings';
-import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
-import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
-import HR from '@rio-monorepo/ui/components/Shared/HR';
 import {
-  LiquidRestakingTokenClient,
+  type LiquidRestakingTokenClient,
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
-import { Address, Hash, formatUnits, getAddress, zeroAddress } from 'viem';
-import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
-import Skeleton from 'react-loading-skeleton';
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
+import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
+import HR from '@rio-monorepo/ui/components/Shared/HR';
+import StakeField from './StakeField';
+import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
+import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 
 const queryTokens = async (
@@ -38,12 +33,37 @@ const queryTokens = async (
   return query;
 };
 
-const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
-  const assets = useMemo(() => {
-    return lrt?.underlyingAssets.map((t) => t.asset) || [];
-  }, [lrt]);
+export function RestakeForm({ lrtDetails }: { lrtDetails?: LRTDetails }) {
+  if (lrtDetails) {
+    return <RestakeFormWithLRTWrapper lrtDetails={lrtDetails} />;
+  }
 
-  const isMounted = useIsMounted();
+  return (
+    <RestakeFormBase lrtDetails={lrtDetails} restakingTokenClient={null} />
+  );
+}
+
+function RestakeFormWithLRTWrapper({ lrtDetails }: { lrtDetails: LRTDetails }) {
+  const restakingTokenClient = useLiquidRestakingToken(lrtDetails.address);
+  return (
+    <RestakeFormBase
+      restakingTokenClient={restakingTokenClient}
+      lrtDetails={lrtDetails}
+    />
+  );
+}
+
+function RestakeFormBase({
+  restakingTokenClient,
+  lrtDetails
+}: {
+  restakingTokenClient: LiquidRestakingTokenClient | null;
+  lrtDetails?: LRTDetails;
+}) {
+  const assets = useMemo(() => {
+    return lrtDetails?.underlyingAssets.map((t) => t.asset) || [];
+  }, [lrtDetails]);
+
   const [amount, setAmount] = useState<bigint | null>(null);
   const [accountTokenBalance, setAccountTokenBalance] = useState(BigInt(0));
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets?.[0]);
@@ -53,15 +73,14 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   const [allowanceTarget, setAllowanceTarget] = useState<Address>();
   const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
-  const [isAllowed, setIsAllowed] = useState(false);
-  const restakingToken = useLiquidRestakingToken(lrt?.address || '');
+  const [isAllowed, setIsAllowed] = useState(true);
   const { data: exchangeRate } = useAssetExchangeRate({
     asset: activeToken,
-    lrt
+    lrt: lrtDetails
   });
-  const { address } = useAccount();
+  const { address } = useAccountIfMounted();
 
-  const { refetch: refetchLrtBalance } = useAssetBalance(lrt);
+  const { refetch: refetchLrtBalance } = useAssetBalance(lrtDetails);
 
   const {
     data,
@@ -122,18 +141,18 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
     if (!activeToken) return;
 
     resetForm(); // reset form when switching tokens
-    if (!restakingToken || activeToken?.symbol === 'ETH') {
+    if (!restakingTokenClient || activeToken?.symbol === 'ETH') {
       setAllowanceTarget(undefined);
       return;
     }
     try {
-      if (restakingToken?.allowanceTarget) {
-        setAllowanceTarget(restakingToken.allowanceTarget as Address);
+      if (restakingTokenClient?.allowanceTarget) {
+        setAllowanceTarget(restakingTokenClient.allowanceTarget as Address);
       }
     } catch (err) {
       console.error('Error getting allowance target', err);
     }
-  }, [restakingToken, activeToken]);
+  }, [restakingTokenClient, activeToken]);
 
   useEffect(() => {
     if (!activeToken) return;
@@ -158,8 +177,8 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   }, [allowance, amount]);
 
   useEffect(() => {
-    if (restakingToken) {
-      queryTokens(restakingToken, amount)
+    if (restakingTokenClient) {
+      queryTokens(restakingTokenClient, amount)
         .then(handleTokenQuery)
         .catch(console.error);
     }
@@ -205,14 +224,14 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
   }, [txData, isTxLoading, isTxError, txError]);
 
   const handleJoin = async () => {
-    if (!activeToken || !restakingToken || isDepositLoading || !amount) {
+    if (!activeToken || !restakingTokenClient || isDepositLoading || !amount) {
       return;
     }
 
     const depositFunction =
       activeToken.symbol === 'ETH'
-        ? restakingToken.depositETH({ amount })
-        : restakingToken.deposit({
+        ? restakingTokenClient.depositETH({ amount })
+        : restakingTokenClient.deposit({
             amount,
             tokenIn: activeToken.address
           });
@@ -281,7 +300,7 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
       {!!address && isError && (
         <Alert color="red">Error loading account balance.</Alert>
       )}
-      {isMounted && !isLoading && (
+      {!isLoading && (
         <>
           <StakeField
             amount={amount}
@@ -289,7 +308,7 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
             accountTokenBalance={accountTokenBalance}
             isDisabled={isDepositLoading}
             assets={assets}
-            lrt={lrt}
+            lrt={lrtDetails}
             setAmount={handleChangeAmount}
             setActiveToken={handleChangeActiveToken}
           />
@@ -301,7 +320,7 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
               ) : (
                 <strong className="text-right">
                   1.00 {activeToken?.symbol} ={' '}
-                  {exchangeRate.lrt.toLocaleString()} {lrt?.symbol}{' '}
+                  {exchangeRate.lrt.toLocaleString()} {lrtDetails?.symbol}{' '}
                   <strong className="opacity-50">
                     (${exchangeRate.usd.toLocaleString()})
                   </strong>
@@ -365,6 +384,4 @@ const RestakeForm = ({ lrt }: { lrt?: LRTDetails }) => {
       )}
     </>
   );
-};
-
-export default RestakeForm;
+}
