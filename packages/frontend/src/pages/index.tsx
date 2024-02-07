@@ -18,21 +18,13 @@ const Home: NextPage = () => {
 
   useEffect(() => setActiveLrt(lrtList?.[0]), [lrtList]);
 
+  const isLoading = !isMounted || !activeLrt;
   const networkStats = {
-    tvl: activeLrt ? Math.trunc(activeLrt.totalValueETH ?? 0) : null,
-    apy: activeLrt ? activeLrt.percentAPY : null
+    tvl: !isLoading
+      ? `${Math.trunc(activeLrt.totalValueETH ?? 0).toLocaleString()} ETH`
+      : null,
+    apy: !isLoading ? `${(activeLrt.percentAPY ?? 0).toLocaleString()}%` : null
   };
-
-  const [tvlVal, apyVal] =
-    isMounted && networkStats
-      ? [
-          (networkStats.tvl ?? 0).toLocaleString() + ' ETH',
-          (networkStats.apy ?? 0).toLocaleString() + '%'
-        ]
-      : [
-          <Skeleton className="inline-block" width={40} />,
-          <Skeleton className="inline-block" width={20} />
-        ];
 
   return (
     <RestakeWrapper>
@@ -40,13 +32,11 @@ const Home: NextPage = () => {
         <div className="flex flex-col lg:flex-row lg:justify-between gap-2 lg:gap-8 w-full px-4 lg:px-5 pt-3 lg:pt-5 pb-3">
           <h1 className="text-2xl font-medium">Restake</h1>
           <div className="flex gap-2 lg:justify-center items-center">
-            <HeaderBadge>
-              <span>TVL:</span>
-              {tvlVal}
+            <HeaderBadge prefix="TVL:">
+              {networkStats.tvl ?? <Skeleton width={40} />}
             </HeaderBadge>
-            <HeaderBadge>
-              {apyVal}
-              <span>APY</span>
+            <HeaderBadge suffix="APY">
+              {networkStats.apy ?? <Skeleton width={40} />}
             </HeaderBadge>
           </div>
         </div>
@@ -60,19 +50,26 @@ const Home: NextPage = () => {
 
 const HeaderBadge = ({
   children,
-  className
+  className,
+  prefix,
+  suffix
 }: {
   className?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  prefix?: string;
+  suffix?: string;
 }) => (
   <span
     className={cn(
       'inline-flex items-center text-sm uppercase -tracking-tight',
       'rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4 gap-1',
+      '[&>span]:inline-block',
       className
     )}
   >
+    {prefix && <span>{prefix}</span>}
     {children}
+    {suffix && <span>{suffix}</span>}
   </span>
 );
 

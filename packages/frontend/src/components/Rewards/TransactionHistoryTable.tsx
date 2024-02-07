@@ -1,16 +1,18 @@
-import cx from 'classnames';
-import { TableRow } from '@rio-monorepo/ui/components/Shared/TableRow';
-import { useMediaQuery } from 'react-responsive';
-import {
-  DESKTOP_MQ,
-  TX_HISTORY_TABLE_HEADER_LABELS
-} from '@rio-monorepo/ui/lib/constants';
-import { useAccount } from 'wagmi';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
+import { useMediaQuery } from 'react-responsive';
+import { useMemo } from 'react';
+
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import IconLineArrow from '@rio-monorepo/ui/components/Icons/IconLineArrow';
+import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
+import { TableRow } from '@rio-monorepo/ui/components/Shared/TableRow';
 import Pagination from './Pagination';
-import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { useTransactionHistory } from '@rio-monorepo/ui/hooks/useUserHistory';
+import { usePagination } from '@rio-monorepo/ui/hooks/usePagination';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { cn, linkToTxOnBlockExplorer } from '@rio-monorepo/ui/lib/utilities';
+import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import {
   type LRTDetails,
   type MobileTableColumns,
@@ -18,12 +20,10 @@ import {
   type TransactionEvent,
   TransactionType
 } from '@rio-monorepo/ui/lib/typings';
-import { usePagination } from '@rio-monorepo/ui/hooks/usePagination';
-import { useMemo } from 'react';
-import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
-import { linkToTxOnBlockExplorer } from '@rio-monorepo/ui/lib/utilities';
-import { CHAIN_ID } from '@rio-monorepo/ui/config';
-import IconLineArrow from '@rio-monorepo/ui/components/Icons/IconLineArrow';
+import {
+  DESKTOP_MQ,
+  TX_HISTORY_TABLE_HEADER_LABELS
+} from '@rio-monorepo/ui/lib/constants';
 
 interface Props {
   lrt?: LRTDetails;
@@ -31,7 +31,7 @@ interface Props {
 
 const TransactionHistoryTable = ({ lrt }: Props) => {
   const isDesktopOrLaptop = useMediaQuery({ query: DESKTOP_MQ });
-  const { address } = useAccount();
+  const { address } = useAccountIfMounted();
   const isMounted = useIsMounted();
 
   const { data: txHistory, isLoading } = useTransactionHistory({
@@ -55,7 +55,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
                 href={linkToTxOnBlockExplorer(item.tx, CHAIN_ID)}
                 target="_blank"
                 rel="noreferrer"
-                className={cx(
+                className={cn(
                   'w-fit h-fit r-[8px] py-[4px]',
                   'whitespace-nowrap text-sm leading-none',
                   'flex items-center rounded-full gap-2',
@@ -123,7 +123,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
                   href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
                   target="_blank"
                   rel="noreferrer"
-                  className={cx(
+                  className={cn(
                     'w-fit h-fit',
                     'whitespace-nowrap text-sm leading-none',
                     'flex items-center gap-1',
@@ -205,7 +205,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
                 layoutId="table-wrapper"
               >
                 <motion.table
-                  className={cx(
+                  className={cn(
                     'w-full min-w-fit table-auto text-left rounded-t-xl',
                     pagination.pageCount < 2 && 'rounded-b-xl overflow-hidden'
                   )}
@@ -216,7 +216,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
                         {TX_HISTORY_TABLE_HEADER_LABELS.map((head, i) => (
                           <th
                             key={head}
-                            className={cx(
+                            className={cn(
                               'text-[12px] font-normal px-4 py-2 opacity-50',
                               i < 2 ? 'text-left' : 'text-right',
                               i === 0 && 'pl-6',

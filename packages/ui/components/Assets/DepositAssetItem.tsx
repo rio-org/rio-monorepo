@@ -1,10 +1,10 @@
-import React from 'react';
-import { AssetDetails } from '../../lib/typings';
-import cx from 'classnames';
-import AssetItemContent from './AssetItemContent';
-import { useAccount, useBalance } from 'wagmi';
+import React, { useCallback } from 'react';
+import { useBalance } from 'wagmi';
 import { formatUnits } from 'viem';
-import { displayEthAmount } from '../../lib/utilities';
+import AssetItemContent from './AssetItemContent';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
+import { cn, displayEthAmount } from '../../lib/utilities';
+import { AssetDetails } from '../../lib/typings';
 
 type Props = {
   asset: AssetDetails;
@@ -19,7 +19,7 @@ const DepositAssetItem = ({
   setActiveToken,
   setIsListOpen
 }: Props) => {
-  const { address } = useAccount();
+  const { address } = useAccountIfMounted();
   const { data, isLoading, isError } = useBalance({
     address: address,
     token: asset.address
@@ -31,17 +31,16 @@ const DepositAssetItem = ({
   const amount = data && (
     <>{displayEthAmount(formatUnits(data.value, data.decimals))}</>
   );
-  const handleClick = (asset: AssetDetails) => {
+  const handleClick = useCallback((asset: AssetDetails) => {
     setActiveToken(asset);
     setIsListOpen(false);
-  };
+  }, []);
+
   return (
     <button
-      onClick={() => {
-        handleClick(asset);
-      }}
+      onClick={() => handleClick(asset)}
       disabled={isError}
-      className={cx(
+      className={cn(
         'flex flex-row gap-2 w-full py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
         !isError && 'hover:bg-[var(--color-element-wrapper-bg)]',
         isError && 'opacity-40'
