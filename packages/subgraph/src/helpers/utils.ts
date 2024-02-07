@@ -40,10 +40,11 @@ export function getIPFSContentID(gatewayURL: string): string | null {
  * @param concatKeys The concatenated public keys.
  */
 export function splitPublicKeys(concatKeys: string): string[] {
-  let keys: string[] = [];
+  concatKeys = concatKeys.replace('0x', ''); // Remove the 0x prefix.
 
+  let keys: string[] = [];
   for (let i = 0; i < concatKeys.length; i += PUBKEY_LENGTH) {
-    keys.push(concatKeys.substring(i, i + PUBKEY_LENGTH));
+    keys.push(`0x${concatKeys.substring(i, i + PUBKEY_LENGTH)}`);
   }
   return keys;
 }
