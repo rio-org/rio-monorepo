@@ -5,6 +5,7 @@ import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useGetLatestAssetPrice } from '@rio-monorepo/ui/hooks/useGetLatestAssetPrice';
 import { useGetOperators } from '@rio-monorepo/ui/hooks/useGetOperators';
+import { useEstimateContractGas } from '@rio-monorepo/ui/hooks/useEstimateContractGas';
 import {
   type ContractError,
   type LRTDetails,
@@ -18,12 +19,10 @@ import {
 } from '@rionetwork/sdk-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Address, Hex, zeroAddress } from 'viem';
+import { Address, Hex, formatEther, zeroAddress } from 'viem';
 import {
   useContractWrite,
-  useFeeData,
   usePrepareContractWrite,
-  usePublicClient,
   useWaitForTransaction
 } from 'wagmi';
 import SubmitterField from './SubmitterField';
@@ -56,7 +55,6 @@ function OperatorKeysFormInternal({
 }: {
   lrtClient?: LiquidRestakingTokenClient | null;
 }) {
-  const client = usePublicClient();
   const { address } = useAccountIfMounted();
 
   const { data: operators, isFetched } = useGetOperators(
@@ -71,7 +69,6 @@ function OperatorKeysFormInternal({
   const [error, setError] = useState<ContractError | undefined>();
   const [value, setValue] = useState<string | undefined>();
   const [isValid, setIsValid] = useState<boolean>(false);
-  const [gas, setGas] = useState<bigint>();
 
   const args = useMemo(() => {
     const _args = [operators?.[0]?.delegatorId, 0n, '0x', '0x'] as [
@@ -123,12 +120,6 @@ function OperatorKeysFormInternal({
   );
 
   const {
-    data: feeData,
-    isLoading: isFeeDataLoading,
-    isFetching: isFeeDataFetching
-  } = useFeeData(contractWriteOptions);
-
-  const {
     config,
     isLoading: isPrepareLoading,
     error: prepareError
@@ -146,16 +137,10 @@ function OperatorKeysFormInternal({
     hash: data?.hash
   });
 
-  useEffect(() => {
-    if (!address || contractWriteOptions.args === DEFAULT_ARGS) {
-      return setGas(0n);
-    }
-
-    client
-      ?.estimateContractGas({ account: address, ...contractWriteOptions })
-      .then(setGas)
-      .catch(console.error);
-  }, [address, client, contractWriteOptions]);
+  const { data: gasEstimates } = useEstimateContractGas({
+    ...contractWriteOptions,
+    enabled: !!address && contractWriteOptions.args !== DEFAULT_ARGS
+  });
 
   useEffect(() => {
     setError(prepareError ?? writeError ?? txError ?? undefined);
@@ -163,15 +148,15 @@ function OperatorKeysFormInternal({
 
   const isNotOperator = !!address && isFetched && !operators?.length;
   const gasPriceEth =
-    isFeeDataLoading || isFeeDataFetching
+    typeof gasEstimates?.estimatedTotalCost === 'undefined'
       ? undefined
-      : +(feeData?.formatted.gasPrice || 0) * Number(gas || 0);
+      : Number(formatEther(gasEstimates.estimatedTotalCost));
   const gasPriceUsd =
-    !ethAssetPrice?.latestUSDPrice || typeof gasPriceEth === 'undefined'
+    typeof gasPriceEth === 'undefined' || !ethAssetPrice?.latestUSDPrice
       ? undefined
       : gasPriceEth * ethAssetPrice.latestUSDPrice;
   const pricesLoaded =
-    typeof gasPriceEth !== 'undefined' && typeof gasPriceUsd !== 'undefined';
+    typeof gasPriceEth !== 'undefined' && typeof gasPriceUsd === 'number';
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
