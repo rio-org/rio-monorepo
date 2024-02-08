@@ -1,4 +1,12 @@
-import { Address, Hash, formatUnits, getAddress, zeroAddress } from 'viem';
+import {
+  Address,
+  Hash,
+  formatUnits,
+  getAddress,
+  parseEther,
+  parseUnits,
+  zeroAddress
+} from 'viem';
 import { erc20ABI, useContractRead, useWaitForTransaction } from 'wagmi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Spinner } from '@material-tailwind/react';
@@ -11,7 +19,8 @@ import {
 } from '@rio-monorepo/ui/lib/typings';
 import {
   type LiquidRestakingTokenClient,
-  useLiquidRestakingToken
+  useLiquidRestakingToken,
+  RioLRTCoordinatorABI
 } from '@rionetwork/sdk-react';
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
@@ -20,8 +29,9 @@ import StakeField from './StakeField';
 import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
-import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
+import { asType, displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
+import { useEstimateContractGas } from '@rio-monorepo/ui/hooks/useEstimateContractGas';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -223,6 +233,25 @@ function RestakeFormBase({
     }
   }, [txData, isTxLoading, isTxError, txError]);
 
+  const isEth = activeToken?.symbol === 'ETH';
+  const argAmount = isEth
+    ? parseEther(data?.formatted ?? '0')
+    : parseUnits(data?.formatted ?? '0', activeToken?.decimals);
+
+  const { data: gasEstimates } = useEstimateContractGas({
+    address: asType<Address>(
+      restakingTokenClient?.token?.deployment?.coordinator || zeroAddress
+    ),
+    abi: RioLRTCoordinatorABI,
+    functionName: isEth ? 'depositETH' : 'deposit',
+    args: isEth ? undefined : [activeToken?.address || zeroAddress, argAmount],
+    value: isEth ? argAmount : undefined,
+    enabled:
+      !!restakingTokenClient?.token?.deployment?.coordinator &&
+      !!activeToken?.address &&
+      !!address
+  });
+
   const handleJoin = async () => {
     if (!activeToken || !restakingTokenClient || isDepositLoading || !amount) {
       return;
@@ -309,6 +338,7 @@ function RestakeFormBase({
             isDisabled={isDepositLoading}
             assets={assets}
             lrt={lrtDetails}
+            estimatedMaxGas={gasEstimates?.estimatedTotalCost}
             setAmount={handleChangeAmount}
             setActiveToken={handleChangeActiveToken}
           />
