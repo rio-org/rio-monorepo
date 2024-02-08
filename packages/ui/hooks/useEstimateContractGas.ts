@@ -81,7 +81,6 @@ const buildFetcher = <
     const { account, ...config } = _config;
 
     if (!client || !account) {
-      console.log('wut');
       return defaultResult;
     }
 
@@ -99,12 +98,6 @@ const buildFetcher = <
 
       const estimatedTotalCost =
         (contractGas * (maxFeePerGas + maxPriorityFeePerGas) * 120n) / 100n;
-      console.log({
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        estimatedTotalCost,
-        contractGas
-      });
       return {
         maxFeePerGas,
         maxPriorityFeePerGas,
@@ -164,11 +157,6 @@ export function useEstimateContractGas<
   const client = usePublicClient();
   const chainId = useNetwork().chain?.id || CHAIN_ID;
   const account = configAddress ?? accountAddress;
-  console.log({
-    staleTime: 12 * 1000,
-    account,
-    ...queryConfig
-  });
   return useQuery<UseGasEstimatesResult, Error>(
     [
       'useGasEstimates',
