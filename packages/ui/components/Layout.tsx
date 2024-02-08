@@ -1,4 +1,3 @@
-import Head from 'next/head';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import AppNav from './Nav/AppNav';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -18,7 +17,6 @@ import {
 import { twJoin } from 'tailwind-merge';
 
 export type LayoutProps = {
-  appTitle: string;
   nav: {
     items: InternalAppNavItem[];
     logoItem: LogoNavItem;
@@ -33,7 +31,6 @@ export type LayoutProps = {
 export default function Layout({
   children,
   nav,
-  appTitle,
   showExchangeRates = true
 }: LayoutProps) {
   const isMounted = useIsMounted();
@@ -67,28 +64,6 @@ export default function Layout({
 
   return (
     <>
-      <Head>
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
-        <link rel="manifest" href="/site.webmanifest" />
-        <title>{appTitle}</title>
-      </Head>
       <AppNav
         ref={appNavRef}
         items={nav.items}

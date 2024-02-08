@@ -61,6 +61,7 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 interface Props extends LayoutProps {
   requireGeofence?: boolean;
   requireTerms?: boolean;
+  appTitle: string;
 }
 
 export function Providers({
@@ -129,11 +130,7 @@ export function Providers({
               >
                 <ThemeProvider value={theme}>
                   <CssBaseline />
-                  <Layout
-                    appTitle={appTitle}
-                    showExchangeRates={showExchangeRates}
-                    nav={nav}
-                  >
+                  <Layout showExchangeRates={showExchangeRates} nav={nav}>
                     {children}
                     <Analytics />
                     <SpeedInsights />
