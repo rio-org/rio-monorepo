@@ -64,7 +64,7 @@ const StakeField = ({
     if (assets.length <= 1) return;
     inputRef.current?.blur();
   }, [inputRef, assets]);
-
+  console.log({ isDisabled });
   return (
     <InputField
       ref={inputRef}
@@ -74,9 +74,12 @@ const StakeField = ({
       placeholder="0.00"
       step="0.01"
       min={0}
+      autoFocus
       disabled={isDisabled}
       value={
-        !activeToken ? 0 : parseBigIntFieldAmount(amount, activeToken.decimals)
+        !activeToken
+          ? undefined
+          : parseBigIntFieldAmount(amount, activeToken.decimals)
       }
       onChange={(e) => {
         handleValueChange(e.target.value);

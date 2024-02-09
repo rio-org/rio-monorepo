@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import Skeleton from 'react-loading-skeleton';
-import cx from 'classnames';
 import {
   cn,
   displayEthAmount,
@@ -27,7 +26,7 @@ const WithdrawField = ({
   lrtDetails,
   setAmount
 }: Props) => {
-  const hasMounted = useIsMounted();
+  const isMounted = useIsMounted();
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isDesktopOrLaptop = useMediaQuery({
@@ -51,7 +50,7 @@ const WithdrawField = ({
         <label htmlFor="amount" className="mb-1 font-medium">
           reETH Amount
         </label>
-        {hasMounted && restakingTokenBalance !== undefined && lrtDetails ? (
+        {isMounted && restakingTokenBalance !== undefined && lrtDetails ? (
           <>
             <span className="opacity-50 text-[12px] -tracking-tight">
               Balance:{' '}
@@ -66,7 +65,7 @@ const WithdrawField = ({
         )}
       </div>
       <div
-        className={cx(
+        className={cn(
           'bg-black bg-opacity-5 text-black px-[20px] py-4 rounded-xl hover:border-gray-300 border border-transparent',
           isFocused && 'border-gray-400 hover:border-gray-400'
         )}
@@ -75,30 +74,36 @@ const WithdrawField = ({
         }}
       >
         <div className="relative flex flex-row gap-4 items-center">
-          <input
-            className={cn(
-              'text-[22px] bg-transparent w-full focus:outline-none flex-1',
-              disabled && 'text-gray-700'
-            )}
-            id="amount"
-            type="number"
-            placeholder="0.00"
-            autoFocus={!disabled && isDesktopOrLaptop}
-            min={0}
-            disabled={disabled}
-            value={parseBigIntFieldAmount(amount, 18)}
-            step="0.01"
-            ref={inputRef}
-            onChange={(e) => {
-              handleValueChange(e.target.value);
-            }}
-            onFocus={() => {
-              setIsFocused(true);
-            }}
-            onBlur={() => {
-              setIsFocused(false);
-            }}
-          />
+          {isMounted ? (
+            <input
+              className={cn(
+                'text-[22px] bg-transparent w-full focus:outline-none flex-1',
+                disabled && 'text-gray-700'
+              )}
+              id="amount"
+              type="number"
+              placeholder="0.00"
+              autoFocus={!disabled && isDesktopOrLaptop}
+              min={0}
+              disabled={disabled}
+              value={parseBigIntFieldAmount(amount, 18)}
+              step="0.01"
+              ref={inputRef}
+              onChange={(e) => {
+                handleValueChange(e.target.value);
+              }}
+              onFocus={() => {
+                setIsFocused(true);
+              }}
+              onBlur={() => {
+                setIsFocused(false);
+              }}
+            />
+          ) : (
+            <div className="w-full flex-1">
+              <Skeleton width={50} height={26} />
+            </div>
+          )}
           <button
             disabled={disabled}
             className="font-medium ml-2 px-3 py-2 bg-[var(--color-element-wrapper-bg)] rounded-xl hover:bg-black hover:bg-opacity-10 transition-colors duration-200"
