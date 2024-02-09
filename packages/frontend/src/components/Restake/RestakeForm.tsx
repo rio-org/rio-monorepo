@@ -325,7 +325,6 @@ function RestakeFormBase({
   useEffect(
     function storeTxError() {
       if (!executionError) return;
-      console.error('executionError', executionError);
       setDepositError(executionError);
       setIsDepositLoading(false);
     },
