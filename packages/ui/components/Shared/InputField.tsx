@@ -68,7 +68,7 @@ const InputField = forwardRef<HTMLInputElement, Props>(
               // @ts-ignore
               ref={inputRef}
               className="text-[22px] bg-transparent w-full focus:outline-none flex-1"
-              autoFocus={autoFocus ?? isDesktopOrLaptop}
+              autoFocus={isMounted && !!isDesktopOrLaptop && autoFocus}
               onFocus={(e) => (setIsFocused(true), onFocus?.(e))}
               onBlur={(e) => (setIsFocused(false), onBlur?.(e))}
               {...inputProps}

@@ -18,6 +18,7 @@ type Props = {
   accountTokenBalance: bigint;
   assets: AssetDetails[];
   isDisabled: boolean;
+  estimatedMaxGas?: bigint;
   lrt?: LRTDetails;
   setAmount: (amount: bigint | null) => void;
   setActiveToken: (asset: AssetDetails) => void;
@@ -30,6 +31,7 @@ const StakeField = ({
   assets,
   isDisabled,
   lrt,
+  estimatedMaxGas,
   setAmount,
   setActiveToken
 }: Props) => {
@@ -52,7 +54,8 @@ const StakeField = ({
     setAmount(parseUnits(value, activeToken?.decimals));
   };
   const handleMaxBalance = (balanceAmount: bigint) => {
-    setAmount(balanceAmount);
+    const maxBalance = balanceAmount - (estimatedMaxGas ?? 0n);
+    setAmount(maxBalance > 0n ? maxBalance : 0n);
   };
 
   const inputRef = useRef<HTMLInputElement>(null);

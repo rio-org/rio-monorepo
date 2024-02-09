@@ -1,5 +1,19 @@
-import { Address, Hash, formatUnits, getAddress, zeroAddress } from 'viem';
-import { erc20ABI, useContractRead, useWaitForTransaction } from 'wagmi';
+import {
+  Address,
+  Hash,
+  formatUnits,
+  getAddress,
+  parseEther,
+  parseUnits,
+  zeroAddress
+} from 'viem';
+import {
+  erc20ABI,
+  useContractRead,
+  useContractWrite,
+  usePrepareContractWrite,
+  useWaitForTransaction
+} from 'wagmi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Spinner } from '@material-tailwind/react';
 import Skeleton from 'react-loading-skeleton';
@@ -11,7 +25,8 @@ import {
 } from '@rio-monorepo/ui/lib/typings';
 import {
   type LiquidRestakingTokenClient,
-  useLiquidRestakingToken
+  useLiquidRestakingToken,
+  RioLRTCoordinatorABI
 } from '@rionetwork/sdk-react';
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
@@ -20,8 +35,9 @@ import StakeField from './StakeField';
 import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
-import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
+import { asType, displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
+import { useContractGasCost } from '@rio-monorepo/ui/hooks/useContractGasCost';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -63,6 +79,28 @@ function RestakeFormBase({
   const assets = useMemo(() => {
     return lrtDetails?.underlyingAssets.map((t) => t.asset) || [];
   }, [lrtDetails]);
+  const [coordinatorAddress, setCoordinatorAddress] = useState<
+    Address | undefined
+  >(
+    restakingTokenClient?.token?.deployment?.coordinator as Address | undefined
+  );
+
+  useEffect(
+    function setCoordinatorAddressBecauseLRTDoesNotTriggerRerender() {
+      if (coordinatorAddress || !restakingTokenClient) return;
+      const timeout = setInterval(
+        () =>
+          setCoordinatorAddress(
+            asType<Address>(
+              restakingTokenClient?.token?.deployment?.coordinator
+            )
+          ),
+        500
+      );
+      return () => clearInterval(timeout);
+    },
+    [restakingTokenClient, coordinatorAddress]
+  );
 
   const [amount, setAmount] = useState<bigint | null>(null);
   const [accountTokenBalance, setAccountTokenBalance] = useState(BigInt(0));
@@ -223,39 +261,85 @@ function RestakeFormBase({
     }
   }, [txData, isTxLoading, isTxError, txError]);
 
-  const handleJoin = async () => {
-    if (!activeToken || !restakingTokenClient || isDepositLoading || !amount) {
-      return;
-    }
+  const isEth = activeToken?.symbol === 'ETH';
 
-    const depositFunction =
-      activeToken.symbol === 'ETH'
-        ? restakingTokenClient.depositETH({ amount })
-        : restakingTokenClient.deposit({
-            amount,
-            tokenIn: activeToken.address
-          });
+  const contractWriteConfig = useMemo(
+    () =>
+      ({
+        address: coordinatorAddress || zeroAddress,
+        abi: RioLRTCoordinatorABI,
+        functionName: isEth ? 'depositETH' : 'deposit',
+        args: isEth
+          ? undefined
+          : ([activeToken?.address || zeroAddress, amount || 0n] as const),
+        value: isEth ? amount || 0n : undefined,
+        enabled: !!coordinatorAddress && !!activeToken?.address && !!address
+      }) as const,
+    [coordinatorAddress, isEth, activeToken?.address, amount, address]
+  );
 
-    await depositFunction
-      .then((res) => {
-        setIsDepositLoading(true);
-        setDepositTxHash(res);
-        return res;
-      })
-      .catch((err) => {
-        console.error('err', err);
-        setDepositError(err);
-        setIsDepositLoading(false);
-      });
-  };
+  const gasEstimateArgAmount = isEth
+    ? parseEther(data?.formatted ?? '0')
+    : parseUnits(data?.formatted ?? '0', activeToken?.decimals);
+
+  const { data: gasEstimates, isLoading: isGasLoading } = useContractGasCost({
+    ...contractWriteConfig,
+    args: isEth
+      ? undefined
+      : ([activeToken?.address || zeroAddress, gasEstimateArgAmount] as const),
+    value: isEth ? gasEstimateArgAmount : undefined
+  });
+
+  const gas = useMemo(() => {
+    const _gas = { ...gasEstimates };
+    delete _gas.estimatedTotalCost;
+    return _gas;
+  }, [gasEstimates]);
+
+  const { config, error: prepareWriteError } = usePrepareContractWrite({
+    ...contractWriteConfig,
+    ...gas,
+    enabled:
+      !!contractWriteConfig.enabled &&
+      !!gasEstimates &&
+      !isGasLoading &&
+      !!amount
+  });
+
+  const {
+    data: writeData,
+    write,
+    error: writeError,
+    reset: resetWrite
+  } = useContractWrite(config);
+
+  useEffect(
+    function storeHash() {
+      if (!writeData?.hash) return;
+      setDepositTxHash(writeData.hash);
+    },
+    [writeData?.hash]
+  );
+
+  const executionError = writeError || prepareWriteError;
+  useEffect(
+    function storeTxError() {
+      if (!executionError) return;
+      console.error('executionError', executionError);
+      setDepositError(executionError);
+      setIsDepositLoading(false);
+    },
+    [executionError]
+  );
 
   const handleExecute = () => {
+    if (!activeToken || isDepositLoading || !amount || !write) {
+      return;
+    }
     setIsDepositLoading(true);
     setDepositError(null);
     setDepositTxHash(undefined);
-    handleJoin().catch((e) => {
-      console.error(e);
-    });
+    write?.();
   };
 
   const { data: txReceipt } = useWaitForTransaction({
@@ -276,18 +360,24 @@ function RestakeFormBase({
 
   const handleChangeAmount = useCallback(
     (amount: bigint | null) => {
-      if (depositTxHash || depositError) clearErrors();
+      if (depositTxHash || depositError) {
+        clearErrors();
+        resetWrite();
+      }
       setAmount(amount);
     },
-    [clearErrors, depositTxHash, depositError]
+    [clearErrors, depositTxHash, depositError, resetWrite]
   );
 
   const handleChangeActiveToken = useCallback(
     (activeToken: AssetDetails) => {
-      if (depositTxHash || depositError) clearErrors();
+      if (depositTxHash || depositError) {
+        clearErrors();
+        resetWrite();
+      }
       setActiveToken(activeToken);
     },
-    [clearErrors, depositTxHash, depositError]
+    [clearErrors, depositTxHash, depositError, resetWrite]
   );
 
   return (
@@ -309,6 +399,7 @@ function RestakeFormBase({
             isDisabled={isDepositLoading}
             assets={assets}
             lrt={lrtDetails}
+            estimatedMaxGas={gasEstimates?.estimatedTotalCost}
             setAmount={handleChangeAmount}
             setActiveToken={handleChangeActiveToken}
           />
