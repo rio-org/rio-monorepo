@@ -63,7 +63,7 @@ const HeaderBadge = ({
     className={cn(
       'inline-flex items-center text-sm uppercase -tracking-tight',
       'rounded-full border border-[var(--color-light-blue)] text-[var(--color-blue)] py-[6px] px-4 gap-1',
-      '[&>span]:inline-block',
+      '[&>span]:inline-block cursor-default',
       className
     )}
   >

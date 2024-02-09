@@ -67,7 +67,7 @@ const AssetSelector = ({
       'py-1 pl-1 pr-2 rounded-full bg-[var(--color-element-wrapper-bg-light)]',
       isDropdown
         ? 'duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors'
-        : 'pr-0'
+        : 'pr-0 cursor-default'
     );
   }, [isDropdown]);
 
