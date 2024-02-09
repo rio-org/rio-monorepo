@@ -1,7 +1,19 @@
-import { Address as ViemAddress } from 'viem';
+import { FeeValues, Address as ViemAddress } from 'viem';
 
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type Address = ViemAddress | string;
+
+export type TxOverrideBase<TQuantity = bigint, TIndex = number> = {
+  /** Gas provided for transaction execution */
+  gas?: TQuantity;
+  /** Unique number identifying this transaction */
+  nonce?: TIndex;
+};
+
+export type TxOverrides<TQuantity = bigint> = TxOverrideBase<TQuantity> &
+  FeeValues<TQuantity>;
+
+//#region Read Functions
 
 export interface EstimateOutDepositETHParams {
   /**

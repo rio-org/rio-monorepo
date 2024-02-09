@@ -11,7 +11,8 @@ import {
   RequestWithdrawalParams,
   ClaimWithdrawalParams,
   EstimateOutDepositETHParams,
-  EstimateOutRequestWithdrawalParams
+  EstimateOutRequestWithdrawalParams,
+  TxOverrides
 } from '../types';
 import {
   LiquidRestakingToken,
@@ -174,9 +175,11 @@ export class LiquidRestakingTokenClient {
   /**
    * @notice Deposits ERC20 tokens and mints liquid restaking tokens to the user.
    * @param params The parameters required to deposit ERC20 tokens.
+   * @param overrides Optional transaction overrides.
    */
   public async deposit(
-    params: DepositParams
+    params: DepositParams,
+    overrides?: TxOverrides
   ): Promise<WriteContractReturnType> {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
@@ -187,7 +190,8 @@ export class LiquidRestakingTokenClient {
       address: this._token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
       functionName: 'deposit',
-      args: [tokenIn as ViemAddress, BigInt(amount)]
+      args: [tokenIn as ViemAddress, BigInt(amount)],
+      ...overrides
     });
     return this._wallet.writeContract(request);
   }
@@ -195,9 +199,11 @@ export class LiquidRestakingTokenClient {
   /**
    * @notice Deposits ETH and mints liquid restaking tokens to the user.
    * @param params The parameters required to deposit ETH.
+   * @param overrides Optional transaction overrides.
    */
   public async depositETH(
-    params: DepositETHParams
+    params: DepositETHParams,
+    overrides?: TxOverrides
   ): Promise<WriteContractReturnType> {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
@@ -208,7 +214,8 @@ export class LiquidRestakingTokenClient {
       address: this._token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
       functionName: 'depositETH',
-      value: BigInt(amount)
+      value: BigInt(amount),
+      ...overrides
     });
     return this._wallet.writeContract(request);
   }
@@ -218,9 +225,11 @@ export class LiquidRestakingTokenClient {
    * from the user and queuing a withdrawal to the specified asset.
    * @param params The parameters required to request a withdrawal to ETH
    * or an ERC20 token.
+   * @param overrides Optional transaction overrides.
    */
   public async requestWithdrawal(
-    params: RequestWithdrawalParams
+    params: RequestWithdrawalParams,
+    overrides?: TxOverrides
   ): Promise<WriteContractReturnType> {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
@@ -231,7 +240,8 @@ export class LiquidRestakingTokenClient {
       address: this._token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
       functionName: 'requestWithdrawal',
-      args: [assetOut as ViemAddress, BigInt(amountIn)]
+      args: [assetOut as ViemAddress, BigInt(amountIn)],
+      ...overrides
     });
     return this._wallet.writeContract(request);
   }
@@ -241,9 +251,11 @@ export class LiquidRestakingTokenClient {
    * specified epoch.
    * @param params The parameters required to claim an ETH or ERC20
    * token withdrawal.
+   * @param overrides Optional transaction overrides.
    */
   public async claimWithdrawalsForEpoch(
-    params: ClaimWithdrawalParams
+    params: ClaimWithdrawalParams,
+    overrides?: TxOverrides
   ): Promise<WriteContractReturnType> {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
@@ -259,7 +271,8 @@ export class LiquidRestakingTokenClient {
           asset: assetOut as ViemAddress,
           epoch: BigInt(epoch)
         }
-      ]
+      ],
+      ...overrides
     });
     return this._wallet.writeContract(request);
   }
@@ -268,9 +281,11 @@ export class LiquidRestakingTokenClient {
    * Claims the full amount(s) of the asset(s) owed to the caller in the
    * specified epoch(s).
    * @param params The parameters required to claim the withdrawal(s).
+   * @param overrides Optional transaction overrides.
    */
   public async claimWithdrawalsForManyEpochs(
-    params: ClaimWithdrawalParams[]
+    params: ClaimWithdrawalParams[],
+    overrides?: TxOverrides
   ): Promise<WriteContractReturnType> {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
@@ -285,7 +300,8 @@ export class LiquidRestakingTokenClient {
           asset: assetOut as ViemAddress,
           epoch: BigInt(epoch)
         }))
-      ]
+      ],
+      ...overrides
     });
     return this._wallet.writeContract(request);
   }
