@@ -54,7 +54,8 @@ const StakeField = ({
     setAmount(parseUnits(value, activeToken?.decimals));
   };
   const handleMaxBalance = (balanceAmount: bigint) => {
-    setAmount(balanceAmount - (estimatedMaxGas ?? 0n));
+    const maxBalance = balanceAmount - (estimatedMaxGas ?? 0n);
+    setAmount(maxBalance > 0n ? maxBalance : 0n);
   };
 
   const inputRef = useRef<HTMLInputElement>(null);

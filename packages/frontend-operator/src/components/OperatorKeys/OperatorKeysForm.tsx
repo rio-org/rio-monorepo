@@ -5,7 +5,7 @@ import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useGetLatestAssetPrice } from '@rio-monorepo/ui/hooks/useGetLatestAssetPrice';
 import { useGetOperators } from '@rio-monorepo/ui/hooks/useGetOperators';
-import { useEstimateContractGas } from '@rio-monorepo/ui/hooks/useEstimateContractGas';
+import { useContractGasCost } from '@rio-monorepo/ui/hooks/useContractGasCost';
 import {
   type ContractError,
   type LRTDetails,
@@ -119,11 +119,22 @@ function OperatorKeysFormInternal({
     [address, isValid, args, operatorAddress]
   );
 
+  const { data: gasEstimates } = useContractGasCost({
+    ...contractWriteOptions,
+    enabled: !!address && contractWriteOptions.args !== DEFAULT_ARGS
+  });
+
+  const gas = useMemo(() => {
+    const _gas = { ...gasEstimates };
+    delete _gas.estimatedTotalCost;
+    return _gas;
+  }, [gasEstimates]);
+
   const {
     config,
     isLoading: isPrepareLoading,
     error: prepareError
-  } = usePrepareContractWrite(contractWriteOptions);
+  } = usePrepareContractWrite({ ...contractWriteOptions, ...gas });
 
   const {
     data,
@@ -135,11 +146,6 @@ function OperatorKeysFormInternal({
 
   const { error: txError } = useWaitForTransaction({
     hash: data?.hash
-  });
-
-  const { data: gasEstimates } = useEstimateContractGas({
-    ...contractWriteOptions,
-    enabled: !!address && contractWriteOptions.args !== DEFAULT_ARGS
   });
 
   useEffect(() => {
