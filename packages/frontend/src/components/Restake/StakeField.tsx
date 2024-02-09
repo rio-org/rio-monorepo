@@ -64,7 +64,7 @@ const StakeField = ({
     if (assets.length <= 1) return;
     inputRef.current?.blur();
   }, [inputRef, assets]);
-  console.log({ isDisabled });
+
   return (
     <InputField
       ref={inputRef}
@@ -95,9 +95,7 @@ const StakeField = ({
       }
     >
       <div className="text-sm flex justify-between w-full mt-1">
-        <span className="opacity-50">
-          ${usdAmount.toFixed(2).toLocaleString()}
-        </span>
+        <span className="opacity-50">${usdAmount.toLocaleString()}</span>
         <div>
           {isMounted &&
           accountTokenBalance !== undefined &&
