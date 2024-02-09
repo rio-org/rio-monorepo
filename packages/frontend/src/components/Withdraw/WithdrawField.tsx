@@ -87,7 +87,7 @@ const WithdrawField = ({
             min={0}
             disabled={disabled}
             value={parseBigIntFieldAmount(amount, 18)}
-            step="0.1"
+            step="0.01"
             ref={inputRef}
             onChange={(e) => {
               handleValueChange(e.target.value);
