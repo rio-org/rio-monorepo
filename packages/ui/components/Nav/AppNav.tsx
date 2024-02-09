@@ -106,7 +106,7 @@ const AppNav = React.forwardRef<
       <>
         <Navbar
           ref={ref}
-          className={cn('mx-auto max-w-full', className)}
+          className={cn('mx-auto max-w-full  z-[9999]', className)}
           variant="filled"
           color="transparent"
         >

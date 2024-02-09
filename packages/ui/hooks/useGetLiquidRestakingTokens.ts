@@ -18,10 +18,6 @@ export function useGetLiquidRestakingTokens(
   return useQuery<LRTDetails[], Error>(
     ['useGetLiquidRestakingTokens', CHAIN_ID] as const,
     fetcher,
-    {
-      staleTime: 60 * 1000,
-      ...queryConfig,
-      enabled: queryConfig?.enabled !== false
-    }
+    { staleTime: 60 * 1000, ...queryConfig }
   );
 }
