@@ -441,7 +441,7 @@ function RestakeFormBase({
           </div>
           <HR />
           <div className="flex justify-between text-[14px]">
-            <span className="text-black font-bold">Minimum received</span>
+            <span className="text-black font-bold">Received</span>
             <strong>
               {minAmountOut && typeof minAmountOut === 'bigint'
                 ? displayEthAmount(
