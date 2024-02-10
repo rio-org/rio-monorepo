@@ -1,12 +1,10 @@
 import Skeleton from 'react-loading-skeleton';
-import { twJoin } from 'tailwind-merge';
 import { formatUnits } from 'viem';
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
 import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
 import {
-  cn,
   displayAmount,
   displayEthAmount
 } from '@rio-monorepo/ui/lib/utilities';
@@ -49,16 +47,8 @@ const WithdrawItemized = ({
               : displayEthAmount(formatUnits(BigInt(0), activeToken.decimals))}
           </>
         )}
-        <span
-          className={cn(
-            twJoin(
-              'bg-[var(--color-element-wrapper-bg)] rounded-[4px] px-2 py-1',
-              'text-[12px] min-w-[60px] text-center block',
-              !activeToken && 'px-0 py-0 h-[26px]'
-            )
-          )}
-        >
-          {activeToken?.symbol || <Skeleton className="w-full h-full" />}
+        <span className="leading-none">
+          {activeToken?.symbol || <Skeleton className="w-6 h-3.5" />}
         </span>
       </strong>
     ),
