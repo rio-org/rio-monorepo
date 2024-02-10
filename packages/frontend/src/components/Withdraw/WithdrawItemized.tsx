@@ -95,8 +95,8 @@ const WithdrawItemized = ({
           )}
         </div>
         <div className="flex justify-between text-[14px]">
-          <span className="text-black opacity-50">Fees</span>
-          <strong>Free</strong>
+          <span className="text-black opacity-50">Withdrawal Fees</span>
+          <strong>None</strong>
         </div>
       </div>
       <HR />
