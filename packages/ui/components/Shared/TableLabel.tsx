@@ -1,19 +1,21 @@
 import React from 'react';
-import cx from 'classnames';
 import { type TableLabelProps } from '../../lib/typings';
+import { cn } from '../../lib/utilities';
 
 export type Props = TableLabelProps;
 
 export const TableLabel = ({
   children,
   textDirection = 'left',
-  isSecondary
+  isSecondary,
+  className
 }: Props) => {
   return (
     <span
-      className={cx(
+      className={cn(
         `block text-sm text-${textDirection} items-end font-medium leading-none w-full`,
-        isSecondary && 'opacity-50'
+        isSecondary && 'opacity-50',
+        className
       )}
     >
       {children}
