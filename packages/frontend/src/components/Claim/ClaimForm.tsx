@@ -31,6 +31,7 @@ export const HydratedClaimForm = ({ lrt }: Props) => {
       withdrawalAssets: [{ amount: 0, symbol: 'ETH' }],
       withdrawalParams: [] as ClaimWithdrawalParams[]
     },
+    isLoading: isWithdrawalsLoading,
     refetch
   } = useGetAccountWithdrawals(
     { where: { sender: address, restakingToken: lrt.address } },
@@ -65,7 +66,11 @@ export const HydratedClaimForm = ({ lrt }: Props) => {
     <div>
       <ClaimAmountViewer
         title="Available to claim now"
-        amount={withdrawalAssets.reduce((a, b) => a + b.amount, 0)}
+        amount={
+          isWithdrawalsLoading
+            ? undefined
+            : withdrawalAssets.reduce((a, b) => a + b.amount, 0)
+        }
         symbol={
           !lrt?.symbol
             ? ''
