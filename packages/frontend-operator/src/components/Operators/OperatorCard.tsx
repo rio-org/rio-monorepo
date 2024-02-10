@@ -1,7 +1,7 @@
 import { type OperatorDelegator } from '@rionetwork/sdk-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Skeleton from 'react-loading-skeleton';
-import { twJoin } from 'tailwind-merge';
+import { twJoin, twMerge } from 'tailwind-merge';
 import { type Address } from 'wagmi';
 import { zeroAddress } from 'viem';
 import { useState } from 'react';
@@ -19,6 +19,7 @@ import { IconGlobe } from '@rio-monorepo/ui/components/Icons/IconGlobe';
 import { MonospaceBox } from '@rio-monorepo/ui/components/Shared/MonospaceBox';
 import { LinkIcon } from '@rio-monorepo/ui/components/Shared/LinkIcon';
 import FormCard from '@rio-monorepo/ui/components/Shared/FormCard';
+import { ValidatorOptionsKabobMenu } from './ValidatorOptionsKabobMenu';
 import { PendingManagerInvitation } from './PendingManagerInvitation';
 import { NewManagerPendingSection } from './NewManagerPendingSection';
 import { EditOperatorFieldDialog } from './EditOperatorFieldDialog';
@@ -123,9 +124,24 @@ export function OperatorCard({
               operatorRegistryAddress={operatorRegistryAddress}
             />
             <div>
-              <h3 className="text-sm font-medium leading-5 mb-2">
-                Validator Information
-              </h3>
+              <div
+                className={twMerge(
+                  'flex justify-between items-center w-full',
+                  !!editable && 'justify-start'
+                )}
+              >
+                <h3 className="text-sm font-medium leading-5 mb-2">
+                  Validator Information
+                </h3>
+                {!editable && (
+                  <ValidatorOptionsKabobMenu
+                    operatorRegistryAddress={operatorRegistryAddress}
+                    operatorDelegator={operatorDelegator}
+                    refetchOperator={refetchOperator}
+                    onchainDetail={onchainDetail}
+                  />
+                )}
+              </div>
               <div className="flex flex-wrap gap-2">
                 <OperatorValidatorDetail
                   title="DAO Approved Cap"
