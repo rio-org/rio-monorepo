@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Spinner } from '@material-tailwind/react';
+import { Spinner, Tooltip } from '@material-tailwind/react';
 import { useMediaQuery } from 'react-responsive';
 import { useMemo } from 'react';
 
@@ -11,7 +11,12 @@ import Pagination from './Pagination';
 import { useTransactionHistory } from '@rio-monorepo/ui/hooks/useUserHistory';
 import { usePagination } from '@rio-monorepo/ui/hooks/usePagination';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
-import { cn, linkToTxOnBlockExplorer } from '@rio-monorepo/ui/lib/utilities';
+import {
+  cn,
+  displayAmount,
+  displayEthAmount,
+  linkToTxOnBlockExplorer
+} from '@rio-monorepo/ui/lib/utilities';
 import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import {
   type LRTDetails,
@@ -24,6 +29,7 @@ import {
   DESKTOP_MQ,
   TX_HISTORY_TABLE_HEADER_LABELS
 } from '@rio-monorepo/ui/lib/constants';
+import { IconInfo } from '@rio-monorepo/ui/components/Icons/IconInfo';
 
 interface Props {
   lrt?: LRTDetails;
@@ -79,11 +85,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         render(TableLabel, item) {
           return (
             <TableLabel textDirection="right">
-              $
-              {item.restakingTokenPriceUSD.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}
+              ${displayAmount(item.restakingTokenPriceUSD, 2, 2)}
             </TableLabel>
           );
         }
@@ -92,15 +94,32 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         key: 'amountChange',
         label: 'Amount',
         render(TableLabel, item) {
+          const amountChange = displayEthAmount(item.amountChange.toString());
           return (
             <div className="flex flex-col">
-              <TableLabel textDirection="right">
-                {item.type === TransactionType.Request ? '-' : ''}
-                {item.amountChange} reETH
+              <TableLabel
+                textDirection="right"
+                className="justify-center items-center"
+              >
+                <span>
+                  {item.type === TransactionType.Request ? '-' : ''}
+                  {amountChange} {item.amountChangeSymbol}
+                </span>
+
+                {+amountChange !== item.amountChange && (
+                  <Tooltip
+                    placement="top-end"
+                    content={`Exact amount: ${item.amountChange} reETH`}
+                  >
+                    <button className="ml-1">
+                      <IconInfo />
+                    </button>
+                  </Tooltip>
+                )}
               </TableLabel>
               <TableLabel isSecondary={true} textDirection="right">
                 {item.type === TransactionType.Request ? '-' : ''}$
-                {item.valueUSD.toFixed(2).toLocaleString()}
+                {displayAmount(item.valueUSD, 2, 2)}
               </TableLabel>
             </div>
           );
@@ -120,7 +139,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
             return (
               <TableLabel>
                 <a
-                  href={linkToTxOnBlockExplorer('0x000', CHAIN_ID)}
+                  href={linkToTxOnBlockExplorer(item.tx, CHAIN_ID)}
                   target="_blank"
                   rel="noreferrer"
                   className={cn(
@@ -141,15 +160,32 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
           key: 'amountChange',
           label: 'Amount',
           render(TableLabel, item) {
+            const amountChange = displayEthAmount(item.amountChange.toString());
             return (
               <div className="flex flex-col">
-                <TableLabel textDirection="right">
-                  {item.type === TransactionType.Request ? '-' : ''}
-                  {item.amountChange} reETH
+                <TableLabel
+                  textDirection="right"
+                  className="justify-center items-center"
+                >
+                  <span>
+                    {item.type === TransactionType.Request ? '-' : ''}
+                    {amountChange} {item.amountChangeSymbol}
+                  </span>
+
+                  {+amountChange !== item.amountChange && (
+                    <Tooltip
+                      placement="top-end"
+                      content={`Exact amount: ${item.amountChange} reETH`}
+                    >
+                      <button className="ml-1">
+                        <IconInfo />
+                      </button>
+                    </Tooltip>
+                  )}
                 </TableLabel>
                 <TableLabel isSecondary={true} textDirection="right">
                   {item.type === TransactionType.Request ? '-' : ''}$
-                  {item.valueUSD.toFixed(2).toLocaleString()}
+                  {displayAmount(item.valueUSD, 2, 2)}
                 </TableLabel>
               </div>
             );
@@ -167,7 +203,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
           render(TableLabel, item) {
             return (
               <TableLabel textDirection="right">
-                ${item.valueUSD.toLocaleString()}
+                ${displayAmount(item.valueUSD, 2, 2)}
               </TableLabel>
             );
           }

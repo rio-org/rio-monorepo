@@ -15,7 +15,7 @@ import {
   useWaitForTransaction
 } from 'wagmi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Spinner } from '@material-tailwind/react';
+import { Alert, Spinner, Tooltip } from '@material-tailwind/react';
 import Skeleton from 'react-loading-skeleton';
 import {
   type AssetDetails,
@@ -35,9 +35,14 @@ import StakeField from './StakeField';
 import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
-import { asType, displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
+import {
+  asType,
+  displayAmount,
+  displayEthAmount
+} from '@rio-monorepo/ui/lib/utilities';
 import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 import { useContractGasCost } from '@rio-monorepo/ui/hooks/useContractGasCost';
+import { IconInfo } from '@rio-monorepo/ui/components/Icons/IconInfo';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -325,7 +330,6 @@ function RestakeFormBase({
   useEffect(
     function storeTxError() {
       if (!executionError) return;
-      console.error('executionError', executionError);
       setDepositError(executionError);
       setIsDepositLoading(false);
     },
@@ -409,13 +413,25 @@ function RestakeFormBase({
               {!exchangeRate ? (
                 <Skeleton height="0.875rem" width={80} />
               ) : (
-                <strong className="text-right">
-                  1.00 {activeToken?.symbol} ={' '}
-                  {exchangeRate.lrt.toLocaleString()} {lrtDetails?.symbol}{' '}
-                  <strong className="opacity-50">
-                    (${exchangeRate.usd.toLocaleString()})
+                <span className="flex items-center gap-1">
+                  <strong className="text-right">
+                    {displayAmount(1, 3, 3)} {activeToken?.symbol} ={' '}
+                    {exchangeRate.formatted.lrt} {lrtDetails?.symbol}{' '}
+                    <strong className="opacity-50">
+                      (${exchangeRate.formatted.usd})
+                    </strong>
                   </strong>
-                </strong>
+                  {+exchangeRate.formatted.lrt !== exchangeRate.lrt && (
+                    <Tooltip
+                      placement="top-end"
+                      content={`Exact exchange rate: ${exchangeRate.lrt} ${lrtDetails?.symbol}`}
+                    >
+                      <button>
+                        <IconInfo />
+                      </button>
+                    </Tooltip>
+                  )}
+                </span>
               )}
             </div>
             <div className="flex justify-between text-[14px]">
@@ -425,13 +441,13 @@ function RestakeFormBase({
           </div>
           <HR />
           <div className="flex justify-between text-[14px]">
-            <span className="text-black font-bold">Minimum received</span>
+            <span className="text-black font-bold">Received</span>
             <strong>
               {minAmountOut && typeof minAmountOut === 'bigint'
                 ? displayEthAmount(
                     formatUnits(minAmountOut, activeToken.decimals)
                   )
-                : displayEthAmount((0).toString())}{' '}
+                : displayAmount(0)}{' '}
               reETH
             </strong>
           </div>

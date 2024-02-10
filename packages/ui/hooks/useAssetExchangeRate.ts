@@ -8,7 +8,7 @@ import {
   TokenSymbol,
   UnderlyingAssetDetails
 } from '../lib/typings';
-import { isEqualAddress } from '../lib/utilities';
+import { displayAmount, isEqualAddress } from '../lib/utilities';
 import { useGetLiquidRestakingTokens } from './useGetLiquidRestakingTokens';
 import { Address } from 'viem';
 
@@ -17,6 +17,11 @@ interface UseAssetExchangeRateReturn {
     lrt: number;
     eth: number;
     usd: number;
+    formatted: {
+      lrt: string;
+      eth: string;
+      usd: string;
+    };
   } | null;
   isLoading: boolean;
   isError: boolean;
@@ -73,18 +78,25 @@ export const useAssetExchangeRate = ({
     }
   }, [_asset, _lrt, lrtList]);
 
-  const data = useMemo(
-    () => ({
-      lrt: Number(asset?.latestUSDPrice) / Number(lrt?.exchangeRateUSD),
-      eth: Number(asset?.latestUSDPrice) / Number(eth?.latestUSDPrice),
-      usd: Number(asset?.latestUSDPrice)
-    }),
-    [asset, lrt, eth]
-  );
+  const data = useMemo(() => {
+    const _lrt = Number(asset?.latestUSDPrice) / Number(lrt?.exchangeRateUSD);
+    const _eth = Number(asset?.latestUSDPrice) / Number(eth?.latestUSDPrice);
+    const _usd = Number(asset?.latestUSDPrice);
+    return {
+      lrt: _lrt,
+      eth: _eth,
+      usd: _usd,
+      formatted: {
+        lrt: displayAmount(_lrt, 3, 3),
+        eth: displayAmount(_eth, 3, 3),
+        usd: displayAmount(_usd, 2, 2)
+      }
+    };
+  }, [asset, lrt, eth]);
 
   return useMemo(() => {
     return {
-      data: Object.values(data).some(isNaN) ? null : data,
+      data: isNaN(data.lrt) || isNaN(data.eth) || isNaN(data.usd) ? null : data,
       isLoading: isLrtListLoading,
       isError: isLrtListError,
       isFetching: isLrtListLoading,

@@ -10,12 +10,17 @@ import {
   TransactionType
 } from '../lib/typings';
 import { useGetLiquidRestakingTokens } from './useGetLiquidRestakingTokens';
-import { dateFromTimestamp, parseBaseSubgraphAsset } from '../lib/utilities';
+import {
+  asType,
+  dateFromTimestamp,
+  parseBaseSubgraphAsset
+} from '../lib/utilities';
 import {
   Deposit,
   WithdrawalClaim,
   WithdrawalRequest
 } from '@rionetwork/sdk-react';
+import { useGetAssetsList } from './useGetAssetsList';
 
 interface RawTransactionEvent<
   T extends 'Incomplete' | void = void,
@@ -35,6 +40,7 @@ export const useTransactionHistory = (config?: {
   const { data: requests, ...requestsValues } =
     useGetAccountWithdrawals(config);
   const { data: lrtList, ...lrtListValues } = useGetLiquidRestakingTokens();
+  const { data: assetList } = useGetAssetsList();
   const withdrawalRequests = requests.withdrawalRequests;
 
   const lrtLookup = useMemo(() => {
@@ -48,13 +54,30 @@ export const useTransactionHistory = (config?: {
     );
   }, [lrtList?.length]);
 
+  const assetLookup = useMemo(() => {
+    if (!assetList?.length) return null;
+    return assetList.reduce(
+      (acc, asset) => {
+        acc[asset.address] = parseBaseSubgraphAsset(asset);
+        return acc;
+      },
+      {} as Record<Address, BaseAssetDetails>
+    );
+  }, [assetList?.length]);
+
   const txHistory = useMemo(() => {
-    if (!deposits || !claims || !withdrawalRequests || !lrtLookup) {
+    if (
+      !deposits ||
+      !claims ||
+      !withdrawalRequests ||
+      !lrtLookup ||
+      !assetLookup
+    ) {
       return null;
     }
 
     let last = 0;
-    const parseTx = buildParseTx(lrtLookup);
+    const parseTx = buildParseTx(lrtLookup, assetLookup);
     const txEvents: TransactionEvent[] = [];
 
     return txEvents
@@ -129,7 +152,10 @@ function findFirstTruthy<T extends keyof UseQueryResult>(
   return values.find((v) => v[field])?.[field];
 }
 
-function buildParseTx(lrtLookup: Record<Address, BaseAssetDetails>) {
+function buildParseTx(
+  lrtLookup: Record<Address, BaseAssetDetails>,
+  assetLookup: Record<Address, BaseAssetDetails>
+) {
   return <
     T extends Deposit | WithdrawalClaim | WithdrawalRequest,
     R extends 'Incomplete' | void = T extends WithdrawalClaim
@@ -146,19 +172,25 @@ function buildParseTx(lrtLookup: Record<Address, BaseAssetDetails>) {
           ? TransactionType.Request
           : TransactionType.Deposit;
       const isClaim = type === TransactionType.Claim;
+      const isRequest = type === TransactionType.Request;
       const _ctx = tx as WithdrawalClaim;
-      const _dtx = tx as Deposit | WithdrawalRequest;
+      const _dwtx = tx as Deposit | WithdrawalRequest;
+      const _dtx = tx as Deposit;
       return {
         type,
         date: tx.timestamp,
         address: tx.sender,
         valueUSD: Number(tx.valueUSD),
-        amountChange: Number(isClaim ? _ctx.amountClaimed : _dtx.amountIn),
+        amountChange: Number(isClaim ? _ctx.amountClaimed : _dwtx.amountIn),
+        amountChangeSymbol: isRequest
+          ? lrtLookup[tx.restakingToken as Address].symbol
+          : assetLookup[asType<Address>(isClaim ? _ctx.assetOut : _dtx.assetIn)]
+              .symbol,
         restakingToken: lrtLookup[tx.restakingToken as Address],
         restakingTokenPriceUSD: Number(tx.restakingTokenPriceUSD),
         tx: tx.tx,
         ...(!isClaim && {
-          userBalanceAfter: Number(_dtx.userBalanceAfter)
+          userBalanceAfter: Number(_dwtx.userBalanceAfter)
         })
       } as RawTransactionEvent<R>;
     });

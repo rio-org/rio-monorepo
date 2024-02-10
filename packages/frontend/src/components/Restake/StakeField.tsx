@@ -72,11 +72,14 @@ const StakeField = ({
       id="amount"
       type="number"
       placeholder="0.00"
-      step="0.1"
+      step="0.01"
       min={0}
+      autoFocus
       disabled={isDisabled}
       value={
-        !activeToken ? 0 : parseBigIntFieldAmount(amount, activeToken.decimals)
+        !activeToken
+          ? undefined
+          : parseBigIntFieldAmount(amount, activeToken.decimals)
       }
       onChange={(e) => {
         handleValueChange(e.target.value);
@@ -92,9 +95,7 @@ const StakeField = ({
       }
     >
       <div className="text-sm flex justify-between w-full mt-1">
-        <span className="opacity-50">
-          ${usdAmount.toFixed(2).toLocaleString()}
-        </span>
+        <span className="opacity-50">${usdAmount.toLocaleString()}</span>
         <div>
           {isMounted &&
           accountTokenBalance !== undefined &&

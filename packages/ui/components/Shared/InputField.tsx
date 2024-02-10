@@ -3,6 +3,7 @@ import { useMediaQuery } from 'react-responsive';
 import { useIsMounted } from '../../hooks/useIsMounted';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { cn } from '../../lib/utilities';
+import Skeleton from 'react-loading-skeleton';
 
 type Props = React.DetailedHTMLProps<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -63,16 +64,22 @@ const InputField = forwardRef<HTMLInputElement, Props>(
               position: isMounted && isDesktopOrLaptop ? 'relative' : 'inherit'
             }}
           >
-            <input
-              // eslint-disable-next-line
-              // @ts-ignore
-              ref={inputRef}
-              className="text-[22px] bg-transparent w-full focus:outline-none flex-1"
-              autoFocus={isMounted && !!isDesktopOrLaptop && autoFocus}
-              onFocus={(e) => (setIsFocused(true), onFocus?.(e))}
-              onBlur={(e) => (setIsFocused(false), onBlur?.(e))}
-              {...inputProps}
-            />
+            {isMounted ? (
+              <input
+                // eslint-disable-next-line
+                // @ts-ignore
+                ref={inputRef}
+                className="text-[22px] bg-transparent w-full focus:outline-none flex-1"
+                autoFocus={!!isDesktopOrLaptop && autoFocus}
+                onFocus={(e) => (setIsFocused(true), onFocus?.(e))}
+                onBlur={(e) => (setIsFocused(false), onBlur?.(e))}
+                {...inputProps}
+              />
+            ) : (
+              <div className="w-full flex-1">
+                <Skeleton width={50} height={26} />
+              </div>
+            )}
             {suffix}
           </div>
           {children}

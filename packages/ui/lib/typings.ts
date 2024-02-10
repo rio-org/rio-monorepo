@@ -110,6 +110,7 @@ export type TableLabelProps = {
   children: React.ReactNode;
   textDirection?: 'left' | 'right';
   isSecondary?: boolean;
+  className?: string;
 };
 
 export type TableColumn<T, R = keyof T> = {
@@ -216,6 +217,7 @@ export interface TransactionEvent {
   address: Address;
   valueUSD: number;
   amountChange: number;
+  amountChangeSymbol: string;
   restakingToken: BaseAssetDetails;
   restakingTokenPriceUSD: number;
   userBalanceAfter: number;
