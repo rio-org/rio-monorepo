@@ -5,11 +5,17 @@ import Image from 'next/image';
 import React, { useMemo } from 'react';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
 import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
-import { cn, displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
+import {
+  cn,
+  displayAmount,
+  displayEthAmount
+} from '@rio-monorepo/ui/lib/utilities';
 import {
   type AssetDetails,
   type LRTDetails
 } from '@rio-monorepo/ui/lib/typings';
+import { Tooltip } from '@material-tailwind/react';
+import { IconInfo } from '@rio-monorepo/ui/components/Icons/IconInfo';
 
 type Props = {
   activeToken?: AssetDetails;
@@ -67,15 +73,35 @@ const WithdrawItemized = ({
           {!exchangeRate ? (
             <Skeleton height="0.875rem" width={80} />
           ) : (
-            <strong className="text-right">
-              1.00 reETH = {(1 / exchangeRate?.lrt).toLocaleString()}{' '}
-              {activeToken?.symbol || <Skeleton width={20} />}{' '}
-              <span className="text-right font-bold opacity-50">
-                ($
-                {(exchangeRate.usd * (1 / exchangeRate?.lrt))?.toLocaleString()}
-                )
-              </span>
-            </strong>
+            <span className="flex items-center gap-1">
+              <strong className="text-right">
+                {displayAmount(1, 3, 3)} reETH ={' '}
+                {displayAmount(1 / exchangeRate?.lrt, 3, 3)}{' '}
+                {activeToken?.symbol || <Skeleton width={20} />}{' '}
+                <span className="text-right font-bold opacity-50">
+                  ($
+                  {displayAmount(
+                    exchangeRate.usd * (1 / exchangeRate?.lrt),
+                    3,
+                    3
+                  )}
+                  )
+                </span>
+              </strong>
+              {+displayAmount(1 / exchangeRate?.lrt, 3, 3) !==
+                1 / exchangeRate?.lrt && (
+                <Tooltip
+                  placement="top-end"
+                  content={`Exact exchange rate: ${
+                    1 / exchangeRate?.lrt
+                  } reETH`}
+                >
+                  <button>
+                    <IconInfo />
+                  </button>
+                </Tooltip>
+              )}
+            </span>
           )}
         </div>
         <div className="flex justify-between text-[14px]">
