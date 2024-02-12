@@ -1,11 +1,19 @@
 import { TooltipContentProps } from '@radix-ui/react-tooltip';
 import { IconInfo } from '../Icons/IconInfo';
 import {
-  Tooltip,
-  TooltipProvider,
-  TooltipTrigger,
-  TooltipContent
-} from '../shadcn/tooltip';
+  HybridTooltip,
+  HybridTooltipTrigger,
+  HybridTooltipContent
+} from './HybridTooltip';
+
+export type InfoTooltipProps = {
+  triggerClassName?: string;
+  iconClassName?: string;
+  contentClassName?: string;
+  side?: TooltipContentProps['side'];
+  align?: TooltipContentProps['align'];
+  children: React.ReactNode | React.ReactNode[];
+};
 
 export const InfoTooltip = ({
   triggerClassName,
@@ -14,22 +22,17 @@ export const InfoTooltip = ({
   side = 'top',
   align = 'end',
   children
-}: {
-  triggerClassName?: string;
-  iconClassName?: string;
-  contentClassName?: string;
-  side?: TooltipContentProps['side'];
-  align?: TooltipContentProps['align'];
-  children: React.ReactNode | React.ReactNode[];
-}) => (
-  <TooltipProvider>
-    <Tooltip>
-      <TooltipTrigger className={triggerClassName}>
-        <IconInfo className={iconClassName} />
-      </TooltipTrigger>
-      <TooltipContent side={side} align={align} className={contentClassName}>
-        {children}
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
+}: InfoTooltipProps) => (
+  <HybridTooltip>
+    <HybridTooltipTrigger className={triggerClassName}>
+      <IconInfo className={iconClassName} />
+    </HybridTooltipTrigger>
+    <HybridTooltipContent
+      side={side}
+      align={align}
+      className={contentClassName}
+    >
+      {children}
+    </HybridTooltipContent>
+  </HybridTooltip>
 );
