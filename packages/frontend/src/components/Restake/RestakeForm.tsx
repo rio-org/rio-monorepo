@@ -479,7 +479,7 @@ function RestakeFormBase({
           <HR />
           <div className="flex justify-between">
             <span className="flex items-center text-black gap-1">
-              <span className="opacity-50 text-[14px]">Received</span>
+              <span className="font-bold text-[14px]">Received</span>
 
               <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
                 <p>
