@@ -22,7 +22,7 @@ export function MetaHeaders({ title, description, image }: MetaHeadersProps) {
     [AppEnv.PREVIEW]:
       process.env.NEXT_PUBLIC_VERCEL_BRANCH_URL ?? host ?? 'goerli.rio.network',
     [AppEnv.PRODUCTION]:
-      process.env.NEXT_PUBLIC_VERCEL_URL ?? host ?? 'goerli.rio.network'
+      process.env.NEXT_PUBLIC_APP_URL ?? host ?? 'goerli.rio.network'
   };
 
   const domain = URL[APP_ENV];
