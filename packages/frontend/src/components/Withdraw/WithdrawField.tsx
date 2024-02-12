@@ -10,13 +10,7 @@ import { formatUnits, parseUnits } from 'viem';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
-import { IconInfo } from '@rio-monorepo/ui/components/Icons/IconInfo';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@rio-monorepo/ui/components/shadcn/tooltip';
+import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 
 type Props = {
   amount: bigint | null;
@@ -77,23 +71,14 @@ const WithdrawField = ({
             {formattedBalance &&
               (isNaN(+displayBalance) ||
                 +displayBalance !== +formattedBalance) && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <IconInfo />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" align="end">
-                      <p>
-                        <span className="font-semibold block">
-                          Exact balance
-                        </span>
-                        <span className="block">
-                          {formattedBalance} {lrtDetails?.symbol}
-                        </span>
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <InfoTooltip>
+                  <p>
+                    <span className="font-semibold block">Exact balance</span>
+                    <span className="block">
+                      {formattedBalance} {lrtDetails?.symbol}
+                    </span>
+                  </p>
+                </InfoTooltip>
               )}
           </span>
         ) : (

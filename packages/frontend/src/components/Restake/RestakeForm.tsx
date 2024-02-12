@@ -18,12 +18,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Spinner } from '@material-tailwind/react';
 import Skeleton from 'react-loading-skeleton';
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipProvider,
-  TooltipContent
-} from '@rio-monorepo/ui/components/shadcn/tooltip';
-import {
   type AssetDetails,
   type ContractError,
   type LRTDetails,
@@ -36,6 +30,7 @@ import {
 } from '@rionetwork/sdk-react';
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
+import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
 import StakeField from './StakeField';
 import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
@@ -48,7 +43,6 @@ import {
 } from '@rio-monorepo/ui/lib/utilities';
 import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 import { useContractGasCost } from '@rio-monorepo/ui/hooks/useContractGasCost';
-import { IconInfo } from '@rio-monorepo/ui/components/Icons/IconInfo';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -428,23 +422,16 @@ function RestakeFormBase({
                     </strong>
                   </strong>
                   {+exchangeRate.formatted.lrt !== exchangeRate.lrt && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <IconInfo />
-                        </TooltipTrigger>
-                        <TooltipContent side="top" align="end">
-                          <p>
-                            <span className="font-semibold block">
-                              Exact exchange rate
-                            </span>
-                            <span className="block">
-                              {exchangeRate.lrt} {lrtDetails?.symbol}
-                            </span>
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <InfoTooltip>
+                      <p>
+                        <span className="font-semibold block">
+                          Exact exchange rate
+                        </span>
+                        <span className="block">
+                          {exchangeRate.lrt} {lrtDetails?.symbol}
+                        </span>
+                      </p>
+                    </InfoTooltip>
                   )}
                 </span>
               )}

@@ -2,6 +2,7 @@ import Skeleton from 'react-loading-skeleton';
 import { formatUnits } from 'viem';
 import Image from 'next/image';
 import React, { useMemo } from 'react';
+import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
 import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
 import {
@@ -12,13 +13,6 @@ import {
   type AssetDetails,
   type LRTDetails
 } from '@rio-monorepo/ui/lib/typings';
-import { IconInfo } from '@rio-monorepo/ui/components/Icons/IconInfo';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@rio-monorepo/ui/components/shadcn/tooltip';
 
 type Props = {
   activeToken?: AssetDetails;
@@ -85,23 +79,16 @@ const WithdrawItemized = ({
               </strong>
               {+displayAmount(1 / exchangeRate?.lrt, 3, 3) !==
                 1 / exchangeRate?.lrt && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <IconInfo />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" align="end">
-                      <p>
-                        <span className="font-semibold block">
-                          Exact exchange rate
-                        </span>
-                        <span className="block">
-                          {1 / exchangeRate?.lrt} {lrtDetails?.symbol}
-                        </span>
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <InfoTooltip>
+                  <p>
+                    <span className="font-semibold block">
+                      Exact exchange rate
+                    </span>
+                    <span className="block">
+                      {1 / exchangeRate?.lrt} {lrtDetails?.symbol}
+                    </span>
+                  </p>
+                </InfoTooltip>
               )}
             </span>
           )}

@@ -4,6 +4,7 @@ import { useMediaQuery } from 'react-responsive';
 import { useMemo } from 'react';
 
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 import IconLineArrow from '@rio-monorepo/ui/components/Icons/IconLineArrow';
 import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
 import { TableRow } from '@rio-monorepo/ui/components/Shared/TableRow';
@@ -29,13 +30,6 @@ import {
   DESKTOP_MQ,
   TX_HISTORY_TABLE_HEADER_LABELS
 } from '@rio-monorepo/ui/lib/constants';
-import { IconInfo } from '@rio-monorepo/ui/components/Icons/IconInfo';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@rio-monorepo/ui/components/shadcn/tooltip';
 
 interface Props {
   lrt?: LRTDetails;
@@ -105,7 +99,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
             <div className="flex flex-col">
               <TableLabel
                 textDirection="right"
-                className="justify-center items-center"
+                className="justify-center items-center gap-1"
               >
                 <span>
                   {item.type === TransactionType.Request ? '-' : ''}
@@ -113,23 +107,14 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
                 </span>
 
                 {+amountChange !== item.amountChange && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger className="ml-1">
-                        <IconInfo />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" align="end">
-                        <p>
-                          <span className="font-semibold block">
-                            Exact amount
-                          </span>
-                          <span className="block">
-                            {item.amountChange} {item.amountChangeSymbol}
-                          </span>
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <InfoTooltip triggerClassName="ml-1">
+                    <p>
+                      <span className="font-semibold block">Exact amount</span>
+                      <span className="block">
+                        {item.amountChange} {item.amountChangeSymbol}
+                      </span>
+                    </p>
+                  </InfoTooltip>
                 )}
               </TableLabel>
               <TableLabel isSecondary={true} textDirection="right">
@@ -188,23 +173,16 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
                   </span>
 
                   {+amountChange !== item.amountChange && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="ml-1">
-                          <IconInfo />
-                        </TooltipTrigger>
-                        <TooltipContent side="top" align="end">
-                          <p>
-                            <span className="font-semibold block">
-                              Exact amount
-                            </span>
-                            <span className="block">
-                              {item.amountChange} {item.amountChangeSymbol}
-                            </span>
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <InfoTooltip triggerClassName="ml-1">
+                      <p>
+                        <span className="font-semibold block">
+                          Exact amount
+                        </span>
+                        <span className="block">
+                          {item.amountChange} {item.amountChangeSymbol}
+                        </span>
+                      </p>
+                    </InfoTooltip>
                   )}
                 </TableLabel>
                 <TableLabel isSecondary={true} textDirection="right">
