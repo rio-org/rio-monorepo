@@ -5,6 +5,7 @@ import {
   HybridTooltipTrigger,
   HybridTooltipContent
 } from './HybridTooltip';
+import { cn } from '../../lib/utilities';
 
 export type InfoTooltipProps = {
   triggerClassName?: string;
@@ -30,7 +31,7 @@ export const InfoTooltip = ({
     <HybridTooltipContent
       side={side}
       align={align}
-      className={contentClassName}
+      className={cn('w-fit', contentClassName)}
     >
       {children}
     </HybridTooltipContent>

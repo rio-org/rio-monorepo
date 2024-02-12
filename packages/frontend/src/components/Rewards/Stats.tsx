@@ -20,11 +20,27 @@ const Stats = ({ lrt }: Props) => {
 
   const stats = useMemo(
     () => [
-      { label: 'EigenLayer points', value: 'Coming soon', denominator: '' },
+      {
+        label: 'EigenLayer points',
+        value: 'Coming soon',
+        denominator: '',
+        infoTooltipContent: (
+          <p>
+            The share of EigenLayer points that have been earned by this
+            {" address's"} deposits.
+          </p>
+        )
+      },
       {
         label: 'Average APY',
         value: `${lrt?.percentAPY?.toString() || '--'}%`,
-        denominator: ''
+        denominator: '',
+        infoTooltipContent: (
+          <p>
+            The average <strong>Annual Percentage Yield (APY)</strong>{' '}
+            calculated from the last 14 days anticipated over the next year.
+          </p>
+        )
       }
     ],
     [lrt?.percentAPY]
@@ -64,6 +80,7 @@ const Stats = ({ lrt }: Props) => {
                 label={stat.label}
                 value={stat.value}
                 denominator={stat.denominator}
+                infoTooltipContent={stat.infoTooltipContent}
               />
             ))}
           </div>

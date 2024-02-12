@@ -7,9 +7,10 @@ type Props = {
   label: string;
   value: string;
   denominator: string;
+  infoTooltipContent?: React.ReactNode | React.ReactNode[];
 };
 
-const Stat = ({ label, value, denominator }: Props) => {
+const Stat = ({ label, value, denominator, infoTooltipContent }: Props) => {
   const _value = useMemo(() => {
     if (isNaN(Number(value))) {
       return value;
@@ -34,8 +35,8 @@ const Stat = ({ label, value, denominator }: Props) => {
         'bg-[var(--color-element-wrapper-bg)]'
       )}
     >
-      <StatLabel label={label} />
-      <span className="text-[28px] leading-none">
+      <StatLabel label={label} infoTooltipContent={infoTooltipContent} />
+      <span className="flex text-[28px] leading-none">
         {_value} {denominator}
       </span>
     </div>
