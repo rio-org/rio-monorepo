@@ -10,20 +10,31 @@ import {
   type PopoverProps,
   type PopoverTriggerProps
 } from '@radix-ui/react-popover';
-import { Tooltip, TooltipTrigger, TooltipContent } from '../shadcn/tooltip';
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent
+} from '../shadcn/tooltip';
 import { Popover, PopoverTrigger, PopoverContent } from '../shadcn/popover';
-import { useTouch } from '../../contexts/TouchProvider';
+import { useIsTouch } from '../../contexts/TouchProvider';
 
 export const HybridTooltip = (props: TooltipProps & PopoverProps) => {
-  const isTouch = useTouch();
+  const isTouch = useIsTouch();
 
-  return isTouch ? <Popover {...props} /> : <Tooltip {...props} />;
+  return isTouch ? (
+    <Popover {...props} />
+  ) : (
+    <TooltipProvider>
+      <Tooltip {...props} />
+    </TooltipProvider>
+  );
 };
 
 export const HybridTooltipTrigger = (
   props: TooltipTriggerProps & PopoverTriggerProps
 ) => {
-  const isTouch = useTouch();
+  const isTouch = useIsTouch();
 
   return isTouch ? (
     <PopoverTrigger {...props} />
@@ -35,7 +46,7 @@ export const HybridTooltipTrigger = (
 export const HybridTooltipContent = (
   props: TooltipContentProps & PopoverContentProps
 ) => {
-  const isTouch = useTouch();
+  const isTouch = useIsTouch();
 
   return isTouch ? (
     <PopoverContent {...props} />

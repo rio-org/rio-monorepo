@@ -43,6 +43,7 @@ import {
 } from '@rio-monorepo/ui/lib/utilities';
 import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 import { useContractGasCost } from '@rio-monorepo/ui/hooks/useContractGasCost';
+import { useIsTouch } from '@rio-monorepo/ui/contexts/TouchProvider';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -122,6 +123,7 @@ function RestakeFormBase({
     lrt: lrtDetails
   });
   const { address } = useAccountIfMounted();
+  const isTouch = useIsTouch();
 
   const { refetch: refetchLrtBalance } = useAssetBalance(lrtDetails);
 
@@ -384,6 +386,8 @@ function RestakeFormBase({
     [clearErrors, depositTxHash, depositError, resetWrite]
   );
 
+  const exchangeRateDecimals = isTouch ? [2, 2] : [3, 3];
+
   return (
     <>
       {isLoading && (
@@ -408,15 +412,34 @@ function RestakeFormBase({
             setActiveToken={handleChangeActiveToken}
           />
           <div className="flex flex-col gap-2 mt-4">
-            <div className="flex justify-between text-[14px]">
-              <span className="text-black opacity-50">Exchange rate</span>
+            <div className="flex justify-between">
+              <span className="flex items-center text-black gap-1">
+                <span className="opacity-50 text-[14px]">Exchange rate</span>
+
+                <InfoTooltip
+                  align="center"
+                  contentClassName="max-w-[300px] space-y-1 p-3"
+                >
+                  <p>
+                    The amount of {lrtDetails?.symbol} you will receive for each{' '}
+                    {activeToken?.symbol} deposited.
+                  </p>
+                  <p className="opacity-75 text-xs">
+                    The exchange rate increases ({lrtDetails?.symbol} is worth
+                    more than {activeToken?.symbol}) as restaking rewards are
+                    earned and may decrease if there is a slashing event.
+                  </p>
+                </InfoTooltip>
+              </span>
               {!exchangeRate ? (
                 <Skeleton height="0.875rem" width={80} />
               ) : (
                 <span className="flex items-center gap-1">
-                  <strong className="text-right">
-                    {displayAmount(1, 3, 3)} {activeToken?.symbol} ={' '}
-                    {exchangeRate.formatted.lrt} {lrtDetails?.symbol}{' '}
+                  <strong className="text-right text-[14px]">
+                    {displayAmount(1, ...exchangeRateDecimals)}{' '}
+                    {activeToken?.symbol} ={' '}
+                    {displayAmount(+exchangeRate.lrt, ...exchangeRateDecimals)}{' '}
+                    {lrtDetails?.symbol}{' '}
                     <strong className="opacity-50">
                       (${exchangeRate.formatted.usd})
                     </strong>
@@ -436,21 +459,43 @@ function RestakeFormBase({
                 </span>
               )}
             </div>
-            <div className="flex justify-between text-[14px]">
-              <span className="text-black opacity-50">Reward fee</span>
-              <strong className="text-right">10%</strong>
+            <div className="flex justify-between">
+              <span className="flex items-center text-black gap-1">
+                <span className="opacity-50 text-[14px]">Reward fee</span>
+
+                <InfoTooltip
+                  align="center"
+                  contentClassName="max-w-[300px] p-3"
+                >
+                  <p>
+                    The percentage taken from all staking rewards (not
+                    deposits).
+                  </p>
+                </InfoTooltip>
+              </span>
+              <strong className="text-right text-[14px]">10%</strong>
             </div>
           </div>
           <HR />
-          <div className="flex justify-between text-[14px]">
-            <span className="text-black font-bold">Received</span>
-            <strong>
+          <div className="flex justify-between">
+            <span className="flex items-center text-black gap-1">
+              <span className="opacity-50 text-[14px]">Received</span>
+
+              <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
+                <p>
+                  The amount of reETH received is an estimate. The actual amount
+                  of reETH may vary slightly due to fluctuations in the price of
+                  ETH and cost of gas.
+                </p>
+              </InfoTooltip>
+            </span>
+            <strong className="text-[14px]">
               {minAmountOut && typeof minAmountOut === 'bigint'
                 ? displayEthAmount(
                     formatUnits(minAmountOut, activeToken.decimals)
                   )
                 : displayAmount(0)}{' '}
-              reETH
+              {lrtDetails?.symbol}
             </strong>
           </div>
           {isAllowed && (

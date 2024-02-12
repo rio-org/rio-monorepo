@@ -11,7 +11,7 @@ import {
   InfoTooltip,
   InfoTooltipProps
 } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
-import { useTouch } from '@rio-monorepo/ui/contexts/TouchProvider';
+import { useIsTouch } from '@rio-monorepo/ui/contexts/TouchProvider';
 
 const Home: NextPage = () => {
   // When more LRT products are available, we'll offer a way to switch these
@@ -83,7 +83,7 @@ const HeaderBadge = ({
   suffix?: string;
   infoTooltipContent?: InfoTooltipProps['children'];
 }) => {
-  const isTouch = useTouch();
+  const isTouch = useIsTouch();
   return (
     <span
       className={cn(

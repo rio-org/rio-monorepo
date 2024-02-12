@@ -130,8 +130,8 @@ export function Providers({
                 requireTerms={requireTerms}
               >
                 <ThemeProvider value={theme}>
-                  <CssBaseline />
                   <TouchProvider>
+                    <CssBaseline />
                     <Layout showExchangeRates={showExchangeRates} nav={nav}>
                       {children}
                       <Analytics />

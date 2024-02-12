@@ -1,27 +1,26 @@
-import { TooltipProvider } from '@radix-ui/react-tooltip';
-import { useContext, createContext, useEffect, useState } from 'react';
+import {
+  useContext,
+  createContext,
+  useEffect,
+  useState,
+  PropsWithChildren
+} from 'react';
 
 const TouchContext = createContext<boolean | undefined>(undefined);
-export const useTouch = () => useContext(TouchContext);
+export const useIsTouch = () => useContext(TouchContext);
 
-export const TouchProvider = ({
-  children
-}: {
-  children: React.ReactNode | React.ReactNode[];
-}) => {
+export const TouchProvider = (props: PropsWithChildren) => {
   const [isTouch, setTouch] = useState<boolean>();
 
   useEffect(() => {
-    setTouch(window.matchMedia('(pointer: coarse)').matches);
-  }, []);
+    const handler = () => {
+      const newIsTouch = window.matchMedia('(pointer: coarse)').matches;
+      if (newIsTouch !== isTouch) setTouch(newIsTouch);
+    };
+    handler();
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, [isTouch]);
 
-  if (!isTouch) {
-    return;
-  }
-
-  return (
-    <TouchContext.Provider value={isTouch}>
-      <TooltipProvider>{children}</TooltipProvider>
-    </TouchContext.Provider>
-  );
+  return <TouchContext.Provider value={isTouch} {...props} />;
 };
