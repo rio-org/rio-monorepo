@@ -32,6 +32,7 @@ import Layout, { type LayoutProps } from './Layout';
 import { theme } from '../lib/theme';
 import { CHAIN_ID } from '../config';
 import WalletAndTermsStoreProvider from '../contexts/WalletAndTermsStore';
+import { TouchProvider } from '../contexts/TouchProvider';
 
 // Create the cache client
 const queryClient = new QueryClient();
@@ -129,12 +130,14 @@ export function Providers({
                 requireTerms={requireTerms}
               >
                 <ThemeProvider value={theme}>
-                  <CssBaseline />
-                  <Layout showExchangeRates={showExchangeRates} nav={nav}>
-                    {children}
-                    <Analytics />
-                    <SpeedInsights />
-                  </Layout>
+                  <TouchProvider>
+                    <CssBaseline />
+                    <Layout showExchangeRates={showExchangeRates} nav={nav}>
+                      {children}
+                      <Analytics />
+                      <SpeedInsights />
+                    </Layout>
+                  </TouchProvider>
                 </ThemeProvider>
               </WalletAndTermsStoreProvider>
             </RioTransactionStoreProvider>

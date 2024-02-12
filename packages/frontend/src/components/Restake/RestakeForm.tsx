@@ -15,7 +15,7 @@ import {
   useWaitForTransaction
 } from 'wagmi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Spinner, Tooltip } from '@material-tailwind/react';
+import { Alert, Spinner } from '@material-tailwind/react';
 import Skeleton from 'react-loading-skeleton';
 import {
   type AssetDetails,
@@ -30,6 +30,7 @@ import {
 } from '@rionetwork/sdk-react';
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
+import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
 import StakeField from './StakeField';
 import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
@@ -42,7 +43,7 @@ import {
 } from '@rio-monorepo/ui/lib/utilities';
 import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 import { useContractGasCost } from '@rio-monorepo/ui/hooks/useContractGasCost';
-import { IconInfo } from '@rio-monorepo/ui/components/Icons/IconInfo';
+import { useIsTouch } from '@rio-monorepo/ui/contexts/TouchProvider';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -122,6 +123,7 @@ function RestakeFormBase({
     lrt: lrtDetails
   });
   const { address } = useAccountIfMounted();
+  const isTouch = useIsTouch();
 
   const { refetch: refetchLrtBalance } = useAssetBalance(lrtDetails);
 
@@ -384,6 +386,8 @@ function RestakeFormBase({
     [clearErrors, depositTxHash, depositError, resetWrite]
   );
 
+  const exchangeRateDecimals = isTouch ? [2, 2] : [3, 3];
+
   return (
     <>
       {isLoading && (
@@ -408,47 +412,90 @@ function RestakeFormBase({
             setActiveToken={handleChangeActiveToken}
           />
           <div className="flex flex-col gap-2 mt-4">
-            <div className="flex justify-between text-[14px]">
-              <span className="text-black opacity-50">Exchange rate</span>
+            <div className="flex justify-between">
+              <span className="flex items-center text-black gap-1">
+                <span className="opacity-50 text-[14px]">Exchange rate</span>
+
+                <InfoTooltip
+                  align="center"
+                  contentClassName="max-w-[300px] space-y-1 p-3"
+                >
+                  <p>
+                    The amount of {lrtDetails?.symbol} you will receive for each{' '}
+                    {activeToken?.symbol} deposited.
+                  </p>
+                  <p className="opacity-75 text-xs">
+                    The exchange rate increases ({lrtDetails?.symbol} is worth
+                    more than {activeToken?.symbol}) as restaking rewards are
+                    earned and may decrease if there is a slashing event.
+                  </p>
+                </InfoTooltip>
+              </span>
               {!exchangeRate ? (
                 <Skeleton height="0.875rem" width={80} />
               ) : (
                 <span className="flex items-center gap-1">
-                  <strong className="text-right">
-                    {displayAmount(1, 3, 3)} {activeToken?.symbol} ={' '}
-                    {exchangeRate.formatted.lrt} {lrtDetails?.symbol}{' '}
+                  <strong className="text-right text-[14px]">
+                    {displayAmount(1, ...exchangeRateDecimals)}{' '}
+                    {activeToken?.symbol} ={' '}
+                    {displayAmount(+exchangeRate.lrt, ...exchangeRateDecimals)}{' '}
+                    {lrtDetails?.symbol}{' '}
                     <strong className="opacity-50">
                       (${exchangeRate.formatted.usd})
                     </strong>
                   </strong>
                   {+exchangeRate.formatted.lrt !== exchangeRate.lrt && (
-                    <Tooltip
-                      placement="top-end"
-                      content={`Exact exchange rate: ${exchangeRate.lrt} ${lrtDetails?.symbol}`}
-                    >
-                      <button>
-                        <IconInfo />
-                      </button>
-                    </Tooltip>
+                    <InfoTooltip>
+                      <p>
+                        <span className="font-semibold block">
+                          Exact exchange rate
+                        </span>
+                        <span className="block">
+                          {exchangeRate.lrt} {lrtDetails?.symbol}
+                        </span>
+                      </p>
+                    </InfoTooltip>
                   )}
                 </span>
               )}
             </div>
-            <div className="flex justify-between text-[14px]">
-              <span className="text-black opacity-50">Reward fee</span>
-              <strong className="text-right">10%</strong>
+            <div className="flex justify-between">
+              <span className="flex items-center text-black gap-1">
+                <span className="opacity-50 text-[14px]">Reward fee</span>
+
+                <InfoTooltip
+                  align="center"
+                  contentClassName="max-w-[300px] p-3"
+                >
+                  <p>
+                    The percentage taken from all staking rewards (not
+                    deposits).
+                  </p>
+                </InfoTooltip>
+              </span>
+              <strong className="text-right text-[14px]">10%</strong>
             </div>
           </div>
           <HR />
-          <div className="flex justify-between text-[14px]">
-            <span className="text-black font-bold">Received</span>
-            <strong>
+          <div className="flex justify-between">
+            <span className="flex items-center text-black gap-1">
+              <span className="font-bold text-[14px]">Received</span>
+
+              <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
+                <p>
+                  The amount of reETH received is an estimate. The actual amount
+                  of reETH may vary slightly due to fluctuations in the price of
+                  ETH and cost of gas.
+                </p>
+              </InfoTooltip>
+            </span>
+            <strong className="text-[14px]">
               {minAmountOut && typeof minAmountOut === 'bigint'
                 ? displayEthAmount(
                     formatUnits(minAmountOut, activeToken.decimals)
                   )
                 : displayAmount(0)}{' '}
-              reETH
+              {lrtDetails?.symbol}
             </strong>
           </div>
           {isAllowed && (
