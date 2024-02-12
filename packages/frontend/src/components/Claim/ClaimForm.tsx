@@ -66,6 +66,12 @@ export const HydratedClaimForm = ({ lrt }: Props) => {
     <div>
       <ClaimAmountViewer
         title="Available to claim now"
+        infoTooltipContent={
+          <p>
+            This represents the amount that has been previously requested and is
+            now available to be claimed as ETH.
+          </p>
+        }
         amount={
           isWithdrawalsLoading
             ? undefined
@@ -132,7 +138,15 @@ export const ClaimForm = ({ lrt }: Partial<Props>) => {
   if (!lrt) {
     return (
       <div>
-        <ClaimAmountViewer title="Available to claim now" />
+        <ClaimAmountViewer
+          title="Available to claim now"
+          infoTooltipContent={
+            <p>
+              This represents the amount that has been previously requested and
+              is now available to be claimed as ETH.
+            </p>
+          }
+        />
         <motion.button className="rounded-full w-full py-3 mt-4 font-bold bg-black duration-200 bg-opacity-20">
           <Skeleton height="1rem" width={100} className="opacity-30" />
         </motion.button>

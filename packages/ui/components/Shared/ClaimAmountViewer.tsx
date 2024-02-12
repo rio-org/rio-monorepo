@@ -1,17 +1,20 @@
 import React from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { twJoin } from 'tailwind-merge';
+import { InfoTooltip } from './InfoTooltip';
 
 type Props = {
   title?: string;
   amount?: number;
   symbol?: string;
+  infoTooltipContent?: React.ReactNode | React.ReactNode[];
 };
 
 export function ClaimAmountViewer({
   symbol,
   amount,
-  title = 'Available to claim now'
+  title = 'Available to claim now',
+  infoTooltipContent
 }: Props) {
   return (
     <div
@@ -23,7 +26,12 @@ export function ClaimAmountViewer({
       )}
     >
       <div>
-        <p className="opacity-50">{title}</p>
+        <p>
+          <span className="opacity-50">{title}</span>{' '}
+          {infoTooltipContent && (
+            <InfoTooltip align="center">{infoTooltipContent}</InfoTooltip>
+          )}
+        </p>
         <p className="text-[30px]">
           <strong>
             {[typeof amount, typeof symbol].includes('undefined') ? (
