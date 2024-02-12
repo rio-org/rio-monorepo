@@ -15,8 +15,14 @@ import {
   useWaitForTransaction
 } from 'wagmi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Spinner, Tooltip } from '@material-tailwind/react';
+import { Alert, Spinner } from '@material-tailwind/react';
 import Skeleton from 'react-loading-skeleton';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipProvider,
+  TooltipContent
+} from '@rio-monorepo/ui/components/shadcn/tooltip';
 import {
   type AssetDetails,
   type ContractError,
@@ -422,14 +428,23 @@ function RestakeFormBase({
                     </strong>
                   </strong>
                   {+exchangeRate.formatted.lrt !== exchangeRate.lrt && (
-                    <Tooltip
-                      placement="top-end"
-                      content={`Exact exchange rate: ${exchangeRate.lrt} ${lrtDetails?.symbol}`}
-                    >
-                      <button>
-                        <IconInfo />
-                      </button>
-                    </Tooltip>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <IconInfo />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="end">
+                          <p>
+                            <span className="font-semibold block">
+                              Exact exchange rate
+                            </span>
+                            <span className="block">
+                              {exchangeRate.lrt} {lrtDetails?.symbol}
+                            </span>
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                 </span>
               )}

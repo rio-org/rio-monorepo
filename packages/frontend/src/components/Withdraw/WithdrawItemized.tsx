@@ -12,8 +12,13 @@ import {
   type AssetDetails,
   type LRTDetails
 } from '@rio-monorepo/ui/lib/typings';
-import { Tooltip } from '@material-tailwind/react';
 import { IconInfo } from '@rio-monorepo/ui/components/Icons/IconInfo';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@rio-monorepo/ui/components/shadcn/tooltip';
 
 type Props = {
   activeToken?: AssetDetails;
@@ -80,16 +85,23 @@ const WithdrawItemized = ({
               </strong>
               {+displayAmount(1 / exchangeRate?.lrt, 3, 3) !==
                 1 / exchangeRate?.lrt && (
-                <Tooltip
-                  placement="top-end"
-                  content={`Exact exchange rate: ${
-                    1 / exchangeRate?.lrt
-                  } reETH`}
-                >
-                  <button>
-                    <IconInfo />
-                  </button>
-                </Tooltip>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <IconInfo />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" align="end">
+                      <p>
+                        <span className="font-semibold block">
+                          Exact exchange rate
+                        </span>
+                        <span className="block">
+                          {1 / exchangeRate?.lrt} {lrtDetails?.symbol}
+                        </span>
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </span>
           )}
