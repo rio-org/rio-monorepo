@@ -14,24 +14,17 @@ import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Memory} from 'contracts/utils/Memory.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
+import {
+    BLS_PUBLIC_KEY_LENGTH,
+    BLS_SIGNATURE_LENGTH,
+    ETH_DEPOSIT_SIZE,
+    ETH_DEPOSIT_SIZE_IN_GWEI_LE64
+} from 'contracts/utils/Constants.sol';
 
 contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     using SafeERC20 for IERC20;
     using Asset for address;
     using Array for *;
-
-    /// @dev The length of a BLS12-381 public key.
-    uint256 internal constant PUBLIC_KEY_LENGTH = 48;
-
-    /// @dev The length of a BLS12-381 signature.
-    uint256 internal constant SIGNATURE_LENGTH = 96;
-
-    /// @dev The per-validator deposit amount.
-    uint256 internal constant DEPOSIT_SIZE = 32 ether;
-
-    /// @dev The deposit amount in gwei, converted to little endian.
-    /// DEPOSIT_SIZE_IN_GWEI_LE64 = toLittleEndian64(32 ether / 1 gwei)
-    uint64 internal constant DEPOSIT_SIZE_IN_GWEI_LE64 = 0x0040597307000000;
 
     /// @dev The withdrawal credentials prefix, which signals that withdrawals are enabled.
     bytes1 internal constant WITHDRAWALS_ENABLED_PREFIX = 0x01;
@@ -132,9 +125,10 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
         );
     }
 
-    /// @notice Scrapes ETH sitting in the operator delegator's EigenPod to the reward distributor.
+    /// @notice Scrapes non-beacon chain ETH sitting in the operator delegator's
+    /// EigenPod to the reward distributor.
     /// @dev Anyone can call this function.
-    function scrapeEigenPodETHBalanceToRewardDistributor() external {
+    function scrapeNonBeaconChainEigenPodETHBalance() external {
         eigenPod.withdrawNonBeaconChainETHBalanceWei(
             address(rewardDistributor()), eigenPod.nonBeaconChainETHBalanceWei()
         );
@@ -158,24 +152,24 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     /// @param pubkeyBatch Batched validator public keys.
     /// @param signatureBatch Batched validator signatures.
     function stakeETH(uint256 validatorCount, bytes calldata pubkeyBatch, bytes calldata signatureBatch) external payable onlyDepositPool {
-        if (validatorCount == 0 || msg.value / DEPOSIT_SIZE != validatorCount) revert INVALID_VALIDATOR_COUNT();
-        if (pubkeyBatch.length != PUBLIC_KEY_LENGTH * validatorCount) {
-            revert INVALID_PUBLIC_KEYS_BATCH_LENGTH(pubkeyBatch.length, PUBLIC_KEY_LENGTH * validatorCount);
+        if (validatorCount == 0 || msg.value / ETH_DEPOSIT_SIZE != validatorCount) revert INVALID_VALIDATOR_COUNT();
+        if (pubkeyBatch.length != BLS_PUBLIC_KEY_LENGTH * validatorCount) {
+            revert INVALID_PUBLIC_KEYS_BATCH_LENGTH(pubkeyBatch.length, BLS_PUBLIC_KEY_LENGTH * validatorCount);
         }
-        if (signatureBatch.length != SIGNATURE_LENGTH * validatorCount) {
-            revert INVALID_SIGNATURES_BATCH_LENGTH(signatureBatch.length, SIGNATURE_LENGTH * validatorCount);
+        if (signatureBatch.length != BLS_SIGNATURE_LENGTH * validatorCount) {
+            revert INVALID_SIGNATURES_BATCH_LENGTH(signatureBatch.length, BLS_SIGNATURE_LENGTH * validatorCount);
         }
 
         bytes32 depositDataRoot;
         bytes32 withdrawalCredentials_ = withdrawalCredentials;
-        bytes memory publicKey = Memory.unsafeAllocateBytes(PUBLIC_KEY_LENGTH);
-        bytes memory signature = Memory.unsafeAllocateBytes(SIGNATURE_LENGTH);
+        bytes memory publicKey = Memory.unsafeAllocateBytes(BLS_PUBLIC_KEY_LENGTH);
+        bytes memory signature = Memory.unsafeAllocateBytes(BLS_SIGNATURE_LENGTH);
         for (uint256 i = 0; i < validatorCount; ++i) {
-            Memory.copyBytes(pubkeyBatch, publicKey, i * PUBLIC_KEY_LENGTH, 0, PUBLIC_KEY_LENGTH);
-            Memory.copyBytes(signatureBatch, signature, i * SIGNATURE_LENGTH, 0, SIGNATURE_LENGTH);
+            Memory.copyBytes(pubkeyBatch, publicKey, i * BLS_PUBLIC_KEY_LENGTH, 0, BLS_PUBLIC_KEY_LENGTH);
+            Memory.copyBytes(signatureBatch, signature, i * BLS_SIGNATURE_LENGTH, 0, BLS_SIGNATURE_LENGTH);
             depositDataRoot = _computeDepositDataRoot(withdrawalCredentials_, publicKey, signature);
 
-            eigenPodManager.stake{value: DEPOSIT_SIZE}(publicKey, signature, depositDataRoot);
+            eigenPodManager.stake{value: ETH_DEPOSIT_SIZE}(publicKey, signature, depositDataRoot);
         }
     }
 
@@ -184,7 +178,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     /// @param strategy The strategy to withdraw from.
     /// @param shares The amount of shares to withdraw.
     /// @param withdrawer The address who has permission to complete the withdrawal.
-    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external onlyCoordinatorOrOperatorRegistry returns (bytes32 root) {
+    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external onlyCoordinatorOrOperatorRegistry returns (bytes32 root) {        
         IDelegationManager.QueuedWithdrawalParams[] memory withdrawalParams = new IDelegationManager.QueuedWithdrawalParams[](1);
         withdrawalParams[0] = IDelegationManager.QueuedWithdrawalParams({
             strategies: strategy.toArray(),
@@ -226,7 +220,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
         return sha256(
             abi.encodePacked(
                 sha256(abi.encodePacked(publicKeyRoot, withdrawalCredentials_)),
-                sha256(abi.encodePacked(DEPOSIT_SIZE_IN_GWEI_LE64, bytes24(0), signatureRoot))
+                sha256(abi.encodePacked(ETH_DEPOSIT_SIZE_IN_GWEI_LE64, bytes24(0), signatureRoot))
             )
         );
     }

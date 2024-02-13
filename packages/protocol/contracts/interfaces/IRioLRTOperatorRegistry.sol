@@ -158,6 +158,9 @@ interface IRioLRTOperatorRegistry {
     /// @notice Thrown when the strategy length in a strategy exit is not equal to 1.
     error INVALID_STRATEGY_LENGTH_FOR_EXIT();
 
+    /// @notice Thrown when a validator public key length is invalid.
+    error INVALID_PUBLIC_KEY_LENGTH();
+
     /// @notice Thrown when the provided strategy exit root is invalid.
     error INVALID_STRATEGY_EXIT_ROOT();
 
@@ -169,6 +172,10 @@ interface IRioLRTOperatorRegistry {
 
     /// @notice Thrown when an invalid index is provided.
     error INVALID_INDEX();
+
+    /// @notice Thrown when attempting to report an out of order exit for a validator
+    /// that has not exited.
+    error VALIDATOR_NOT_EXITED();
 
     /// @notice Thrown when the maximum number of operators has been reached.
     error MAX_OPERATOR_COUNT_EXCEEDED();
@@ -286,6 +293,11 @@ interface IRioLRTOperatorRegistry {
     /// @param validatorCount The number of pending validator details that were removed.
     event OperatorPendingValidatorDetailsRemoved(uint8 indexed operatorId, uint256 validatorCount);
 
+    /// @notice Emitted when out of order validator exits are reported.
+    /// @param operatorId The operator's ID.
+    /// @param validatorCount The number of validators that were exited out of order.
+    event OperatorOutOfOrderValidatorExitsReported(uint8 indexed operatorId, uint256 validatorCount);
+
     /// @notice Emitted when strategy shares have been allocated to an operator.
     /// @param operatorId The operator's ID.
     /// @param strategy The strategy that the shares were allocated to.
@@ -385,6 +397,12 @@ interface IRioLRTOperatorRegistry {
     /// @param fromIndex The index of the first validator to remove.
     /// @param validatorCount The number of validator to remove.
     function removeValidatorDetails(uint8 operatorId, uint256 fromIndex, uint256 validatorCount) external;
+
+    /// @notice Reports validator exits that occur prior to instruction by the protocol.
+    /// @param operatorId The operator's ID.
+    /// @param fromIndex The index of the first validator to report.
+    /// @param validatorCount The number of validators to report.
+    function reportOutOfOrderValidatorExits(uint8 operatorId, uint256 fromIndex, uint256 validatorCount) external;
 
     // forgefmt: disable-next-item
     /// @notice Allocates a specified amount of shares for the provided strategy to the operators with the lowest utilization.

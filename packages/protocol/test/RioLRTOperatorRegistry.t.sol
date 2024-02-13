@@ -3,9 +3,13 @@ pragma solidity 0.8.23;
 
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
+import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
+import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
+import {LibString} from '@solady/utils/LibString.sol';
 import {TestUtils} from 'test/utils/TestUtils.sol';
 
 contract RioLRTOperatorRegistryTest is RioDeployer {
@@ -189,6 +193,58 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             reETH.operatorRegistry.getOperatorDetails(operatorId);
         assertEq(operatorDetails.active, true);
         assertEq(reETH.operatorRegistry.activeOperatorCount(), 1);
+    }
+
+    function test_reportOutOfOrderValidatorExits() public {
+        uint40 UPLOADED_KEY_COUNT = 1_000;
+
+        uint256 DEPOSIT_COUNT = 300;
+        uint256 OOO_EXIT_STARTING_INDEX = 150;
+        uint256 OOO_EXIT_COUNT = 88;
+
+        uint8 operatorId = addOperatorDelegator(
+            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, UPLOADED_KEY_COUNT
+        );
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory details =
+            reETH.operatorRegistry.getOperatorDetails(operatorId);
+
+        // Allocate `DEPOSIT_COUNT` deposits
+        vm.prank(address(reETH.depositPool));
+        reETH.operatorRegistry.allocateETHDeposits(DEPOSIT_COUNT);
+
+        // Mark operators as withdrawn.
+        vm.mockCall(
+            address(IRioLRTOperatorDelegator(details.delegator).eigenPod()),
+            abi.encodeWithSelector(IEigenPod.validatorStatus.selector),
+            abi.encode(IEigenPod.VALIDATOR_STATUS.WITHDRAWN)
+        );
+
+        // Ensure the exxpected public keys are swapped.
+        uint256 j = OOO_EXIT_STARTING_INDEX;
+        (bytes memory expectedPublicKeys,) = TestUtils.getValidatorKeys(UPLOADED_KEY_COUNT);
+        for (uint256 i = 0; i < OOO_EXIT_COUNT; i++) {
+            uint256 key1Start = j * ValidatorDetails.PUBKEY_LENGTH;
+            uint256 key1End = (j + 1) * ValidatorDetails.PUBKEY_LENGTH;
+
+            uint256 key2Start = i * ValidatorDetails.PUBKEY_LENGTH;
+            uint256 key2End = (i + 1) * ValidatorDetails.PUBKEY_LENGTH;
+
+            vm.expectEmit(true, false, false, true, address(reETH.operatorRegistry));
+            emit ValidatorDetails.ValidatorDetailsSwapped(
+                operatorId,
+                bytes(LibString.slice(string(expectedPublicKeys), key1Start, key1End)),
+                bytes(LibString.slice(string(expectedPublicKeys), key2Start, key2End))
+            );
+
+            j++;
+        }
+
+        // Report the out of order exits of `OOO_EXIT_COUNT` validators starting at index `OOO_EXIT_STARTING_INDEX`.
+        reETH.operatorRegistry.reportOutOfOrderValidatorExits(operatorId, OOO_EXIT_STARTING_INDEX, OOO_EXIT_COUNT);
+
+        details = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(details.validatorDetails.exited, OOO_EXIT_COUNT);
     }
 
     function test_allocateStrategySharesInvalidCallerReverts() public {
