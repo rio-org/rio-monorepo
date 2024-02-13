@@ -57,8 +57,7 @@ export const APP_TERTIARY_NAV_ITEMS: NavItem[] = [
   {
     label: 'Docs',
     url: 'https://docs.rio.network/rio-network-docs',
-    external: true,
-    disabled: true
+    external: true
   },
   {
     label: 'News',
