@@ -521,11 +521,7 @@ function RestakeFormBase({
                 clearErrors={clearErrors}
                 write={handleExecute}
               >
-                {isEmpty
-                  ? 'Enter an amount'
-                  : !isValidAmount
-                  ? 'Insufficient balance'
-                  : 'Restake'}
+                Restake
               </TransactionButton>
             </>
           )}
