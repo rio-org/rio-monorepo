@@ -16,6 +16,8 @@ import { cn, getChainName } from '../../lib/utilities';
 import { ViewTransactionLink } from './ViewTransactionLink';
 import Alert from './Alert';
 import { CHAIN_ID } from '../../config';
+import { IconWarning } from '../Icons/IconWarning';
+import { IconX } from '../Icons/IconX';
 
 export type TransactionButtonProps = {
   transactionType: RioTransactionType;
@@ -82,7 +84,7 @@ const TransactionButton = ({
     addTransaction({ hash, type });
   }, [hash, type]);
 
-  const [_error, _errorMessage] = useMemo(() => {
+  const [, _errorMessage] = useMemo(() => {
     const e = (txError ?? error) as ContractError | null;
     return [e, e?.shortMessage ?? e?.message];
   }, [txError, error]);
@@ -98,18 +100,56 @@ const TransactionButton = ({
   }, [isDisabled, address, wrongNetwork, switchNetwork, write]);
 
   return (
-    <div className="flex flex-col gap-5 w-full max-w-full mt-4">
+    <div className="flex flex-col w-full max-w-full mt-4">
       <AnimatePresence>
-        {isTxSuccess || _error ? (
+        {_errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0, borderWidth: 0 }}
+            animate={{
+              opacity: 1,
+              height: 'auto',
+              marginBottom: 16,
+              borderWidth: 1
+            }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0, borderWidth: 0 }}
+            className="w-full border rounded-lg border-[#EEBA00] px-3 py-3 space-y-2 text-[14px]"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 font-semibold">
+                <IconWarning
+                  height={14}
+                  width={14}
+                  className="[&>path]:stroke-[#EEBA00] [&>path]:stroke-[2]"
+                />
+                <span className="text-[#EEBA00] leading-none">
+                  Transaction Error
+                </span>
+              </div>
+              <button
+                onClick={clearErrors}
+                className="opacity-30 hover:opacity-90 active:hover:opacity-100"
+              >
+                <IconX
+                  height={16}
+                  width={16}
+                  className="[&>path]:stroke-[2.5]"
+                />
+              </button>
+            </div>
+            <p className="leading-snug">{_errorMessage}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isTxSuccess ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <Alert
-              errorMessage={_errorMessage}
               isSuccess={isTxSuccess}
-              isError={!!_error}
+              isError={false}
               setIsSuccess={reset}
               setIsError={clearErrors || reset}
             />
@@ -165,9 +205,9 @@ const TransactionButton = ({
       <AnimatePresence>
         {hash && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+            animate={{ height: 'auto', opacity: 1, marginTop: 20 }}
+            exit={{ height: 0, opacity: 0, margin: 0 }}
             className="flex justify-center items-center w-full"
           >
             <ViewTransactionLink hash={hash} />
