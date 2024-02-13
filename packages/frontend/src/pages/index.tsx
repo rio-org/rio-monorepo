@@ -13,6 +13,7 @@ import {
 } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 import { useIsTouch } from '@rio-monorepo/ui/contexts/TouchProvider';
 import { AnimatePresence, motion } from 'framer-motion';
+import { FAQS } from '@rio-monorepo/ui/components/Shared/FAQs';
 
 const Home: NextPage = () => {
   // When more LRT products are available, we'll offer a way to switch these
@@ -66,6 +67,32 @@ const Home: NextPage = () => {
         <div className="bg-white rounded-xl p-4 lg:p-6 space-y-4 w-full">
           <RestakeForm lrtDetails={activeLrt} />
         </div>
+      </div>
+      <div className="mt-8">
+        <FAQS
+          faqs={[
+            {
+              q: 'What is Rio Network?',
+              a: "# Rio Network\n\n* Cool beans\n* Also cool\n\n[Try this out](https://operator.rio.network)\n\n```js\nconsole.log('hi')\n```\n\n> pretty sweet.\n\npretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. \n\n##Bye!"
+            },
+            {
+              q: 'What is Rio Network?',
+              a: "# Rio Network\n\n* Cool beans\n* Also cool\n\n[Try this out](https://operator.rio.network)\n\n```js\nconsole.log('hi')\n```\n\n> pretty sweet.\n\npretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. \n\n##Bye!"
+            },
+            {
+              q: 'What is Rio Network?',
+              a: "# Rio Network\n\n* Cool beans\n* Also cool\n\n[Try this out](https://operator.rio.network)\n\n```js\nconsole.log('hi')\n```\n\n> pretty sweet.\n\npretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. \n\n##Bye!"
+            },
+            {
+              q: 'What is Rio Network?',
+              a: "# Rio Network\n\n* Cool beans\n* Also cool\n\n[Try this out](https://operator.rio.network)\n\n```js\nconsole.log('hi')\n```\n\n> pretty sweet.\n\npretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. \n\n##Bye!"
+            },
+            {
+              q: 'What is Rio Network?',
+              a: "# Rio Network\n\n* Cool beans\n* Also cool\n\n[Try this out](https://operator.rio.network)\n\n```js\nconsole.log('hi')\n```\n\n> pretty sweet.\n\npretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. pretty sweet. \n\n##Bye!"
+            }
+          ]}
+        />
       </div>
     </RestakeWrapper>
   );
