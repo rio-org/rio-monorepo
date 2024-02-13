@@ -134,8 +134,49 @@ function RestakeFormBase({
     refetch: refetchBalance
   } = useAssetBalance(activeToken);
 
+  const isEth = activeToken?.symbol === 'ETH';
+
+  const contractWriteConfig = useMemo(
+    () =>
+      ({
+        address: coordinatorAddress || zeroAddress,
+        abi: RioLRTCoordinatorABI,
+        functionName: isEth ? 'depositETH' : 'deposit',
+        args: isEth
+          ? undefined
+          : ([activeToken?.address || zeroAddress, amount || 0n] as const),
+        value: isEth ? amount || 0n : undefined,
+        enabled: !!coordinatorAddress && !!activeToken?.address
+      }) as const,
+    [coordinatorAddress, isEth, activeToken?.address, amount, address]
+  );
+
+  const gasEstimateArgAmount = isEth
+    ? parseEther(data?.formatted ?? '0')
+    : parseUnits(data?.formatted ?? '0', activeToken?.decimals);
+
+  const { data: gasEstimates, isLoading: isGasLoading } = useContractGasCost({
+    ...contractWriteConfig,
+    args: isEth
+      ? undefined
+      : ([activeToken?.address || zeroAddress, gasEstimateArgAmount] as const),
+    value: isEth ? gasEstimateArgAmount : undefined
+  });
+
+  const gas = useMemo(() => {
+    const _gas = { ...gasEstimates };
+    delete _gas.estimatedTotalCost;
+    return _gas;
+  }, [gasEstimates]);
+
   const isValidAmount =
-    !!amount && amount > BigInt(0) && amount <= accountTokenBalance;
+    !!amount &&
+    amount > BigInt(0) &&
+    amount <= accountTokenBalance &&
+    !!gasEstimates &&
+    !!activeToken &&
+    (activeToken.symbol !== 'ETH' ||
+      amount <= accountTokenBalance - gasEstimates.estimatedTotalCost);
   const isEmpty = !amount;
 
   const clearErrors = useCallback(() => {
@@ -268,45 +309,14 @@ function RestakeFormBase({
     }
   }, [txData, isTxLoading, isTxError, txError]);
 
-  const isEth = activeToken?.symbol === 'ETH';
-
-  const contractWriteConfig = useMemo(
-    () =>
-      ({
-        address: coordinatorAddress || zeroAddress,
-        abi: RioLRTCoordinatorABI,
-        functionName: isEth ? 'depositETH' : 'deposit',
-        args: isEth
-          ? undefined
-          : ([activeToken?.address || zeroAddress, amount || 0n] as const),
-        value: isEth ? amount || 0n : undefined,
-        enabled: !!coordinatorAddress && !!activeToken?.address && !!address
-      }) as const,
-    [coordinatorAddress, isEth, activeToken?.address, amount, address]
-  );
-
-  const gasEstimateArgAmount = isEth
-    ? parseEther(data?.formatted ?? '0')
-    : parseUnits(data?.formatted ?? '0', activeToken?.decimals);
-
-  const { data: gasEstimates, isLoading: isGasLoading } = useContractGasCost({
-    ...contractWriteConfig,
-    args: isEth
-      ? undefined
-      : ([activeToken?.address || zeroAddress, gasEstimateArgAmount] as const),
-    value: isEth ? gasEstimateArgAmount : undefined
-  });
-
-  const gas = useMemo(() => {
-    const _gas = { ...gasEstimates };
-    delete _gas.estimatedTotalCost;
-    return _gas;
-  }, [gasEstimates]);
-
   const { config, error: prepareWriteError } = usePrepareContractWrite({
     ...contractWriteConfig,
     ...gas,
     enabled:
+      !!coordinatorAddress &&
+      !!activeToken?.address &&
+      !!address &&
+      isValidAmount &&
       !!contractWriteConfig.enabled &&
       !!gasEstimates &&
       !isGasLoading &&
