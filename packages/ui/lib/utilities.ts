@@ -130,8 +130,9 @@ export const parseBigIntFieldAmount = (
   const isSafe = (+formatUnits(amount, tokenDecimals)).toString().includes('e')
     ? false
     : true;
-  if (isSafe) {
-    return truncDec(+formatUnits(amount, tokenDecimals), tokenDecimals);
+  const truncced = truncDec(+formatUnits(amount, tokenDecimals), tokenDecimals);
+  if (isSafe && truncced < 0.001) {
+    return truncced;
   } else {
     return formatUnits(amount, tokenDecimals);
   }
