@@ -23,11 +23,11 @@ export const RainbowKitDisclaimer = ({
       ? 'connecting your wallet'
       : 'checking this box'}
     , you agree to the{' '}
-    <Link href="https://docs.rio.network/rio-network-documentation/privacy/terms-of-use">
+    <Link href="https://docs.rio.network/privacy/terms-of-use">
       Terms of Service
     </Link>{' '}
     and understand the{' '}
-    <Link href="https://docs.rio.network/rio-network-documentation/privacy/privacy-policy">
+    <Link href="https://docs.rio.network/privacy/privacy-policy">
       Privacy Policy
     </Link>
     .
