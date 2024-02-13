@@ -94,9 +94,9 @@ const StakeField = ({
         />
       }
     >
-      <div className="text-sm flex justify-between w-full mt-1">
+      <div className="text-xs font-mono tracking-tighter flex justify-between items-center w-full mt-1">
         <span className="opacity-50">${usdAmount.toLocaleString()}</span>
-        <div>
+        <div className="mt-1">
           {isMounted &&
           accountTokenBalance !== undefined &&
           activeToken?.symbol ? (
@@ -112,10 +112,8 @@ const StakeField = ({
               </span>{' '}
               {address && (
                 <button
-                  className="text-[color:var(--color-blue)] font-medium underline mx-1 hover:[color:var(--color-light-blue)]"
-                  onClick={() => {
-                    handleMaxBalance(accountTokenBalance);
-                  }}
+                  className="text-black font-bold underline mx-1 hover:opacity-75"
+                  onClick={() => handleMaxBalance(accountTokenBalance)}
                 >
                   Max
                 </button>
