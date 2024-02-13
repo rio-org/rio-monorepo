@@ -177,11 +177,7 @@ function WithdrawFormBase({
         clearErrors={reset}
         write={write}
       >
-        {!amount
-          ? 'Enter an amount'
-          : amount && !isValidAmount
-          ? 'Insufficient balance'
-          : 'Request withdrawal'}
+        Request withdrawal
       </TransactionButton>
     </>
   );

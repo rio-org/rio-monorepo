@@ -44,6 +44,7 @@ const StakeField = ({
 }: Props) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const maxButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const { address } = useAccountIfMounted();
   const isMounted = useIsMounted();
@@ -78,39 +79,62 @@ const StakeField = ({
 
       setAmount(parsedValue);
     },
-    [activeToken, setAmount, maxAmount, errorMessage]
+    [activeToken, maxAmount, errorMessage]
   );
 
-  const handleMaxBalance = useCallback(() => setAmount(maxAmount), [maxAmount]);
+  const handleMaxBalance = useCallback(() => {
+    const el = document.getElementById('restake-amount') as HTMLInputElement;
+    setAmount(maxAmount);
+    if (!el || !activeToken) return;
+    el.value = formatUnits(maxAmount, activeToken.decimals);
+    setErrorMessage(null);
+  }, [maxAmount, activeToken]);
 
   const unFocusInput = useCallback(() => {
     if (assets.length <= 1) return;
     inputRef.current?.blur();
   }, [inputRef, assets]);
 
-  const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-    if (!activeToken) return;
+  const handleEvaluateError = useCallback(
+    (value: string) => {
+      if (!activeToken) return;
 
-    if (!e.target?.value) {
-      return setErrorMessage('Amount is required');
-    }
+      if (!value) {
+        setErrorMessage('Amount is required');
+        return false;
+      }
 
-    const parsedValue = parseUnits(e.target.value, activeToken.decimals);
+      const parsedValue = parseUnits(value, activeToken.decimals);
 
-    if (!parsedValue) {
-      return setErrorMessage('Invalid amount');
-    }
+      if (!parsedValue) {
+        setErrorMessage('Invalid amount');
+        return false;
+      }
 
-    if (parsedValue > accountTokenBalance) {
-      return setErrorMessage('Insufficient balance');
-    }
+      if (parsedValue > accountTokenBalance) {
+        setErrorMessage('Insufficient balance');
+        return false;
+      }
 
-    if (activeToken.symbol === 'ETH' && parsedValue > maxAmount) {
-      return setErrorMessage('Insufficient balance to pay for gas');
-    }
+      if (activeToken.symbol === 'ETH' && parsedValue > maxAmount) {
+        setErrorMessage('Insufficient balance to pay for gas');
+        return false;
+      }
 
-    return setErrorMessage(null);
-  }, []);
+      setErrorMessage(null);
+      return true;
+    },
+    [activeToken, maxAmount, maxButtonRef]
+  );
+
+  const handleBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      if (!activeToken) return;
+      if (e.relatedTarget === maxButtonRef.current) return;
+      handleEvaluateError(e.target.value);
+    },
+    [accountTokenBalance, activeToken, maxAmount, maxButtonRef]
+  );
 
   return (
     <motion.div
@@ -124,7 +148,7 @@ const StakeField = ({
       <InputField
         ref={inputRef}
         title="Amount"
-        id="amount"
+        id="restake-amount"
         type="number"
         placeholder="0.00"
         step="0.01"
@@ -132,7 +156,7 @@ const StakeField = ({
         autoFocus
         disabled={isDisabled}
         className={cn(
-          'relative z-10  [&>div]:transition-all',
+          'relative z-10 [&>div]:transition-all',
           errorMessage && '[&>div]:rounded-b-none'
         )}
         value={
@@ -142,6 +166,11 @@ const StakeField = ({
         }
         onChange={(e) => handleValueChange(e.target.value)}
         onBlur={handleBlur}
+        onKeyDown={(e) => {
+          if (e.key === 'Tab') {
+            handleEvaluateError(e.currentTarget.value);
+          }
+        }}
         suffix={
           <AssetSelector
             activeTokenSymbol={activeToken?.symbol}
@@ -170,12 +199,20 @@ const StakeField = ({
                 </span>{' '}
                 {address && (
                   <button
+                    ref={maxButtonRef}
                     onClick={handleMaxBalance}
                     disabled={!estimatedMaxGas}
                     className={twJoin(
                       'text-black font-bold mx-1',
                       'disabled:opacity-50 enabled:hover:opacity-75 enabled:underline'
                     )}
+                    onBlur={() => {
+                      const restakeInput = document.getElementById(
+                        'restake-amount'
+                      ) as HTMLInputElement;
+                      if (!restakeInput) return;
+                      handleEvaluateError(restakeInput?.value ?? '');
+                    }}
                   >
                     Max
                   </button>
