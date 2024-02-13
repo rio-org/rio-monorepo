@@ -353,13 +353,14 @@ export type FAQsDirectory = {
   [pathname: string]: FAQ[];
 };
 
-export type EdgeStore = {
+export type GeoFencingEdgeStore = {
   'blocked-country-codes': string[];
   'whitelist-ips': string[];
-  faqs: {
-    restaking: FAQsDirectory;
-    operator: FAQsDirectory;
-  };
+};
+
+export type FAQsEdgeStore = {
+  restaking: FAQsDirectory;
+  operator: FAQsDirectory;
 };
 
 ///////////
