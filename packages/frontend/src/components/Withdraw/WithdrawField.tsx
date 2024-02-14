@@ -64,26 +64,19 @@ const WithdrawField = ({
 
   const handleEvaluateError = useCallback(
     (value: string) => {
-      if (!lrtDetails) return;
-      if (!value) {
-        setErrorMessage('Amount is required');
+      if (!lrtDetails || !value) {
         return false;
       }
 
       const parsedValue = parseUnits(value, lrtDetails.decimals || 18);
+      const message = !parsedValue
+        ? 'Invalid amount'
+        : parsedValue > restakingTokenBalance
+        ? 'Insufficient balance'
+        : null;
 
-      if (!parsedValue) {
-        setErrorMessage('Invalid amount');
-        return false;
-      }
-
-      if (parsedValue > restakingTokenBalance) {
-        setErrorMessage('Insufficient balance');
-        return false;
-      }
-
-      setErrorMessage(null);
-      return true;
+      setErrorMessage(message);
+      return !message;
     },
     [lrtDetails, restakingTokenBalance]
   );
@@ -158,9 +151,7 @@ const WithdrawField = ({
           errorMessage && 'rounded-b-none',
           isFocused && 'border-gray-400 hover:border-gray-400'
         )}
-        onClick={() => {
-          focusInput();
-        }}
+        onClick={focusInput}
       >
         <div className="relative flex flex-row gap-4 items-center">
           {isMounted ? (

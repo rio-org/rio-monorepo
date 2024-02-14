@@ -97,32 +97,21 @@ const StakeField = ({
 
   const handleEvaluateError = useCallback(
     (value: string) => {
-      if (!activeToken) return;
-
-      if (!value) {
-        setErrorMessage('Amount is required');
+      if (!activeToken || !value) {
         return false;
       }
 
       const parsedValue = parseUnits(value, activeToken.decimals);
+      const message = !parsedValue
+        ? 'Invalid amount'
+        : parsedValue > accountTokenBalance
+        ? 'Insufficient balance'
+        : activeToken.symbol === 'ETH' && parsedValue > maxAmount
+        ? 'Insufficient balance to pay for gas'
+        : null;
 
-      if (!parsedValue) {
-        setErrorMessage('Invalid amount');
-        return false;
-      }
-
-      if (parsedValue > accountTokenBalance) {
-        setErrorMessage('Insufficient balance');
-        return false;
-      }
-
-      if (activeToken.symbol === 'ETH' && parsedValue > maxAmount) {
-        setErrorMessage('Insufficient balance to pay for gas');
-        return false;
-      }
-
-      setErrorMessage(null);
-      return true;
+      setErrorMessage(message);
+      return !message;
     },
     [activeToken, maxAmount, maxButtonRef]
   );
