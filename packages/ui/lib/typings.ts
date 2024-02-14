@@ -344,9 +344,23 @@ export type EdgeFunction = (req: Request | NextRequest) => Promise<unknown>;
 export type RequestHandlers = { [method in Methods]?: Handler };
 export type EdgeFunctionHandlers = { [method in Methods]?: EdgeFunction };
 
+export type FAQ = {
+  q: string;
+  a: string;
+};
+
+export type FAQsDirectory = {
+  [pathname: string]: FAQ[];
+};
+
 export type GeoFencingEdgeStore = {
   'blocked-country-codes': string[];
   'whitelist-ips': string[];
+};
+
+export type FAQsEdgeStore = {
+  restaking: FAQsDirectory;
+  operator: FAQsDirectory;
 };
 
 ///////////

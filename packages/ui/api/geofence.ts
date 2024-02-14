@@ -11,8 +11,6 @@ const [defaultCountry, defaultIP] =
   APP_ENV === AppEnv.DEVELOPMENT ? ['US', '127.0.1.1'] : [undefined, undefined];
 
 const GET = async (req: Request | NextRequest) => {
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
   const geofencing = await get<GeoFencingEdgeStore>(GEOFENCE_VERCEL_STORE_KEY);
   const { ip = defaultIP, country = defaultCountry } = {
     ...geolocation(req),

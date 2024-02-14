@@ -6,8 +6,12 @@ import type {
   Handler,
   RequestHandlers,
   EdgeFunction,
-  EdgeFunctionHandlers
+  EdgeFunctionHandlers,
+  FAQsEdgeStore,
+  FAQ
 } from './typings';
+import { FAQS_VERCEL_STORE_KEY } from './constants';
+import { get } from '@vercel/edge-config';
 
 export const withErrors = (handler: Handler): Handler => {
   return async (req, res) => {
@@ -64,4 +68,16 @@ export const withEdgeHandlers = (
 
     return withEdgeErrors(handlers[method] as EdgeFunction)(req);
   };
+};
+
+export const getFAQsFromEdge = async (
+  appName: keyof FAQsEdgeStore,
+  route: string
+): Promise<FAQ[]> => {
+  try {
+    const faqs = await get<FAQsEdgeStore>(FAQS_VERCEL_STORE_KEY);
+    return faqs?.[appName]?.[route] ?? [];
+  } catch {
+    return [];
+  }
 };
