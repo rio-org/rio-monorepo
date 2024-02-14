@@ -1,20 +1,27 @@
-import React, { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import { useMediaQuery } from 'react-responsive';
+import { formatUnits, parseUnits } from 'viem';
 import Skeleton from 'react-loading-skeleton';
+import { twJoin } from 'tailwind-merge';
+import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
+import { IconWarning } from '@rio-monorepo/ui/components/Icons/IconWarning';
+import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
+import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import {
   cn,
+  displayAmount,
   displayEthAmount,
   parseBigIntFieldAmount
 } from '@rio-monorepo/ui/lib/utilities';
-import { formatUnits, parseUnits } from 'viem';
-import { useMediaQuery } from 'react-responsive';
-import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
-import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
-import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
-import { twJoin } from 'tailwind-merge';
-import { IconWarning } from '@rio-monorepo/ui/components/Icons/IconWarning';
+import {
+  type AssetDetails,
+  type LRTDetails
+} from '@rio-monorepo/ui/lib/typings';
+
 type Props = {
+  activeToken?: AssetDetails;
   amount: bigint | null;
   disabled?: boolean;
   restakingTokenBalance: bigint;
@@ -24,6 +31,7 @@ type Props = {
 
 const WithdrawField = ({
   amount,
+  activeToken,
   disabled,
   restakingTokenBalance,
   lrtDetails,
@@ -38,9 +46,25 @@ const WithdrawField = ({
     query: DESKTOP_MQ
   });
 
+  const { data: exchangeRate } = useAssetExchangeRate({
+    asset: activeToken?.address,
+    lrt: lrtDetails
+  });
+
+  const usdAmount = useMemo(() => {
+    if (!activeToken || !exchangeRate?.usd) return 0;
+    return amount
+      ? +formatUnits(amount, activeToken.decimals) * exchangeRate.usd
+      : 0;
+  }, [amount, activeToken?.decimals, exchangeRate?.usd]);
+
   const handleValueChange = useCallback(
-    (value: string) => {
-      if (!lrtDetails || value === '') return setAmount(null);
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+
+      if (!lrtDetails || value === '') {
+        return setAmount(null);
+      }
 
       const parsedValue = parseUnits(value, lrtDetails.decimals || 18);
       if (
@@ -90,6 +114,7 @@ const WithdrawField = ({
 
   const handleBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
       if (!lrtDetails) return;
       if (e.relatedTarget === maxButtonRef.current) return;
       handleEvaluateError(e.target.value);
@@ -163,42 +188,49 @@ const WithdrawField = ({
         }}
       >
         <div className="relative flex flex-row gap-4 items-center">
-          {isMounted ? (
-            <input
-              className={cn(
-                'text-[22px] bg-transparent w-full focus:outline-none flex-1',
-                disabled && 'text-gray-700'
-              )}
-              id="withdraw-amount"
-              type="number"
-              placeholder="0.00"
-              autoFocus={!disabled && isDesktopOrLaptop}
-              min={0}
-              disabled={disabled}
-              value={parseBigIntFieldAmount(amount, 18)}
-              step="0.01"
-              ref={inputRef}
-              onKeyDown={(e) => {
-                if (e.key === 'Tab') {
-                  handleEvaluateError(e.currentTarget.value);
-                }
-              }}
-              onChange={(e) => {
-                handleValueChange(e.target.value);
-              }}
-              onFocus={() => {
-                setIsFocused(true);
-              }}
-              onBlur={(e) => {
-                setIsFocused(false);
-                handleBlur(e);
-              }}
-            />
-          ) : (
-            <div className="w-full flex-1">
-              <Skeleton width={50} height={26} />
-            </div>
-          )}
+          <div className="relative flex flex-col gap-1 w-full flex-1">
+            {isMounted ? (
+              <>
+                <input
+                  className={cn(
+                    'text-[22px] bg-transparent w-full focus:outline-none pb-4',
+                    '[&::-webkit-inner-spin-button]:absolute',
+                    '[&::-webkit-inner-spin-button]:right-0',
+                    '[&::-webkit-inner-spin-button]:top-0',
+                    '[&::-webkit-inner-spin-button]:bottom-0',
+                    '[&::-webkit-inner-spin-button]:scale-75',
+                    disabled && 'text-gray-700'
+                  )}
+                  id="withdraw-amount"
+                  type="number"
+                  placeholder="0.00"
+                  autoFocus={!disabled && isDesktopOrLaptop}
+                  min={0}
+                  disabled={disabled}
+                  value={parseBigIntFieldAmount(amount, 18)}
+                  step="0.01"
+                  ref={inputRef}
+                  onFocus={() => setIsFocused(true)}
+                  onChange={handleValueChange}
+                  onBlur={handleBlur}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'Tab') return;
+                    handleEvaluateError(e.currentTarget.value);
+                  }}
+                />
+                <span className="absolute left-1 bottom-0 text-xs tracking-tighter font-mono w-full opacity-50">
+                  ${!usdAmount ? '0' : displayAmount(usdAmount, 2, 2)}
+                </span>
+              </>
+            ) : (
+              <>
+                <Skeleton width={50} height={29} />
+                <div className="max-h-[12px] [&_span]:inline-block [&_span]:max-h-[12px] -translate-y-1">
+                  <Skeleton width={20} />
+                </div>
+              </>
+            )}
+          </div>
           <button
             ref={maxButtonRef}
             disabled={disabled}

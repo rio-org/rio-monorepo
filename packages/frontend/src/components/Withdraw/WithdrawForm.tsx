@@ -146,6 +146,7 @@ function WithdrawFormBase({
         <Alert color="red">Error loading account balance.</Alert>
       )}
       <WithdrawField
+        activeToken={activeToken}
         disabled={isLoading || !address}
         amount={amount}
         restakingTokenBalance={restakingTokenBalance}

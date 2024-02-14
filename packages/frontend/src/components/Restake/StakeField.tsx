@@ -15,6 +15,7 @@ import {
 } from '@rio-monorepo/ui/lib/typings';
 import {
   cn,
+  displayAmount,
   displayEthAmount,
   parseBigIntFieldAmount
 } from '@rio-monorepo/ui/lib/utilities';
@@ -182,7 +183,9 @@ const StakeField = ({
         }
       >
         <div className="text-xs font-mono tracking-tighter flex justify-between items-center w-full mt-1">
-          <span className="opacity-50">${usdAmount.toLocaleString()}</span>
+          <span className="opacity-50">
+            ${!usdAmount ? '0' : displayAmount(usdAmount, 2, 2)}
+          </span>
           <div className="mt-1">
             {isMounted &&
             accountTokenBalance !== undefined &&
