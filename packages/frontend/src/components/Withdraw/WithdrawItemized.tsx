@@ -122,9 +122,7 @@ const WithdrawItemized = ({
             <span className="opacity-50 text-[14px]">Withdrawal fees</span>
 
             <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
-              <p>
-                The percentage taken from all staking rewards (not deposits).
-              </p>
+              <p>Fees applied when funds are withdrawn from the Rio Network.</p>
             </InfoTooltip>
           </span>
           <strong className="text-right text-[14px]">None</strong>
