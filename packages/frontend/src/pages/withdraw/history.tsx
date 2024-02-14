@@ -1,10 +1,9 @@
 import { Spinner } from '@material-tailwind/react';
-import { get } from '@vercel/edge-config';
 import { motion } from 'framer-motion';
-import type {
-  GetStaticPropsResult,
-  InferGetStaticPropsType,
-  NextPage
+import {
+  type GetStaticProps,
+  type InferGetStaticPropsType,
+  type NextPage
 } from 'next';
 import { WithdrawalRequestHistory } from '@/components/History/WithdrawalRequestHistory';
 import { PageWrapper } from '@rio-monorepo/ui/components/Shared/PageWrapper';
@@ -14,13 +13,9 @@ import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquid
 import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
-import { FAQS_VERCEL_STORE_KEY } from '@rio-monorepo/ui/lib/constants';
+import { AppEnv, type FAQ } from '@rio-monorepo/ui/lib/typings';
+import { getFAQsFromEdge } from '@rio-monorepo/ui/lib/api';
 import { APP_ENV } from '@rio-monorepo/ui/config';
-import {
-  AppEnv,
-  type FAQ,
-  type FAQsEdgeStore
-} from '@rio-monorepo/ui/lib/typings';
 
 const History: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   faqs
@@ -92,12 +87,8 @@ const History: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
 
 export default History;
 
-export async function getStaticProps(): Promise<
-  GetStaticPropsResult<{ faqs: FAQ[] }>
-> {
-  const faqs = await get<FAQsEdgeStore>(FAQS_VERCEL_STORE_KEY);
-  return {
-    props: { faqs: faqs?.restaking?.['/withdraw/history'] ?? [] },
-    revalidate: APP_ENV === AppEnv.PRODUCTION ? false : 1
-  };
-}
+export const getStaticProps: GetStaticProps<{ faqs: FAQ[] }> = async () => {
+  const faqs = await getFAQsFromEdge('restaking', '/withdraw/history');
+  const revalidate = APP_ENV === AppEnv.PRODUCTION ? false : 1;
+  return { props: { faqs }, revalidate };
+};

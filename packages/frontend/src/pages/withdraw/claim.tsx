@@ -1,21 +1,19 @@
 import { useEffect, useState } from 'react';
-import { get } from '@vercel/edge-config';
-import type {
-  GetStaticPropsResult,
-  InferGetStaticPropsType,
-  NextPage
+import {
+  type GetStaticProps,
+  type InferGetStaticPropsType,
+  type NextPage
 } from 'next';
 import WithdrawWrapper from '@/components/Withdraw/WithdrawWrapper';
 import { ClaimForm } from '@/components/Claim/ClaimForm';
 import { PageWrapper } from '@rio-monorepo/ui/components/Shared/PageWrapper';
 import { FAQS } from '@rio-monorepo/ui/components/Shared/FAQs';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
-import { FAQS_VERCEL_STORE_KEY } from '@rio-monorepo/ui/lib/constants';
+import { getFAQsFromEdge } from '@rio-monorepo/ui/lib/api';
 import { APP_ENV } from '@rio-monorepo/ui/config';
 import {
   AppEnv,
   type FAQ,
-  type FAQsEdgeStore,
   type LRTDetails
 } from '@rio-monorepo/ui/lib/typings';
 
@@ -46,12 +44,8 @@ const Claim: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
 
 export default Claim;
 
-export async function getStaticProps(): Promise<
-  GetStaticPropsResult<{ faqs: FAQ[] }>
-> {
-  const faqs = await get<FAQsEdgeStore>(FAQS_VERCEL_STORE_KEY);
-  return {
-    props: { faqs: faqs?.restaking?.['/withdraw/claim'] ?? [] },
-    revalidate: APP_ENV === AppEnv.PRODUCTION ? false : 1
-  };
-}
+export const getStaticProps: GetStaticProps<{ faqs: FAQ[] }> = async () => {
+  const faqs = await getFAQsFromEdge('restaking', '/withdraw/claim');
+  const revalidate = APP_ENV === AppEnv.PRODUCTION ? false : 1;
+  return { props: { faqs }, revalidate };
+};

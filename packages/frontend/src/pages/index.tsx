@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react';
-import { get } from '@vercel/edge-config';
-import type {
-  GetStaticPropsResult,
-  InferGetStaticPropsType,
-  NextPage
+import {
+  type GetStaticProps,
+  type InferGetStaticPropsType,
+  type NextPage
 } from 'next';
+import { PageWrapper } from '@rio-monorepo/ui/components/Shared/PageWrapper';
 import { InfoBadge } from '@rio-monorepo/ui/components/Shared/InfoBadge';
 import { FAQS } from '@rio-monorepo/ui/components/Shared/FAQs';
-import { PageWrapper } from '@rio-monorepo/ui/components/Shared/PageWrapper';
 import { RestakeForm } from '@/components/Restake/RestakeForm';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
-import { FAQS_VERCEL_STORE_KEY } from '@rio-monorepo/ui/lib/constants';
+import { getFAQsFromEdge } from '@rio-monorepo/ui/lib/api';
 import { APP_ENV } from '@rio-monorepo/ui/config';
 import {
-  type FAQsEdgeStore,
   type FAQ,
   type LRTDetails,
   AppEnv
@@ -51,7 +49,7 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
                 prefix="TVL:"
                 infoTooltipContent={
                   <p>
-                    The Total Value Locked <strong>(TVL)</strong> represents the
+                    The <strong>Total Value Locked (TVL)</strong> represents the
                     total amount of assets underlying the reETH token.
                   </p>
                 }
@@ -88,12 +86,8 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
 
 export default Home;
 
-export async function getStaticProps(): Promise<
-  GetStaticPropsResult<{ faqs: FAQ[] }>
-> {
-  const faqs = await get<FAQsEdgeStore>(FAQS_VERCEL_STORE_KEY);
-  return {
-    props: { faqs: faqs?.restaking?.['/'] ?? [] },
-    revalidate: APP_ENV === AppEnv.PRODUCTION ? false : 1
-  };
-}
+export const getStaticProps: GetStaticProps<{ faqs: FAQ[] }> = async () => {
+  const faqs = await getFAQsFromEdge('restaking', '/');
+  const revalidate = APP_ENV === AppEnv.PRODUCTION ? false : 1;
+  return { props: { faqs }, revalidate };
+};

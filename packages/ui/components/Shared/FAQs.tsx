@@ -1,11 +1,10 @@
-import Markdown from 'react-markdown';
-import { type FAQ } from '../../lib/typings';
 import { useCallback, useEffect, useState } from 'react';
-import { IconOpenAccordion } from '../Icons/IconOpenAccordion';
 import { AnimatePresence, motion } from 'framer-motion';
 import { twJoin } from 'tailwind-merge';
+import { IconOpenAccordion } from '../Icons/IconOpenAccordion';
+import { type FAQ } from '../../lib/typings';
 import { cn } from '../../lib/utilities';
-import IconExternal from '../Icons/IconExternal';
+import { Markdown } from './Markdown';
 
 const APPEAR_VARIANTS = {
   initial: { opacity: 0, height: 0 },
@@ -16,7 +15,7 @@ const APPEAR_VARIANTS = {
 const buttonHoverCN = twJoin(
   'w-full flex justify-between rounded-xl',
   'transition-colors duration-200',
-  'bg-transparent hover:bg-[#00000008] active:bg-[#00000010]'
+  'bg-transparent hover:bg-[#00000005] active:bg-[#00000008]'
 );
 
 export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
@@ -87,91 +86,8 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
                       {...APPEAR_VARIANTS}
                       className="w-full text-sm overflow-hidden px-4"
                     >
-                      <Markdown
-                        className="py-2.5 space-y-2 font-sans text-sm"
-                        components={{
-                          h1({ className, ...rest }) {
-                            return (
-                              <h2
-                                className={cn(className, 'font-bold text-2xl')}
-                                {...rest}
-                              />
-                            );
-                          },
-                          h2({ className, ...rest }) {
-                            return (
-                              <h3
-                                className={cn(className, 'font-bold text-xl')}
-                                {...rest}
-                              />
-                            );
-                          },
-                          h3({ className, ...rest }) {
-                            return (
-                              <h4
-                                className={cn(className, 'font-bold text-lg')}
-                                {...rest}
-                              />
-                            );
-                          },
-                          h4({ className, ...rest }) {
-                            return (
-                              <h4
-                                className={cn(
-                                  className,
-                                  'font-bold text-[inherit]'
-                                )}
-                                {...rest}
-                              />
-                            );
-                          },
-                          h5({ className, ...rest }) {
-                            return (
-                              <h4
-                                className={cn(
-                                  className,
-                                  'font-bold text-[inherit]'
-                                )}
-                                {...rest}
-                              />
-                            );
-                          },
-                          ul({ children, className, ...rest }) {
-                            return (
-                              <ul
-                                className={cn(
-                                  className,
-                                  'list-disc list-inside'
-                                )}
-                                {...rest}
-                              >
-                                {children}
-                              </ul>
-                            );
-                          },
-                          a({ children, className, href, ...rest }) {
-                            delete rest.target;
-                            delete rest.rel;
-                            return (
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={cn(
-                                  className,
-                                  'font-semibold hover:underline'
-                                )}
-                                {...rest}
-                              >
-                                <span>{children}</span>
-                                <IconExternal className="inline mx-1 w-[10px] h-[10px] [&>path]:stroke-2 -translate-y-0.5" />
-                              </a>
-                            );
-                          }
-                        }}
-                      >
-                        {faq.a}
-                      </Markdown>
+                      {' '}
+                      <Markdown children={faq.a} />
                     </motion.div>
                   )}
                 </AnimatePresence>
