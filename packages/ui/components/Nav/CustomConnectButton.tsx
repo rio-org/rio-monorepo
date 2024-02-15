@@ -11,7 +11,6 @@ import {
 import { mainnet, useBalance, useDisconnect } from 'wagmi';
 import { useMediaQuery } from 'react-responsive';
 import { useEffect, useRef, useState } from 'react';
-import ReETHConversion from '../Shared/ReETHConversion';
 import { DESKTOP_MQ } from '../../lib/constants';
 import cx from 'classnames';
 import { mainNavConnectVariants } from '../../lib/motion';
@@ -177,7 +176,7 @@ export const CustomConnectButton = () => {
                           {account?.displayName}
                           <span className="text-sm opacity-50 -tracking-tighter">
                             {reEthBalance
-                              ? formatEther(reEthBalance.value) + `reETH`
+                              ? formatEther(reEthBalance.value) + ` reETH`
                               : ''}
                             {/* {account?.balanceFormatted
                               ? `${Math.trunc(+account.balanceFormatted * 1000) /
@@ -195,7 +194,6 @@ export const CustomConnectButton = () => {
                         >
                           {isLoading || !account ? <Spinner /> : 'Disconnect'}
                         </button>
-                        <ReETHConversion padded />
                       </div>
                     </Drawer>
                   )}

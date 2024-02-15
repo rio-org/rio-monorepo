@@ -16,7 +16,6 @@ import {
 } from 'wagmi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Spinner } from '@material-tailwind/react';
-import Skeleton from 'react-loading-skeleton';
 import {
   type AssetDetails,
   type ContractError,
@@ -28,12 +27,12 @@ import {
   useLiquidRestakingToken,
   RioLRTCoordinatorABI
 } from '@rionetwork/sdk-react';
+import { RestakingTokenExchangeRate } from '@rio-monorepo/ui/components/Shared/RestakingTokenExchangeRate';
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
 import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
 import StakeField from './StakeField';
-import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
 import {
@@ -43,7 +42,6 @@ import {
 } from '@rio-monorepo/ui/lib/utilities';
 import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 import { useContractGasCost } from '@rio-monorepo/ui/hooks/useContractGasCost';
-import { useIsTouch } from '@rio-monorepo/ui/contexts/TouchProvider';
 
 const queryTokens = async (
   restakingToken: LiquidRestakingTokenClient | null,
@@ -118,12 +116,7 @@ function RestakeFormBase({
   const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(true);
-  const { data: exchangeRate } = useAssetExchangeRate({
-    asset: activeToken,
-    lrt: lrtDetails
-  });
   const { address } = useAccountIfMounted();
-  const isTouch = useIsTouch();
 
   const { refetch: refetchLrtBalance } = useAssetBalance(lrtDetails);
 
@@ -396,8 +389,6 @@ function RestakeFormBase({
     [clearErrors, depositTxHash, depositError, resetWrite]
   );
 
-  const exchangeRateDecimals = isTouch ? [2, 2] : [3, 3];
-
   return (
     <>
       {isLoading && (
@@ -441,33 +432,11 @@ function RestakeFormBase({
                   </p>
                 </InfoTooltip>
               </span>
-              {!exchangeRate ? (
-                <Skeleton height="0.875rem" width={80} />
-              ) : (
-                <span className="flex items-center gap-1">
-                  <strong className="text-right text-[14px]">
-                    {displayAmount(1, ...exchangeRateDecimals)}{' '}
-                    {activeToken?.symbol} ={' '}
-                    {displayAmount(+exchangeRate.lrt, ...exchangeRateDecimals)}{' '}
-                    {lrtDetails?.symbol}{' '}
-                    <strong className="opacity-50">
-                      (${exchangeRate.formatted.usd})
-                    </strong>
-                  </strong>
-                  {+exchangeRate.formatted.lrt !== exchangeRate.lrt && (
-                    <InfoTooltip>
-                      <p>
-                        <span className="font-semibold block">
-                          Exact exchange rate
-                        </span>
-                        <span className="block">
-                          {exchangeRate.lrt} {lrtDetails?.symbol}
-                        </span>
-                      </p>
-                    </InfoTooltip>
-                  )}
-                </span>
-              )}
+              <RestakingTokenExchangeRate
+                assetSymbol={activeToken?.symbol}
+                restakingTokenSymbol={lrtDetails?.symbol}
+                defaultRateDenominator="asset"
+              />
             </div>
             <div className="flex justify-between">
               <span className="flex items-center text-black gap-1">

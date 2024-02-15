@@ -2,7 +2,6 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import AppNav from './Nav/AppNav';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
-import ReETHConversion from './Shared/ReETHConversion';
 import MobileNav from './Nav/MobileNav';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../lib/constants';
@@ -24,21 +23,15 @@ export type LayoutProps = {
     tertiaryItems: NavItem[];
     socialItems: SocialNavItem[];
   };
-  showExchangeRates?: boolean;
   children: ReactNode;
 };
 
-export default function Layout({
-  children,
-  nav,
-  showExchangeRates = true
-}: LayoutProps) {
+export default function Layout({ children, nav }: LayoutProps) {
   const isMounted = useIsMounted();
   const [currentSlugIndex, setCurrentSlugIndex] = useState<number>(0);
   const [transitionDirection, setTransitionDirection] = useState<number>(50);
   const appNavRef = useRef<HTMLDivElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
-  const conversionButtonRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const contentWrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -50,6 +43,9 @@ export default function Layout({
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
+
+  const mobileNavHeight =
+    (mobileNavRef.current?.firstChild as HTMLElement)?.offsetHeight || 100;
 
   useEffect(() => {
     if (nextSlugIndex(baseUrlSegment) > currentSlugIndex) {
@@ -72,7 +68,7 @@ export default function Layout({
         socialItems={nav.socialItems}
         logoItem={nav.logoItem}
         className={twJoin(
-          'fixed z-[90] py-3 px-4',
+          'absolute z-[90] py-3 px-4',
           'lg:max-w-[calc(100vw-1.5rem)] bg-[var(--color-app-bg)]',
           'rounded-b-none'
         )}
@@ -82,8 +78,14 @@ export default function Layout({
           'p-4 lg:px-4 lg:py-2 relative top-[72px]',
           'w-full max-w-full',
           'overflow-x-hidden overflow-y-auto',
-          'h-full max-h-[calc(100%-72px)]'
+          'h-full'
         )}
+        style={{
+          maxHeight:
+            isDesktopOrLaptop || !isMounted
+              ? 'calc(100vh - 72px)'
+              : `calc(100vh - ${72 + mobileNavHeight}px)`
+        }}
       >
         <div
           className={cx(
@@ -126,7 +128,7 @@ export default function Layout({
                   paddingBottom:
                     isMounted && isDesktopOrLaptop
                       ? '0px'
-                      : (mobileNavRef.current?.offsetHeight || 100) + 'px'
+                      : mobileNavHeight + 'px'
                 }}
                 initial={{ opacity: 0 }}
                 animate={isMounted && { opacity: 1 }}
@@ -138,35 +140,16 @@ export default function Layout({
             </motion.div>
           </AnimatePresence>
         </div>
-        {showExchangeRates ? (
-          <motion.div
-            ref={conversionButtonRef}
-            key={'conversionButton'}
-            initial={{ opacity: 0 }}
-            animate={isMounted && { opacity: 1 }}
-            transition={{
-              type: 'spring',
-              duration: 0.1,
-              delay: 0.5
-            }}
-            className={cx(
-              'fixed bottom-8 left-8 pt-4 hidden lg:block lg:mt-auto z-0'
-            )}
-          >
-            <ReETHConversion />
-          </motion.div>
-        ) : (
-          <div className="fixed bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto z-0" />
-        )}
-        <div ref={mobileNavRef} className="relative z-50">
-          <MobileNav
-            items={nav.items}
-            secondaryItems={nav.secondaryItems}
-            tertiaryItems={nav.tertiaryItems}
-            socialItems={nav.socialItems}
-          />
-        </div>
+        <div className="fixed bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto z-0" />
       </main>
+      <div ref={mobileNavRef} className="absolute left-0 bottom-0 z-50">
+        <MobileNav
+          items={nav.items}
+          secondaryItems={nav.secondaryItems}
+          tertiaryItems={nav.tertiaryItems}
+          socialItems={nav.socialItems}
+        />
+      </div>
     </>
   );
 }

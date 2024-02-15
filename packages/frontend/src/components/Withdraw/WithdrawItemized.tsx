@@ -1,15 +1,11 @@
 import Skeleton from 'react-loading-skeleton';
 import { formatUnits } from 'viem';
+import { useMemo } from 'react';
 import Image from 'next/image';
-import React, { useMemo } from 'react';
+import { RestakingTokenExchangeRate } from '@rio-monorepo/ui/components/Shared/RestakingTokenExchangeRate';
 import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 import HR from '@rio-monorepo/ui/components/Shared/HR';
-import { useAssetExchangeRate } from '@rio-monorepo/ui/hooks/useAssetExchangeRate';
-import { useIsTouch } from '@rio-monorepo/ui/contexts/TouchProvider';
-import {
-  displayAmount,
-  displayEthAmount
-} from '@rio-monorepo/ui/lib/utilities';
+import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import {
   type AssetDetails,
   type LRTDetails
@@ -28,14 +24,7 @@ const WithdrawItemized = ({
   lrtDetails,
   activeToken
 }: Props) => {
-  const isTouch = useIsTouch();
-  const { data: exchangeRate } = useAssetExchangeRate({
-    asset: activeToken,
-    lrt: lrtDetails
-  });
-
   const onlySingleAsset = !assets.length || assets.length === 1;
-  const exchangeRateDecimals = isTouch ? [2, 2] : [3, 3];
 
   const totalOut = useMemo(
     () => (
@@ -79,43 +68,11 @@ const WithdrawItemized = ({
               </p>
             </InfoTooltip>
           </span>
-          {!exchangeRate ? (
-            <Skeleton height="0.875rem" width={80} />
-          ) : (
-            <span className="flex items-center gap-1 text-[14px]">
-              <strong className="text-right">
-                {displayAmount(1, ...exchangeRateDecimals)} {lrtDetails?.symbol}{' '}
-                ={' '}
-                {displayAmount(1 / exchangeRate?.lrt, ...exchangeRateDecimals)}{' '}
-                {activeToken?.symbol || <Skeleton width={20} />}{' '}
-                <span className="text-right font-bold opacity-50">
-                  ($
-                  {displayAmount(
-                    exchangeRate.usd * (1 / exchangeRate?.lrt),
-                    2,
-                    2
-                  )}
-                  )
-                </span>
-              </strong>
-              {+displayAmount(
-                1 / exchangeRate?.lrt,
-                ...exchangeRateDecimals
-              ) !==
-                1 / exchangeRate?.lrt && (
-                <InfoTooltip>
-                  <p>
-                    <span className="font-semibold block">
-                      Exact exchange rate
-                    </span>
-                    <span className="block">
-                      {1 / exchangeRate?.lrt} {lrtDetails?.symbol}
-                    </span>
-                  </p>
-                </InfoTooltip>
-              )}
-            </span>
-          )}
+          <RestakingTokenExchangeRate
+            assetSymbol={activeToken?.symbol}
+            restakingTokenSymbol={lrtDetails?.symbol}
+            defaultRateDenominator="restakingToken"
+          />
         </div>
         <div className="flex justify-between">
           <span className="flex items-center text-black gap-1">

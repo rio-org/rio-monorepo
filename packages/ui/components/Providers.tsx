@@ -67,7 +67,6 @@ interface Props extends LayoutProps {
 
 export function Providers({
   appTitle,
-  showExchangeRates,
   nav,
   children,
   requireGeofence = false,
@@ -132,7 +131,7 @@ export function Providers({
                 <ThemeProvider value={theme}>
                   <TouchProvider>
                     <CssBaseline />
-                    <Layout showExchangeRates={showExchangeRates} nav={nav}>
+                    <Layout nav={nav}>
                       {children}
                       <Analytics />
                       <SpeedInsights />
