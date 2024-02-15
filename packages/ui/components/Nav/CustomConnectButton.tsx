@@ -16,7 +16,7 @@ import cx from 'classnames';
 import { mainNavConnectVariants } from '../../lib/motion';
 import { motion } from 'framer-motion';
 import { Address, formatEther, formatUnits } from 'viem';
-import { displayEthAmount } from '../../lib/utilities';
+import { displayAmount, displayEthAmount } from '../../lib/utilities';
 import { useIsMounted } from '../../hooks/useIsMounted';
 import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
 import { useWalletAndTermsStore } from '../../contexts/WalletAndTermsStore';
@@ -176,13 +176,12 @@ export const CustomConnectButton = () => {
                           {account?.displayName}
                           <span className="text-sm opacity-50 -tracking-tighter">
                             {reEthBalance
-                              ? formatEther(reEthBalance.value) + ` reETH`
+                              ? displayAmount(
+                                  +formatEther(reEthBalance.value),
+                                  0,
+                                  6
+                                ) + ` reETH`
                               : ''}
-                            {/* {account?.balanceFormatted
-                              ? `${Math.trunc(+account.balanceFormatted * 1000) /
-                              1000
-                              } reETH`
-                              : ''} */}
                           </span>
                         </div>
                         <button

@@ -94,7 +94,10 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         key: 'amountChange',
         label: 'Amount',
         render(TableLabel, item) {
-          const amountChange = displayEthAmount(item.amountChange.toString());
+          const amountChange = displayEthAmount(
+            item.amountChange.toString(),
+            5
+          );
           return (
             <div className="flex flex-col">
               <TableLabel
@@ -160,7 +163,10 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
           key: 'amountChange',
           label: 'Amount',
           render(TableLabel, item) {
-            const amountChange = displayEthAmount(item.amountChange.toString());
+            const amountChange = displayEthAmount(
+              item.amountChange.toString(),
+              5
+            );
             return (
               <div className="flex flex-col">
                 <TableLabel
@@ -205,7 +211,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
           render(TableLabel, item) {
             return (
               <TableLabel textDirection="right">
-                ${displayAmount(item.valueUSD, 2, 2)}
+                ${displayAmount(item.restakingTokenPriceUSD, 2, 2)}
               </TableLabel>
             );
           }

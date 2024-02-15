@@ -245,8 +245,17 @@ export const displayEthAmount = (amount: string, digits: number = 3) => {
     bigDecimal.round(amount, digits, bigDecimal.RoundingModes.DOWN)
   );
 
-  return parsedAmount < 0.001
-    ? '<0.001'
+  const truncLimit =
+    1 /
+    Array(digits)
+      .fill(10)
+      .reduce((a, b) => a * b);
+
+  return parsedAmount < truncLimit
+    ? `<${truncLimit.toLocaleString(undefined, {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      })}`
     : displayAmount(parsedAmount, 0, digits);
 };
 
