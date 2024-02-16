@@ -19,7 +19,7 @@ export function Markdown({
   return (
     <ReactMarkdown
       className={cn(
-        'pt-2 pb-4 px-2 space-y-2 font-sans text-sm opacity-80',
+        'pt-2 pb-4 px-2 space-y-4 font-sans text-sm opacity-80',
         '[&_h1,&_h2,&_h3,&_h4,&_h5,&_h6,&_strong]:font-bold',
         '[&&_a]:font-semibold [&_h6]:font-bold [&_h3]:font-bold [&_h4]:font-bold',
         className
@@ -57,7 +57,7 @@ export function Markdown({
             <ul
               className={cn(
                 className,
-                'list-disc list-inside space-y-0.5',
+                'list-disc list-inside leading-relaxed space-y-0.5',
                 cns?.ul
               )}
               {...rest}
@@ -69,11 +69,16 @@ export function Markdown({
             <ol
               className={cn(
                 className,
-                'list-decimal list-inside space-y-0.5',
+                'list-decimal list-inside leading-relaxed space-y-0.5',
                 cns?.ol
               )}
               {...rest}
             />
+          );
+        },
+        p({ className, ...rest }) {
+          return (
+            <p className={cn(className, 'leading-[1.7]', cns?.p)} {...rest} />
           );
         },
         a({ children, className, href, ...rest }) {
@@ -84,11 +89,7 @@ export function Markdown({
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(
-                className,
-                'hover:underline whitespace-nowrap',
-                cns?.a
-              )}
+              className={cn(className, 'underline whitespace-nowrap', cns?.a)}
               {...rest}
             >
               <span>{children}</span>
