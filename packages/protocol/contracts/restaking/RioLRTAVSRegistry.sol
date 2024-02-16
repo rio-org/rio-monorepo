@@ -52,16 +52,17 @@ contract RioLRTAVSRegistry is IRioLRTAVSRegistry, OwnableUpgradeable, UUPSUpgrad
         return _isActiveRegistryContract[registryContract];
     }
 
+    // forgefmt: disable-next-item
     /// @notice Adds a new AVS to the registry.
     /// @param name The name of the AVS.
     /// @param slashingContract The slashing contract address.
     /// @param registryContract The registry contract address.
-    function addAVS(string calldata name, address slashingContract, address registryContract) external onlyOwner {
+    function addAVS(string calldata name, address slashingContract, address registryContract) external onlyOwner returns (uint128 avsId) {
         if (bytes(name).length == 0) revert INVALID_NAME();
         if (slashingContract != address(0) && slashingContract.code.length == 0) revert INVALID_SLASHING_CONTRACT();
         if (registryContract.code.length == 0) revert INVALID_REGISTRY_CONTRACT();
 
-        uint128 avsId = ++avsCount;
+        avsId = ++avsCount;
         activeAVSCount += 1;
 
         AVS storage avs = _avs[avsId];
