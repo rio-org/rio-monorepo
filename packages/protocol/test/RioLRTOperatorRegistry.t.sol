@@ -5,6 +5,7 @@ import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {ETH_ADDRESS, BEACON_CHAIN_STRATEGY} from 'contracts/utils/Constants.sol';
 import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
@@ -255,6 +256,58 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
                 assertEq(emittedOperatorId, operatorId);
                 assertEq(strategy, CBETH_STRATEGY);
+                assertEq(sharesToExit, AMOUNT);
+                assertNotEq(withdrawalRoot, bytes32(0));
+
+                break;
+            }
+            if (i == entries.length - 1) fail('Event not found');
+        }
+    }
+
+    function test_setOperatorValidatorCapInvalidOperatorDelegatorReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.INVALID_OPERATOR_DELEGATOR.selector));
+        reETH.operatorRegistry.setOperatorValidatorCap(99, 0);
+    }
+
+    function test_setOperatorValidatorCap() public {
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+
+        uint40 newCap = 19191;
+        reETH.operatorRegistry.setOperatorValidatorCap(operatorId, newCap);
+
+        uint40 validatorCap = reETH.operatorRegistry.getOperatorDetails(operatorId).validatorDetails.cap;
+        assertEq(newCap, validatorCap);
+    }
+
+    function test_setOperatorValidatorCapQueuesOperatorExitWhenSettingCapToZeroWithAllocation() public {
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+
+        uint256 AMOUNT = 288 ether;
+
+        // Allocate ETH.
+        reETH.coordinator.depositETH{value: AMOUNT}();
+
+        // Push funds into EigenLayer.
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        // Verify validator withdrawal credentials.
+        verifyCredentialsForValidators(reETH.operatorRegistry, operatorId, uint8(AMOUNT / 32 ether));
+
+        vm.recordLogs();
+        reETH.operatorRegistry.setOperatorValidatorCap(operatorId, 0);
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertGt(entries.length, 0);
+
+        for (uint256 i = 0; i < entries.length; i++) {
+            if (entries[i].topics[0] == keccak256('OperatorStrategyExitQueued(uint8,address,uint256,bytes32)')) {
+                uint8 emittedOperatorId = abi.decode(abi.encodePacked(entries[i].topics[1]), (uint8));
+                (address strategy, uint256 sharesToExit, bytes32 withdrawalRoot) =
+                    abi.decode(entries[i].data, (address, uint256, bytes32));
+
+                assertEq(emittedOperatorId, operatorId);
+                assertEq(strategy, BEACON_CHAIN_STRATEGY);
                 assertEq(sharesToExit, AMOUNT);
                 assertNotEq(withdrawalRoot, bytes32(0));
 
