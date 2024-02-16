@@ -11,6 +11,17 @@ contract RioToken is ERC20, ERC20Permit, ERC20Votes {
         _mint(msg.sender, 1_000_000_000 * 10 ** decimals());
     }
 
+    /// @notice Clock used for flagging checkpoints, overriden to implement timestamp based
+    /// checkpoints (and voting).
+    function clock() public view override returns (uint48) {
+        return uint48(block.timestamp);
+    }
+
+    /// @notice Machine-readable description of the clock as specified in EIP-6372.
+    function CLOCK_MODE() public pure override returns (string memory) {
+        return 'mode=timestamp';
+    }
+
     /// @notice Returns the current nonce for `owner`. This value must be
     /// included whenever a signature is generated for {permit}.
     /// @param owner The account to query the nonce for.
