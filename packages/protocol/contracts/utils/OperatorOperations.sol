@@ -23,7 +23,7 @@ library OperatorOperations {
     /// @notice Deposits ETH into EigenLayer through the operators that are returned from the registry.
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param amount The amount of ETH to deposit.
-    function depositETH(IRioLRTOperatorRegistry operatorRegistry, uint256 amount) internal returns (uint256 depositAmount) {
+    function depositETHToOperators(IRioLRTOperatorRegistry operatorRegistry, uint256 amount) internal returns (uint256 depositAmount) {
         uint256 depositCount = amount / ETH_DEPOSIT_SIZE;
         if (depositCount == 0) return depositAmount;
 
@@ -48,7 +48,7 @@ library OperatorOperations {
     /// @param token The address of the token to deposit.
     /// @param strategy The strategy to deposit the funds into.
     /// @param sharesToAllocate The amount of strategy shares to allocate.
-    function depositToken(
+    function depositTokenToOperators(
         IRioLRTOperatorRegistry operatorRegistry,
         address token,
         address strategy,
@@ -71,24 +71,21 @@ library OperatorOperations {
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param strategy The strategy to withdraw the funds from.
     /// @param amount The amount needed.
-    /// @param withdrawalQueue The address of the withdrawal queue.
-    function queueWithdrawals(
+    function queueWithdrawalFromOperatorsForUserSettlement(
         IRioLRTOperatorRegistry operatorRegistry,
         address strategy,
-        uint256 amount,
-        address withdrawalQueue
+        uint256 amount
     ) internal returns (bytes32 aggregateRoot) {
         if (strategy == BEACON_CHAIN_STRATEGY) {
-            return queueETHWithdrawals(operatorRegistry, amount, withdrawalQueue);
+            return queueETHWithdrawalFromOperatorsForUserSettlement(operatorRegistry, amount);
         }
-        return queueTokenWithdrawals(operatorRegistry, strategy, amount, withdrawalQueue);
+        return queueTokenWithdrawalFromOperatorsForUserSettlement(operatorRegistry, strategy, amount);
     }
 
     /// @notice Queues ETH withdrawals from EigenLayer through the operators that are returned from the registry.
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param amount The amount of ETH needed.
-    /// @param withdrawalQueue The address of the withdrawal queue.
-    function queueETHWithdrawals(IRioLRTOperatorRegistry operatorRegistry, uint256 amount, address withdrawalQueue) internal returns (bytes32 aggregateRoot) {
+    function queueETHWithdrawalFromOperatorsForUserSettlement(IRioLRTOperatorRegistry operatorRegistry, uint256 amount) internal returns (bytes32 aggregateRoot) {
         uint256 depositCount = amount.divUp(ETH_DEPOSIT_SIZE);
         (, IRioLRTOperatorRegistry.OperatorETHDeallocation[] memory operatorDepositDeallocations) = operatorRegistry.deallocateETHDeposits(
             depositCount
@@ -104,7 +101,7 @@ library OperatorOperations {
             uint256 amountToWithdraw = (i == length - 1) ? remainingAmount : operatorDepositDeallocations[i].deposits * ETH_DEPOSIT_SIZE;
 
             remainingAmount -= amountToWithdraw;
-            roots[i] = IRioLRTOperatorDelegator(delegator).queueWithdrawal(BEACON_CHAIN_STRATEGY, amountToWithdraw, withdrawalQueue);
+            roots[i] = IRioLRTOperatorDelegator(delegator).queueWithdrawalForUserSettlement(BEACON_CHAIN_STRATEGY, amountToWithdraw);
         }
         aggregateRoot = keccak256(abi.encode(roots));
     }
@@ -113,12 +110,10 @@ library OperatorOperations {
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param strategy The strategy to withdraw the funds from.
     /// @param sharesToWithdraw The number of shares to withdraw.
-    /// @param withdrawalQueue The address of the withdrawal queue.
-    function queueTokenWithdrawals(
+    function queueTokenWithdrawalFromOperatorsForUserSettlement(
         IRioLRTOperatorRegistry operatorRegistry,
         address strategy,
-        uint256 sharesToWithdraw,
-        address withdrawalQueue
+        uint256 sharesToWithdraw
     ) internal returns (bytes32 aggregateRoot) {
         (, IRioLRTOperatorRegistry.OperatorStrategyDeallocation[] memory operatorDeallocations) = operatorRegistry.deallocateStrategyShares(
             strategy, sharesToWithdraw
@@ -131,7 +126,7 @@ library OperatorOperations {
             uint256 shares = operatorDeallocations[i].shares;
 
             sharesQueued += shares;
-            roots[i] = IRioLRTOperatorDelegator(delegator).queueWithdrawal(strategy, shares, address(withdrawalQueue));
+            roots[i] = IRioLRTOperatorDelegator(delegator).queueWithdrawalForUserSettlement(strategy, shares);
         }
         if (sharesToWithdraw != sharesQueued) revert INCORRECT_NUMBER_OF_SHARES_QUEUED();
 

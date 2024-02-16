@@ -21,6 +21,8 @@ interface IRioLRTAssetRegistry {
         /// @dev The price feed for the asset.
         address priceFeed;
         /// @dev The number of EigenLayer strategy shares held for the asset.
+        /// This value is NOT used for the beacon chain strategy as its shares
+        /// can fluctuate outside the system.
         uint256 shares;
         /// @dev The EigenLayer strategy used by the asset.
         address strategy;
@@ -28,8 +30,8 @@ interface IRioLRTAssetRegistry {
         uint8 decimals;
     }
 
-    /// @notice Thrown when the caller is not the LRT coordinator or operator registry.
-    error ONLY_WITHDRAWAL_QUEUE_OR_OPERATOR_REGISTRY();
+    /// @notice Thrown when the caller is not the LRT withdrawal queue or deposit pool.
+    error ONLY_WITHDRAWAL_QUEUE_OR_DEPOSIT_POOL();
 
     /// @notice Thrown when attempting an action on an unsupported asset.
     /// @param asset The address of the asset.
@@ -84,6 +86,14 @@ interface IRioLRTAssetRegistry {
     /// @param asset The address of the asset.
     /// @param amount The amount of EigenLayer shares to decrease.
     event AssetSharesDecreased(address indexed asset, uint256 amount);
+
+    /// @notice Emitted when the unverified validator ETH balance is increased.
+    /// @param amount The amount of ETH to increase.
+    event UnverifiedValidatorETHBalanceIncreased(uint256 amount);
+
+    /// @notice Emitted when the unverified validator ETH balance is decreased.
+    /// @param amount The amount of ETH to decrease.
+    event UnverifiedValidatorETHBalanceDecreased(uint256 amount);
 
     /// @notice Initializes the asset registry contract.
     /// @param initialOwner The initial owner of the contract.
@@ -143,6 +153,14 @@ interface IRioLRTAssetRegistry {
     /// @param asset The address of the asset.
     /// @param amount The amount of EigenLayer shares to decrease.
     function decreaseSharesHeldForAsset(address asset, uint256 amount) external;
+
+    /// @notice Increases the unverified validator ETH balance.
+    /// @param amount The amount of ETH to increase.
+    function increaseUnverifiedValidatorETHBalance(uint256 amount) external;
+
+    /// @notice Decreases the unverified validator ETH balance.
+    /// @param amount The amount of ETH to decrease.
+    function decreaseUnverifiedValidatorETHBalance(uint256 amount) external;
 
     /// @notice Converts an asset amount to its equivalent value in the unit of account. The unit of
     /// account is the price feed's quote asset.

@@ -5,10 +5,6 @@ import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
 
 interface IRioLRTOperatorDelegator {
-    /// @notice Thrown when the caller is not the LRT's coordinator
-    /// or the operator registry.
-    error ONLY_COORDINATOR_OR_OPERATOR_REGISTRY();
-
     /// @notice Thrown when the earnings receiver is not set to the reward distributor.
     error INVALID_EARNINGS_RECEIVER();
 
@@ -31,6 +27,9 @@ interface IRioLRTOperatorDelegator {
     /// @param expected The expected length of the batch.
     error INVALID_SIGNATURES_BATCH_LENGTH(uint256 actual, uint256 expected);
 
+    /// @notice Thrown when there isn't enough excess full withdrawal ETH to initiate a scrape from the EigenPod.
+    error INSUFFICIENT_EXCESS_FULL_WITHDRAWAL_ETH();
+
     /// @notice Initializes the contract by delegating to the provided EigenLayer operator.
     /// @param token The address of the liquid restaking token.
     /// @param operator The operator's address.
@@ -41,6 +40,9 @@ interface IRioLRTOperatorDelegator {
 
     /// @notice Returns the number of shares in the operator delegator's EigenPod.
     function getEigenPodShares() external view returns (int256);
+
+    /// @notice The amount of ETH queued for withdrawal from EigenLayer, in wei.
+    function getETHQueuedForWithdrawal() external view returns (uint256);
 
     /// @notice Returns the total amount of ETH under management by the operator delegator.
     /// @dev This includes EigenPod shares (verified validator balances minus queued withdrawals)
@@ -75,9 +77,24 @@ interface IRioLRTOperatorDelegator {
     /// @param signatureBatch Batched validator signatures.
     function stakeETH(uint256 validatorCount, bytes calldata pubkeyBatch, bytes calldata signatureBatch) external payable;
 
-    /// @notice Queue a withdrawal of the given amount of `shares` to the `withdrawer` from the provided `strategy`.
-    /// @param strategy The strategy to withdraw from.
+    /// @notice Queues a withdrawal of the specified amount of `shares` from the given `strategy` to the withdrawal queue,
+    /// intended for settling user withdrawals.
+    /// @param strategy The strategy from which to withdraw.
     /// @param shares The amount of shares to withdraw.
-    /// @param withdrawer The address who has permission to complete the withdrawal.
-    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external returns (bytes32 root);
+    function queueWithdrawalForUserSettlement(address strategy, uint256 shares) external returns (bytes32 root);
+
+    /// @notice Queues a withdrawal of the specified amount of `shares` from the given `strategy` to the deposit pool,
+    /// specifically for facilitating operator exits.
+    /// @param strategy The strategy from which to withdraw.
+    /// @param shares The amount of shares to withdraw.
+    function queueWithdrawalForOperatorExit(address strategy, uint256 shares) external returns (bytes32 root);
+
+    /// @notice Decrease the amount of ETH queued from EigenLayer for user settlement.
+    /// @param amountWei The amount of ETH to decrease by, in wei.
+    function decreaseETHQueuedForUserSettlement(uint256 amountWei) external;
+
+    /// @dev Decrease the amount of ETH queued for operator exit or excess full withdrawal scrape
+    /// from EigenLayer.
+    /// @param amountWei The amount of ETH to decrease by, in wei.
+    function decreaseETHQueuedForOperatorExitOrScrape(uint256 amountWei) external;
 }

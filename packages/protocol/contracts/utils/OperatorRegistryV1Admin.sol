@@ -6,13 +6,11 @@ import {CREATE3} from '@solady/utils/CREATE3.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {BeaconProxy} from '@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol';
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
-import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS, GWEI_TO_WEI} from 'contracts/utils/Constants.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
-import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
-import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
+import {BEACON_CHAIN_STRATEGY} from 'contracts/utils/Constants.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
@@ -22,9 +20,9 @@ library OperatorRegistryV1Admin {
     using OperatorRegistryV1Admin for IRioLRTOperatorRegistry.OperatorDetails;
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
     using FixedPointMathLib for *;
-    using Asset for address;
     using LibMap for *;
     using Array for *;
+    using Asset for *;
 
     /// @notice The maximum number of operators allowed in the registry.
     uint8 public constant MAX_OPERATOR_COUNT = 254;
@@ -138,49 +136,6 @@ library OperatorRegistryV1Admin {
         emit IRioLRTOperatorRegistry.OperatorDeactivated(operatorId);
     }
 
-    /// @notice Completes an exit from an EigenLayer strategy for the provided `operatorId`,
-    /// forwarding the received assets to the deposit pool.
-    /// @param s The operator registry v1 storage accessor.
-    /// @param delegationManager The delegation manager contract.
-    /// @param assetRegistry The asset registry contract.
-    /// @param depositPool The deposit pool contract address.
-    /// @param operatorId The ID of the operator who is exiting the strategy.
-    /// @param queuedWithdrawal The queued strategy withdrawal for the operator.
-    /// @param middlewareTimesIndex The index of the middleware times for the operator.
-    function completeOperatorStrategyExit(
-        RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
-        IDelegationManager delegationManager,
-        IRioLRTAssetRegistry assetRegistry,
-        address depositPool,
-        uint8 operatorId,
-        IDelegationManager.Withdrawal calldata queuedWithdrawal,
-        uint256 middlewareTimesIndex
-    ) external {
-        // Only allow one strategy exit at a time.
-        if (queuedWithdrawal.strategies.length != 1) revert IRioLRTOperatorRegistry.INVALID_STRATEGY_LENGTH_FOR_EXIT();
-
-        // Ensure that the exit was queued by the operator manager.
-        bytes32 exitRoot = keccak256(abi.encode(queuedWithdrawal));
-        if (!s.operatorDetails[operatorId].isValidStrategyExitRoot[exitRoot]) {
-            revert IRioLRTOperatorRegistry.INVALID_STRATEGY_EXIT_ROOT();
-        }
-        address strategy = queuedWithdrawal.strategies[0];
-
-        address asset = ETH_ADDRESS;
-        if (strategy != BEACON_CHAIN_STRATEGY) {
-            // Shares only need to be manually decreased for ERC20 tokens. For ETH, the
-            // actual contract balance is used, removing the need for manual share reduction.
-            asset = IStrategy(strategy).underlyingToken();
-            assetRegistry.decreaseSharesHeldForAsset(asset, queuedWithdrawal.shares[0]);
-        }
-
-        // Complete the withdrawal from EigenLayer and transfer received assets to the deposit pool.
-        delegationManager.completeQueuedWithdrawal(queuedWithdrawal, asset.toArray(), middlewareTimesIndex, true);
-        asset.transferTo(depositPool, asset.getSelfBalance());
-
-        emit IRioLRTOperatorRegistry.OperatorStrategyExitCompleted(operatorId, strategy, exitRoot);
-    }
-
     // forgefmt: disable-next-item
     /// Queues a complete exit from the specified strategy for the provided operator.
     /// @param operator The storage accessor for the operator that's exiting.
@@ -191,17 +146,18 @@ library OperatorRegistryV1Admin {
 
         uint256 sharesToExit;
         if (strategy == BEACON_CHAIN_STRATEGY) {
-            // It is not possible to exit ETH with precision less than 1 Gwei.
-            sharesToExit = reducePrecisionToGwei(uint256(delegator.getEigenPodShares()));
+            // Queues an exit for verified validators only. Unverified validators must by exited once verified,
+            // and ETH must be scraped into the deposit pool. Exits are rounded to the nearest Gwei.
+            // We unsafely cast to `uint256` to prevent exits for non-positive share amounts.
+            sharesToExit = uint256(delegator.getEigenPodShares()).reducePrecisionToGwei();
         } else {
             sharesToExit = operator.shareDetails[strategy].allocation;
         }
         if (sharesToExit == 0) revert IRioLRTOperatorRegistry.CANNOT_EXIT_ZERO_SHARES();
 
-        bytes32 exitRoot = delegator.queueWithdrawal(strategy, sharesToExit, address(this));
-        operator.isValidStrategyExitRoot[exitRoot] = true;
-
-        emit IRioLRTOperatorRegistry.OperatorStrategyExitQueued(operatorId, strategy, sharesToExit, exitRoot);
+        // Queues a withdrawal to the deposit pool.
+        bytes32 withdrawalRoot = delegator.queueWithdrawalForOperatorExit(strategy, sharesToExit);
+        emit IRioLRTOperatorRegistry.OperatorStrategyExitQueued(operatorId, strategy, sharesToExit, withdrawalRoot);
     }
 
     /// @notice Sets the operator's strategy share allocation caps.
@@ -430,11 +386,5 @@ library OperatorRegistryV1Admin {
     /// @param operatorId The operator's ID.
     function computeOperatorSalt(uint8 operatorId) internal pure returns (bytes32) {
         return bytes32(uint256(operatorId));
-    }
-
-    /// @notice Reduces the precision of the given amount to the nearest Gwei.
-    /// @param amount The amount whose precision is to be reduced.
-    function reducePrecisionToGwei(uint256 amount) internal pure returns (uint256) {
-        return amount - (amount % GWEI_TO_WEI);
     }
 }

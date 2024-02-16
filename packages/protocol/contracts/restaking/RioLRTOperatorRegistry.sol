@@ -7,15 +7,16 @@ import {UpgradeableBeacon} from '@openzeppelin/contracts/proxy/beacon/Upgradeabl
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
+import {BLS_PUBLIC_KEY_LENGTH, ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
-import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {OperatorRegistryV1Admin} from 'contracts/utils/OperatorRegistryV1Admin.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
-import {ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
+import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
+import {Memory} from 'contracts/utils/Memory.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCore, RioLRTOperatorRegistryStorageV1 {
@@ -31,9 +32,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
 
     /// @notice The operator delegator beacon contract.
     address public immutable operatorDelegatorBeacon;
-
-    /// @notice The primary delegation contract for EigenLayer.
-    IDelegationManager public immutable delegationManager;
 
     /// @notice Require that the caller is the operator's manager.
     /// @param operatorId The operator's ID.
@@ -65,12 +63,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
     /// @param initialBeaconOwner The initial owner who can upgrade the operator delegator beacon contract.
     /// @param operatorDelegatorImpl_ The operator contract implementation.
-    /// @param delegationManager_ The primary delegation contract for EigenLayer.
-    constructor(address issuer_, address initialBeaconOwner, address operatorDelegatorImpl_, address delegationManager_)
-        RioLRTCore(issuer_)
-    {
+    constructor(address issuer_, address initialBeaconOwner, address operatorDelegatorImpl_) RioLRTCore(issuer_) {
         operatorDelegatorBeacon = address(new UpgradeableBeacon(operatorDelegatorImpl_, initialBeaconOwner));
-        delegationManager = IDelegationManager(delegationManager_);
     }
 
     /// @notice Initializes the contract.
@@ -133,21 +127,11 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         return s.operatorDetails[operatorId].shareDetails[strategy];
     }
 
-    /// @notice Returns true if the exit root is valid for the provided operator ID.
-    /// @param operatorId The operator's ID.
-    /// @param exitRoot The exit root to check.
-    function isValidStrategyExitRootForOperator(uint8 operatorId, bytes32 exitRoot) public view returns (bool) {
-        return s.operatorDetails[operatorId].isValidStrategyExitRoot[exitRoot];
-    }
-
+    // forgefmt: disable-next-item
     /// @notice Adds a new operator to the registry, deploying a delegator contract and
     /// delegating to the provided operator address.
     /// @param config The new operator's configuration.
-    function addOperator(OperatorConfig calldata config)
-        external
-        onlyOwner
-        returns (uint8 operatorId, address delegator)
-    {
+    function addOperator(OperatorConfig calldata config) external onlyOwner returns (uint8 operatorId, address delegator) {
         return s.addOperator(address(token), operatorDelegatorBeacon, config);
     }
 
@@ -162,25 +146,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     /// @param operatorId The operator's ID.
     function deactivateOperator(uint8 operatorId) external onlyOwner {
         s.deactivateOperator(assetRegistry(), operatorId);
-    }
-
-    /// @notice Completes an exit from an EigenLayer strategy for the provided `operatorId`.
-    /// @param operatorId The ID of the operator who is exiting the strategy.
-    /// @param queuedWithdrawal The queued strategy withdrawal for the operator.
-    /// @param middlewareTimesIndex The index of the middleware times for the operator.
-    function completeOperatorStrategyExit(
-        uint8 operatorId,
-        IDelegationManager.Withdrawal calldata queuedWithdrawal,
-        uint256 middlewareTimesIndex
-    ) external {
-        s.completeOperatorStrategyExit(
-            delegationManager,
-            assetRegistry(),
-            address(depositPool()),
-            operatorId,
-            queuedWithdrawal,
-            middlewareTimesIndex
-        );
     }
 
     // forgefmt: disable-next-item
@@ -281,7 +246,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         );
 
         // Once verified, shares are tracked as EigenPod shares.
-        assetRegistry().decreaseSharesHeldForAsset(ETH_ADDRESS, validatorIndices.length * ETH_DEPOSIT_SIZE);
+        assetRegistry().decreaseUnverifiedValidatorETHBalance(validatorIndices.length * ETH_DEPOSIT_SIZE);
 
         emit OperatorWithdrawalCredentialsVerified(operatorId, oracleTimestamp, validatorIndices);
     }
@@ -335,6 +300,38 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             operatorId, fromIndex, validatorCount, validators.total
         );
         emit OperatorPendingValidatorDetailsRemoved(operatorId, validatorCount);
+    }
+
+    /// @notice Reports validator exits that occur prior to instruction by the protocol.
+    /// @param operatorId The operator's ID.
+    /// @param fromIndex The index of the first validator to report.
+    /// @param validatorCount The number of validators to report.
+    function reportOutOfOrderValidatorExits(uint8 operatorId, uint256 fromIndex, uint256 validatorCount) external {
+        OperatorDetails storage operator = s.operatorDetails[operatorId];
+        OperatorValidatorDetails memory validators = operator.validatorDetails;
+
+        if (fromIndex < validators.exited || fromIndex + validatorCount > validators.deposited) revert INVALID_INDEX();
+
+        bytes memory exitedPubKeyBatch = ValidatorDetails.allocateMemoryForPubKeys(validatorCount);
+        VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
+            operatorId, fromIndex, validatorCount, exitedPubKeyBatch, new bytes(0), 0
+        );
+
+        // Verify that all validators have exited.
+        IEigenPod pod = IRioLRTOperatorDelegator(operator.delegator).eigenPod();
+        bytes memory publicKey = Memory.unsafeAllocateBytes(BLS_PUBLIC_KEY_LENGTH);
+        for (uint256 i = 0; i < validatorCount; ++i) {
+            Memory.copyBytes(exitedPubKeyBatch, publicKey, i * BLS_PUBLIC_KEY_LENGTH, 0, BLS_PUBLIC_KEY_LENGTH);
+            if (pod.validatorStatus(_hashValidatorBLSPubKey(publicKey)) != IEigenPod.VALIDATOR_STATUS.WITHDRAWN) {
+                revert VALIDATOR_NOT_EXITED();
+            }
+        }
+
+        // Swap the position of the validators starting from the `fromIndex` with the validators that were next in line to be exited.
+        VALIDATOR_DETAILS_POSITION.swapValidatorDetails(operatorId, fromIndex, validators.exited, validatorCount);
+        operator.validatorDetails.exited += uint40(validatorCount);
+
+        emit OperatorOutOfOrderValidatorExitsReported(operatorId, validatorCount);
     }
 
     // forgefmt: disable-next-item
@@ -595,8 +592,14 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         }
     }
 
-    /// @dev Receives ETH from operator exits.
-    receive() external payable {}
+    /// @dev Hashes a validator's BLS public key and returns the hash.
+    /// @param pubKey The validator's BLS public key.
+    function _hashValidatorBLSPubKey(bytes memory pubKey) internal pure returns (bytes32 pubKeyHash) {
+        if (pubKey.length != BLS_PUBLIC_KEY_LENGTH) {
+            revert INVALID_PUBLIC_KEY_LENGTH();
+        }
+        return sha256(abi.encodePacked(pubKey, bytes16(0)));
+    }
 
     /// @dev Allows the owner to upgrade the operator registry implementation.
     /// @param newImplementation The implementation to upgrade to.

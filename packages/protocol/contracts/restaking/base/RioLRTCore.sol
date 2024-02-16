@@ -26,6 +26,9 @@ abstract contract RioLRTCore is Initializable {
     /// @notice Thrown when the caller is not the LRT deposit pool.
     error ONLY_DEPOSIT_POOL();
 
+    /// @notice Thrown when the caller is not the LRT withdrawal queue.
+    error ONLY_WITHDRAWAL_QUEUE();
+
     /// @notice Thrown when the caller is not the operator registry.
     error ONLY_OPERATOR_REGISTRY();
 
@@ -44,6 +47,12 @@ abstract contract RioLRTCore is Initializable {
     /// @notice Require that the caller is the deposit pool.
     modifier onlyDepositPool() {
         if (msg.sender != address(depositPool())) revert ONLY_DEPOSIT_POOL();
+        _;
+    }
+
+    /// @notice Require that the caller is the withdrawal queue.
+    modifier onlyWithdrawalQueue() {
+        if (msg.sender != address(withdrawalQueue())) revert ONLY_WITHDRAWAL_QUEUE();
         _;
     }
 

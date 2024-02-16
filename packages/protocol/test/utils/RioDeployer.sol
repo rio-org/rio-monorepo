@@ -65,12 +65,11 @@ abstract contract RioDeployer is EigenLayerDeployer {
                                 EIGEN_POD_MANAGER_ADDRESS,
                                 DELEGATION_MANAGER_ADDRESS
                             )
-                        ),
-                        DELEGATION_MANAGER_ADDRESS
+                        )
                     )
                 ),
                 address(new RioLRTAVSRegistry(issuerAddress)),
-                address(new RioLRTDepositPool(issuerAddress)),
+                address(new RioLRTDepositPool(issuerAddress, DELEGATION_MANAGER_ADDRESS)),
                 address(new RioLRTWithdrawalQueue(issuerAddress, DELEGATION_MANAGER_ADDRESS)),
                 address(new RioLRTRewardDistributor(issuerAddress))
             )

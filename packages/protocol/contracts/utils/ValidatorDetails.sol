@@ -18,6 +18,9 @@ library ValidatorDetails {
     /// @notice Thrown when the number of keys is invalid.
     error INVALID_KEYS_COUNT();
 
+    /// @notice Thrown when the indexes of keys overlap.
+    error INDEXES_OVERLAP();
+
     /// @notice Thrown when the keys and signatures lengths mismatch.
     error LENGTH_MISMATCH();
 
@@ -33,6 +36,12 @@ library ValidatorDetails {
     /// @param operatorId The operator ID.
     /// @param pubkey The validator public key.
     event ValidatorDetailsRemoved(uint8 indexed operatorId, bytes pubkey);
+
+    /// @notice Emitted when the indexes of two validator signing keys are swapped.
+    /// @param operatorId The operator ID.
+    /// @param pubkey1 The first validator public key.
+    /// @param pubkey2 The second validator public key.
+    event ValidatorDetailsSwapped(uint8 indexed operatorId, bytes pubkey1, bytes pubkey2);
 
     // forgefmt: disable-next-item
     /// @notice Compute the storage key offset.
@@ -96,6 +105,94 @@ library ValidatorDetails {
             emit ValidatorDetailsAdded(operatorId, tempKey);
         }
         return uint40(startIndex);
+    }
+
+    /// @notice Swap operator detail indexes in storage.
+    /// @param position The storage slot.
+    /// @param operatorId The operator ID.
+    /// @param startIndex1 The start index of the first set of keys.
+    /// @param startIndex2 The start index of the second set of keys.
+    /// @param keysCount Keys count to swap.
+    function swapValidatorDetails(
+        bytes32 position,
+        uint8 operatorId,
+        uint256 startIndex1,
+        uint256 startIndex2,
+        uint256 keysCount
+    ) internal {
+        if (keysCount == 0 || startIndex1 + keysCount > UINT40_MAX || startIndex2 + keysCount > UINT40_MAX) {
+            revert INVALID_KEYS_COUNT();
+        }
+
+        // forgefmt: disable-next-item
+        // Ensure no overlap in indexes
+        if ((startIndex1 < startIndex2 && startIndex1 + keysCount >= startIndex2) || (startIndex2 < startIndex1 && startIndex2 + keysCount >= startIndex1)) {
+            revert INDEXES_OVERLAP();
+        }
+
+        uint256 keyOffset1;
+        uint256 keyOffset2;
+
+        bool isEmpty;
+
+        bytes memory key1 = new bytes(48);
+        bytes memory key2 = new bytes(48);
+        bytes memory signature1 = new bytes(96);
+        bytes memory signature2 = new bytes(96);
+
+        for (uint256 i; i < keysCount;) {
+            keyOffset1 = position.computeStorageKeyOffset(operatorId, startIndex1);
+            keyOffset2 = position.computeStorageKeyOffset(operatorId, startIndex2);
+            assembly {
+                // Load key1 into memory
+                let _part1 := sload(keyOffset1) // Load bytes 0..31
+                let _part2 := sload(add(keyOffset1, 1)) // Load bytes 32..47
+                mstore(add(key1, 0x20), _part1) // Store bytes 0..31
+                mstore(add(key1, 0x30), shr(128, _part2)) // Store bytes 16..47
+
+                isEmpty := iszero(or(_part1, _part2)) // Store if key1 is empty
+
+                // Load key2 into memory
+                _part1 := sload(keyOffset2) // Load bytes 0..31
+                _part2 := sload(add(keyOffset2, 1)) // Load bytes 32..47
+                mstore(add(key2, 0x20), _part1) // Store bytes 0..31
+                mstore(add(key2, 0x30), shr(128, _part2)) // Store bytes 16..47
+
+                isEmpty := or(isEmpty, iszero(or(_part1, _part2))) // Store if key1 or key2 is empty
+            }
+
+            if (isEmpty) revert EMPTY_KEY();
+            assembly {
+                // Load signature1 into memory
+                mstore(add(signature1, 0x20), sload(add(keyOffset1, 2)))
+                mstore(add(signature1, 0x40), sload(add(keyOffset1, 3)))
+                mstore(add(signature1, 0x60), sload(add(keyOffset1, 4)))
+
+                // Load signature2 into memory
+                mstore(add(signature2, 0x20), sload(add(keyOffset2, 2)))
+                mstore(add(signature2, 0x40), sload(add(keyOffset2, 3)))
+                mstore(add(signature2, 0x60), sload(add(keyOffset2, 4)))
+
+                // Swap keys
+                sstore(keyOffset1, mload(add(key2, 0x20))) // Store bytes 0..31
+                sstore(add(keyOffset1, 1), shl(128, mload(add(key2, 0x30)))) // Store bytes 32..47
+                sstore(keyOffset2, mload(add(key1, 0x20))) // Store bytes 0..31
+                sstore(add(keyOffset2, 1), shl(128, mload(add(key1, 0x30)))) // Store bytes 32..47
+
+                // Swap signatures
+                sstore(add(keyOffset1, 2), mload(add(signature2, 0x20)))
+                sstore(add(keyOffset1, 3), mload(add(signature2, 0x40)))
+                sstore(add(keyOffset1, 4), mload(add(signature2, 0x60)))
+                sstore(add(keyOffset2, 2), mload(add(signature1, 0x20)))
+                sstore(add(keyOffset2, 3), mload(add(signature1, 0x40)))
+                sstore(add(keyOffset2, 4), mload(add(signature1, 0x60)))
+
+                i := add(i, 1)
+                startIndex1 := add(startIndex1, 1)
+                startIndex2 := add(startIndex2, 1)
+            }
+            emit ValidatorDetailsSwapped(operatorId, key1, key2);
+        }
     }
 
     // forgefmt: disable-next-item
