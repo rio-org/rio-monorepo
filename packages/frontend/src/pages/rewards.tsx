@@ -35,7 +35,7 @@ const Rewards: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
             transition={{ delay: 0.5 }}
             className="w-full mt-8"
           >
-            <PageWrapper className="mb-24">
+            <PageWrapper className="mb-24" isWide>
               <FAQS faqs={faqs} />
             </PageWrapper>
           </motion.div>
