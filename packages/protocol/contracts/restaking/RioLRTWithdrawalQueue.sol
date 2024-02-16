@@ -230,7 +230,6 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         epochWithdrawals.settled = true;
 
         // forgefmt: disable-next-item
-        // Calculate the amount of shares received as part of settlement, decrease the shares held, and burn the remaining restaking tokens.
         uint256 sharesReceivedDuringSettlement = epochWithdrawals.sharesOwed - epochWithdrawals.shareValueOfAssetsReceived;
 
         // If not ETH, decrease the shares held for the asset. The decrease in queued ETH is
