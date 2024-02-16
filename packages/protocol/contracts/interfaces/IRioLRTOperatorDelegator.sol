@@ -9,6 +9,9 @@ interface IRioLRTOperatorDelegator {
     /// or the operator registry.
     error ONLY_COORDINATOR_OR_OPERATOR_REGISTRY();
 
+    /// @notice Thrown when the caller is not the withdrawal queue or the deposit pool.
+    error ONLY_WITHDRAWAL_QUEUE_OR_DEPOSIT_POOL();
+
     /// @notice Thrown when the earnings receiver is not set to the reward distributor.
     error INVALID_EARNINGS_RECEIVER();
 
@@ -30,6 +33,9 @@ interface IRioLRTOperatorDelegator {
     /// @param actual The actual length of the batch.
     /// @param expected The expected length of the batch.
     error INVALID_SIGNATURES_BATCH_LENGTH(uint256 actual, uint256 expected);
+
+    /// @notice Thrown when there isn't enough excess full withdrawal ETH to initiate a scrape from the EigenPod.
+    error INSUFFICIENT_EXCESS_FULL_WITHDRAWAL_ETH();
 
     /// @notice Initializes the contract by delegating to the provided EigenLayer operator.
     /// @param token The address of the liquid restaking token.
@@ -80,4 +86,8 @@ interface IRioLRTOperatorDelegator {
     /// @param shares The amount of shares to withdraw.
     /// @param withdrawer The address who has permission to complete the withdrawal.
     function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external returns (bytes32 root);
+
+    /// @notice Decrease the amount of ETH queued for withdrawal from EigenLayer.
+    /// @param amountWei The amount of ETH to decrease the withdrawal queue by.
+    function decreaseETHQueuedForWithdrawal(uint256 amountWei) external;
 }

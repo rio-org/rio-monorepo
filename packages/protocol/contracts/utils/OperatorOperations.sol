@@ -131,7 +131,7 @@ library OperatorOperations {
             uint256 shares = operatorDeallocations[i].shares;
 
             sharesQueued += shares;
-            roots[i] = IRioLRTOperatorDelegator(delegator).queueWithdrawal(strategy, shares, address(withdrawalQueue));
+            roots[i] = IRioLRTOperatorDelegator(delegator).queueWithdrawal(strategy, shares, withdrawalQueue);
         }
         if (sharesToWithdraw != sharesQueued) revert INCORRECT_NUMBER_OF_SHARES_QUEUED();
 

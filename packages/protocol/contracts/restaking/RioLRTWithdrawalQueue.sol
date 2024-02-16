@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
@@ -228,12 +229,14 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
         epochWithdrawals.settled = true;
 
-        // Shares only need to be manually decreased for ERC20 tokens. For ETH, the
-        // actual contract balance is used, removing the need for manual share reduction.
+        // forgefmt: disable-next-item
+        // Calculate the amount of shares received as part of settlement, decrease the shares held, and burn the remaining restaking tokens.
+        uint256 sharesReceivedDuringSettlement = epochWithdrawals.sharesOwed - epochWithdrawals.shareValueOfAssetsReceived;
+
+        // If not ETH, decrease the shares held for the asset. The decrease in queued ETH is
+        // handles on a per-operator basis below.
         if (asset != ETH_ADDRESS) {
-            assetRegistry().decreaseSharesHeldForAsset(
-                asset, epochWithdrawals.sharesOwed - epochWithdrawals.shareValueOfAssetsReceived
-            );
+            assetRegistry().decreaseSharesHeldForAsset(asset, sharesReceivedDuringSettlement);
         }
         token.burn(epochWithdrawals.amountToBurnAtSettlement);
 
@@ -248,6 +251,14 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
             roots[i] = _computeWithdrawalRoot(queuedWithdrawal);
             delegationManager.completeQueuedWithdrawal(queuedWithdrawal, assets, middlewareTimesIndexes[i], true);
+
+            // Decrease the amount of ETH queued for withdrawal. We do not need to validate the staker as
+            // the aggregate root will be validated below.
+            if (asset == ETH_ADDRESS) {
+                IRioLRTOperatorDelegator(queuedWithdrawal.staker).decreaseETHQueuedForWithdrawal(
+                    queuedWithdrawal.shares[0]
+                );
+            }
         }
         if (epochWithdrawals.aggregateRoot != keccak256(abi.encode(roots))) {
             revert INVALID_AGGREGATE_WITHDRAWAL_ROOT();

@@ -2,20 +2,30 @@
 pragma solidity 0.8.23;
 
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
-import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
+import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
+import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
+import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
-import {ETH_ADDRESS, GWEI_TO_WEI} from 'contracts/utils/Constants.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
+import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using FixedPointMathLib for uint256;
-    using Asset for address;
+    using Asset for *;
+    using Array for *;
+
+    /// @notice The primary delegation contract for EigenLayer.
+    IDelegationManager public immutable delegationManager;
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    constructor(address issuer_) RioLRTCore(issuer_) {}
+    /// @param delegationManager_ The primary delegation contract for EigenLayer.
+    constructor(address issuer_, address delegationManager_) RioLRTCore(issuer_) {
+        delegationManager = IDelegationManager(delegationManager_);
+    }
 
     /// @notice Initializes the deposit pool contract.
     /// @param initialOwner The initial owner of the contract.
@@ -73,22 +83,54 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
         // precision of the shares owed to the nearest Gwei, which is the smallest
         // unit of account supported by EigenLayer.
         if (asset == ETH_ADDRESS) {
-            poolBalance = _reducePrecisionToGwei(poolBalance);
-            poolBalanceShareValue = _reducePrecisionToGwei(poolBalanceShareValue);
+            poolBalance = poolBalance.reducePrecisionToGwei();
+            poolBalanceShareValue = poolBalanceShareValue.reducePrecisionToGwei();
         }
         asset.transferTo(recipient, poolBalance);
 
         return (poolBalance, poolBalanceShareValue);
     }
 
+    /// @notice Completes a withdrawal from EigenLayer for the specified asset and operator.
+    /// Withdrawals directly to the deposit pool can occur for two reasons:
+    /// 1. The operator has exited the strategy and the assets have been returned to the deposit pool.
+    /// 2. Excess full withdrawal ETH has been scraped from the EigenPod.
+    /// @param asset The address of the asset to be withdrawn.
+    /// @param operatorId The ID of the operator from which the asset is being withdrawn.
+    /// @param queuedWithdrawal The withdrawal to be completed.
+    /// @param middlewareTimesIndex The index of the middleware times to use for the withdrawal.
+    function completeOperatorWithdrawalForAsset(
+        address asset,
+        uint8 operatorId,
+        IDelegationManager.Withdrawal calldata queuedWithdrawal,
+        uint256 middlewareTimesIndex
+    ) external {
+        // Only allow one strategy exit at a time.
+        if (queuedWithdrawal.strategies.length != 1) revert INVALID_WITHDRAWAL_STRATEGY_LENGTH();
+
+        // Verify that the withdrawal originated from an operator delegator within the system.
+        IRioLRTOperatorDelegator operatorDelegator_ = operatorDelegator(operatorRegistry(), operatorId);
+        if (queuedWithdrawal.staker != address(operatorDelegator_)) {
+            revert INVALID_WITHDRAWAL_ORIGIN();
+        }
+
+        // If ETH, decrease the amount of ETH queued for withdrawal. Otherwise, decrease the
+        // amount of shares held for the asset.
+        address strategy = queuedWithdrawal.strategies[0];
+        if (strategy == BEACON_CHAIN_STRATEGY) {
+            operatorDelegator_.decreaseETHQueuedForWithdrawal(queuedWithdrawal.shares[0]);
+        } else {
+            assetRegistry().decreaseSharesHeldForAsset(asset, queuedWithdrawal.shares[0]);
+        }
+
+        // Complete the withdrawal. This function verifies that the passed `asset` is correct.
+        delegationManager.completeQueuedWithdrawal(queuedWithdrawal, asset.toArray(), middlewareTimesIndex, true);
+
+        emit OperatorAssetWithdrawalCompleted(operatorId, asset, keccak256(abi.encode(queuedWithdrawal)));
+    }
+
     /// @dev Receives ETH for deposit into EigenLayer.
     receive() external payable {}
-
-    /// @notice Reduces the precision of the given amount to the nearest Gwei.
-    /// @param amount The amount whose precision is to be reduced.
-    function _reducePrecisionToGwei(uint256 amount) internal pure returns (uint256) {
-        return amount - (amount % GWEI_TO_WEI);
-    }
 
     /// @dev Allows the owner to upgrade the deposit pool implementation.
     /// @param newImplementation The implementation to upgrade to.

@@ -6,13 +6,11 @@ import {CREATE3} from '@solady/utils/CREATE3.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {BeaconProxy} from '@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol';
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
-import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS, GWEI_TO_WEI} from 'contracts/utils/Constants.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
-import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
-import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
+import {BEACON_CHAIN_STRATEGY} from 'contracts/utils/Constants.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
@@ -22,9 +20,9 @@ library OperatorRegistryV1Admin {
     using OperatorRegistryV1Admin for IRioLRTOperatorRegistry.OperatorDetails;
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
     using FixedPointMathLib for *;
-    using Asset for address;
     using LibMap for *;
     using Array for *;
+    using Asset for *;
 
     /// @notice The maximum number of operators allowed in the registry.
     uint8 public constant MAX_OPERATOR_COUNT = 254;
@@ -36,11 +34,13 @@ library OperatorRegistryV1Admin {
     /// delegating to the provided `operator`.
     /// @param s The operator registry v1 storage accessor.
     /// @param token The address of the liquid restaking token.
+    /// @param depositPool The deposit pool contract address.
     /// @param operatorDelegatorBeacon The operator delegator beacon address.
     /// @param config The new operator's configuration.
     function addOperator(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
         address token,
+        address depositPool,
         address operatorDelegatorBeacon,
         IRioLRTOperatorRegistry.OperatorConfig memory config
     ) external returns (uint8 operatorId, address delegator) {
@@ -82,12 +82,12 @@ library OperatorRegistryV1Admin {
 
         // Populate the strategy share allocation caps for the operator.
         for (uint256 i = 0; i < config.strategyShareCaps.length; ++i) {
-            s.setOperatorStrategyCap(operatorId, config.strategyShareCaps[i]);
+            s.setOperatorStrategyCap(depositPool, operatorId, config.strategyShareCaps[i]);
         }
 
         // Populate the validator cap for the operator, if applicable.
         if (config.validatorCap > 0) {
-            s.setOperatorValidatorCap(operatorId, config.validatorCap);
+            s.setOperatorValidatorCap(depositPool, operatorId, config.validatorCap);
         }
     }
 
@@ -109,10 +109,12 @@ library OperatorRegistryV1Admin {
     /// Deactivates an operator, exiting all remaining stake to the
     /// asset manager.
     /// @param s The operator registry v1 storage accessor.
+    /// @param depositPool The deposit pool contract address.
     /// @param assetRegistry The asset registry contract.
     /// @param operatorId The operator's ID.
     function deactivateOperator(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
+        address depositPool,
         IRioLRTAssetRegistry assetRegistry,
         uint8 operatorId
     ) external {
@@ -125,11 +127,11 @@ library OperatorRegistryV1Admin {
         address[] memory strategies = assetRegistry.getAssetStrategies();
         for (uint256 i = 0; i < strategies.length; ++i) {
             s.setOperatorStrategyCap(
-                operatorId, IRioLRTOperatorRegistry.StrategyShareCap({strategy: strategies[i], cap: 0})
+                depositPool, operatorId, IRioLRTOperatorRegistry.StrategyShareCap({strategy: strategies[i], cap: 0})
             );
         }
         if (operator.validatorDetails.cap > 0) {
-            s.setOperatorValidatorCap(operatorId, 0);
+            s.setOperatorValidatorCap(depositPool, operatorId, 0);
         }
 
         operator.active = false;
@@ -138,83 +140,44 @@ library OperatorRegistryV1Admin {
         emit IRioLRTOperatorRegistry.OperatorDeactivated(operatorId);
     }
 
-    /// @notice Completes an exit from an EigenLayer strategy for the provided `operatorId`,
-    /// forwarding the received assets to the deposit pool.
-    /// @param s The operator registry v1 storage accessor.
-    /// @param delegationManager The delegation manager contract.
-    /// @param assetRegistry The asset registry contract.
-    /// @param depositPool The deposit pool contract address.
-    /// @param operatorId The ID of the operator who is exiting the strategy.
-    /// @param queuedWithdrawal The queued strategy withdrawal for the operator.
-    /// @param middlewareTimesIndex The index of the middleware times for the operator.
-    function completeOperatorStrategyExit(
-        RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
-        IDelegationManager delegationManager,
-        IRioLRTAssetRegistry assetRegistry,
-        address depositPool,
-        uint8 operatorId,
-        IDelegationManager.Withdrawal calldata queuedWithdrawal,
-        uint256 middlewareTimesIndex
-    ) external {
-        // Only allow one strategy exit at a time.
-        if (queuedWithdrawal.strategies.length != 1) revert IRioLRTOperatorRegistry.INVALID_STRATEGY_LENGTH_FOR_EXIT();
-
-        // Ensure that the exit was queued by the operator manager.
-        bytes32 exitRoot = keccak256(abi.encode(queuedWithdrawal));
-        if (!s.operatorDetails[operatorId].isValidStrategyExitRoot[exitRoot]) {
-            revert IRioLRTOperatorRegistry.INVALID_STRATEGY_EXIT_ROOT();
-        }
-        address strategy = queuedWithdrawal.strategies[0];
-
-        address asset = ETH_ADDRESS;
-        if (strategy != BEACON_CHAIN_STRATEGY) {
-            // Shares only need to be manually decreased for ERC20 tokens. For ETH, the
-            // actual contract balance is used, removing the need for manual share reduction.
-            asset = IStrategy(strategy).underlyingToken();
-            assetRegistry.decreaseSharesHeldForAsset(asset, queuedWithdrawal.shares[0]);
-        }
-
-        // Complete the withdrawal from EigenLayer and transfer received assets to the deposit pool.
-        delegationManager.completeQueuedWithdrawal(queuedWithdrawal, asset.toArray(), middlewareTimesIndex, true);
-        asset.transferTo(depositPool, asset.getSelfBalance());
-
-        emit IRioLRTOperatorRegistry.OperatorStrategyExitCompleted(operatorId, strategy, exitRoot);
-    }
-
     // forgefmt: disable-next-item
     /// Queues a complete exit from the specified strategy for the provided operator.
     /// @param operator The storage accessor for the operator that's exiting.
+    /// @param withdrawer The address who has permission to complete the withdrawal.
     /// @param operatorId The operator's ID.
     /// @param strategy The strategy to exit.
-    function queueOperatorStrategyExit(IRioLRTOperatorRegistry.OperatorDetails storage operator, uint8 operatorId, address strategy) internal {
+    function queueOperatorStrategyExit(IRioLRTOperatorRegistry.OperatorDetails storage operator, address withdrawer, uint8 operatorId, address strategy) internal {
         IRioLRTOperatorDelegator delegator = IRioLRTOperatorDelegator(operator.delegator);
 
         uint256 sharesToExit;
         if (strategy == BEACON_CHAIN_STRATEGY) {
-            // It is not possible to exit ETH with precision less than 1 Gwei.
-            sharesToExit = reducePrecisionToGwei(uint256(delegator.getEigenPodShares()));
+            // Queues an exit for verified validators only. Unverified validators must by exited once verified,
+            // and ETH must be scraped into the deposit pool. Exits are rounded to the nearest Gwei.
+            // We unsafely cast to `uint256` to prevent exits for non-positive share amounts.
+            sharesToExit = uint256(delegator.getEigenPodShares()).reducePrecisionToGwei();
         } else {
             sharesToExit = operator.shareDetails[strategy].allocation;
         }
         if (sharesToExit == 0) revert IRioLRTOperatorRegistry.CANNOT_EXIT_ZERO_SHARES();
 
-        bytes32 exitRoot = delegator.queueWithdrawal(strategy, sharesToExit, address(this));
-        operator.isValidStrategyExitRoot[exitRoot] = true;
-
-        emit IRioLRTOperatorRegistry.OperatorStrategyExitQueued(operatorId, strategy, sharesToExit, exitRoot);
+        // Queues a withdrawal to the provided `withdrawer`.
+        bytes32 withdrawalRoot = delegator.queueWithdrawal(strategy, sharesToExit, withdrawer);
+        emit IRioLRTOperatorRegistry.OperatorStrategyExitQueued(operatorId, strategy, sharesToExit, withdrawalRoot);
     }
 
     /// @notice Sets the operator's strategy share allocation caps.
     /// @param s The operator registry v1 storage accessor.
+    /// @param depositPool The deposit pool contract address.
     /// @param operatorId The operator's ID.
     /// @param newStrategyShareCaps The new strategy share allocation caps.
     function setOperatorStrategyShareCaps(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
+        address depositPool,
         uint8 operatorId,
         IRioLRTOperatorRegistry.StrategyShareCap[] calldata newStrategyShareCaps
     ) external {
         for (uint256 i = 0; i < newStrategyShareCaps.length; ++i) {
-            s.setOperatorStrategyCap(operatorId, newStrategyShareCaps[i]);
+            s.setOperatorStrategyCap(depositPool, operatorId, newStrategyShareCaps[i]);
         }
     }
 
@@ -266,10 +229,12 @@ library OperatorRegistryV1Admin {
     // forgefmt: disable-next-item
     /// @notice Sets the strategy share cap for a given operator.
     /// @param s The operator registry v1 storage accessor.
+    /// @param depositPool The deposit pool contract address.
     /// @param operatorId The unique identifier of the operator.
     /// @param newShareCap The new share cap details including the strategy and cap.
     function setOperatorStrategyCap(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
+        address depositPool,
         uint8 operatorId,
         IRioLRTOperatorRegistry.StrategyShareCap memory newShareCap
     ) internal {
@@ -288,7 +253,7 @@ library OperatorRegistryV1Admin {
         if (currentShareDetails.cap > 0 && newShareCap.cap == 0) {
             // If the operator has allocations, queue them for exit.
             if (currentShareDetails.allocation > 0) {
-                operatorDetails.queueOperatorStrategyExit(operatorId, newShareCap.strategy);
+                operatorDetails.queueOperatorStrategyExit(depositPool, operatorId, newShareCap.strategy);
             }
             // Remove the operator from the utilization heap.
             utilizationHeap.removeByID(operatorId);
@@ -311,10 +276,12 @@ library OperatorRegistryV1Admin {
 
     /// @notice Sets the operator's maximum active validator cap.
     /// @param s The operator registry v1 storage accessor.
+    /// @param depositPool The deposit pool contract address.
     /// @param operatorId The unique identifier of the operator.
     /// @param newValidatorCap The new maximum active validator cap.
     function setOperatorValidatorCap(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
+        address depositPool,
         uint8 operatorId,
         uint40 newValidatorCap
     ) internal {
@@ -336,7 +303,7 @@ library OperatorRegistryV1Admin {
         if (validatorDetails.cap > 0 && newValidatorCap == 0) {
             // If there are active deposits, queue the operator for strategy exit.
             if (activeDeposits > 0) {
-                operatorDetails.queueOperatorStrategyExit(operatorId, BEACON_CHAIN_STRATEGY);
+                operatorDetails.queueOperatorStrategyExit(depositPool, operatorId, BEACON_CHAIN_STRATEGY);
                 s.operatorDetails[operatorId].validatorDetails.exited += activeDeposits;
             }
             // Remove the operator from the utilization heap.
@@ -430,11 +397,5 @@ library OperatorRegistryV1Admin {
     /// @param operatorId The operator's ID.
     function computeOperatorSalt(uint8 operatorId) internal pure returns (bytes32) {
         return bytes32(uint256(operatorId));
-    }
-
-    /// @notice Reduces the precision of the given amount to the nearest Gwei.
-    /// @param amount The amount whose precision is to be reduced.
-    function reducePrecisionToGwei(uint256 amount) internal pure returns (uint256) {
-        return amount - (amount % GWEI_TO_WEI);
     }
 }

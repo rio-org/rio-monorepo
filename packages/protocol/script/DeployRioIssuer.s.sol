@@ -31,12 +31,11 @@ contract DeployRioIssuer is ScriptBase {
                             new RioLRTOperatorDelegator(
                                 issuerAddress, strategyManager, eigenPodManager, delegationManager
                             )
-                        ),
-                        delegationManager
+                        )
                     )
                 ),
                 address(new RioLRTAVSRegistry(issuerAddress)),
-                address(new RioLRTDepositPool(issuerAddress)),
+                address(new RioLRTDepositPool(issuerAddress, delegationManager)),
                 address(new RioLRTWithdrawalQueue(issuerAddress, delegationManager)),
                 address(new RioLRTRewardDistributor(issuerAddress))
             )
