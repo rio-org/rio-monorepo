@@ -1,11 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
-import {ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
+import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
+import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
+import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
+import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
+import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTDepositPoolTest is RioDeployer {
+    using Array for *;
+
     TestLRTDeployment public reETH;
     TestLRTDeployment public reLST;
 
@@ -135,5 +142,108 @@ contract RioLRTDepositPoolTest is RioDeployer {
             reLST.depositPool.transferMaxAssetsForShares(CBETH_ADDRESS, amount, address(reETH.withdrawalQueue));
         assertEq(assetsSent, amount);
         assertEq(sharesSent, amount);
+    }
+
+    function test_completeOperatorWithdrawalForAssetInvalidStakerReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTDepositPool.INVALID_WITHDRAWAL_ORIGIN.selector));
+        reETH.depositPool.completeOperatorWithdrawalForAsset(
+            ETH_ADDRESS,
+            1,
+            IDelegationManager.Withdrawal({
+                staker: address(42),
+                delegatedTo: address(1),
+                withdrawer: address(1),
+                nonce: 0,
+                startBlock: 1,
+                strategies: BEACON_CHAIN_STRATEGY.toArray(),
+                shares: 1.toArray()
+            }),
+            0
+        );
+    }
+
+    function test_completeOperatorETHExitToDepositPool() public {
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorId).delegator;
+
+        uint256 AMOUNT = 96 ether;
+
+        // Allocate ETH.
+        reETH.coordinator.depositETH{value: AMOUNT}();
+
+        // Push funds into EigenLayer.
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        // Verify validator withdrawal credentials.
+        uint40[] memory validatorIndices =
+            verifyCredentialsForValidators(reETH.operatorRegistry, operatorId, uint8(AMOUNT / 32 ether));
+
+        // Queue an ETH exit.
+        reETH.operatorRegistry.setOperatorValidatorCap(operatorId, 0);
+
+        // Actually exit the validators.
+        verifyAndProcessWithdrawalsForValidatorIndexes(operatorDelegator, validatorIndices);
+
+        // Complete the withdrawal to the deposit pool.
+        uint256 ethQueuedBefore = IRioLRTOperatorDelegator(operatorDelegator).getETHQueuedForWithdrawal();
+        uint256 depositPoolBalanceBefore = address(reETH.depositPool).balance;
+        reETH.depositPool.completeOperatorWithdrawalForAsset(
+            ETH_ADDRESS,
+            operatorId,
+            IDelegationManager.Withdrawal({
+                staker: operatorDelegator,
+                delegatedTo: address(1),
+                withdrawer: address(reETH.depositPool),
+                nonce: 0,
+                startBlock: 1,
+                strategies: BEACON_CHAIN_STRATEGY.toArray(),
+                shares: AMOUNT.toArray()
+            }),
+            0
+        );
+
+        assertEq(IRioLRTOperatorDelegator(operatorDelegator).getETHQueuedForWithdrawal(), ethQueuedBefore - AMOUNT);
+        assertEq(address(reETH.depositPool).balance, depositPoolBalanceBefore + AMOUNT);
+    }
+
+    function test_completeOperatorERC20ExitToDepositPool() public {
+        uint8 operatorId = addOperatorDelegator(reLST.operatorRegistry, address(reLST.rewardDistributor));
+        address operatorDelegator = reLST.operatorRegistry.getOperatorDetails(operatorId).delegator;
+
+        uint256 AMOUNT = 195e18;
+
+        // Allocate to cbETH strategy.
+        cbETH.approve(address(reLST.coordinator), type(uint256).max);
+        reLST.coordinator.deposit(CBETH_ADDRESS, AMOUNT);
+
+        // Push funds into EigenLayer.
+        reLST.coordinator.rebalance(CBETH_ADDRESS);
+
+        // Queue the cbETH exit.
+        IRioLRTOperatorRegistry.StrategyShareCap[] memory strategyShareCaps =
+            new IRioLRTOperatorRegistry.StrategyShareCap[](1);
+        strategyShareCaps[0] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: CBETH_STRATEGY, cap: 0});
+        reLST.operatorRegistry.setOperatorStrategyShareCaps(operatorId, strategyShareCaps);
+
+        // Complete the withdrawal to the deposit pool.
+        uint256 sharesHeldBefore = reLST.assetRegistry.getAssetSharesHeld(CBETH_ADDRESS);
+        uint256 depositPoolBalanceBefore = cbETH.balanceOf(address(reLST.depositPool));
+        reLST.depositPool.completeOperatorWithdrawalForAsset(
+            CBETH_ADDRESS,
+            operatorId,
+            IDelegationManager.Withdrawal({
+                staker: operatorDelegator,
+                delegatedTo: address(1),
+                withdrawer: address(reLST.depositPool),
+                nonce: 0,
+                startBlock: 1,
+                strategies: CBETH_STRATEGY.toArray(),
+                shares: AMOUNT.toArray()
+            }),
+            0
+        );
+
+        assertEq(reLST.assetRegistry.getAssetSharesHeld(CBETH_ADDRESS), sharesHeldBefore - AMOUNT);
+        assertEq(cbETH.balanceOf(address(reLST.depositPool)), depositPoolBalanceBefore + AMOUNT);
     }
 }

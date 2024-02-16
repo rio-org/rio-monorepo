@@ -2,8 +2,9 @@
 pragma solidity 0.8.23;
 
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
+import {ETH_ADDRESS, GWEI_TO_WEI} from 'contracts/utils/Constants.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 
 /// @title Asset utility functions.
 library Asset {
@@ -42,5 +43,23 @@ library Asset {
         if (!success) {
             revert ETH_TRANSFER_FAILED();
         }
+    }
+
+    /// @dev Converts an amount of Gwei to Wei.
+    /// @param amountGwei The amount in Gwei to convert.
+    function toWei(uint256 amountGwei) internal pure returns (uint256) {
+        return amountGwei * GWEI_TO_WEI;
+    }
+
+    /// @dev Converts an amount of Wei to Gwei.
+    /// @param amountWei The amount in Wei to convert.
+    function toGwei(uint256 amountWei) internal pure returns (uint64) {
+        return SafeCast.toUint64(amountWei / GWEI_TO_WEI);
+    }
+
+    /// @notice Reduces the precision of the given amount to the nearest Gwei.
+    /// @param amountWei The amount whose precision is to be reduced.
+    function reducePrecisionToGwei(uint256 amountWei) internal pure returns (uint256) {
+        return amountWei - (amountWei % GWEI_TO_WEI);
     }
 }

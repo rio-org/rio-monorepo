@@ -5,12 +5,14 @@ import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
+import {ETH_ADDRESS, BEACON_CHAIN_STRATEGY} from 'contracts/utils/Constants.sol';
 import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 import {LibString} from '@solady/utils/LibString.sol';
 import {TestUtils} from 'test/utils/TestUtils.sol';
+import {Vm} from 'forge-std/Vm.sol';
 
 contract RioLRTOperatorRegistryTest is RioDeployer {
     TestLRTDeployment public reETH;
@@ -155,6 +157,18 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         }
     }
 
+    function test_activateOperator() public {
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+        reETH.operatorRegistry.deactivateOperator(operatorId);
+
+        reETH.operatorRegistry.activateOperator(operatorId);
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory operatorDetails =
+            reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(operatorDetails.active, true);
+        assertEq(reETH.operatorRegistry.activeOperatorCount(), 1);
+    }
+
     function test_deactivateOperatorInvalidOperatorDelegatorReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.INVALID_OPERATOR_DELEGATOR.selector));
         reETH.operatorRegistry.deactivateOperator(99);
@@ -183,16 +197,124 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         assertEq(reETH.operatorRegistry.activeOperatorCount(), 0);
     }
 
-    function test_activateOperator() public {
+    function test_setOperatorStrategyShareCapsInvalidOperatorDelegatorReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.INVALID_OPERATOR_DELEGATOR.selector));
+        reLST.operatorRegistry.setOperatorStrategyShareCaps(99, defaultStrategyShareCaps);
+    }
+
+    function test_setOperatorStrategyShareCaps() public {
+        IRioLRTOperatorRegistry.StrategyShareCap[] memory strategyShareCaps =
+            new IRioLRTOperatorRegistry.StrategyShareCap[](2);
+        strategyShareCaps[0] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: RETH_STRATEGY, cap: 999e18});
+        strategyShareCaps[1] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: CBETH_STRATEGY, cap: 8181e18});
+
+        uint8 operatorId = addOperatorDelegator(reLST.operatorRegistry, address(reLST.rewardDistributor));
+
+        // Verify the caps are initially 0.
+        for (uint256 i = 0; i < strategyShareCaps.length; i++) {
+            uint256 cap = reLST.operatorRegistry.getOperatorShareDetails(operatorId, strategyShareCaps[i].strategy).cap;
+            assertEq(cap, 1_000 ether /* default cap */ );
+        }
+        reLST.operatorRegistry.setOperatorStrategyShareCaps(operatorId, strategyShareCaps);
+
+        // Verify the caps are set as expected.
+        for (uint256 i = 0; i < strategyShareCaps.length; i++) {
+            uint256 cap = reLST.operatorRegistry.getOperatorShareDetails(operatorId, strategyShareCaps[i].strategy).cap;
+            assertGt(cap, 0);
+            assertEq(cap, strategyShareCaps[i].cap);
+        }
+    }
+
+    function test_setOperatorStrategyShareCapsQueuesOperatorExitWhenSettingCapToZeroWithAllocation() public {
+        IRioLRTOperatorRegistry.StrategyShareCap[] memory zeroStrategyShareCaps =
+            new IRioLRTOperatorRegistry.StrategyShareCap[](2);
+        zeroStrategyShareCaps[0] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: RETH_STRATEGY, cap: 0});
+        zeroStrategyShareCaps[1] = IRioLRTOperatorRegistry.StrategyShareCap({strategy: CBETH_STRATEGY, cap: 0});
+
+        uint8 operatorId = addOperatorDelegator(reLST.operatorRegistry, address(reLST.rewardDistributor));
+
+        uint256 AMOUNT = 111e18;
+
+        // Allocate to cbETH strategy.
+        cbETH.approve(address(reLST.coordinator), type(uint256).max);
+        reLST.coordinator.deposit(CBETH_ADDRESS, AMOUNT);
+
+        // Push funds into EigenLayer.
+        reLST.coordinator.rebalance(CBETH_ADDRESS);
+
+        vm.recordLogs();
+        reLST.operatorRegistry.setOperatorStrategyShareCaps(operatorId, zeroStrategyShareCaps);
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertGt(entries.length, 0);
+
+        for (uint256 i = 0; i < entries.length; i++) {
+            if (entries[i].topics[0] == keccak256('OperatorStrategyExitQueued(uint8,address,uint256,bytes32)')) {
+                uint8 emittedOperatorId = abi.decode(abi.encodePacked(entries[i].topics[1]), (uint8));
+                (address strategy, uint256 sharesToExit, bytes32 withdrawalRoot) =
+                    abi.decode(entries[i].data, (address, uint256, bytes32));
+
+                assertEq(emittedOperatorId, operatorId);
+                assertEq(strategy, CBETH_STRATEGY);
+                assertEq(sharesToExit, AMOUNT);
+                assertNotEq(withdrawalRoot, bytes32(0));
+
+                break;
+            }
+            if (i == entries.length - 1) fail('Event not found');
+        }
+    }
+
+    function test_setOperatorValidatorCapInvalidOperatorDelegatorReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.INVALID_OPERATOR_DELEGATOR.selector));
+        reETH.operatorRegistry.setOperatorValidatorCap(99, 0);
+    }
+
+    function test_setOperatorValidatorCap() public {
         uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
-        reETH.operatorRegistry.deactivateOperator(operatorId);
 
-        reETH.operatorRegistry.activateOperator(operatorId);
+        uint40 newCap = 19191;
+        reETH.operatorRegistry.setOperatorValidatorCap(operatorId, newCap);
 
-        IRioLRTOperatorRegistry.OperatorPublicDetails memory operatorDetails =
-            reETH.operatorRegistry.getOperatorDetails(operatorId);
-        assertEq(operatorDetails.active, true);
-        assertEq(reETH.operatorRegistry.activeOperatorCount(), 1);
+        uint40 validatorCap = reETH.operatorRegistry.getOperatorDetails(operatorId).validatorDetails.cap;
+        assertEq(newCap, validatorCap);
+    }
+
+    function test_setOperatorValidatorCapQueuesOperatorExitWhenSettingCapToZeroWithAllocation() public {
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+
+        uint256 AMOUNT = 288 ether;
+
+        // Allocate ETH.
+        reETH.coordinator.depositETH{value: AMOUNT}();
+
+        // Push funds into EigenLayer.
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        // Verify validator withdrawal credentials.
+        verifyCredentialsForValidators(reETH.operatorRegistry, operatorId, uint8(AMOUNT / 32 ether));
+
+        vm.recordLogs();
+        reETH.operatorRegistry.setOperatorValidatorCap(operatorId, 0);
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        assertGt(entries.length, 0);
+
+        for (uint256 i = 0; i < entries.length; i++) {
+            if (entries[i].topics[0] == keccak256('OperatorStrategyExitQueued(uint8,address,uint256,bytes32)')) {
+                uint8 emittedOperatorId = abi.decode(abi.encodePacked(entries[i].topics[1]), (uint8));
+                (address strategy, uint256 sharesToExit, bytes32 withdrawalRoot) =
+                    abi.decode(entries[i].data, (address, uint256, bytes32));
+
+                assertEq(emittedOperatorId, operatorId);
+                assertEq(strategy, BEACON_CHAIN_STRATEGY);
+                assertEq(sharesToExit, AMOUNT);
+                assertNotEq(withdrawalRoot, bytes32(0));
+
+                break;
+            }
+            if (i == entries.length - 1) fail('Event not found');
+        }
     }
 
     function test_reportOutOfOrderValidatorExits() public {

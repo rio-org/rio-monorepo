@@ -10,7 +10,6 @@ import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLR
 import {BLS_PUBLIC_KEY_LENGTH, ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
-import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {OperatorRegistryV1Admin} from 'contracts/utils/OperatorRegistryV1Admin.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
@@ -33,9 +32,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
 
     /// @notice The operator delegator beacon contract.
     address public immutable operatorDelegatorBeacon;
-
-    /// @notice The primary delegation contract for EigenLayer.
-    IDelegationManager public immutable delegationManager;
 
     /// @notice Require that the caller is the operator's manager.
     /// @param operatorId The operator's ID.
@@ -67,12 +63,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
     /// @param initialBeaconOwner The initial owner who can upgrade the operator delegator beacon contract.
     /// @param operatorDelegatorImpl_ The operator contract implementation.
-    /// @param delegationManager_ The primary delegation contract for EigenLayer.
-    constructor(address issuer_, address initialBeaconOwner, address operatorDelegatorImpl_, address delegationManager_)
-        RioLRTCore(issuer_)
-    {
+    constructor(address issuer_, address initialBeaconOwner, address operatorDelegatorImpl_) RioLRTCore(issuer_) {
         operatorDelegatorBeacon = address(new UpgradeableBeacon(operatorDelegatorImpl_, initialBeaconOwner));
-        delegationManager = IDelegationManager(delegationManager_);
     }
 
     /// @notice Initializes the contract.
@@ -135,13 +127,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         return s.operatorDetails[operatorId].shareDetails[strategy];
     }
 
-    /// @notice Returns true if the exit root is valid for the provided operator ID.
-    /// @param operatorId The operator's ID.
-    /// @param exitRoot The exit root to check.
-    function isValidStrategyExitRootForOperator(uint8 operatorId, bytes32 exitRoot) public view returns (bool) {
-        return s.operatorDetails[operatorId].isValidStrategyExitRoot[exitRoot];
-    }
-
     // forgefmt: disable-next-item
     /// @notice Adds a new operator to the registry, deploying a delegator contract and
     /// delegating to the provided operator address.
@@ -161,25 +146,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     /// @param operatorId The operator's ID.
     function deactivateOperator(uint8 operatorId) external onlyOwner {
         s.deactivateOperator(assetRegistry(), operatorId);
-    }
-
-    /// @notice Completes an exit from an EigenLayer strategy for the provided `operatorId`.
-    /// @param operatorId The ID of the operator who is exiting the strategy.
-    /// @param queuedWithdrawal The queued strategy withdrawal for the operator.
-    /// @param middlewareTimesIndex The index of the middleware times for the operator.
-    function completeOperatorStrategyExit(
-        uint8 operatorId,
-        IDelegationManager.Withdrawal calldata queuedWithdrawal,
-        uint256 middlewareTimesIndex
-    ) external {
-        s.completeOperatorStrategyExit(
-            delegationManager,
-            assetRegistry(),
-            address(depositPool()),
-            operatorId,
-            queuedWithdrawal,
-            middlewareTimesIndex
-        );
     }
 
     // forgefmt: disable-next-item
@@ -280,7 +246,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         );
 
         // Once verified, shares are tracked as EigenPod shares.
-        assetRegistry().decreaseSharesHeldForAsset(ETH_ADDRESS, validatorIndices.length * ETH_DEPOSIT_SIZE);
+        assetRegistry().decreaseUnverifiedValidatorETHBalance(validatorIndices.length * ETH_DEPOSIT_SIZE);
 
         emit OperatorWithdrawalCredentialsVerified(operatorId, oracleTimestamp, validatorIndices);
     }
@@ -625,9 +591,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             }
         }
     }
-
-    /// @dev Receives ETH from operator exits.
-    receive() external payable {}
 
     /// @dev Hashes a validator's BLS public key and returns the hash.
     /// @param pubKey The validator's BLS public key.

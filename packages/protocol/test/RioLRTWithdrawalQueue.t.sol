@@ -5,9 +5,11 @@ import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS, ETH_DEPOSIT_SIZE, GWEI_TO_WEI} from 
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
+import {Asset} from 'contracts/utils/Asset.sol';
 import {Array} from 'contracts/utils/Array.sol';
 
 contract RioLRTWithdrawalQueueTest is RioDeployer {
+    using Asset for *;
     using Array for *;
 
     TestLRTDeployment public reETH;
@@ -133,7 +135,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         skip(reETH.coordinator.rebalanceDelay());
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
-        uint256 expectedShareWithdrawal = expectedAmountOut - (amountInDP - (amountInDP % GWEI_TO_WEI));
+        uint256 expectedShareWithdrawal = expectedAmountOut - amountInDP.reducePrecisionToGwei();
 
         // Validate reETH total supply and process withdrawals.
         assertApproxEqAbs(reETH.token.totalSupply(), ETH_DEPOSIT_SIZE, GWEI_TO_WEI);
