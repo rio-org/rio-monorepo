@@ -34,13 +34,11 @@ library OperatorRegistryV1Admin {
     /// delegating to the provided `operator`.
     /// @param s The operator registry v1 storage accessor.
     /// @param token The address of the liquid restaking token.
-    /// @param depositPool The deposit pool contract address.
     /// @param operatorDelegatorBeacon The operator delegator beacon address.
     /// @param config The new operator's configuration.
     function addOperator(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
         address token,
-        address depositPool,
         address operatorDelegatorBeacon,
         IRioLRTOperatorRegistry.OperatorConfig memory config
     ) external returns (uint8 operatorId, address delegator) {
@@ -82,12 +80,12 @@ library OperatorRegistryV1Admin {
 
         // Populate the strategy share allocation caps for the operator.
         for (uint256 i = 0; i < config.strategyShareCaps.length; ++i) {
-            s.setOperatorStrategyCap(depositPool, operatorId, config.strategyShareCaps[i]);
+            s.setOperatorStrategyCap(operatorId, config.strategyShareCaps[i]);
         }
 
         // Populate the validator cap for the operator, if applicable.
         if (config.validatorCap > 0) {
-            s.setOperatorValidatorCap(depositPool, operatorId, config.validatorCap);
+            s.setOperatorValidatorCap(operatorId, config.validatorCap);
         }
     }
 
@@ -109,12 +107,10 @@ library OperatorRegistryV1Admin {
     /// Deactivates an operator, exiting all remaining stake to the
     /// asset manager.
     /// @param s The operator registry v1 storage accessor.
-    /// @param depositPool The deposit pool contract address.
     /// @param assetRegistry The asset registry contract.
     /// @param operatorId The operator's ID.
     function deactivateOperator(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
-        address depositPool,
         IRioLRTAssetRegistry assetRegistry,
         uint8 operatorId
     ) external {
@@ -127,11 +123,11 @@ library OperatorRegistryV1Admin {
         address[] memory strategies = assetRegistry.getAssetStrategies();
         for (uint256 i = 0; i < strategies.length; ++i) {
             s.setOperatorStrategyCap(
-                depositPool, operatorId, IRioLRTOperatorRegistry.StrategyShareCap({strategy: strategies[i], cap: 0})
+                operatorId, IRioLRTOperatorRegistry.StrategyShareCap({strategy: strategies[i], cap: 0})
             );
         }
         if (operator.validatorDetails.cap > 0) {
-            s.setOperatorValidatorCap(depositPool, operatorId, 0);
+            s.setOperatorValidatorCap(operatorId, 0);
         }
 
         operator.active = false;
@@ -143,10 +139,9 @@ library OperatorRegistryV1Admin {
     // forgefmt: disable-next-item
     /// Queues a complete exit from the specified strategy for the provided operator.
     /// @param operator The storage accessor for the operator that's exiting.
-    /// @param withdrawer The address who has permission to complete the withdrawal.
     /// @param operatorId The operator's ID.
     /// @param strategy The strategy to exit.
-    function queueOperatorStrategyExit(IRioLRTOperatorRegistry.OperatorDetails storage operator, address withdrawer, uint8 operatorId, address strategy) internal {
+    function queueOperatorStrategyExit(IRioLRTOperatorRegistry.OperatorDetails storage operator, uint8 operatorId, address strategy) internal {
         IRioLRTOperatorDelegator delegator = IRioLRTOperatorDelegator(operator.delegator);
 
         uint256 sharesToExit;
@@ -160,24 +155,22 @@ library OperatorRegistryV1Admin {
         }
         if (sharesToExit == 0) revert IRioLRTOperatorRegistry.CANNOT_EXIT_ZERO_SHARES();
 
-        // Queues a withdrawal to the provided `withdrawer`.
-        bytes32 withdrawalRoot = delegator.queueWithdrawal(strategy, sharesToExit, withdrawer);
+        // Queues a withdrawal to the deposit pool.
+        bytes32 withdrawalRoot = delegator.queueWithdrawalForOperatorExit(strategy, sharesToExit);
         emit IRioLRTOperatorRegistry.OperatorStrategyExitQueued(operatorId, strategy, sharesToExit, withdrawalRoot);
     }
 
     /// @notice Sets the operator's strategy share allocation caps.
     /// @param s The operator registry v1 storage accessor.
-    /// @param depositPool The deposit pool contract address.
     /// @param operatorId The operator's ID.
     /// @param newStrategyShareCaps The new strategy share allocation caps.
     function setOperatorStrategyShareCaps(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
-        address depositPool,
         uint8 operatorId,
         IRioLRTOperatorRegistry.StrategyShareCap[] calldata newStrategyShareCaps
     ) external {
         for (uint256 i = 0; i < newStrategyShareCaps.length; ++i) {
-            s.setOperatorStrategyCap(depositPool, operatorId, newStrategyShareCaps[i]);
+            s.setOperatorStrategyCap(operatorId, newStrategyShareCaps[i]);
         }
     }
 
@@ -229,12 +222,10 @@ library OperatorRegistryV1Admin {
     // forgefmt: disable-next-item
     /// @notice Sets the strategy share cap for a given operator.
     /// @param s The operator registry v1 storage accessor.
-    /// @param depositPool The deposit pool contract address.
     /// @param operatorId The unique identifier of the operator.
     /// @param newShareCap The new share cap details including the strategy and cap.
     function setOperatorStrategyCap(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
-        address depositPool,
         uint8 operatorId,
         IRioLRTOperatorRegistry.StrategyShareCap memory newShareCap
     ) internal {
@@ -253,7 +244,7 @@ library OperatorRegistryV1Admin {
         if (currentShareDetails.cap > 0 && newShareCap.cap == 0) {
             // If the operator has allocations, queue them for exit.
             if (currentShareDetails.allocation > 0) {
-                operatorDetails.queueOperatorStrategyExit(depositPool, operatorId, newShareCap.strategy);
+                operatorDetails.queueOperatorStrategyExit(operatorId, newShareCap.strategy);
             }
             // Remove the operator from the utilization heap.
             utilizationHeap.removeByID(operatorId);
@@ -276,12 +267,10 @@ library OperatorRegistryV1Admin {
 
     /// @notice Sets the operator's maximum active validator cap.
     /// @param s The operator registry v1 storage accessor.
-    /// @param depositPool The deposit pool contract address.
     /// @param operatorId The unique identifier of the operator.
     /// @param newValidatorCap The new maximum active validator cap.
     function setOperatorValidatorCap(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
-        address depositPool,
         uint8 operatorId,
         uint40 newValidatorCap
     ) internal {
@@ -303,7 +292,7 @@ library OperatorRegistryV1Admin {
         if (validatorDetails.cap > 0 && newValidatorCap == 0) {
             // If there are active deposits, queue the operator for strategy exit.
             if (activeDeposits > 0) {
-                operatorDetails.queueOperatorStrategyExit(depositPool, operatorId, BEACON_CHAIN_STRATEGY);
+                operatorDetails.queueOperatorStrategyExit(operatorId, BEACON_CHAIN_STRATEGY);
                 s.operatorDetails[operatorId].validatorDetails.exited += activeDeposits;
             }
             // Remove the operator from the utilization heap.

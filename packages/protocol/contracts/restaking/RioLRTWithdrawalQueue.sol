@@ -234,7 +234,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         uint256 sharesReceivedDuringSettlement = epochWithdrawals.sharesOwed - epochWithdrawals.shareValueOfAssetsReceived;
 
         // If not ETH, decrease the shares held for the asset. The decrease in queued ETH is
-        // handles on a per-operator basis below.
+        // handled on a per-operator basis below.
         if (asset != ETH_ADDRESS) {
             assetRegistry().decreaseSharesHeldForAsset(asset, sharesReceivedDuringSettlement);
         }
@@ -255,7 +255,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
             // Decrease the amount of ETH queued for withdrawal. We do not need to validate the staker as
             // the aggregate root will be validated below.
             if (asset == ETH_ADDRESS) {
-                IRioLRTOperatorDelegator(queuedWithdrawal.staker).decreaseETHQueuedForWithdrawal(
+                IRioLRTOperatorDelegator(queuedWithdrawal.staker).decreaseETHQueuedForUserSettlement(
                     queuedWithdrawal.shares[0]
                 );
             }

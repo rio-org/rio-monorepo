@@ -246,11 +246,10 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         }
 
         address strategy = assetRegistry().getAssetStrategy(asset);
-        bytes32 aggregateRoot = OperatorOperations.queueWithdrawals(
+        bytes32 aggregateRoot = OperatorOperations.queueWithdrawalFromOperatorsForUserSettlement(
             operatorRegistry(),
             strategy,
-            sharesRemaining,
-            address(withdrawalQueue_)
+            sharesRemaining
         );
         withdrawalQueue_.queueCurrentEpochSettlement(asset, assetsSent, sharesSent, aggregateRoot);
     }

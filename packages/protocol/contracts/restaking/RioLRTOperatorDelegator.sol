@@ -30,8 +30,8 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     /// @dev The withdrawal credentials prefix, which signals that withdrawals are enabled.
     bytes1 internal constant WITHDRAWALS_ENABLED_PREFIX = 0x01;
 
-    /// @dev The minimum amount of excess ETH from full withdrawals that can be scraped from the EigenPod, 1 ETH in gwei.
-    uint256 internal constant MIN_EXCESS_FULL_WITHDRAWAL_ETH_FOR_SCRAPE = 1 gwei;
+    /// @dev The minimum amount of excess ETH from full withdrawals that can be scraped from the EigenPod.
+    uint256 internal constant MIN_EXCESS_FULL_WITHDRAWAL_ETH_FOR_SCRAPE = 1 ether;
 
     /// @notice The primary entry and exit-point for funds into and out of EigenLayer.
     IStrategyManager public immutable strategyManager;
@@ -45,29 +45,16 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     /// @notice The operator delegator's EigenPod.
     IEigenPod public eigenPod;
 
-    /// @notice The amount of ETH queued for withdrawal from EigenLayer for this operator
-    /// delegator, in gwei.
-    uint64 public ethQueuedForWithdrawalGwei;
-
     /// @notice Credentials to withdraw ETH on Consensus Layer via the EigenPod.
     bytes32 public withdrawalCredentials;
 
-    /// @notice Require that the caller is the LRT's coordinator
-    /// or the operator registry.
-    modifier onlyCoordinatorOrOperatorRegistry() {
-        if (msg.sender != address(coordinator()) && msg.sender != address(operatorRegistry())) {
-            revert ONLY_COORDINATOR_OR_OPERATOR_REGISTRY();
-        }
-        _;
-    }
+    /// @notice The amount of ETH queued for withdrawal to the withdrawal queue, intended for settling
+    /// user withdrawals, in gwei.
+    uint64 public ethQueuedForUserSettlementGwei;
 
-    /// @notice Require that the caller is the withdrawal queue or deposit pool.
-    modifier onlyWithdrawalQueueOrDepositPool() {
-        if (msg.sender != address(withdrawalQueue()) && msg.sender != address(depositPool())) {
-            revert ONLY_WITHDRAWAL_QUEUE_OR_DEPOSIT_POOL();
-        }
-        _;
-    }
+    /// @notice The amount of ETH queued for withdrawal to the deposit pool, specifically for facilitating
+    /// operator exits and excess full withdrawal scrapes, in gwei.
+    uint64 public ethQueuedForOperatorExitsAndScrapesGwei;
 
     /// @param issuer_ The issuer of the LRT instance that this contract is deployed for.
     /// @param strategyManager_ The primary entry and exit-point for funds into and out of EigenLayer.
@@ -115,12 +102,25 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
         return eigenPodManager.podOwnerShares(address(this));
     }
 
+    /// @notice The amount of ETH queued for withdrawal from EigenLayer, in wei.
+    function getETHQueuedForWithdrawal() public view returns (uint256) {
+        uint256 ethQueuedSlotData;
+        assembly {
+            ethQueuedSlotData := sload(ethQueuedForUserSettlementGwei.slot)
+        }
+
+        uint64 userSettlementGwei = uint64(ethQueuedSlotData);
+        uint64 operatorExitAndScrapeGwei = uint64(ethQueuedSlotData >> 64);
+
+        return (userSettlementGwei + operatorExitAndScrapeGwei).toWei();
+    }
+
     /// @notice Returns the total amount of ETH under management by the operator delegator.
     /// @dev This includes EigenPod shares (verified validator balances minus queued withdrawals)
-    /// and ETH queued for withdrawal from EigenLayer. We cast to 0 if the result is negative,
-    /// as the ETH under management cannot be negative.
+    /// and ETH queued for withdrawal from EigenLayer. We unsafely cast to 0 if the result is negative
+    /// as the total amount of ETH under management cannot be negative.
     function getETHUnderManagement() external view returns (uint256) {
-        return uint256(getEigenPodShares() + int256(ethQueuedForWithdrawalGwei.toWei()));
+        return uint256(getEigenPodShares() + int256(getETHQueuedForWithdrawal()));
     }
 
     /// @notice Verifies withdrawal credentials of validator(s) owned by this operator.
@@ -156,26 +156,24 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     /// time as full withdrawals contain more ETH than was requested from the withdrawal queue.
     /// @dev Anyone can call this function.
     function scrapeExcessFullWithdrawalETHFromEigenPod() external {
-        uint64 withdrawableGwei = eigenPod.withdrawableRestakedExecutionLayerGwei();
-        uint64 ethQueuedForWithdrawalGwei_ = ethQueuedForWithdrawalGwei;
-        if (withdrawableGwei <= ethQueuedForWithdrawalGwei_ + MIN_EXCESS_FULL_WITHDRAWAL_ETH_FOR_SCRAPE) {
+        uint256 ethWithdrawable = eigenPod.withdrawableRestakedExecutionLayerGwei().toWei();
+        uint256 ethQueuedForWithdrawal = getETHQueuedForWithdrawal();
+        if (ethWithdrawable <= ethQueuedForWithdrawal + MIN_EXCESS_FULL_WITHDRAWAL_ETH_FOR_SCRAPE) {
             revert INSUFFICIENT_EXCESS_FULL_WITHDRAWAL_ETH();
         }
-
-        uint256 excessFullWithdrawalGwei = withdrawableGwei - ethQueuedForWithdrawalGwei_;
-        _queueWithdrawal(BEACON_CHAIN_STRATEGY, excessFullWithdrawalGwei.toWei(), address(depositPool()));
+        _queueWithdrawalForOperatorExitOrScrape(BEACON_CHAIN_STRATEGY, ethWithdrawable - ethQueuedForWithdrawal);
     }
 
     // forgefmt: disable-next-item
     /// @notice Approve EigenLayer to spend an ERC20 token, then stake it into an EigenLayer strategy.
     /// @param strategy The strategy to stake the tokens into.
-    /// @param token The token to stake.
+    /// @param token_ The token to stake.
     /// @param amount The amount of tokens to stake.
-    function stakeERC20(address strategy, address token, uint256 amount) external onlyDepositPool returns (uint256 shares) {
-        if (IERC20(token).allowance(address(this), address(strategyManager)) < amount) {
-            IERC20(token).forceApprove(address(strategyManager), type(uint256).max);
+    function stakeERC20(address strategy, address token_, uint256 amount) external onlyDepositPool returns (uint256 shares) {
+        if (IERC20(token_).allowance(address(this), address(strategyManager)) < amount) {
+            IERC20(token_).forceApprove(address(strategyManager), type(uint256).max);
         }
-        shares = strategyManager.depositIntoStrategy(strategy, token, amount);
+        shares = strategyManager.depositIntoStrategy(strategy, token_, amount);
     }
 
     // forgefmt: disable-next-item
@@ -206,18 +204,37 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     }
 
     // forgefmt: disable-next-item
-    /// @notice Queue a withdrawal of the given amount of `shares` to the `withdrawer` from the provided `strategy`.
-    /// @param strategy The strategy to withdraw from.
+    /// @notice Queues a withdrawal of the specified amount of `shares` from the given `strategy` to the withdrawal queue,
+    /// intended for settling user withdrawals.
+    /// @param strategy The strategy from which to withdraw.
     /// @param shares The amount of shares to withdraw.
-    /// @param withdrawer The address who has permission to complete the withdrawal.
-    function queueWithdrawal(address strategy, uint256 shares, address withdrawer) external onlyCoordinatorOrOperatorRegistry returns (bytes32 root) {
-        root = _queueWithdrawal(strategy, shares, withdrawer);
+    function queueWithdrawalForUserSettlement(address strategy, uint256 shares) external onlyCoordinator returns (bytes32 root) {
+        if (strategy == BEACON_CHAIN_STRATEGY) {
+            _increaseETHQueuedForUserSettlement(shares);
+        }
+        root = _queueWithdrawal(strategy, shares, address(withdrawalQueue()));
     }
 
-    /// @notice Decrease the amount of ETH queued for withdrawal from EigenLayer.
-    /// @param amountWei The amount of ETH to decrease the withdrawal queue by.
-    function decreaseETHQueuedForWithdrawal(uint256 amountWei) external onlyWithdrawalQueueOrDepositPool {
-        ethQueuedForWithdrawalGwei -= amountWei.toGwei();
+    // forgefmt: disable-next-item
+    /// @notice Queues a withdrawal of the specified amount of `shares` from the given `strategy` to the deposit pool,
+    /// specifically for facilitating operator exits.
+    /// @param strategy The strategy from which to withdraw.
+    /// @param shares The amount of shares to withdraw.
+    function queueWithdrawalForOperatorExit(address strategy, uint256 shares) external onlyOperatorRegistry returns (bytes32 root) {
+        root = _queueWithdrawalForOperatorExitOrScrape(strategy, shares);
+    }
+
+    /// @notice Decrease the amount of ETH queued from EigenLayer for user settlement.
+    /// @param amountWei The amount of ETH to decrease by, in wei.
+    function decreaseETHQueuedForUserSettlement(uint256 amountWei) external onlyWithdrawalQueue {
+        _decreaseETHQueuedForUserSettlement(amountWei);
+    }
+
+    /// @dev Decrease the amount of ETH queued for operator exit or excess full withdrawal scrape
+    /// from EigenLayer.
+    /// @param amountWei The amount of ETH to decrease by, in wei.
+    function decreaseETHQueuedForOperatorExitOrScrape(uint256 amountWei) external onlyDepositPool {
+        _decreaseETHQueuedForOperatorExitOrScrape(amountWei);
     }
 
     /// @notice Forwards ETH rewards to the reward distributor. This includes partial
@@ -226,22 +243,56 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
         address(rewardDistributor()).transferETH(msg.value);
     }
 
-    /// @notice Queue a withdrawal of the given amount of `shares` to the `withdrawer` from the provided `strategy`.
+    /// @dev Queues a withdrawal of the specified amount of `shares` from the given `strategy` to the deposit pool,
+    /// specifically for facilitating operator exits or excess full withdrawal scrapes.
+    /// @param strategy The strategy from which to withdraw.
+    /// @param shares The amount of shares to withdraw.
+    function _queueWithdrawalForOperatorExitOrScrape(address strategy, uint256 shares) internal returns (bytes32 root) {
+        if (strategy == BEACON_CHAIN_STRATEGY) {
+            _increaseETHQueuedForOperatorExitOrScrape(shares);
+        }
+        root = _queueWithdrawal(strategy, shares, address(depositPool()));
+    }
+
+    // forgefmt: disable-next-item
+    /// @dev Queue a withdrawal of the given amount of `shares` to the `withdrawer` from the provided `strategy`.
     /// @param strategy The strategy to withdraw from.
     /// @param shares The amount of shares to withdraw.
     /// @param withdrawer The address who has permission to complete the withdrawal.
     function _queueWithdrawal(address strategy, uint256 shares, address withdrawer) internal returns (bytes32 root) {
-        IDelegationManager.QueuedWithdrawalParams[] memory withdrawalParams =
-            new IDelegationManager.QueuedWithdrawalParams[](1);
+        IDelegationManager.QueuedWithdrawalParams[] memory withdrawalParams = new IDelegationManager.QueuedWithdrawalParams[](1);
         withdrawalParams[0] = IDelegationManager.QueuedWithdrawalParams({
             strategies: strategy.toArray(),
             shares: shares.toArray(),
             withdrawer: withdrawer
         });
         root = delegationManager.queueWithdrawals(withdrawalParams)[0];
+    }
 
-        // If queuing a withdrawal from the beacon chain strategy, increase the total ETH queued for withdrawal.
-        if (strategy == BEACON_CHAIN_STRATEGY) ethQueuedForWithdrawalGwei += shares.toGwei();
+    /// @dev Increase the amount of ETH queued from EigenLayer for user settlement.
+    /// @param amountWei The amount of ETH to increase by, in wei.
+    function _increaseETHQueuedForUserSettlement(uint256 amountWei) internal {
+        ethQueuedForUserSettlementGwei += amountWei.toGwei();
+    }
+
+    /// @dev Decrease the amount of ETH queued from EigenLayer for user settlement.
+    /// @param amountWei The amount of ETH to decrease by, in wei.
+    function _decreaseETHQueuedForUserSettlement(uint256 amountWei) internal {
+        ethQueuedForUserSettlementGwei -= amountWei.toGwei();
+    }
+
+    /// @dev Increase the amount of ETH queued for operator exit or excess full withdrawal scrape
+    /// from EigenLayer.
+    /// @param amountWei The amount of ETH to increase by, in wei.
+    function _increaseETHQueuedForOperatorExitOrScrape(uint256 amountWei) internal {
+        ethQueuedForOperatorExitsAndScrapesGwei += amountWei.toGwei();
+    }
+
+    /// @dev Decrease the amount of ETH queued for operator exit or excess full withdrawal scrape
+    /// from EigenLayer.
+    /// @param amountWei The amount of ETH to decrease by, in wei.
+    function _decreaseETHQueuedForOperatorExitOrScrape(uint256 amountWei) internal {
+        ethQueuedForOperatorExitsAndScrapesGwei -= amountWei.toGwei();
     }
 
     /// @dev Compute withdrawal credentials for the given EigenPod.

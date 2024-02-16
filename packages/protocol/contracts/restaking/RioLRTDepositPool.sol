@@ -41,12 +41,12 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
         uint256 currentBalance = asset.getSelfBalance();
         if (currentBalance == 0) return 0;
         if (asset == ETH_ADDRESS) {
-            return OperatorOperations.depositETH(operatorRegistry(), currentBalance);
+            return OperatorOperations.depositETHToOperators(operatorRegistry(), currentBalance);
         }
 
         address strategy = assetRegistry().getAssetStrategy(asset);
         uint256 sharesToAllocate = assetRegistry().convertToSharesFromAsset(asset, currentBalance);
-        return OperatorOperations.depositToken(operatorRegistry(), asset, strategy, sharesToAllocate);
+        return OperatorOperations.depositTokenToOperators(operatorRegistry(), asset, strategy, sharesToAllocate);
     }
 
     /// @notice Transfers the maximum possible amount of assets based on the available
@@ -118,7 +118,7 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
         // amount of shares held for the asset.
         address strategy = queuedWithdrawal.strategies[0];
         if (strategy == BEACON_CHAIN_STRATEGY) {
-            operatorDelegator_.decreaseETHQueuedForWithdrawal(queuedWithdrawal.shares[0]);
+            operatorDelegator_.decreaseETHQueuedForOperatorExitOrScrape(queuedWithdrawal.shares[0]);
         } else {
             assetRegistry().decreaseSharesHeldForAsset(asset, queuedWithdrawal.shares[0]);
         }

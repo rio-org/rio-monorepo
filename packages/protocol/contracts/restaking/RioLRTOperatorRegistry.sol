@@ -132,7 +132,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     /// delegating to the provided operator address.
     /// @param config The new operator's configuration.
     function addOperator(OperatorConfig calldata config) external onlyOwner returns (uint8 operatorId, address delegator) {
-        return s.addOperator(address(token), address(depositPool()), operatorDelegatorBeacon, config);
+        return s.addOperator(address(token), operatorDelegatorBeacon, config);
     }
 
     /// @notice Activates an operator.
@@ -145,7 +145,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     /// asset manager.
     /// @param operatorId The operator's ID.
     function deactivateOperator(uint8 operatorId) external onlyOwner {
-        s.deactivateOperator(address(depositPool()), assetRegistry(), operatorId);
+        s.deactivateOperator(assetRegistry(), operatorId);
     }
 
     // forgefmt: disable-next-item
@@ -153,14 +153,14 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     /// @param operatorId The operator's ID.
     /// @param newStrategyShareCaps The new strategy share allocation caps.
     function setOperatorStrategyShareCaps(uint8 operatorId, StrategyShareCap[] calldata newStrategyShareCaps) external onlyOwner {
-        s.setOperatorStrategyShareCaps(address(depositPool()), operatorId, newStrategyShareCaps);
+        s.setOperatorStrategyShareCaps(operatorId, newStrategyShareCaps);
     }
 
     /// @notice Sets the operator's maximum active validator cap.
     /// @param operatorId The operator's ID.
     /// @param newValidatorCap The new maximum active validator cap.
     function setOperatorValidatorCap(uint8 operatorId, uint40 newValidatorCap) external onlyOwner {
-        s.setOperatorValidatorCap(address(depositPool()), operatorId, newValidatorCap);
+        s.setOperatorValidatorCap(operatorId, newValidatorCap);
     }
 
     /// @notice Sets the security daemon to a new account (`newSecurityDaemon`).
