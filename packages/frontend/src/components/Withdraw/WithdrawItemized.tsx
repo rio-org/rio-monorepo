@@ -76,6 +76,19 @@ const WithdrawItemized = ({
         </div>
         <div className="flex justify-between">
           <span className="flex items-center text-black gap-1">
+            <span className="opacity-50 text-[14px]">Delay</span>
+
+            <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
+              <p>
+                The waiting period for your funds to be claimable after making a
+                withdrawal request.
+              </p>
+            </InfoTooltip>
+          </span>
+          <strong className="text-right text-[14px]">1-8 Days</strong>
+        </div>
+        <div className="flex justify-between">
+          <span className="flex items-center text-black gap-1">
             <span className="opacity-50 text-[14px]">Withdrawal fees</span>
 
             <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
