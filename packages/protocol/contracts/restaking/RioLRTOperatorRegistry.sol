@@ -7,9 +7,9 @@ import {UpgradeableBeacon} from '@openzeppelin/contracts/proxy/beacon/Upgradeabl
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
-import {BLS_PUBLIC_KEY_LENGTH, ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
+import {BLS_PUBLIC_KEY_LENGTH, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {OperatorRegistryV1Admin} from 'contracts/utils/OperatorRegistryV1Admin.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
