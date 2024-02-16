@@ -134,7 +134,11 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
             revert NO_REBALANCE_NEEDED();
         }
         if (sharesReceived > 0) {
-            assetRegistry().increaseSharesHeldForAsset(asset, sharesReceived);
+            if (asset == ETH_ADDRESS) {
+                assetRegistry().increaseUnverifiedValidatorETHBalance(sharesReceived);
+            } else {
+                assetRegistry().increaseSharesHeldForAsset(asset, sharesReceived);
+            }
         }
         emit Rebalanced(asset);
     }

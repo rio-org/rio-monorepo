@@ -25,10 +25,13 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @notice Information about a supported asset.
     mapping(address asset => AssetInfo) public assetInfo;
 
-    /// @notice Require that the caller is the withdrawal queue or operator registry.
-    modifier onlyWithdrawalQueueOrOperatorRegistry() {
-        if (msg.sender != address(withdrawalQueue()) && msg.sender != address(operatorRegistry())) {
-            revert ONLY_WITHDRAWAL_QUEUE_OR_OPERATOR_REGISTRY();
+    /// @notice The amount of ETH held in unverified validators.
+    uint256 public ethBalanceInUnverifiedValidators;
+
+    /// @notice Require that the caller is the withdrawal queue or deposit pool.
+    modifier onlyWithdrawalQueueOrDepositPool() {
+        if (msg.sender != address(withdrawalQueue()) && msg.sender != address(depositPool())) {
+            revert ONLY_WITHDRAWAL_QUEUE_OR_DEPOSIT_POOL();
         }
         _;
     }
@@ -98,11 +101,10 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         return tokensInRio + tokensInEigenLayer;
     }
 
-    /// @notice Returns the ETH balance held in EigenLayer.
+    /// @notice Returns the ETH balance held in EigenLayer. This includes the ETH held in
+    /// unverified validators, EigenPod shares, and ETH that's queued for withdrawal.
     function getETHBalanceInEigenLayer() public view returns (uint256 balance) {
-        // For ETH, `sharesHeld` refers to the amount of ETH in validators that have not
-        // yet been verified. Once verified, ETH is accounted for in the EigenPod shares.
-        balance = getAssetSharesHeld(ETH_ADDRESS);
+        balance = ethBalanceInUnverifiedValidators;
 
         IRioLRTOperatorRegistry operatorRegistry_ = operatorRegistry();
         uint8 endAtID = operatorRegistry_.operatorCount() + 1; // Operator IDs start at 1.
@@ -296,11 +298,29 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @notice Decreases the number of EigenLayer shares held for an asset.
     /// @param asset The address of the asset.
     /// @param amount The amount of EigenLayer shares to decrease.
-    function decreaseSharesHeldForAsset(address asset, uint256 amount) external onlyWithdrawalQueueOrOperatorRegistry {
+    function decreaseSharesHeldForAsset(address asset, uint256 amount) external onlyWithdrawalQueueOrDepositPool {
         if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
 
         assetInfo[asset].shares -= amount;
         emit AssetSharesDecreased(asset, amount);
+    }
+
+    /// @notice Increases the unverified validator ETH balance.
+    /// @param amount The amount of ETH to increase.
+    function increaseUnverifiedValidatorETHBalance(uint256 amount) external onlyCoordinator {
+        if (!isSupportedAsset(ETH_ADDRESS)) revert ASSET_NOT_SUPPORTED(ETH_ADDRESS);
+
+        ethBalanceInUnverifiedValidators += amount;
+        emit UnverifiedValidatorETHBalanceIncreased(amount);
+    }
+
+    /// @notice Decreases the unverified validator ETH balance.
+    /// @param amount The amount of ETH to decrease.
+    function decreaseUnverifiedValidatorETHBalance(uint256 amount) external onlyOperatorRegistry {
+        if (!isSupportedAsset(ETH_ADDRESS)) revert ASSET_NOT_SUPPORTED(ETH_ADDRESS);
+
+        ethBalanceInUnverifiedValidators -= amount;
+        emit UnverifiedValidatorETHBalanceDecreased(amount);
     }
 
     /// @dev Adds a new underlying asset to the liquid restaking token.

@@ -41,6 +41,9 @@ interface IRioLRTOperatorDelegator {
     /// @notice Returns the number of shares in the operator delegator's EigenPod.
     function getEigenPodShares() external view returns (int256);
 
+    /// @notice The amount of ETH queued for withdrawal from EigenLayer, in wei.
+    function getETHQueuedForWithdrawal() external view returns (uint256);
+
     /// @notice Returns the total amount of ETH under management by the operator delegator.
     /// @dev This includes EigenPod shares (verified validator balances minus queued withdrawals)
     /// and ETH in the operator delegator's EigenPod.

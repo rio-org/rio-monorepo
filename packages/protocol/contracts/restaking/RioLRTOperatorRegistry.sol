@@ -246,7 +246,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         );
 
         // Once verified, shares are tracked as EigenPod shares.
-        assetRegistry().decreaseSharesHeldForAsset(ETH_ADDRESS, validatorIndices.length * ETH_DEPOSIT_SIZE);
+        assetRegistry().decreaseUnverifiedValidatorETHBalance(validatorIndices.length * ETH_DEPOSIT_SIZE);
 
         emit OperatorWithdrawalCredentialsVerified(operatorId, oracleTimestamp, validatorIndices);
     }
