@@ -7,8 +7,9 @@ import {ERC20Votes} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Vo
 import {Nonces} from '@openzeppelin/contracts/utils/Nonces.sol';
 
 contract RioToken is ERC20, ERC20Permit, ERC20Votes {
-    constructor() ERC20('Rio Network Token', 'RN') ERC20Permit('Rio Network Token') {
-        _mint(msg.sender, 1_000_000_000 * 10 ** decimals());
+    /// @param to The address to mint the initial supply to.
+    constructor(address to) ERC20('Rio Network Token', 'RN') ERC20Permit('Rio Network Token') {
+        _mint(to, 1_000_000_000 * 10 ** decimals());
     }
 
     /// @notice Clock used for flagging checkpoints, overriden to implement timestamp based
