@@ -243,6 +243,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
         address(rewardDistributor()).transferETH(msg.value);
     }
 
+    // forgefmt: disable-next-item
     /// @dev Queues a withdrawal of the specified amount of `shares` from the given `strategy` to the deposit pool,
     /// specifically for facilitating operator exits or excess full withdrawal scrapes.
     /// @param strategy The strategy from which to withdraw.
