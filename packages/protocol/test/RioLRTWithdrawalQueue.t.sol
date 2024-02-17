@@ -438,5 +438,32 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertEq(cbETH.balanceOf(address(this)) - balanceBefore, amount);
     }
 
+    function test_claimWithdrawalsForManyEpochs() public {
+        IRioLRTWithdrawalQueue.ClaimRequest[] memory claimRequests = new IRioLRTWithdrawalQueue.ClaimRequest[](3);
+        for (uint256 i = 0; i < 3; i++) {
+            reETH.coordinator.depositETH{value: 1 ether}();
+            reETH.coordinator.requestWithdrawal(ETH_ADDRESS, 1 ether);
+
+            claimRequests[i] = IRioLRTWithdrawalQueue.ClaimRequest({
+                asset: ETH_ADDRESS,
+                epoch: reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS)
+            });
+
+            // Skip ahead and rebalance to settle the withdrawal
+            skip(reETH.coordinator.rebalanceDelay());
+            reETH.coordinator.rebalance(ETH_ADDRESS);
+        }
+
+        // Claim the withdrawals.
+        uint256 balanceBefore = address(this).balance;
+        uint256[] memory amountOuts = reETH.withdrawalQueue.claimWithdrawalsForManyEpochs(claimRequests);
+
+        assertEq(amountOuts.length, 3);
+        for (uint256 i = 0; i < 3; i++) {
+            assertEq(amountOuts[i], 1 ether);
+        }
+        assertEq(address(this).balance - balanceBefore, 3 ether);
+    }
+
     receive() external payable {}
 }
