@@ -13,6 +13,9 @@ uint256 constant ETH_DEPOSIT_SIZE = 32 ether;
 /// @dev The conversion factor from gwei to wei.
 uint256 constant GWEI_TO_WEI = 1e9;
 
+/// @dev The maximum rebalance delay, in seconds.
+uint256 constant MAX_REBALANCE_DELAY = 3 days;
+
 /// @dev LRT supporting contract types.
 enum ContractType {
     Coordinator,
