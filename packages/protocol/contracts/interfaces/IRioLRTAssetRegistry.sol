@@ -174,14 +174,12 @@ interface IRioLRTAssetRegistry {
     /// @param value The asset's value in the unit of account.
     function convertFromUnitOfAccountToAsset(address asset, uint256 value) external view returns (uint256);
 
-    /// @notice Converts an amount of EigenLayer shares to the equivalent amount
-    /// of underlying pool tokens.
+    /// @notice Converts an amount of an asset to the equivalent amount of EigenLayer shares.
     /// @param asset The address of the asset to convert.
     /// @param amount The amount of the asset to convert.
     function convertToSharesFromAsset(address asset, uint256 amount) external view returns (uint256 shares);
 
-    /// @notice Converts an amount of EigenLayer shares to the equivalent amount
-    /// of underlying pool tokens.
+    /// @notice Converts an amount of EigenLayer shares to the equivalent amount of an asset.
     /// @param strategy The EigenLayer strategy.
     /// @param shares The amount of EigenLayer shares.
     function convertFromSharesToAsset(address strategy, uint256 shares) external view returns (uint256 amount);
