@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS, MIN_SACRIFICIAL_DEPOSIT} from 'contracts/utils/Constants.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {MockPriceFeed} from 'test/utils/MockPriceFeed.sol';
@@ -25,6 +26,29 @@ contract RioLRTIssuerTest is RioDeployer {
                 operatorRewardPool: address(this),
                 treasury: address(this),
                 deposit: IRioLRTIssuer.SacrificialDeposit({asset: address(0), amount: 0})
+            })
+        );
+    }
+
+    function test_issueLRTBelowSacrificialDepositMinimumReverts() public {
+        IRioLRTAssetRegistry.AssetConfig[] memory assets = new IRioLRTAssetRegistry.AssetConfig[](1);
+        assets[0] = IRioLRTAssetRegistry.AssetConfig({
+            asset: ETH_ADDRESS,
+            depositCap: 1_000 ether,
+            strategy: BEACON_CHAIN_STRATEGY,
+            priceFeed: address(0)
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTIssuer.INSUFFICIENT_SACRIFICIAL_DEPOSIT.selector));
+        IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
+            'Restaked ETH',
+            'reETH',
+            IRioLRTIssuer.LRTConfig({
+                assets: assets,
+                priceFeedDecimals: 18,
+                operatorRewardPool: address(this),
+                treasury: address(this),
+                deposit: IRioLRTIssuer.SacrificialDeposit({asset: CBETH_ADDRESS, amount: MIN_SACRIFICIAL_DEPOSIT - 1})
             })
         );
     }

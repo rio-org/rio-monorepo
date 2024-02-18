@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
+/// @dev The minimum allowed sacrificial deposit amount.
+uint256 constant MIN_SACRIFICIAL_DEPOSIT = 1_000;
+
 /// @dev The Beacon Chain ETH strategy pseudo-address.
 address constant BEACON_CHAIN_STRATEGY = 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0;
 
