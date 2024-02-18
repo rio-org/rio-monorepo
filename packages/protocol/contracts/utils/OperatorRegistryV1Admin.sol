@@ -147,9 +147,13 @@ library OperatorRegistryV1Admin {
         uint256 sharesToExit;
         if (strategy == BEACON_CHAIN_STRATEGY) {
             // Queues an exit for verified validators only. Unverified validators must by exited once verified,
-            // and ETH must be scraped into the deposit pool. Exits are rounded to the nearest Gwei.
-            // We unsafely cast to `uint256` to prevent exits for non-positive share amounts.
-            sharesToExit = uint256(delegator.getEigenPodShares()).reducePrecisionToGwei();
+            // and ETH must be scraped into the deposit pool. Exits are rounded to the nearest Gwei. It is not
+            // possible to exit ETH with precision less than 1 Gwei. We do not populate `sharesToExit` if the
+            // Eigen Pod shares are not greater than 0.
+            int256 eigenPodShares = delegator.getEigenPodShares();
+            if (eigenPodShares > 0) {
+                sharesToExit = uint256(eigenPodShares).reducePrecisionToGwei();
+            }
         } else {
             sharesToExit = operator.shareDetails[strategy].allocation;
         }
