@@ -49,6 +49,7 @@ contract RioLRTOperatorDelegatorTest is RioDeployer {
         reETH.coordinator.depositETH{value: TVL - address(reETH.depositPool).balance}();
 
         // Push funds into EigenLayer.
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         // Verify validator withdrawal credentials.
@@ -61,6 +62,8 @@ contract RioLRTOperatorDelegatorTest is RioDeployer {
 
         // Skip ahead and rebalance to queue the withdrawal within EigenLayer.
         skip(reETH.coordinator.rebalanceDelay());
+
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         // Verify and process two full validator exits.

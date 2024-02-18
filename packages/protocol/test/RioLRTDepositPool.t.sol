@@ -172,6 +172,7 @@ contract RioLRTDepositPoolTest is RioDeployer {
         reETH.coordinator.depositETH{value: AMOUNT}();
 
         // Push funds into EigenLayer.
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         // Verify validator withdrawal credentials.
@@ -217,6 +218,7 @@ contract RioLRTDepositPoolTest is RioDeployer {
         reLST.coordinator.deposit(CBETH_ADDRESS, AMOUNT);
 
         // Push funds into EigenLayer.
+        vm.prank(EOA, EOA);
         reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         // Queue the cbETH exit.

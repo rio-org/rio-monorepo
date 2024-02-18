@@ -477,6 +477,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
 
             // Skip ahead and rebalance to settle the withdrawal
             skip(reETH.coordinator.rebalanceDelay());
+
+            vm.prank(EOA, EOA);
             reETH.coordinator.rebalance(ETH_ADDRESS);
         }
 
