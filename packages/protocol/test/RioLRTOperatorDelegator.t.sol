@@ -20,6 +20,24 @@ contract RioLRTOperatorDelegatorTest is RioDeployer {
         (reLST,) = issueRestakedLST();
     }
 
+    function test_scrapeNonBeaconChainETHFromEigenPod() public {
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+        RioLRTOperatorDelegator delegatorContract =
+            RioLRTOperatorDelegator(payable(reETH.operatorRegistry.getOperatorDetails(operatorId).delegator));
+
+        (bool success,) = address(delegatorContract.eigenPod()).call{value: 1.123 ether}('');
+        assertTrue(success);
+
+        uint256 depositPoolBalanceBefore = address(reETH.depositPool).balance;
+
+        delegatorContract.scrapeNonBeaconChainETHFromEigenPod();
+        delayedWithdrawalRouter.claimDelayedWithdrawals(address(reETH.rewardDistributor), 1);
+
+        // Account for reward split.
+        assertGt(address(reETH.depositPool).balance - depositPoolBalanceBefore, 1 ether);
+        assertEq(address(delegatorContract.eigenPod()).balance, 0);
+    }
+
     function test_scrapeExcessFullWithdrawalETHFromEigenPod() public {
         uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
         address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorId).delegator;
