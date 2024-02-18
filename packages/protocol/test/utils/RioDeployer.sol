@@ -45,6 +45,8 @@ abstract contract RioDeployer is EigenLayerDeployer {
     address constant RELST_TREASURY = address(0x201);
     address constant RELST_OPERATOR_REWARD_POOL = address(0x202);
 
+    address constant EOA = address(0xE0A);
+
     function deployRio() public {
         deployEigenLayer();
 
@@ -77,6 +79,8 @@ abstract contract RioDeployer is EigenLayerDeployer {
         issuer = RioLRTIssuer(
             address(new ERC1967Proxy(issuerImpl, abi.encodeCall(IRioLRTIssuer.initialize, (address(this)))))
         );
+
+        vm.deal(EOA, 100 ether);
     }
 
     // forgefmt: disable-next-item

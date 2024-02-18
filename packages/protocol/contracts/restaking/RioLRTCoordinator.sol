@@ -121,6 +121,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @param asset The asset to rebalance.
     function rebalance(address asset) external onRebalance(asset) {
         if (!assetRegistry().isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+        if (msg.sender != tx.origin) revert CALLER_MUST_BE_EOA();
 
         // Process any outstanding withdrawals using funds from the deposit pool and EigenLayer.
         uint256 sharesOwed = withdrawalQueue().getSharesOwedInCurrentEpoch(asset);
