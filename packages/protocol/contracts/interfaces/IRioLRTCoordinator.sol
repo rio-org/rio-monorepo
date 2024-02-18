@@ -18,6 +18,9 @@ interface IRioLRTCoordinator {
     /// total number of shares in EigenLayer.
     error INSUFFICIENT_SHARES_FOR_WITHDRAWAL();
 
+    /// @notice Thrown when the `msg.sender` is a contract.
+    error CALLER_MUST_BE_EOA();
+
     /// @notice Thrown when attempting rebalance before the rebalance delay has elapsed.
     error REBALANCE_DELAY_NOT_MET();
 

@@ -29,6 +29,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
 
         // Rebalance to settle the withdrawal.
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
@@ -63,6 +64,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // Deposit ETH, rebalance, verify the validator withdrawal credentials, and deposit again.
         uint256 depositAmount = ETH_DEPOSIT_SIZE - address(reETH.depositPool).balance;
         reETH.coordinator.depositETH{value: depositAmount}();
+
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
         uint40[] memory validatorIndices = verifyCredentialsForValidators(reETH.operatorRegistry, 1, 1);
         reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
@@ -71,6 +74,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         uint256 withdrawalAmount = ETH_DEPOSIT_SIZE + 1 ether;
         reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
         skip(reETH.coordinator.rebalanceDelay());
+
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         // Validate reETH total supply and process withdrawals.
@@ -123,6 +128,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
 
         // Deposit ETH, rebalance, verify the validator withdrawal credentials, and deposit again.
         reETH.coordinator.depositETH{value: depositAmount}();
+
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
         uint40[] memory validatorIndices = verifyCredentialsForValidators(reETH.operatorRegistry, 1, 1);
         reETH.coordinator.depositETH{value: amountInDP}();
@@ -131,6 +138,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         uint256 withdrawalAmount = ETH_DEPOSIT_SIZE + 10 ** 18 * 2 - 1;
         uint256 expectedAmountOut = reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
         skip(reETH.coordinator.rebalanceDelay());
+
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         uint256 expectedShareWithdrawal = expectedAmountOut - (amountInDP - (amountInDP % GWEI_TO_WEI));
@@ -180,6 +189,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // Deposit ETH, rebalance, and verify the validator withdrawal credentials.
         uint256 depositAmount = ETH_DEPOSIT_SIZE - address(reETH.depositPool).balance;
         reETH.coordinator.depositETH{value: depositAmount}();
+
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
         uint40[] memory validatorIndices = verifyCredentialsForValidators(reETH.operatorRegistry, 1, 1);
 
@@ -187,6 +198,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         uint256 withdrawalAmount = 16 ether;
         reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
         skip(reETH.coordinator.rebalanceDelay());
+
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         // Ensure no reETH has been burned yet and process withdrawals.
@@ -236,6 +249,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // Deposit ETH, rebalance, and verify the validator withdrawal credentials.
         uint256 depositAmount = ETH_DEPOSIT_SIZE - address(reETH.depositPool).balance;
         reETH.coordinator.depositETH{value: depositAmount}();
+
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
         uint40[] memory validatorIndices = verifyCredentialsForValidators(reETH.operatorRegistry, 1, 1);
 
@@ -243,6 +258,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         uint256 withdrawalAmount = 10 ** 18 - 1;
         uint256 expectedAmountOut = reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
         skip(reETH.coordinator.rebalanceDelay());
+
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         // Ensure no reETH has been burned yet and process withdrawals.
@@ -295,6 +312,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         uint256 withdrawalEpoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
 
         // Rebalance to settle the withdrawal.
+        vm.prank(EOA, EOA);
         reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
@@ -335,6 +353,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // and the deposit pool.
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
         uint256 restakingTokensInEL = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+
+        vm.prank(EOA, EOA);
         reLST.coordinator.rebalance(CBETH_ADDRESS);
         uint256 restakingTokensInDP = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
 
@@ -342,6 +362,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         uint256 withdrawalLRTAmount = restakingTokensInDP + restakingTokensInEL;
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, withdrawalLRTAmount);
         skip(reLST.coordinator.rebalanceDelay());
+
+        vm.prank(EOA, EOA);
         reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         // Validate that the deposit pool balance has been removed from the reLST total supply.
@@ -392,11 +414,15 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // Deposit cbETH and rebalance to move all tokens to EigenLayer.
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
         uint256 restakingTokensOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+
+        vm.prank(EOA, EOA);
         reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         // Request a withdrawal for the tokens from EigenLayer and rebalance.
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, restakingTokensOut);
         skip(reLST.coordinator.rebalanceDelay());
+
+        vm.prank(EOA, EOA);
         reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         // Ensure no reLST has been burned yet.
