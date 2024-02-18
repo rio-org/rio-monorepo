@@ -37,6 +37,7 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
     }
 
     /// @notice Deposits the entire deposit pool balance of the specified `asset` into EigenLayer.
+    /// @param asset The address of the asset to be deposited.
     function depositBalanceIntoEigenLayer(address asset) external onlyCoordinator returns (uint256) {
         uint256 currentBalance = asset.getSelfBalance();
         if (currentBalance == 0) return 0;
