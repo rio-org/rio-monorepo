@@ -191,8 +191,12 @@ library OperatorRegistryV1Admin {
 
         uint256 sharesToExit;
         if (strategy == BEACON_CHAIN_STRATEGY) {
-            // It is not possible to exit ETH with precision less than 1 Gwei.
-            sharesToExit = reducePrecisionToGwei(uint256(delegator.getEigenPodShares()));
+            // Do not populate `sharesToExit` if the Eigen Pod shares are not greater than 0.
+            int256 eigenPodShares = delegator.getEigenPodShares();
+            if (eigenPodShares > 0) {
+                // It is not possible to exit ETH with precision less than 1 Gwei.
+                sharesToExit = reducePrecisionToGwei(uint256(eigenPodShares));
+            }
         } else {
             sharesToExit = operator.shareDetails[strategy].allocation;
         }

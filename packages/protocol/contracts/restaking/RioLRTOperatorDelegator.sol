@@ -108,9 +108,12 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
 
     /// @notice Returns the total amount of ETH under management by the operator delegator.
     /// @dev This includes EigenPod shares (verified validator balances minus queued withdrawals)
-    /// and ETH in the operator delegator's EigenPod.
+    /// and ETH in the operator delegator's EigenPod. Returns `0` if the total is negative.
     function getETHUnderManagement() external view returns (uint256) {
-        return uint256(getEigenPodShares()) + address(eigenPod).balance;
+        int256 aum = getEigenPodShares() + int256(address(eigenPod).balance);
+        if (aum < 0) return 0;
+
+        return uint256(aum);
     }
 
     /// @notice Verifies withdrawal credentials of validator(s) owned by this operator.
