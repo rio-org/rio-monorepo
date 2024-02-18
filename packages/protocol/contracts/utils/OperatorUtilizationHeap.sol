@@ -95,6 +95,7 @@ library OperatorUtilizationHeap {
         if (index < ROOT_INDEX || index > self.count) revert INVALID_INDEX();
 
         self._remove(index);
+        self._bubbleUp(index);
         self._bubbleDown(index);
     }
 
