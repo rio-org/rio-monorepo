@@ -6,6 +6,7 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {ETH_ADDRESS, GWEI_TO_WEI, MAX_REBALANCE_DELAY} from 'contracts/utils/Constants.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
@@ -145,7 +146,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     }
 
     /// @notice Sets the rebalance delay.
-    /// @param newRebalanceDelay The new rebalance delay.
+    /// @param newRebalanceDelay The new rebalance delay, in seconds.
     function setRebalanceDelay(uint24 newRebalanceDelay) external onlyOwner {
         _setRebalanceDelay(newRebalanceDelay);
     }
@@ -222,8 +223,9 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     }
 
     /// @dev Sets the rebalance delay.
-    /// @param newRebalanceDelay The new rebalance delay.
+    /// @param newRebalanceDelay The new rebalance delay, in seconds.
     function _setRebalanceDelay(uint24 newRebalanceDelay) internal {
+        if (newRebalanceDelay > MAX_REBALANCE_DELAY) revert REBALANCE_DELAY_TOO_LONG();
         rebalanceDelay = newRebalanceDelay;
 
         emit RebalanceDelaySet(newRebalanceDelay);

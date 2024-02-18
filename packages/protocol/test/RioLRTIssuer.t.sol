@@ -40,7 +40,7 @@ contract RioLRTIssuerTest is RioDeployer {
         });
 
         vm.expectRevert(abi.encodeWithSelector(IRioLRTIssuer.INSUFFICIENT_SACRIFICIAL_DEPOSIT.selector));
-        IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
+        issuer.issueLRT(
             'Restaked ETH',
             'reETH',
             IRioLRTIssuer.LRTConfig({

@@ -2,9 +2,9 @@
 pragma solidity 0.8.23;
 
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {ETH_ADDRESS, ETH_DEPOSIT_SIZE, MAX_REBALANCE_DELAY} from 'contracts/utils/Constants.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
-import {ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {EmptyContract} from 'test/utils/EmptyContract.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 
@@ -133,6 +133,11 @@ contract RioLRTCoordinatorTest is RioDeployer {
         vm.prank(address(42));
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
         reETH.coordinator.setRebalanceDelay(1);
+    }
+
+    function test_setRebalanceDelayAboveMaximumReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.REBALANCE_DELAY_TOO_LONG.selector));
+        reETH.coordinator.setRebalanceDelay(uint24(MAX_REBALANCE_DELAY) + 1);
     }
 
     function test_setRebalanceDelay() public {

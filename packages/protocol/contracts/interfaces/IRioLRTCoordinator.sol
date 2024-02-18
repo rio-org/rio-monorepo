@@ -24,6 +24,9 @@ interface IRioLRTCoordinator {
     /// @notice Thrown when attempting rebalance before the rebalance delay has elapsed.
     error REBALANCE_DELAY_NOT_MET();
 
+    /// @notice Thrown when attempting to set the rebalance delay to a value greater than the maximum.
+    error REBALANCE_DELAY_TOO_LONG();
+
     /// @notice Thrown when attempting to rebalance an asset that does not need to be rebalanced.
     error NO_REBALANCE_NEEDED();
 
