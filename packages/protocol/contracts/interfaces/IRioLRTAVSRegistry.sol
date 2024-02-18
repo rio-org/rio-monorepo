@@ -67,11 +67,12 @@ interface IRioLRTAVSRegistry {
     /// @return True if the registry contract is active, false otherwise.
     function isActiveRegistryContract(address registryContract) external view returns (bool);
 
+    // forgefmt: disable-next-item
     /// @notice Adds a new AVS to the registry.
     /// @param name The name of the AVS.
     /// @param slashingContract The address of the slashing contract.
     /// @param registryContract The address of the registry contract.
-    function addAVS(string calldata name, address slashingContract, address registryContract) external;
+    function addAVS(string calldata name, address slashingContract, address registryContract) external returns (uint128);
 
     /// @notice Activates an AVS in the registry.
     /// @param avsId The ID of the AVS to activate.
