@@ -285,9 +285,11 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         IRioLRTAssetRegistry assetRegistry_ = assetRegistry();
 
         uint256 depositCap = assetRegistry_.getAssetDepositCap(asset);
-        uint256 existingBalance = assetRegistry_.getTotalBalanceForAsset(asset);
-        if (depositCap > 0 && existingBalance + amountIn > depositCap) {
-            revert DEPOSIT_CAP_REACHED(asset, depositCap);
+        if (depositCap > 0) {
+            uint256 existingBalance = assetRegistry_.getTotalBalanceForAsset(asset);
+            if (existingBalance + amountIn > depositCap) {
+                revert DEPOSIT_CAP_REACHED(asset, depositCap);
+            }
         }
     }
 
