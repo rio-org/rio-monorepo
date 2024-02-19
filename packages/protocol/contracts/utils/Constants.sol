@@ -16,6 +16,15 @@ address constant ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 /// @dev The per-validator ETH deposit amount.
 uint256 constant ETH_DEPOSIT_SIZE = 32 ether;
 
+/// @dev A soft cap on the amount of ETH that can be deposited in a single transaction (100 validators).
+/// Depending on the ETH deposit buffer limit, the actual maximum deposit amount may slightly higher.
+uint256 constant ETH_DEPOSIT_SOFT_CAP = ETH_DEPOSIT_SIZE * 100;
+
+/// @dev Defines the maximum allowable excess amount of ETH above the soft cap that can still be deposited
+/// in a single transaction. This allows for deposits slightly over the soft cap (up to 10 validators extra) to
+/// be included without requiring additional transactions.
+uint256 constant ETH_DEPOSIT_BUFFER_LIMIT = ETH_DEPOSIT_SIZE * 10;
+
 /// @dev The deposit amount in gwei, converted to little endian.
 /// ETH_DEPOSIT_SIZE_IN_GWEI_LE64 = toLittleEndian64(32 ether / 1 gwei)
 uint64 constant ETH_DEPOSIT_SIZE_IN_GWEI_LE64 = 0x0040597307000000;

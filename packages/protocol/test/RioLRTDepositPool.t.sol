@@ -2,13 +2,19 @@
 pragma solidity 0.8.23;
 
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
-import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 import {Array} from 'contracts/utils/Array.sol';
+import {
+    BEACON_CHAIN_STRATEGY,
+    ETH_ADDRESS,
+    ETH_DEPOSIT_SIZE,
+    ETH_DEPOSIT_SOFT_CAP,
+    ETH_DEPOSIT_BUFFER_LIMIT
+} from 'contracts/utils/Constants.sol';
 
 contract RioLRTDepositPoolTest is RioDeployer {
     using Array for *;
@@ -31,7 +37,9 @@ contract RioLRTDepositPoolTest is RioDeployer {
 
     function test_depositBalanceIntoEigenLayerZeroEtherExitsEarly() public {
         vm.prank(address(reETH.coordinator));
-        assertEq(reETH.depositPool.depositBalanceIntoEigenLayer(ETH_ADDRESS), 0);
+
+        (uint256 sharesReceived,) = reETH.depositPool.depositBalanceIntoEigenLayer(ETH_ADDRESS);
+        assertEq(sharesReceived, 0);
     }
 
     function test_depositBalanceIntoEigenLayerEtherBelowDepositSizeExitsEarly() public {
@@ -39,23 +47,48 @@ contract RioLRTDepositPoolTest is RioDeployer {
 
         vm.deal(address(reETH.depositPool), amount);
         vm.prank(address(reETH.coordinator));
-        assertEq(reETH.depositPool.depositBalanceIntoEigenLayer(ETH_ADDRESS), 0);
+
+        (uint256 sharesReceived,) = reETH.depositPool.depositBalanceIntoEigenLayer(ETH_ADDRESS);
+        assertEq(sharesReceived, 0);
+    }
+
+    function test_depositBalanceIntoEigenLayerLargeEtherDepositIsCapped() public {
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 10);
+
+        vm.deal(address(reETH.depositPool), ETH_DEPOSIT_SOFT_CAP * 3);
+        vm.prank(address(reETH.coordinator));
+
+        (uint256 sharesReceived,) = reETH.depositPool.depositBalanceIntoEigenLayer(ETH_ADDRESS);
+        assertEq(sharesReceived, ETH_DEPOSIT_SOFT_CAP);
+    }
+
+    function test_depositBalanceIntoEigenLayerLargeEtherDepositExtendsToBufferLimit() public {
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 10);
+
+        vm.deal(address(reETH.depositPool), ETH_DEPOSIT_SOFT_CAP + ETH_DEPOSIT_BUFFER_LIMIT);
+        vm.prank(address(reETH.coordinator));
+
+        (uint256 sharesReceived,) = reETH.depositPool.depositBalanceIntoEigenLayer(ETH_ADDRESS);
+        assertEq(sharesReceived, ETH_DEPOSIT_SOFT_CAP + ETH_DEPOSIT_BUFFER_LIMIT);
     }
 
     function test_depositBalanceIntoEigenLayerEtherDeposit() public {
-        uint256 initialBalance = address(reETH.depositPool).balance;
-        uint256 amount = (ETH_DEPOSIT_SIZE * 40) + 2 ether - initialBalance;
+        uint256 amount = (ETH_DEPOSIT_SIZE * 40) + 2 ether;
 
         addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 10);
 
         vm.deal(address(reETH.depositPool), amount);
         vm.prank(address(reETH.coordinator));
-        assertEq(reETH.depositPool.depositBalanceIntoEigenLayer(ETH_ADDRESS), amount - amount % 32 ether);
+
+        (uint256 sharesReceived,) = reETH.depositPool.depositBalanceIntoEigenLayer(ETH_ADDRESS);
+        assertEq(sharesReceived, amount - amount % 32 ether);
     }
 
     function test_depositBalanceIntoEigenLayerZeroERC20sExitsEarly() public {
         vm.prank(address(reLST.coordinator));
-        assertEq(reLST.depositPool.depositBalanceIntoEigenLayer(CBETH_ADDRESS), 0);
+
+        (uint256 sharesReceived,) = reLST.depositPool.depositBalanceIntoEigenLayer(CBETH_ADDRESS);
+        assertEq(sharesReceived, 0);
     }
 
     function test_depositBalanceIntoEigenLayerERC20Deposit() public {
@@ -66,7 +99,9 @@ contract RioLRTDepositPoolTest is RioDeployer {
         cbETH.mint(address(reLST.depositPool), amount);
 
         vm.prank(address(reLST.coordinator));
-        assertEq(reLST.depositPool.depositBalanceIntoEigenLayer(CBETH_ADDRESS), amount + initialBalance);
+
+        (uint256 sharesReceived,) = reLST.depositPool.depositBalanceIntoEigenLayer(CBETH_ADDRESS);
+        assertEq(sharesReceived, amount + initialBalance);
         assertEq(cbETH.balanceOf(CBETH_STRATEGY), amount + initialBalance);
     }
 

@@ -2,11 +2,17 @@
 pragma solidity 0.8.23;
 
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {ETH_ADDRESS, ETH_DEPOSIT_SIZE, MAX_REBALANCE_DELAY} from 'contracts/utils/Constants.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {EmptyContract} from 'test/utils/EmptyContract.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
+import {
+    ETH_ADDRESS,
+    ETH_DEPOSIT_SIZE,
+    ETH_DEPOSIT_SOFT_CAP,
+    ETH_DEPOSIT_BUFFER_LIMIT,
+    MAX_REBALANCE_DELAY
+} from 'contracts/utils/Constants.sol';
 
 contract RioLRTCoordinatorTest is RioDeployer {
     TestLRTDeployment public reETH;
@@ -173,6 +179,40 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
+    }
+
+    function test_rebalanceSetsNextRebalanceTimestamp() public {
+        // Ensure there is an operator to allocate to.
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
+
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        assertTrue(reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS) > block.timestamp);
+    }
+
+    function test_rebalanceAboveSoftCapAndBufferDoesNotIncreaseNextRebalanceTimestamp() public {
+        // Ensure there are operators to allocate to.
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 10);
+
+        uint256 initialRebalanceAfterTimestamp = reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS);
+
+        uint256 amount = ETH_DEPOSIT_SOFT_CAP * 2;
+        reETH.coordinator.depositETH{value: amount}();
+
+        // Capped rebalance, which should not set the next rebalance timestamp.
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        assertEq(reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS), initialRebalanceAfterTimestamp);
+
+        // This rebalance shouldn't be capped, and should set the next rebalance timestamp.
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        assertTrue(reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS) > initialRebalanceAfterTimestamp);
     }
 
     function test_rebalanceSettlesWithdrawalEpochIfSufficientEtherInDepositPool() public {

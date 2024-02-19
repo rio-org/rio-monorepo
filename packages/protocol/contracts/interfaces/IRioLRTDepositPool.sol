@@ -22,7 +22,8 @@ interface IRioLRTDepositPool {
     function initialize(address initialOwner, address token) external;
 
     /// @notice Deposits the entire deposit pool balance of the specified `asset` into EigenLayer.
-    function depositBalanceIntoEigenLayer(address asset) external returns (uint256);
+    /// @param asset The address of the asset to be deposited.
+    function depositBalanceIntoEigenLayer(address asset) external returns (uint256, bool);
 
     /// @notice Transfers the maximum possible amount of assets based on the available
     /// pool balance and requested shares.
