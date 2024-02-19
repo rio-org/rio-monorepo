@@ -50,7 +50,8 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
 
         bool isDepositCapped;
         if (asset == ETH_ADDRESS) {
-            // Due to the high cost associated with ETH deposits, we cap the deposit at or near the defined soft cap.
+            // Due to the high cost associated with ETH deposits, we cap the deposit at or near the defined soft cap to avoid
+            // hitting the block gas limit.
             if (amountToDeposit > ETH_DEPOSIT_SOFT_CAP) {
                 // Only cap the deposit if the excess is beyond the allowed buffer limit.
                 if (amountToDeposit - ETH_DEPOSIT_SOFT_CAP > ETH_DEPOSIT_BUFFER_LIMIT) {
