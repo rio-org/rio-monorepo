@@ -151,6 +151,54 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(reETH.coordinator.rebalanceDelay(), 99);
     }
 
+    function test_setRebalanceDelayTakesEffectImmediatelyIfSetBeforeFirstRebalance() public {
+        // Ensure there is an operator to allocate to.
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
+
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+
+        uint24 initialRebalanceDelay = reETH.coordinator.rebalanceDelay();
+        reETH.coordinator.setRebalanceDelay(initialRebalanceDelay - 1);
+
+        // Skip forward using the new, slightly shorter delay.
+        skip(reETH.coordinator.rebalanceDelay());
+
+        // The rebalance delay should take effect immediately (no revert).
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+    }
+
+    function test_setRebalanceDelayDoesNotTakeEffectUntilSubsequentRebalanceIfAfterFirstRebalance() public {
+        // Ensure there is an operator to allocate to.
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
+
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+
+        // First rebalance.
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+
+        uint24 initialRebalanceDelay = reETH.coordinator.rebalanceDelay();
+        reETH.coordinator.setRebalanceDelay(initialRebalanceDelay - 1);
+
+        // Skip forward using the new, slightly shorter delay.
+        skip(reETH.coordinator.rebalanceDelay());
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.REBALANCE_DELAY_NOT_MET.selector));
+
+        // The rebalance delay should not have taken effect yet.
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+
+        skip(1);
+
+        // The rebalance delay should have taken effect now.
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalance(ETH_ADDRESS);
+    }
+
     function test_rebalanceNotNeededReverts() public {
         // No withdrawals or deposits have been made, so no rebalance is needed.
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.NO_REBALANCE_NEEDED.selector));
