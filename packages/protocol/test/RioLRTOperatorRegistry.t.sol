@@ -344,7 +344,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             abi.encode(IEigenPod.VALIDATOR_STATUS.WITHDRAWN)
         );
 
-        // Ensure the exxpected public keys are swapped.
+        // Ensure the expected public keys are swapped.
         uint256 j = OOO_EXIT_STARTING_INDEX;
         (bytes memory expectedPublicKeys,) = TestUtils.getValidatorKeys(UPLOADED_KEY_COUNT);
         for (uint256 i = 0; i < OOO_EXIT_COUNT; i++) {
