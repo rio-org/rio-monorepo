@@ -68,8 +68,8 @@ export default function Layout({ children, nav }: LayoutProps) {
         socialItems={nav.socialItems}
         logoItem={nav.logoItem}
         className={twJoin(
-          'absolute z-[90] py-3 px-4',
-          'lg:max-w-[calc(100vw-1.5rem)] bg-[var(--color-app-bg)]',
+          'absolute z-[90] py-3 px-4 lg:px-5',
+          'lg:max-w-full bg-appBackground',
           'rounded-b-none'
         )}
       />

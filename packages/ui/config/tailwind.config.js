@@ -20,6 +20,7 @@ module.exports = withMT({
         ...blackA,
         ...blueA,
         ...whiteA,
+        appBackground: 'var(--color-app-bg)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
