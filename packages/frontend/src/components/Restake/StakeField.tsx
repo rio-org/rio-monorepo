@@ -16,19 +16,18 @@ import {
 import {
   cn,
   displayAmount,
-  displayEthAmount,
-  parseBigIntFieldAmount
+  displayEthAmount
 } from '@rio-monorepo/ui/lib/utilities';
 
 type Props = {
   activeToken?: AssetDetails;
-  amount: bigint | null;
+  amount: string | null;
   accountTokenBalance: bigint;
   assets: AssetDetails[];
   isDisabled: boolean;
   estimatedMaxGas?: bigint;
   lrt?: LRTDetails;
-  setAmount: (amount: bigint | null) => void;
+  setAmount: (amount: string | null) => void;
   setActiveToken: (asset: AssetDetails) => void;
 };
 
@@ -62,39 +61,8 @@ const StakeField = ({
 
   const usdAmount = useMemo(() => {
     if (!activeToken || !exchangeRate?.usd) return 0;
-    return amount
-      ? +formatUnits(amount, activeToken.decimals) * exchangeRate.usd
-      : 0;
+    return amount ? +amount * exchangeRate.usd : 0;
   }, [amount, activeToken?.decimals, exchangeRate?.usd]);
-
-  const handleValueChange = useCallback(
-    (value: string) => {
-      if (!activeToken || value === '') {
-        return setAmount(null);
-      }
-
-      const parsedValue = parseUnits(value, activeToken?.decimals);
-      if (errorMessage && parsedValue > 0n && parsedValue <= maxAmount) {
-        setErrorMessage(null);
-      }
-
-      setAmount(parsedValue);
-    },
-    [activeToken, maxAmount, errorMessage]
-  );
-
-  const handleMaxBalance = useCallback(() => {
-    const el = document.getElementById('restake-amount') as HTMLInputElement;
-    setAmount(maxAmount);
-    if (!el || !activeToken) return;
-    el.value = formatUnits(maxAmount, activeToken.decimals);
-    setErrorMessage(null);
-  }, [maxAmount, activeToken]);
-
-  const unFocusInput = useCallback(() => {
-    if (assets.length <= 1) return;
-    inputRef.current?.blur();
-  }, [inputRef, assets]);
 
   const handleEvaluateError = useCallback(
     (value: string) => {
@@ -102,9 +70,12 @@ const StakeField = ({
         return false;
       }
 
+      const minAmount = parseUnits('0.01', activeToken.decimals);
       const parsedValue = parseUnits(value, activeToken.decimals);
       const message = !parsedValue
         ? 'Invalid amount'
+        : parsedValue < minAmount
+        ? `Minimum amount is 0.01 ${activeToken.symbol}`
         : parsedValue > accountTokenBalance
         ? 'Insufficient balance'
         : activeToken.symbol === 'ETH' && parsedValue > maxAmount
@@ -116,6 +87,38 @@ const StakeField = ({
     },
     [activeToken, maxAmount, maxButtonRef]
   );
+
+  const handleValueChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (!activeToken || value === '') {
+        return setAmount('');
+      }
+
+      const strippedValue = value.replace(/[^0-9.]/g, '');
+
+      if (!strippedValue.match(/^0+(.0+)?$/)) {
+        handleEvaluateError(strippedValue);
+      }
+
+      setAmount(strippedValue);
+    },
+    [activeToken, handleEvaluateError]
+  );
+
+  const handleMaxBalance = useCallback(() => {
+    const el = document.getElementById('restake-amount') as HTMLInputElement;
+    const _maxAmount = formatUnits(maxAmount, activeToken?.decimals || 18);
+    setAmount(_maxAmount);
+    if (!el || !activeToken) return;
+    el.value = _maxAmount;
+    setErrorMessage(null);
+  }, [maxAmount, activeToken]);
+
+  const unFocusInput = useCallback(() => {
+    if (assets.length <= 1) return;
+    inputRef.current?.blur();
+  }, [inputRef, assets]);
 
   const handleBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
@@ -142,23 +145,22 @@ const StakeField = ({
         type="number"
         placeholder="0.00"
         step="0.01"
-        min={0}
+        min={0.01}
         autoFocus
         disabled={isDisabled}
         className={cn(
           'relative z-10 [&>div]:transition-all',
           errorMessage && '[&>div]:rounded-b-none'
         )}
-        value={
-          !activeToken
-            ? undefined
-            : parseBigIntFieldAmount(amount, activeToken.decimals)
-        }
-        onChange={(e) => handleValueChange(e.target.value)}
+        value={!activeToken ? undefined : amount ?? ''}
+        onChange={handleValueChange}
         onBlur={handleBlur}
         onKeyDown={(e) => {
           if (e.key === 'Tab') {
             handleEvaluateError(e.currentTarget.value);
+          }
+          if (e.key.length === 1 && e.key.match(/e|\+|-/gi)) {
+            e.preventDefault();
           }
         }}
         suffix={
@@ -193,7 +195,7 @@ const StakeField = ({
                   <button
                     ref={maxButtonRef}
                     onClick={handleMaxBalance}
-                    disabled={!estimatedMaxGas}
+                    disabled={isDisabled || !estimatedMaxGas}
                     className={twJoin(
                       'text-black font-bold mx-1',
                       'disabled:opacity-50 enabled:hover:opacity-75 enabled:underline'

@@ -1,6 +1,6 @@
 import { useNetwork, useSwitchNetwork, useWaitForTransaction } from 'wagmi';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Spinner } from '@material-tailwind/react';
 import { twJoin } from 'tailwind-merge';
 import type { Hash } from '@wagmi/core';
@@ -51,6 +51,9 @@ const TransactionButton = ({
   const addTransaction = useAddTransaction();
   const { isLoading: isSwitchNetworkLoading, switchNetwork } =
     useSwitchNetwork();
+  const [internalError, setInternalError] = useState<ContractError | null>(
+    error || null
+  );
 
   const lastPendingTx = !pendingTxs.length
     ? null
@@ -72,6 +75,11 @@ const TransactionButton = ({
     hash: prevTx?.isSame ? prevTx.hash : hash
   });
 
+  useEffect(() => {
+    if (!error && !txError) return;
+    setInternalError(error ?? txError);
+  }, [error, txError]);
+
   const { isSuccess: isPrevTxSuccess } = useWaitForTransaction({
     hash: prevTx?.isSame ? undefined : prevTx?.hash
   });
@@ -85,9 +93,9 @@ const TransactionButton = ({
   }, [hash, type]);
 
   const [, _errorMessage] = useMemo(() => {
-    const e = (txError ?? error) as ContractError | null;
+    const e = internalError;
     return [e, e?.shortMessage ?? e?.message];
-  }, [txError, error]);
+  }, [internalError]);
 
   const isDisabled = wrongNetwork
     ? isSwitchNetworkLoading
@@ -96,8 +104,10 @@ const TransactionButton = ({
   const handleClick = useCallback((): void => {
     if (isDisabled) return;
     if (!address) return openWalletModal();
+    setInternalError(null);
+    clearErrors?.();
     wrongNetwork ? switchNetwork?.(CHAIN_ID) : write?.();
-  }, [isDisabled, address, wrongNetwork, switchNetwork, write]);
+  }, [isDisabled, address, wrongNetwork, clearErrors, switchNetwork, write]);
 
   return (
     <div className="flex flex-col w-full max-w-full mt-4">
@@ -126,7 +136,10 @@ const TransactionButton = ({
                 </span>
               </div>
               <button
-                onClick={clearErrors}
+                onClick={() => {
+                  clearErrors?.();
+                  setInternalError(null);
+                }}
                 className="opacity-30 hover:opacity-90 active:hover:opacity-100"
               >
                 <IconX
