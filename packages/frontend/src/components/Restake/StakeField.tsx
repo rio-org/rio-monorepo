@@ -70,12 +70,12 @@ const StakeField = ({
         return false;
       }
 
-      const minAmount = parseUnits('0.001', activeToken.decimals);
+      const minAmount = parseUnits('0.01', activeToken.decimals);
       const parsedValue = parseUnits(value, activeToken.decimals);
       const message = !parsedValue
         ? 'Invalid amount'
         : parsedValue < minAmount
-        ? `Minimum amount is 0.001 ${activeToken.symbol}`
+        ? `Minimum amount is 0.01 ${activeToken.symbol}`
         : parsedValue > accountTokenBalance
         ? 'Insufficient balance'
         : activeToken.symbol === 'ETH' && parsedValue > maxAmount
@@ -145,7 +145,7 @@ const StakeField = ({
         type="number"
         placeholder="0.00"
         step="0.01"
-        min={0.001}
+        min={0.01}
         autoFocus
         disabled={isDisabled}
         className={cn(

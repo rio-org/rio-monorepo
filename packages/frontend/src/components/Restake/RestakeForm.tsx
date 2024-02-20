@@ -168,7 +168,7 @@ function RestakeFormBase({
 
   const isValidAmount =
     !!amount &&
-    amount >= parseUnits('0.001', activeToken.decimals) &&
+    amount >= parseUnits('0.01', activeToken.decimals) &&
     amount <= accountTokenBalance &&
     !!gasEstimates &&
     !!activeToken &&
