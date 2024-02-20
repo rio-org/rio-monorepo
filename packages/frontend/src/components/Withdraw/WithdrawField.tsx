@@ -51,8 +51,9 @@ const WithdrawField = ({
   });
 
   const usdAmount = useMemo(() => {
-    if (!activeToken || !exchangeRate?.usd) return 0;
-    return amount ? parseFloat(amount) * exchangeRate.usd : 0;
+    const { usd, lrt } = exchangeRate || {};
+    if (!activeToken || !usd || !lrt) return 0;
+    return amount ? (parseFloat(amount) / lrt) * usd : 0;
   }, [amount, activeToken?.decimals, exchangeRate?.usd]);
 
   const handleEvaluateError = useCallback(
