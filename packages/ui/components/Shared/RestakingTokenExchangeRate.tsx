@@ -58,12 +58,13 @@ export const RestakingTokenExchangeRate = ({
             ) : isRestakingTokenBase ? (
               <>
                 {displayAmount(1, ...rateDecimals)} {restakingTokenSymbol} ={' '}
-                {displayAmount(exchangeRate.lrt, ...rateDecimals)} {assetSymbol}
+                {displayAmount(1 / exchangeRate.lrt, ...rateDecimals)}{' '}
+                {assetSymbol}
               </>
             ) : (
               <>
                 {displayAmount(1, ...rateDecimals)} {assetSymbol} ={' '}
-                {displayAmount(1 / exchangeRate.lrt, ...rateDecimals)}{' '}
+                {displayAmount(exchangeRate.lrt, ...rateDecimals)}{' '}
                 {restakingTokenSymbol}
               </>
             )}
