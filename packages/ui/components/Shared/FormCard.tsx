@@ -10,7 +10,7 @@ import { twMerge } from 'tailwind-merge';
 type FormCardContainerProps = {
   title?: React.ReactNode | React.ReactNode[];
   header?: React.ReactNode | React.ReactNode[];
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
   noPadding?: boolean;
 };
@@ -34,8 +34,7 @@ const Wrapper = ({
       <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-[16px] p-1">
         <div
           className={twMerge(
-            'flex flex-col lg:flex-row',
-            'justify-start lg:justify-between',
+            'flex flex-col lg:flex-row justify-start lg:justify-between',
             'w-full px-4 lg:px-5 lg-max:gap-2 lg-max:pt-3 lg-max:pb-3',
             !!header && 'lg:gap-8 lg:pt-3 pb-3'
           )}
@@ -44,7 +43,7 @@ const Wrapper = ({
             <h1 className="text-2xl mb-0 font-medium lg:hidden">{title}</h1>
           )}
           {header && (
-            <div className="flex gap-2 justify-center font-bold items-center">
+            <div className="flex gap-2 justify-start font-bold items-center w-full">
               {header}
             </div>
           )}
@@ -99,7 +98,7 @@ const Tabs = ({ items, baseUrl }: TabsProps) => {
   ).slug;
 
   return (
-    <div className="flex w-full text-center content-center text-gray-600 lg:justify-center gap-4">
+    <div className="flex w-full text-center content-center text-gray-600 gap-4">
       {items.map(({ label, slug }) => {
         const className = cn(
           'font-medium',

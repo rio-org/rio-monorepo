@@ -39,6 +39,7 @@
     "react-responsive": "^9.0.2",
     "sass": "^1.69.5",
     "sharp": "^0.32.6",
+    "sonner": "^1.4.0",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-radix": "^2.8.0",

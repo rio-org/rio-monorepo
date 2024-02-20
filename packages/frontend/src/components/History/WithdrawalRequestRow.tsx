@@ -1,16 +1,18 @@
 import React, { useMemo } from 'react';
 import TransactionStatusLabel from '@rio-monorepo/ui/components/Shared/TransactionStatusLabel';
-import SymbolPill from '@rio-monorepo/ui/components/Shared/SymbolPill';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   dateFromTimestamp,
-  displayEthAmount
+  displayEthAmount,
+  linkToTxOnBlockExplorer
 } from '@rio-monorepo/ui/lib/utilities';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import { WithdrawalRequest } from '@rionetwork/sdk-react';
 import { useGetAssetsList } from '@rio-monorepo/ui/hooks/useGetAssetsList';
-import { getAddress } from 'viem';
+import { Hash, getAddress } from 'viem';
+import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
+import { CHAIN_ID } from '@rio-monorepo/ui/config';
 
 type Props = {
   transaction: WithdrawalRequest;
@@ -51,8 +53,8 @@ const WithdrawalRequestRow = ({
         }}
       >
         <td className="w-full flex flex-row justify-between items-center">
-          <div className="w-full py-4 flex flex-row justify-between items-center">
-            <div className="flex flex-col items-start px-4 lg:px-6 whitespace-nowrap text-sm font-medium text-gray-900">
+          <div className="w-full py-4 lg:py-2 flex flex-row justify-between items-center">
+            <div className="flex flex-col items-start gap-1 px-4 lg:pl-6 whitespace-nowrap text-sm font-medium text-gray-900">
               <span className="mb-1 lg:mb-0">
                 {dateFromTimestamp(+transaction.timestamp)}
               </span>
@@ -60,6 +62,7 @@ const WithdrawalRequestRow = ({
                 <TransactionStatusLabel
                   nextRebalanceTimestamp={nextRebalanceTimestamp}
                   transaction={transaction}
+                  isLink={false}
                 />
               )}
             </div>
@@ -68,17 +71,32 @@ const WithdrawalRequestRow = ({
                 <TransactionStatusLabel
                   nextRebalanceTimestamp={nextRebalanceTimestamp}
                   transaction={transaction}
+                  isLink={false}
                 />
               </div>
             )}
-            <div className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
+            <div className="px-4 lg:px-2 whitespace-nowrap text-sm flex items-center justify-end gap-4 font-medium">
               {transaction.amountOut && (
-                <div className="flex items-center gap-0 font-medium">
-                  <span className="mr-2">
-                    {displayEthAmount(transaction.amountOut)}
-                  </span>
-                  <SymbolPill symbol={asset?.symbol} />
-                </div>
+                <>
+                  <div>
+                    {displayEthAmount(transaction.amountOut)} {asset?.symbol}
+                  </div>
+
+                  <a
+                    href={linkToTxOnBlockExplorer(
+                      (transaction.claimTx || transaction.tx) as Hash,
+                      CHAIN_ID
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg bg-blackA2 px-3 py-2 opacity-50 hover:opacity-100 transition-opacity"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span>View</span>
+                      <IconExternal />
+                    </span>
+                  </a>
+                </>
               )}
             </div>
           </div>

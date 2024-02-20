@@ -241,7 +241,8 @@ export const displayEthAmount = (amount: string, digits: number = 3) => {
     return '0';
   }
 
-  const parsedAmount = parseFloat(
+  const parsedAmount = parseFloat(new bigDecimal(amount).getValue());
+  const rounded = parseFloat(
     bigDecimal.round(amount, digits, bigDecimal.RoundingModes.DOWN)
   );
 
@@ -256,7 +257,7 @@ export const displayEthAmount = (amount: string, digits: number = 3) => {
         minimumFractionDigits: digits,
         maximumFractionDigits: digits
       })}`
-    : displayAmount(parsedAmount, 0, digits);
+    : displayAmount(rounded, 0, digits);
 };
 
 export const isEqualAddress = (a: string, b: string) => {

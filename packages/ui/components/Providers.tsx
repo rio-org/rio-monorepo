@@ -33,6 +33,7 @@ import { theme } from '../lib/theme';
 import { CHAIN_ID } from '../config';
 import WalletAndTermsStoreProvider from '../contexts/WalletAndTermsStore';
 import { TouchProvider } from '../contexts/TouchProvider';
+import { Toaster } from './shadcn/toaster';
 
 // Create the cache client
 const queryClient = new QueryClient();
@@ -133,6 +134,7 @@ export function Providers({
                     <CssBaseline />
                     <Layout nav={nav}>
                       {children}
+                      <Toaster />
                       <Analytics />
                       <SpeedInsights />
                     </Layout>
