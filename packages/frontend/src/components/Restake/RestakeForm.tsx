@@ -451,8 +451,8 @@ function RestakeFormBase({
                   contentClassName="max-w-[300px] p-3"
                 >
                   <p>
-                    The percentage taken from all staking rewards (not
-                    deposits).
+                    The percentage taken from all staking and restaking rewards
+                    (not withdrawals or deposits).
                   </p>
                 </InfoTooltip>
               </span>
@@ -466,9 +466,9 @@ function RestakeFormBase({
 
               <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
                 <p>
-                  The amount of reETH received is an estimate. The actual amount
-                  of reETH may vary slightly due to fluctuations in the price of
-                  ETH and cost of gas.
+                  Estimation is based on current market conditions. Actual
+                  amounts may change based on market fluctuations, pending
+                  rewards, and slashing events.
                 </p>
               </InfoTooltip>
             </span>
