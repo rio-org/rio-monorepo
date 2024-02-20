@@ -12,8 +12,7 @@ import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import {
   cn,
   displayAmount,
-  displayEthAmount,
-  parseBigIntFieldAmount
+  displayEthAmount
 } from '@rio-monorepo/ui/lib/utilities';
 import {
   type AssetDetails,
@@ -22,11 +21,11 @@ import {
 
 type Props = {
   activeToken?: AssetDetails;
-  amount: bigint | null;
+  amount: string;
   disabled?: boolean;
   restakingTokenBalance: bigint;
   lrtDetails?: LRTDetails;
-  setAmount: (amount: bigint | null) => void;
+  setAmount: (amount: string) => void;
 };
 
 const WithdrawField = ({
@@ -53,38 +52,8 @@ const WithdrawField = ({
 
   const usdAmount = useMemo(() => {
     if (!activeToken || !exchangeRate?.usd) return 0;
-    return amount
-      ? +formatUnits(amount, activeToken.decimals) * exchangeRate.usd
-      : 0;
+    return amount ? parseFloat(amount) * exchangeRate.usd : 0;
   }, [amount, activeToken?.decimals, exchangeRate?.usd]);
-
-  const handleValueChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-
-      if (!lrtDetails || value === '') {
-        return setAmount(null);
-      }
-
-      const parsedValue = parseUnits(value, lrtDetails.decimals || 18);
-      if (
-        errorMessage &&
-        parsedValue > 0n &&
-        parsedValue <= restakingTokenBalance
-      ) {
-        setErrorMessage(null);
-      }
-
-      setAmount(parsedValue);
-    },
-    [restakingTokenBalance, lrtDetails, errorMessage]
-  );
-
-  const focusInput = useCallback(() => {
-    if (!inputRef.current) return;
-    inputRef.current.focus();
-    setIsFocused(true);
-  }, [inputRef]);
 
   const handleEvaluateError = useCallback(
     (value: string) => {
@@ -105,6 +74,30 @@ const WithdrawField = ({
     [lrtDetails, restakingTokenBalance]
   );
 
+  const handleValueChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (!lrtDetails || value === '') {
+        return setAmount('');
+      }
+
+      const strippedValue = value.replace(/[^0-9.]/g, '');
+
+      if (!strippedValue.match(/^0+(.0+)?$/)) {
+        handleEvaluateError(strippedValue);
+      }
+
+      setAmount(strippedValue);
+    },
+    [restakingTokenBalance, lrtDetails, errorMessage]
+  );
+
+  const focusInput = useCallback(() => {
+    if (!inputRef.current) return;
+    inputRef.current.focus();
+    setIsFocused(true);
+  }, [inputRef]);
+
   const handleBlur = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(false);
@@ -117,9 +110,13 @@ const WithdrawField = ({
 
   const handleMaxAmount = useCallback(() => {
     const el = document.getElementById('withdraw-amount') as HTMLInputElement;
-    setAmount(restakingTokenBalance);
+    const _maxAmount = formatUnits(
+      restakingTokenBalance,
+      activeToken?.decimals || 18
+    );
+    setAmount(_maxAmount);
     if (!el || !lrtDetails) return;
-    el.value = formatUnits(restakingTokenBalance, lrtDetails.decimals);
+    el.value = _maxAmount;
     setErrorMessage(null);
   }, [restakingTokenBalance, lrtDetails]);
 
@@ -178,7 +175,7 @@ const WithdrawField = ({
         )}
         onClick={focusInput}
       >
-        <div className="relative flex flex-row gap-4 items-center">
+        <div className="relative z-10 flex flex-row gap-4 items-center">
           <div className="relative flex flex-col gap-1 w-full flex-1">
             {isMounted ? (
               <>
@@ -198,18 +195,22 @@ const WithdrawField = ({
                   autoFocus={!disabled && isDesktopOrLaptop}
                   min={0}
                   disabled={disabled}
-                  value={parseBigIntFieldAmount(amount, 18)}
+                  value={amount}
                   step="0.01"
                   ref={inputRef}
                   onFocus={() => setIsFocused(true)}
                   onChange={handleValueChange}
                   onBlur={handleBlur}
                   onKeyDown={(e) => {
-                    if (e.key !== 'Tab') return;
-                    handleEvaluateError(e.currentTarget.value);
+                    if (e.key === 'Tab') {
+                      handleEvaluateError(e.currentTarget.value);
+                    }
+                    if (e.key.length === 1 && e.key.match(/e|\+|-/gi)) {
+                      e.preventDefault();
+                    }
                   }}
                 />
-                <span className="absolute left-1 bottom-0 text-xs tracking-tighter font-mono w-full opacity-50">
+                <span className="absolute left-0 bottom-0 text-xs tracking-tighter font-mono w-full opacity-50">
                   ${!usdAmount ? '0' : displayAmount(usdAmount, 2, 2)}
                 </span>
               </>
@@ -226,7 +227,12 @@ const WithdrawField = ({
             ref={maxButtonRef}
             disabled={disabled}
             id="withdraw-max"
-            className="font-medium ml-2 px-3 py-2 bg-[var(--color-element-wrapper-bg)] rounded-xl hover:bg-black hover:bg-opacity-10 transition-colors duration-200"
+            className={twJoin(
+              'ml-2 px-3 py-2 font-medium',
+              'bg-[var(--color-element-wrapper-bg)] rounded-xl',
+              'enabled:hover:bg-black enabled:hover:bg-opacity-10 transition-colors duration-200',
+              'disabled:opacity-50 disabled:cursor-not-allowed'
+            )}
             onClick={handleMaxAmount}
             onBlur={() => {
               const withdrawInput = document.getElementById(
