@@ -350,3 +350,12 @@ export const storeBoolValueInStorage = (key: string, store?: Storage) => {
       }
     });
 };
+
+export const stripTokenDecimals = (amount: string, decimals: number = 18) => {
+  const normalized = amount.replace(/[^0-9.]/g, '');
+  const pointIdx = normalized.indexOf('.');
+  const whole = normalized.match(/^\d+/)?.[0] ?? '';
+  return !~pointIdx
+    ? normalized
+    : `${whole}.${normalized.slice(pointIdx + 1, pointIdx + decimals + 1)}`;
+};
