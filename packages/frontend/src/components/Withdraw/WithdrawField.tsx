@@ -12,7 +12,8 @@ import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import {
   cn,
   displayAmount,
-  displayEthAmount
+  displayEthAmount,
+  stripTokenDecimals
 } from '@rio-monorepo/ui/lib/utilities';
 import {
   type AssetDetails,
@@ -82,7 +83,7 @@ const WithdrawField = ({
         return setAmount('');
       }
 
-      const strippedValue = value.replace(/[^0-9.]/g, '');
+      const strippedValue = stripTokenDecimals(value, lrtDetails.decimals);
 
       if (!strippedValue.match(/^0+(.0+)?$/)) {
         handleEvaluateError(strippedValue);

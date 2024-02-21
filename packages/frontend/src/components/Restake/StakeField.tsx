@@ -16,7 +16,8 @@ import {
 import {
   cn,
   displayAmount,
-  displayEthAmount
+  displayEthAmount,
+  stripTokenDecimals
 } from '@rio-monorepo/ui/lib/utilities';
 
 type Props = {
@@ -95,7 +96,7 @@ const StakeField = ({
         return setAmount('');
       }
 
-      const strippedValue = value.replace(/[^0-9.]/g, '');
+      const strippedValue = stripTokenDecimals(value, activeToken.decimals);
 
       if (!strippedValue.match(/^0+(.0+)?$/)) {
         handleEvaluateError(strippedValue);
