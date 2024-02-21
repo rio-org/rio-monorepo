@@ -1,5 +1,6 @@
 import { type ClaimWithdrawalParams } from '@rionetwork/sdk-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Spinner } from '@material-tailwind/react';
 import Link from 'next/link';
 import {
@@ -132,13 +133,22 @@ const Withdraw: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
         }
         className="mt-4"
       >
-        {withdrawalRequests && withdrawalRequests.length > 0 && (
-          <WithdrawalRequestHistory
-            lrt={activeLrt}
-            withdrawalRequests={withdrawalRequests}
-            className="rounded-xl"
-          />
-        )}
+        <AnimatePresence>
+          {withdrawalRequests?.length && (
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: 'auto' }}
+              exit={{ height: 0 }}
+              className="w-full overflow-hidden"
+            >
+              <WithdrawalRequestHistory
+                lrt={activeLrt}
+                withdrawalRequests={withdrawalRequests}
+                className="rounded-xl"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </FormCard.Wrapper>
 
       {!!faqs.length && (

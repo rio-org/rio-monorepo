@@ -1,18 +1,19 @@
-import React, { useMemo } from 'react';
-import TransactionStatusLabel from '@rio-monorepo/ui/components/Shared/TransactionStatusLabel';
+import { type WithdrawalRequest } from '@rionetwork/sdk-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useMediaQuery } from 'react-responsive';
+import { type Hash } from 'viem';
+import { useMemo } from 'react';
+import TransactionStatusLabel from '@rio-monorepo/ui/components/Shared/TransactionStatusLabel';
+import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
+import { useGetAssetsList } from '@rio-monorepo/ui/hooks/useGetAssetsList';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
+import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import {
   dateFromTimestamp,
   displayEthAmount,
+  isEqualAddress,
   linkToTxOnBlockExplorer
 } from '@rio-monorepo/ui/lib/utilities';
-import { useMediaQuery } from 'react-responsive';
-import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
-import { WithdrawalRequest } from '@rionetwork/sdk-react';
-import { useGetAssetsList } from '@rio-monorepo/ui/hooks/useGetAssetsList';
-import { Hash, getAddress } from 'viem';
-import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
-import { CHAIN_ID } from '@rio-monorepo/ui/config';
 
 type Props = {
   transaction: WithdrawalRequest;
@@ -35,10 +36,19 @@ const WithdrawalRequestRow = ({
   const { data } = useGetAssetsList();
 
   const asset = useMemo(() => {
-    return data?.find(
-      (asset) => getAddress(asset.address) === getAddress(transaction.assetOut)
-    );
-  }, [data, transaction.assetOut]);
+    const { isClaimed, restakingToken, assetOut } = transaction;
+    const address = isClaimed ? assetOut : restakingToken;
+    return data?.find((asset) => isEqualAddress(asset.address, address));
+  }, [
+    data,
+    transaction.assetOut,
+    transaction.isClaimed,
+    transaction.restakingToken
+  ]);
+
+  const amount = transaction.isClaimed
+    ? transaction.amountOut
+    : transaction.amountIn;
 
   return (
     <AnimatePresence>
@@ -66,6 +76,7 @@ const WithdrawalRequestRow = ({
                 />
               )}
             </div>
+
             {isDesktopOrLaptop && (
               <div className="flex flex-row flex-1">
                 <TransactionStatusLabel
@@ -75,29 +86,28 @@ const WithdrawalRequestRow = ({
                 />
               </div>
             )}
-            <div className="px-4 lg:px-2 whitespace-nowrap text-sm flex items-center justify-end gap-4 font-medium">
-              {transaction.amountOut && (
-                <>
-                  <div>
-                    {displayEthAmount(transaction.amountOut)} {asset?.symbol}
-                  </div>
 
-                  <a
-                    href={linkToTxOnBlockExplorer(
-                      (transaction.claimTx || transaction.tx) as Hash,
-                      CHAIN_ID
-                    )}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-lg bg-blackA2 px-3 py-2 opacity-50 hover:opacity-100 transition-opacity"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <span>View</span>
-                      <IconExternal />
-                    </span>
-                  </a>
-                </>
+            <div className="px-4 lg:px-2 whitespace-nowrap text-sm flex items-center justify-end gap-4 font-medium">
+              {amount && (
+                <div>
+                  {displayEthAmount(amount)} {asset?.symbol}
+                </div>
               )}
+
+              <a
+                href={linkToTxOnBlockExplorer(
+                  (transaction.claimTx || transaction.tx) as Hash,
+                  CHAIN_ID
+                )}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-lg bg-blackA2 px-3 py-2 opacity-50 hover:opacity-100 transition-opacity"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span>View</span>
+                  <IconExternal />
+                </span>
+              </a>
             </div>
           </div>
         </td>
