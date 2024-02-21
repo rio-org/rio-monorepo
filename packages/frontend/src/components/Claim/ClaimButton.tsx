@@ -49,7 +49,7 @@ const ClaimButton = ({
         {(isSigning ||
           isSwitchNetworkLoading ||
           isTxLoading ||
-          prevTx?.hash) && (
+          (claimAmount && prevTx?.hash)) && (
           <motion.span
             key="loading"
             className="inline-block overflow-hidden"
@@ -67,7 +67,7 @@ const ClaimButton = ({
           if (wrongNetwork) return 'Switch network';
           if (isTxLoading || isSigning) return 'Claiming';
           if (isSwitchNetworkLoading) return 'Switching';
-          if (prevTx?.hash) return 'Waiting';
+          if (claimAmount && prevTx?.hash) return 'Waiting';
           if (formattedAmount === '0' || !claimAssetSymbol) return 'Claim';
 
           return `Claim ${formattedAmount} ${claimAssetSymbol}`;
