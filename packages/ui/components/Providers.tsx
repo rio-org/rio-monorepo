@@ -118,7 +118,7 @@ export function Providers({
           wallets: [
             argentWallet({ projectId, chains }),
             trustWallet({ projectId, chains }),
-            braveWallet({ projectId, chains }),
+            braveWallet({ chains }),
             ledgerWallet({ projectId, chains }),
             safeWallet({ chains })
           ]
