@@ -1,7 +1,15 @@
 import '../styles/global.scss';
 import 'react-loading-skeleton/dist/skeleton.css';
 import '@rainbow-me/rainbowkit/styles.css';
-import { argentWallet, trustWallet } from '@rainbow-me/rainbowkit/wallets';
+import {
+  injectedWallet,
+  argentWallet,
+  trustWallet,
+  rabbyWallet,
+  safeWallet,
+  ledgerWallet,
+  braveWallet
+} from '@rainbow-me/rainbowkit/wallets';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { RioNetworkProvider } from '@rionetwork/sdk-react';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
@@ -81,7 +89,9 @@ export function Providers({
     [appTitle]
   );
 
-  const { wallets } = useMemo(
+  const {
+    wallets: [{ groupName, wallets }]
+  } = useMemo(
     () =>
       getDefaultWallets({
         appName: appInfo.appName,
@@ -95,16 +105,26 @@ export function Providers({
   const connectors = useMemo(
     () =>
       connectorsForWallets([
-        ...wallets,
+        {
+          groupName,
+          wallets: [
+            injectedWallet({ projectId, chains }),
+            ...wallets,
+            rabbyWallet({ chains })
+          ]
+        },
         {
           groupName: 'Other',
           wallets: [
             argentWallet({ projectId, chains }),
-            trustWallet({ projectId, chains })
+            trustWallet({ projectId, chains }),
+            braveWallet({ projectId, chains }),
+            ledgerWallet({ projectId, chains }),
+            safeWallet({ chains })
           ]
         }
       ]) as unknown as Connector[],
-    [wallets, projectId]
+    [wallets, groupName, projectId, chains]
   );
 
   const wagmiConfig = useMemo(
