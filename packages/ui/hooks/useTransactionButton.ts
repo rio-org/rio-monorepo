@@ -1,5 +1,5 @@
 import { useNetwork, useSwitchNetwork, useWaitForTransaction } from 'wagmi';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type Hash } from 'viem';
 import { useWalletAndTermsStore } from '../contexts/WalletAndTermsStore';
 import {
@@ -16,6 +16,7 @@ export type UseTransactionButtonConfig = {
   isSigning?: boolean;
   hash?: Hash;
   error?: ContractError | null;
+  clearErrors?: () => void;
   refetch?: () => void;
   write?: () => void;
 };
@@ -25,6 +26,7 @@ export const useTransactionButton = ({
   disabled,
   hash,
   error,
+  clearErrors,
   refetch,
   write,
   isSigning
@@ -36,6 +38,9 @@ export const useTransactionButton = ({
   const addTransaction = useAddTransaction();
   const { isLoading: isSwitchNetworkLoading, switchNetwork } =
     useSwitchNetwork();
+  const [internalError, setInternalError] = useState<ContractError | null>(
+    error || null
+  );
 
   const lastPendingTx = !pendingTxs.length
     ? null
@@ -70,20 +75,38 @@ export const useTransactionButton = ({
     addTransaction({ hash, type });
   }, [hash, type]);
 
+  useEffect(() => {
+    if (!error && !txError) return;
+    setInternalError(error ?? txError);
+  }, [error, txError]);
+
   const [, errorMessage] = useMemo(() => {
-    const e = (txError ?? error) as ContractError | null;
+    const e = internalError;
     return [e, e?.shortMessage ?? e?.message];
-  }, [txError, error]);
+  }, [internalError]);
 
   const isDisabled = wrongNetwork
     ? isSwitchNetworkLoading
     : isTxLoading || isSigning || disabled || !write || !!prevTx?.hash;
 
+  const handleClearErrors = useCallback(() => {
+    clearErrors?.();
+    setInternalError(null);
+  }, [clearErrors]);
+
   const handleClick = useCallback((): void => {
     if (isDisabled) return;
     if (!address) return openWalletModal();
+    handleClearErrors();
     wrongNetwork ? switchNetwork?.(CHAIN_ID) : write?.();
-  }, [isDisabled, address, wrongNetwork, switchNetwork, write]);
+  }, [
+    isDisabled,
+    address,
+    wrongNetwork,
+    handleClearErrors,
+    switchNetwork,
+    write
+  ]);
 
   return {
     errorMessage,
@@ -91,6 +114,7 @@ export const useTransactionButton = ({
     isTxError,
     isTxSuccess,
     isDisabled,
+    handleClearErrors,
     handleClick,
     prevTx
   };

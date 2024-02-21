@@ -2,10 +2,14 @@
 pragma solidity 0.8.23;
 
 import {Test} from 'forge-std/Test.sol';
+import {LibMap} from '@solady/utils/LibMap.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 
 contract OperatorUtilizationHeapTest is Test {
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
+    using LibMap for *;
+
+    LibMap.Uint8Map heapStore;
 
     function test_initialize() public {
         OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(5);
@@ -13,6 +17,46 @@ contract OperatorUtilizationHeapTest is Test {
         assertEq(heap.count, 0);
         assertEq(heap.isEmpty(), true);
         assertEq(heap.operators.length, 6); // maxSize + 1
+    }
+
+    function test_isEmpty() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
+
+        assertEq(heap.isEmpty(), true);
+        for (uint8 id; id < 10; id++) {
+            heap.insert(OperatorUtilizationHeap.Operator({id: id, utilization: 0}));
+        }
+        assertEq(heap.isEmpty(), false);
+        for (uint8 id; id < 10; id++) {
+            heap.removeByID(id);
+        }
+        assertEq(heap.isEmpty(), true);
+    }
+
+    function test_isFull() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
+
+        assertEq(heap.isFull(), false);
+        for (uint8 id; id < 10; id++) {
+            heap.insert(OperatorUtilizationHeap.Operator({id: id, utilization: 0}));
+        }
+        assertEq(heap.isFull(), true);
+        heap.removeByID(0);
+        assertEq(heap.isFull(), false);
+    }
+
+    function test_store() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(5);
+
+        heap.insert(OperatorUtilizationHeap.Operator({id: 1, utilization: 5}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 2, utilization: 10}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 3, utilization: 15}));
+
+        heap.store(heapStore);
+
+        for (uint8 i; i < heap.count; i++) {
+            assertEq(heapStore.get(i), heap.operators[i + 1].id);
+        }
     }
 
     function test_insert() public {
@@ -237,32 +281,6 @@ contract OperatorUtilizationHeapTest is Test {
             assertEq(heap.getMax().id, ids[i]);
             heap.removeByID(ids[i]);
         }
-    }
-
-    function test_isEmpty() public {
-        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
-
-        assertEq(heap.isEmpty(), true);
-        for (uint8 id; id < 10; id++) {
-            heap.insert(OperatorUtilizationHeap.Operator({id: id, utilization: 0}));
-        }
-        assertEq(heap.isEmpty(), false);
-        for (uint8 id; id < 10; id++) {
-            heap.removeByID(id);
-        }
-        assertEq(heap.isEmpty(), true);
-    }
-
-    function test_isFull() public {
-        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(10);
-
-        assertEq(heap.isFull(), false);
-        for (uint8 id; id < 10; id++) {
-            heap.insert(OperatorUtilizationHeap.Operator({id: id, utilization: 0}));
-        }
-        assertEq(heap.isFull(), true);
-        heap.removeByID(0);
-        assertEq(heap.isFull(), false);
     }
 
     function testFuzz_extractMin(uint256[] memory utilizations) public {

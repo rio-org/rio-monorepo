@@ -240,6 +240,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         reLST.coordinator.deposit(CBETH_ADDRESS, AMOUNT);
 
         // Push funds into EigenLayer.
+        vm.prank(EOA, EOA);
         reLST.coordinator.rebalance(CBETH_ADDRESS);
 
         vm.recordLogs();
@@ -289,6 +290,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         reETH.coordinator.depositETH{value: AMOUNT}();
 
         // Push funds into EigenLayer.
+        vm.prank(EOA, EOA);
         reETH.coordinator.rebalance(ETH_ADDRESS);
 
         // Verify validator withdrawal credentials.
@@ -342,7 +344,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             abi.encode(IEigenPod.VALIDATOR_STATUS.WITHDRAWN)
         );
 
-        // Ensure the exxpected public keys are swapped.
+        // Ensure the expected public keys are swapped.
         uint256 j = OOO_EXIT_STARTING_INDEX;
         (bytes memory expectedPublicKeys,) = TestUtils.getValidatorKeys(UPLOADED_KEY_COUNT);
         for (uint256 i = 0; i < OOO_EXIT_COUNT; i++) {

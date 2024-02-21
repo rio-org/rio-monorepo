@@ -58,12 +58,13 @@ export const RestakingTokenExchangeRate = ({
             ) : isRestakingTokenBase ? (
               <>
                 {displayAmount(1, ...rateDecimals)} {restakingTokenSymbol} ={' '}
-                {displayAmount(exchangeRate.lrt, ...rateDecimals)} {assetSymbol}
+                {displayAmount(1 / exchangeRate.lrt, ...rateDecimals)}{' '}
+                {assetSymbol}
               </>
             ) : (
               <>
                 {displayAmount(1, ...rateDecimals)} {assetSymbol} ={' '}
-                {displayAmount(1 / exchangeRate.lrt, ...rateDecimals)}{' '}
+                {displayAmount(exchangeRate.lrt, ...rateDecimals)}{' '}
                 {restakingTokenSymbol}
               </>
             )}
@@ -72,16 +73,18 @@ export const RestakingTokenExchangeRate = ({
             align="end"
             contentClassName="text-left max-w-[300px] space-y-3 py-3 px-4 leading-none"
           >
-            <div className="text-xs font-bold opacity-30">USD Prices</div>
+            <div className="font-sans text-xs font-bold opacity-30">
+              USD Prices
+            </div>
             <div className="w-full text-[14px] flex gap-3 justify-between">
               <span className="font-bold">{restakingTokenSymbol}</span>
-              <span className="opacity-80">
+              <span className="font-mono tracking-tighter opacity-60">
                 ${displayAmount(exchangeRate.usd / exchangeRate.lrt, 2, 2)}
               </span>
             </div>
             <div className="w-full text-[14px] flex gap-3 justify-between">
               <span className="font-bold">{assetSymbol}</span>
-              <span className="opacity-80">
+              <span className="font-mono tracking-tighter opacity-60">
                 ${displayAmount(exchangeRate.usd, 2, 2)}
               </span>
             </div>

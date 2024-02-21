@@ -16,6 +16,7 @@ import {
   type LRTDetails,
   RioTransactionType
 } from '@rio-monorepo/ui/lib/typings';
+import { parseUnits } from 'viem';
 
 export function WithdrawForm({
   lrtDetails,
@@ -74,7 +75,11 @@ function WithdrawFormBase({
 
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets?.[0]);
   const [amountOut, setAmountOut] = useState<bigint>(BigInt(0));
-  const [amount, setAmount] = useState<bigint | null>(null);
+  const [inputAmount, setInputAmount] = useState<string>('');
+
+  const amount = inputAmount
+    ? parseUnits(inputAmount, activeToken?.decimals || 18)
+    : null;
 
   const { refetch: refetchAssetBalance } = useAssetBalance(activeToken);
   const { address } = useAccountIfMounted();
@@ -137,7 +142,7 @@ function WithdrawFormBase({
     });
 
   const resetAmount = useCallback(() => {
-    setAmount(null);
+    setInputAmount('');
     onSuccess?.();
   }, [assets, onSuccess]);
 
@@ -147,9 +152,9 @@ function WithdrawFormBase({
   }, [reset, resetAmount]);
 
   const handleChangeAmount = useCallback(
-    (amount: bigint | null) => {
+    (amount: string) => {
       if (txHash || error) reset();
-      setAmount(amount);
+      setInputAmount(amount);
     },
     [error, reset, txHash]
   );
@@ -169,7 +174,7 @@ function WithdrawFormBase({
       <WithdrawField
         activeToken={activeToken}
         disabled={isLoading || !address}
-        amount={amount}
+        amount={inputAmount}
         restakingTokenBalance={restakingTokenBalance}
         lrtDetails={lrtDetails}
         setAmount={handleChangeAmount}

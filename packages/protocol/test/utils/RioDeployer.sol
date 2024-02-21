@@ -45,6 +45,8 @@ abstract contract RioDeployer is EigenLayerDeployer {
     address constant RELST_TREASURY = address(0x201);
     address constant RELST_OPERATOR_REWARD_POOL = address(0x202);
 
+    address constant EOA = address(0xE0A);
+
     function deployRio() public {
         deployEigenLayer();
 
@@ -77,6 +79,8 @@ abstract contract RioDeployer is EigenLayerDeployer {
         issuer = RioLRTIssuer(
             address(new ERC1967Proxy(issuerImpl, abi.encodeCall(IRioLRTIssuer.initialize, (address(this)))))
         );
+
+        vm.deal(EOA, 100 ether);
     }
 
     // forgefmt: disable-next-item
@@ -84,7 +88,7 @@ abstract contract RioDeployer is EigenLayerDeployer {
         assets = new IRioLRTAssetRegistry.AssetConfig[](1);
         assets[0] = IRioLRTAssetRegistry.AssetConfig({
             asset: ETH_ADDRESS,
-            depositCap: 1_000 ether,
+            depositCap: 10_000 ether,
             priceFeed: address(0),
             strategy: BEACON_CHAIN_STRATEGY
         });
@@ -117,13 +121,13 @@ abstract contract RioDeployer is EigenLayerDeployer {
         assets = new IRioLRTAssetRegistry.AssetConfig[](2);
         assets[0] = IRioLRTAssetRegistry.AssetConfig({
             asset: RETH_ADDRESS,
-            depositCap: 1_000 ether,
+            depositCap: 10_000 ether,
             priceFeed: address(new MockPriceFeed(1.0961 ether)),
             strategy: RETH_STRATEGY
         });
         assets[1] = IRioLRTAssetRegistry.AssetConfig({
             asset: CBETH_ADDRESS,
-            depositCap: 1_000 ether,
+            depositCap: 10_000 ether,
             priceFeed: address(new MockPriceFeed(1.0555 ether)),
             strategy: CBETH_STRATEGY
         });

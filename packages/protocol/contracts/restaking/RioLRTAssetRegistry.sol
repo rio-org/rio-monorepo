@@ -209,8 +209,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         return _normalizeDecimals(value * priceScale / price, priceFeedDecimals, assetInfo[asset].decimals);
     }
 
-    /// @notice Converts an amount of EigenLayer shares to the equivalent amount
-    /// of underlying pool tokens.
+    /// @notice Converts an amount of an asset to the equivalent amount of EigenLayer shares.
     /// @param asset The address of the asset to convert.
     /// @param amount The amount of the asset to convert.
     function convertToSharesFromAsset(address asset, uint256 amount) public view returns (uint256 shares) {
@@ -221,8 +220,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         shares = IStrategy(strategy).underlyingToSharesView(amount);
     }
 
-    /// @notice Converts an amount of EigenLayer shares to the equivalent amount
-    /// of underlying pool tokens.
+    /// @notice Converts an amount of EigenLayer shares to the equivalent amount of an asset.
     /// @param strategy The EigenLayer strategy.
     /// @param shares The amount of EigenLayer shares.
     function convertFromSharesToAsset(address strategy, uint256 shares) public view returns (uint256 amount) {

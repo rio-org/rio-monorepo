@@ -3,13 +3,14 @@ pragma solidity 0.8.23;
 
 import {LibMap} from '@solady/utils/LibMap.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
+import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import {UpgradeableBeacon} from '@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
-import {BLS_PUBLIC_KEY_LENGTH, ETH_ADDRESS, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
+import {BLS_PUBLIC_KEY_LENGTH, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {OperatorRegistryV1Admin} from 'contracts/utils/OperatorRegistryV1Admin.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
@@ -367,7 +368,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             );
             remainingShares -= newShareAllocation;
 
-            uint128 updatedAllocation = operatorShares.allocation + uint128(newShareAllocation);
+            uint128 updatedAllocation = operatorShares.allocation + SafeCast.toUint128(newShareAllocation);
 
             operator.shareDetails[strategy].allocation = updatedAllocation;
             heap.updateUtilization(OperatorUtilizationHeap.ROOT_INDEX, updatedAllocation.divWad(operatorShares.cap));
@@ -511,7 +512,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             );
             remainingShares -= newShareDeallocation;
 
-            uint128 updatedAllocation = operatorShares.allocation - uint128(newShareDeallocation);
+            uint128 updatedAllocation = operatorShares.allocation - SafeCast.toUint128(newShareDeallocation);
 
             operator.shareDetails[strategy].allocation = updatedAllocation;
             heap.updateUtilization(heap.getMaxIndex(), updatedAllocation.divWad(operatorShares.cap));

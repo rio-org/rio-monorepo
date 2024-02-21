@@ -20,6 +20,7 @@ module.exports = withMT({
         ...blackA,
         ...blueA,
         ...whiteA,
+        appBackground: 'var(--color-app-bg)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -83,8 +84,8 @@ module.exports = withMT({
       animation: {
         'content-flipper-y':
           'content-flipper-y 4s alternate infinite cubic-bezier(0.75, 0, 0, 0.75)',
-        spin: 'spin 3s linear infinite',
-        'spin-ease-in-out': 'spin 3s ease-in-out infinite',
+        spin: 'spin 0.8s linear infinite',
+        'spin-ease-in-out': 'spin 0.8s ease-in-out infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'pulse-1': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;',

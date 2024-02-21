@@ -42,6 +42,7 @@ const TransactionButton = ({
   const {
     errorMessage,
     handleClick,
+    handleClearErrors,
     isDisabled,
     isTxSuccess,
     isTxLoading,
@@ -52,6 +53,7 @@ const TransactionButton = ({
     hash,
     error,
     refetch,
+    clearErrors,
     write,
     isSigning
   });
@@ -83,7 +85,7 @@ const TransactionButton = ({
                 </span>
               </div>
               <button
-                onClick={clearErrors}
+                onClick={handleClearErrors}
                 className="opacity-30 hover:opacity-90 active:hover:opacity-100"
               >
                 <IconX

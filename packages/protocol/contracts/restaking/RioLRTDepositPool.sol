@@ -6,12 +6,17 @@ import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
-import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 import {Array} from 'contracts/utils/Array.sol';
+import {
+    BEACON_CHAIN_STRATEGY,
+    ETH_DEPOSIT_SOFT_CAP,
+    ETH_DEPOSIT_BUFFER_LIMIT,
+    ETH_ADDRESS
+} from 'contracts/utils/Constants.sol';
 
 contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using FixedPointMathLib for uint256;
@@ -36,17 +41,29 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
         __RioLRTCore_init(token_);
     }
 
-    /// @notice Deposits the entire deposit pool balance of the specified `asset` into EigenLayer.
-    function depositBalanceIntoEigenLayer(address asset) external onlyCoordinator returns (uint256) {
-        uint256 currentBalance = asset.getSelfBalance();
-        if (currentBalance == 0) return 0;
+    // forgefmt: disable-next-item
+    /// @notice Deposits the entire deposit pool balance of the specified `asset` into EigenLayer, unless capped.
+    /// @param asset The address of the asset to be deposited.
+    function depositBalanceIntoEigenLayer(address asset) external onlyCoordinator returns (uint256, bool) {
+        uint256 amountToDeposit = asset.getSelfBalance();
+        if (amountToDeposit == 0) return (0, false);
+
+        bool isDepositCapped;
         if (asset == ETH_ADDRESS) {
-            return OperatorOperations.depositETHToOperators(operatorRegistry(), currentBalance);
+            // Due to the high cost associated with ETH deposits, we cap the deposit at or near the defined soft cap to avoid
+            // hitting the block gas limit.
+            if (amountToDeposit > ETH_DEPOSIT_SOFT_CAP) {
+                // Only cap the deposit if the excess is beyond the allowed buffer limit.
+                if (amountToDeposit - ETH_DEPOSIT_SOFT_CAP > ETH_DEPOSIT_BUFFER_LIMIT) {
+                    (amountToDeposit, isDepositCapped) = (ETH_DEPOSIT_SOFT_CAP, true);
+                }
+            }
+            return (OperatorOperations.depositETHToOperators(operatorRegistry(), amountToDeposit), isDepositCapped);
         }
 
         address strategy = assetRegistry().getAssetStrategy(asset);
-        uint256 sharesToAllocate = assetRegistry().convertToSharesFromAsset(asset, currentBalance);
-        return OperatorOperations.depositTokenToOperators(operatorRegistry(), asset, strategy, sharesToAllocate);
+        uint256 sharesToAllocate = assetRegistry().convertToSharesFromAsset(asset, amountToDeposit);
+        return (OperatorOperations.depositTokenToOperators(operatorRegistry(), asset, strategy, sharesToAllocate), isDepositCapped);
     }
 
     /// @notice Transfers the maximum possible amount of assets based on the available

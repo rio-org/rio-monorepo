@@ -31,7 +31,10 @@ interface IRioLRTIssuer {
         address rewardDistributor;
     }
 
-    /// @notice Emitted when an incorrect amount of ETH is provided for a sacrificial deposit.
+    /// @notice Thrown when the sacrificial deposit amount is less than the minimum.
+    error INSUFFICIENT_SACRIFICIAL_DEPOSIT();
+
+    /// @notice Thrown when an incorrect amount of ETH is provided for a sacrificial deposit.
     error INVALID_ETH_PROVIDED();
 
     /// @notice Emitted when a new liquid restaking token is issued.

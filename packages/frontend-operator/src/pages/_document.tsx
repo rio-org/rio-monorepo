@@ -3,10 +3,7 @@ import { twJoin } from 'tailwind-merge';
 
 export default function Document() {
   return (
-    <Html
-      lang="en"
-      className="bg-[var(--color-app-bg)] lg:bg-white w-screen h-screen lg:p-3"
-    >
+    <Html lang="en">
       <Head />
       <body
         className={twJoin(
@@ -14,7 +11,7 @@ export default function Document() {
           'min-h-full max-h-full',
           'overflow-hidden',
           'bg-[var(--color-app-bg)]',
-          'rounded-[12px] font-sans'
+          'font-sans'
         )}
       >
         <Main />

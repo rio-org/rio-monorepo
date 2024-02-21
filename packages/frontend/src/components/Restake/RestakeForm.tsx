@@ -106,7 +106,7 @@ function RestakeFormBase({
     [restakingTokenClient, coordinatorAddress]
   );
 
-  const [amount, setAmount] = useState<bigint | null>(null);
+  const [inputAmount, setInputAmount] = useState<string>('');
   const [accountTokenBalance, setAccountTokenBalance] = useState(BigInt(0));
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets?.[0]);
   const [isDepositLoading, setIsDepositLoading] = useState(false);
@@ -117,6 +117,10 @@ function RestakeFormBase({
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(true);
   const { address } = useAccountIfMounted();
+
+  const amount = inputAmount
+    ? parseUnits(inputAmount, activeToken?.decimals || 18)
+    : null;
 
   const { refetch: refetchLrtBalance } = useAssetBalance(lrtDetails);
 
@@ -164,7 +168,7 @@ function RestakeFormBase({
 
   const isValidAmount =
     !!amount &&
-    amount > BigInt(0) &&
+    amount >= parseUnits('0.01', activeToken.decimals) &&
     amount <= accountTokenBalance &&
     !!gasEstimates &&
     !!activeToken &&
@@ -179,7 +183,7 @@ function RestakeFormBase({
   }, []);
 
   const resetForm = useCallback(() => {
-    setAmount(null);
+    setInputAmount('');
     clearErrors();
   }, []);
 
@@ -189,7 +193,7 @@ function RestakeFormBase({
   }, [data]);
 
   useEffect(() => {
-    setAmount(null);
+    setInputAmount('');
   }, [accountTokenBalance]);
 
   useEffect(() => {
@@ -292,7 +296,7 @@ function RestakeFormBase({
     if (txData?.status === 'success') {
       setIsDepositLoading(false);
       setDepositError(null);
-      setAmount(null);
+      setInputAmount('');
       return;
     }
     if (txData?.status === 'reverted') {
@@ -368,12 +372,12 @@ function RestakeFormBase({
   }, [txReceipt]);
 
   const handleChangeAmount = useCallback(
-    (amount: bigint | null) => {
+    (amount: string | null) => {
       if (depositTxHash || depositError) {
         clearErrors();
         resetWrite();
       }
-      setAmount(amount);
+      setInputAmount(amount || '');
     },
     [clearErrors, depositTxHash, depositError, resetWrite]
   );
@@ -402,7 +406,7 @@ function RestakeFormBase({
       {!isLoading && (
         <>
           <StakeField
-            amount={amount}
+            amount={inputAmount}
             activeToken={activeToken}
             accountTokenBalance={accountTokenBalance}
             isDisabled={isDepositLoading}
@@ -447,8 +451,8 @@ function RestakeFormBase({
                   contentClassName="max-w-[300px] p-3"
                 >
                   <p>
-                    The percentage taken from all staking rewards (not
-                    deposits).
+                    The percentage taken from all staking and restaking rewards
+                    (not withdrawals or deposits).
                   </p>
                 </InfoTooltip>
               </span>
@@ -462,9 +466,9 @@ function RestakeFormBase({
 
               <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
                 <p>
-                  The amount of reETH received is an estimate. The actual amount
-                  of reETH may vary slightly due to fluctuations in the price of
-                  ETH and cost of gas.
+                  Estimation is based on current market conditions. Actual
+                  amounts may change based on market fluctuations, pending
+                  rewards, and slashing events.
                 </p>
               </InfoTooltip>
             </span>

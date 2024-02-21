@@ -7,6 +7,7 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import {ContractType, ETH_ADDRESS, MIN_SACRIFICIAL_DEPOSIT} from 'contracts/utils/Constants.sol';
 import {IRioLRTRewardDistributor} from 'contracts/interfaces/IRioLRTRewardDistributor.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
@@ -15,7 +16,6 @@ import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {IRioLRTAVSRegistry} from 'contracts/interfaces/IRioLRTAVSRegistry.sol';
 import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {LRTAddressCalculator} from 'contracts/utils/LRTAddressCalculator.sol';
-import {ContractType, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {IRioLRTIssuer} from 'contracts/interfaces/IRioLRTIssuer.sol';
 import {IRioLRT} from 'contracts/interfaces/IRioLRT.sol';
 
@@ -161,6 +161,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
     /// @param asset The asset to deposit.
     /// @param amount The amount to deposit.
     function _deposit(IRioLRTCoordinator coordinator, address asset, uint256 amount) internal {
+        if (amount < MIN_SACRIFICIAL_DEPOSIT) revert INSUFFICIENT_SACRIFICIAL_DEPOSIT();
         if (asset == ETH_ADDRESS) {
             if (amount != msg.value) revert INVALID_ETH_PROVIDED();
             coordinator.depositETH{value: amount}();

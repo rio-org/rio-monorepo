@@ -38,7 +38,8 @@ const Stats = ({ lrt }: Props) => {
         infoTooltipContent: (
           <p>
             The average <strong>Annual Percentage Yield (APY)</strong>{' '}
-            calculated from the last 14 days anticipated over the next year.
+            calculated from the last 14 days extrapolated over the next 12
+            months.
           </p>
         )
       }

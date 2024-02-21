@@ -76,7 +76,7 @@ const WithdrawItemized = ({
         </div>
         <div className="flex justify-between">
           <span className="flex items-center text-black gap-1">
-            <span className="opacity-50 text-[14px]">Delay</span>
+            <span className="opacity-50 text-[14px]">Waiting period</span>
 
             <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
               <p>
@@ -89,7 +89,7 @@ const WithdrawItemized = ({
         </div>
         <div className="flex justify-between">
           <span className="flex items-center text-black gap-1">
-            <span className="opacity-50 text-[14px]">Withdrawal fees</span>
+            <span className="opacity-50 text-[14px]">Withdrawal fee</span>
 
             <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
               <p>Fees applied when funds are withdrawn from the Rio Network.</p>

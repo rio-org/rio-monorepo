@@ -7,6 +7,7 @@ import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueu
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
+import {ETH_ADDRESS, MAX_REBALANCE_DELAY} from 'contracts/utils/Constants.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
@@ -20,8 +21,8 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @notice The required delay between rebalances.
     uint24 public rebalanceDelay;
 
-    /// @notice Tracks the last timestamp when each asset was rebalanced.
-    mapping(address asset => uint256 timestamp) public assetLastRebalancedAt;
+    /// @notice Tracks the timestamp from which each asset is eligible for rebalancing, inclusive of the defined timestamp.
+    mapping(address asset => uint256 timestamp) public assetNextRebalanceAfter;
 
     /// @notice Require that the asset is supported, the deposit amount is non-zero, and the
     /// deposit cap has not been reached.
@@ -43,12 +44,10 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         _;
     }
 
-    /// @notice First, require that the rebalance delay has been met. Then,
-    /// update the last rebalanced timestamp.
+    /// @notice Require that the rebalance delay has been met.
     /// @param asset The asset being rebalanced.
-    modifier onRebalance(address asset) {
+    modifier checkRebalanceDelayMet(address asset) {
         _checkRebalanceDelayMet(asset);
-        assetLastRebalancedAt[asset] = uint40(block.timestamp);
         _;
     }
 
@@ -119,8 +118,9 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @notice Rebalances the provided `asset` by processing outstanding withdrawals and
     /// depositing remaining assets into EigenLayer.
     /// @param asset The asset to rebalance.
-    function rebalance(address asset) external onRebalance(asset) {
+    function rebalance(address asset) external checkRebalanceDelayMet(asset) {
         if (!assetRegistry().isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+        if (msg.sender != tx.origin) revert CALLER_MUST_BE_EOA();
 
         // Process any outstanding withdrawals using funds from the deposit pool and EigenLayer.
         uint256 sharesOwed = withdrawalQueue().getSharesOwedInCurrentEpoch(asset);
@@ -129,7 +129,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         }
 
         // Deposit remaining assets into EigenLayer.
-        uint256 sharesReceived = depositPool().depositBalanceIntoEigenLayer(asset);
+        (uint256 sharesReceived, bool isDepositCapped) = depositPool().depositBalanceIntoEigenLayer(asset);
         if (sharesOwed == 0 && sharesReceived == 0) {
             revert NO_REBALANCE_NEEDED();
         }
@@ -140,11 +140,18 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
                 assetRegistry().increaseSharesHeldForAsset(asset, sharesReceived);
             }
         }
+
+        // When the deposit is not capped, the rebalance is considered complete, and the asset rebalance
+        // timestamp is increased by the specified delay. If capped, the asset may be rebalanced again
+        // immediately as there are more assets to deposit.
+        if (!isDepositCapped) {
+            assetNextRebalanceAfter[asset] = uint40(block.timestamp) + rebalanceDelay;
+        }
         emit Rebalanced(asset);
     }
 
     /// @notice Sets the rebalance delay.
-    /// @param newRebalanceDelay The new rebalance delay.
+    /// @param newRebalanceDelay The new rebalance delay, in seconds.
     function setRebalanceDelay(uint24 newRebalanceDelay) external onlyOwner {
         _setRebalanceDelay(newRebalanceDelay);
     }
@@ -221,8 +228,9 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     }
 
     /// @dev Sets the rebalance delay.
-    /// @param newRebalanceDelay The new rebalance delay.
+    /// @param newRebalanceDelay The new rebalance delay, in seconds.
     function _setRebalanceDelay(uint24 newRebalanceDelay) internal {
+        if (newRebalanceDelay > MAX_REBALANCE_DELAY) revert REBALANCE_DELAY_TOO_LONG();
         rebalanceDelay = newRebalanceDelay;
 
         emit RebalanceDelaySet(newRebalanceDelay);
@@ -277,19 +285,18 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         IRioLRTAssetRegistry assetRegistry_ = assetRegistry();
 
         uint256 depositCap = assetRegistry_.getAssetDepositCap(asset);
-        uint256 existingBalance = assetRegistry_.getTotalBalanceForAsset(asset);
-        if (depositCap > 0 && existingBalance + amountIn > depositCap) {
-            revert DEPOSIT_CAP_REACHED(asset, depositCap);
+        if (depositCap > 0) {
+            uint256 existingBalance = assetRegistry_.getTotalBalanceForAsset(asset);
+            if (existingBalance + amountIn > depositCap) {
+                revert DEPOSIT_CAP_REACHED(asset, depositCap);
+            }
         }
     }
 
     /// @dev Reverts if the rebalance delay has not been met.
     /// @param asset The asset being rebalanced.
     function _checkRebalanceDelayMet(address asset) internal view {
-        uint256 lastRebalancedAt = assetLastRebalancedAt[asset];
-        if (lastRebalancedAt > 0 && block.timestamp - lastRebalancedAt < rebalanceDelay) {
-            revert REBALANCE_DELAY_NOT_MET();
-        }
+        if (block.timestamp < assetNextRebalanceAfter[asset]) revert REBALANCE_DELAY_NOT_MET();
     }
 
     /// @dev Allows the owner to upgrade the gateway implementation.
