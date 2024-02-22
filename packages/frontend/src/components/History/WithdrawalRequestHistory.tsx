@@ -9,45 +9,56 @@ import {
 import { useContractReads } from 'wagmi';
 import { Address, zeroAddress } from 'viem';
 import { useEffect, useMemo } from 'react';
-import { asType, isUndefined } from '@rio-monorepo/ui/lib/utilities';
+import { asType, cn, isUndefined } from '@rio-monorepo/ui/lib/utilities';
 
 export const WithdrawalRequestHistory = ({
   withdrawalRequests,
-  lrt
+  lrt,
+  className
 }: {
   withdrawalRequests: WithdrawalRequest[];
   lrt?: LRTDetails;
+  className?: string;
 }) => {
   if (!lrt)
     return (
       <WithdrawalRequestHistoryWithoutLRT
         withdrawalRequests={withdrawalRequests}
+        className={className}
       />
     );
   return (
     <WithdrawalRequestHistoryWithLRT
       withdrawalRequests={withdrawalRequests}
+      className={className}
       lrt={lrt}
     />
   );
 };
 
 function WithdrawalRequestHistoryWithoutLRT({
-  withdrawalRequests
+  withdrawalRequests,
+  className
 }: {
   withdrawalRequests: WithdrawalRequest[];
+  className?: string;
 }) {
   return (
-    <WithdrawalRequestHistoryInternal withdrawalRequests={withdrawalRequests} />
+    <WithdrawalRequestHistoryInternal
+      withdrawalRequests={withdrawalRequests}
+      className={className}
+    />
   );
 }
 
 function WithdrawalRequestHistoryWithLRT({
   lrt,
-  withdrawalRequests
+  withdrawalRequests,
+  className
 }: {
   lrt: LRTDetails;
   withdrawalRequests: WithdrawalRequest[];
+  className?: string;
 }) {
   const restakingToken = useLiquidRestakingToken(lrt.address);
   const coordinatorAddress = restakingToken?.token?.deployment
@@ -99,20 +110,26 @@ function WithdrawalRequestHistoryWithLRT({
     <WithdrawalRequestHistoryInternal
       withdrawalRequests={withdrawalRequests}
       nextRebalanceTimestamp={nextRebalanceTimestamp}
+      className={className}
     />
   );
 }
 
 function WithdrawalRequestHistoryInternal({
   withdrawalRequests,
-  nextRebalanceTimestamp
+  nextRebalanceTimestamp,
+  className
 }: {
   withdrawalRequests: WithdrawalRequest[];
   nextRebalanceTimestamp?: number;
+  className?: string;
 }) {
   return (
     <motion.div
-      className="bg-white shadow rounded-b-xl overflow-hidden border-t border-t-gray-200"
+      className={cn(
+        'bg-white rounded-b-xl overflow-hidden border-t border-t-gray-200',
+        className
+      )}
       layoutId="withdraw-history"
     >
       <table className="min-w-full">

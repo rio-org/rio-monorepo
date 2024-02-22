@@ -12,10 +12,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     "strict": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"]
-    },
+    "baseUrl": "."
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]

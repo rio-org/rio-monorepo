@@ -1,19 +1,18 @@
-import React, { useMemo } from 'react';
-import { TransactionStatus } from '../../lib/typings';
-import IconExternal from '../Icons/IconExternal';
-import { IconClock } from '../Icons/IconClock';
-import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import updateLocale from 'dayjs/plugin/updateLocale';
-import { linkToTxOnBlockExplorer } from '../../lib/utilities';
-import { CHAIN_ID } from '../../config';
+import React, { useMemo } from 'react';
+import { Hash } from 'viem';
+import dayjs from 'dayjs';
 import {
   WithdrawalEpochStatus,
-  WithdrawalRequest
+  type WithdrawalRequest
 } from '@rionetwork/sdk-react';
-import { twJoin, twMerge } from 'tailwind-merge';
-import { Hash } from 'viem';
+import IconExternal from '../Icons/IconExternal';
+import { IconClock } from '../Icons/IconClock';
+import { cn, linkToTxOnBlockExplorer } from '../../lib/utilities';
+import { TransactionStatus } from '../../lib/typings';
 import { SECONDS } from '../../lib/constants';
+import { CHAIN_ID } from '../../config';
 
 dayjs.extend(relativeTime, {
   thresholds: [
@@ -52,11 +51,13 @@ dayjs.updateLocale('en', {
 type Props = {
   transaction: WithdrawalRequest;
   nextRebalanceTimestamp?: number;
+  isLink?: boolean;
 };
 
 const TransactionStatusLabel = ({
   transaction,
-  nextRebalanceTimestamp
+  nextRebalanceTimestamp,
+  isLink = true
 }: Props) => {
   const now = Date.now();
   const requestTimestamp = Number(+transaction.timestamp);
@@ -78,47 +79,59 @@ const TransactionStatusLabel = ({
   const extendedClassName = useMemo(() => {
     switch (status) {
       case 'Claimed':
-        return twJoin(
-          'bg-[var(--color-blue-bg)] text-[var(--color-blue)]',
-          'hover:bg-[var(--color-blue-bg-hover)]'
+        return cn(
+          'bg-[var(--color-blue-bg)] text-[var(--color-blue)] cursor-default',
+          isLink && 'hover:bg-[var(--color-blue-bg-hover)] cursor-pointer'
         );
       case 'Available':
-        return twJoin(
-          'bg-[var(--color-green-bg)] text-[var(--color-green)]',
-          'hover:bg-[var(--color-green-bg-hover)]'
+        return cn(
+          'bg-[var(--color-green-bg)] text-[var(--color-green)] cursor-default',
+          isLink && 'hover:bg-[var(--color-green-bg-hover)] cursor-pointer'
         );
       case 'Pending':
       default:
-        return twJoin(
-          'bg-[var(--color-yellow-bg)] text-[var(--color-yellow)]',
-          'hover:bg-[var(--color-yellow-bg-hover)]'
+        return cn(
+          'bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] cursor-default',
+          isLink && 'hover:bg-[var(--color-yellow-bg-hover)] cursor-pointer'
         );
     }
-  }, [status]);
+  }, [isLink, status]);
+
+  const content = (
+    <>
+      {status === 'Pending' && (
+        <div className="flex flex-row gap-1 items-center">
+          <IconClock />
+          {`${isBeforeNextRebalance ? '1-' : ''}${timeLeft.fromNow(true)}`}
+        </div>
+      )}
+      <span>{status}</span>
+      {isLink && <IconExternal transactionStatus={status} />}
+    </>
+  );
+
+  const className = cn(
+    `px-2 py-1 whitespace-nowrap text-xs font-semibold flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200`,
+    extendedClassName
+  );
 
   return (
     <div className="w-full">
-      <a
-        href={linkToTxOnBlockExplorer(
-          (transaction.claimTx || transaction.tx) as Hash,
-          CHAIN_ID
-        )}
-        target="_blank"
-        rel="noreferrer"
-        className={twMerge(
-          `px-[8px] py-[4px] whitespace-nowrap text-sm flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200`,
-          extendedClassName
-        )}
-      >
-        {status === 'Pending' && (
-          <div className="flex flex-row gap-1 items-center">
-            <IconClock />
-            {`${isBeforeNextRebalance ? '1-' : ''}${timeLeft.fromNow(true)}`}
-          </div>
-        )}
-        <span>{status}</span>
-        <IconExternal transactionStatus={status} />
-      </a>
+      {isLink ? (
+        <a
+          href={linkToTxOnBlockExplorer(
+            (transaction.claimTx || transaction.tx) as Hash,
+            CHAIN_ID
+          )}
+          target="_blank"
+          rel="noreferrer"
+          className={className}
+        >
+          {content}
+        </a>
+      ) : (
+        <div className={className}>{content}</div>
+      )}
     </div>
   );
 };

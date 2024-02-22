@@ -18,36 +18,56 @@ import {
 } from '@rio-monorepo/ui/lib/typings';
 import { parseUnits } from 'viem';
 
-export function WithdrawForm({ lrtDetails }: { lrtDetails?: LRTDetails }) {
+export function WithdrawForm({
+  lrtDetails,
+  onSuccess
+}: {
+  lrtDetails?: LRTDetails;
+  onSuccess?: () => void;
+}) {
   if (lrtDetails) {
-    return <WithdrawFormWithLRTWrapper lrtDetails={lrtDetails} />;
+    return (
+      <WithdrawFormWithLRTWrapper
+        lrtDetails={lrtDetails}
+        onSuccess={onSuccess}
+      />
+    );
   }
 
   return (
-    <WithdrawFormBase lrtDetails={lrtDetails} restakingTokenClient={null} />
+    <WithdrawFormBase
+      lrtDetails={lrtDetails}
+      restakingTokenClient={null}
+      onSuccess={onSuccess}
+    />
   );
 }
 
 function WithdrawFormWithLRTWrapper({
-  lrtDetails
+  lrtDetails,
+  onSuccess
 }: {
   lrtDetails: LRTDetails;
+  onSuccess?: () => void;
 }) {
   const restakingTokenClient = useLiquidRestakingToken(lrtDetails.address);
   return (
     <WithdrawFormBase
       restakingTokenClient={restakingTokenClient}
       lrtDetails={lrtDetails}
+      onSuccess={onSuccess}
     />
   );
 }
 
 function WithdrawFormBase({
   restakingTokenClient,
-  lrtDetails
+  lrtDetails,
+  onSuccess
 }: {
   restakingTokenClient: LiquidRestakingTokenClient | null;
   lrtDetails?: LRTDetails;
+  onSuccess?: () => void;
 }) {
   const assets = useMemo(() => {
     return lrtDetails?.underlyingAssets.map((t) => t.asset) || [];
@@ -123,7 +143,8 @@ function WithdrawFormBase({
 
   const resetAmount = useCallback(() => {
     setInputAmount('');
-  }, [assets]);
+    onSuccess?.();
+  }, [assets, onSuccess]);
 
   const resetForm = useCallback(() => {
     reset();
