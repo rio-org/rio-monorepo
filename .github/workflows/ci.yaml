@@ -20,6 +20,11 @@ jobs:
     name: Lint and format packages
     runs-on: ubuntu-latest
     steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
       - name: Load cache and/or build packages
         uses: ./.github/workflows/build.yaml
         with:
