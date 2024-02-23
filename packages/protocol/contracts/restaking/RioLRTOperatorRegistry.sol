@@ -143,7 +143,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     }
 
     /// Deactivates an operator, exiting all remaining stake to the
-    /// asset manager.
+    /// deposit pool.
     /// @param operatorId The operator's ID.
     function deactivateOperator(uint8 operatorId) external onlyOwner {
         s.deactivateOperator(assetRegistry(), operatorId);

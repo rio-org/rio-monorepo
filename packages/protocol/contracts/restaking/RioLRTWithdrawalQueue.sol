@@ -22,7 +22,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     IDelegationManager public immutable delegationManager;
 
     /// @notice Current asset withdrawal epochs. Incoming withdrawals are included
-    /// in the current epoch, which will be processed by the asset manager.
+    /// in the current epoch.
     mapping(address asset => uint256 epoch) internal currentEpochsByAsset;
 
     /// @notice The amount of assets owed to users in a given epoch, as well as the state
@@ -202,6 +202,8 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
             epochWithdrawals.amountToBurnAtSettlement -= restakingTokensToBurn;
         }
         epochWithdrawals.aggregateRoot = aggregateRoot;
+
+        currentEpochsByAsset[asset] += 1;
 
         emit EpochQueuedForSettlementFromEigenLayer(
             currentEpoch, asset, assetsReceived, shareValueOfAssetsReceived, restakingTokensToBurn, aggregateRoot

@@ -117,7 +117,7 @@ contract RioLRTAVSRegistry is IRioLRTAVSRegistry, OwnableUpgradeable, UUPSUpgrad
         emit AVSDeactivated(avsId);
     }
 
-    /// @dev Allows the owner to upgrade the asset manager implementation.
+    /// @dev Allows the owner to upgrade the AVS registry implementation.
     /// @param newImplementation The implementation to upgrade to.
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
