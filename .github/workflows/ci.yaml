@@ -3,111 +3,53 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: ['main']
 
   pull_request:
-    types:
-      - opened
-      - synchronize
-
-env:
-  NODE_VERSION: 18
-  PNPM_VERSION: 8
+    types: [opened, synchronize]
 
 jobs:
+  build:
+    name: Build packages
+    uses: ./.github/workflows/build.yaml
+    with:
+      sha: ${{ github.sha }}
+
   lint-and-format:
+    needs: build
     name: Lint and format packages
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - name: Load cache and/or build packages
+        uses: ./.github/workflows/build.yaml
         with:
-          submodules: recursive
+          sha: ${{ github.sha }}
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup NodeJS environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Typecheck packages
+      - name: Lint & format packages
         run: pnpm lint-format
 
   typecheck:
+    needs: build
     name: Type-check packages
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - name: Load cache and/or build packages
+        uses: ./.github/workflows/build.yaml
         with:
-          submodules: recursive
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup NodeJS environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build packages
-        run: pnpm build
+          sha: ${{ github.sha }}
 
       - name: Typecheck packages
         run: pnpm typecheck
 
   test:
+    needs: build
     name: Test packages
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - name: Load cache and/or build packages
+        uses: ./.github/workflows/build.yaml
         with:
-          submodules: recursive
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup NodeJS environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build packages
-        run: pnpm build
+          sha: ${{ github.sha }}
 
       - name: Test packages
         run: pnpm test --filter='!subgraph'

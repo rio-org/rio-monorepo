@@ -14,6 +14,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "turbo run build",
+    "build:ci": "CI=true turbo run build --cache-dir=.turbo",
     "build:clean": "turbo run clean:build",
     "dev": "turbo run dev",
     "lint-format": "turbo run --parallel lint format",
