@@ -34,7 +34,6 @@ env:
 
 jobs:
   build:
-    name: Install + Compile
     runs-on: ubuntu-latest
 
     steps:
@@ -83,10 +82,6 @@ jobs:
         run: pnpm test --filter='!subgraph'
 
       - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
-        name: Install datadog-ci
-        run: pnpm install --global @datadog/datadog-ci
-
-      - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
         name: Get git short hash
         id: get_git_short_hash
         run: echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -94,8 +89,8 @@ jobs:
       - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
         name: Upload sourcemap for Restake App
         run: |
-          datadog-ci sourcemaps upload ./packages/frontend/.next/static \
-          --service=rio-network-app \
+          npx datadog-ci sourcemaps upload ./packages/frontend/.next/static \
+          --service=rio_network_app_-_production \
           --release-version=$GITHUB_SHA \
           --minified-path-prefix=/_next/static \
           --dry-run=true \
