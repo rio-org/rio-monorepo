@@ -12,7 +12,6 @@ import {
 } from '@rainbow-me/rainbowkit/wallets';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { RioNetworkProvider } from '@rionetwork/sdk-react';
-import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { publicProvider } from 'wagmi/providers/public';
 import { mainnet, sepolia, goerli } from 'wagmi/chains';
 import { infuraProvider } from 'wagmi/providers/infura';
@@ -61,7 +60,6 @@ const chooseChain = (chainId: number) => {
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   chooseChain(CHAIN_ID),
   [
-    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_ID || '' }),
     infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
     publicProvider()
   ],
