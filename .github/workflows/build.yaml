@@ -89,7 +89,7 @@ jobs:
       - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
         name: Upload sourcemap for Restake App
         run: |
-          npx datadog-ci sourcemaps upload ./packages/frontend/.next/static \
+          npx datadog-cli sourcemaps upload ./packages/frontend/.next/static \
           --service=rio_network_app_-_production \
           --release-version=$GITHUB_SHA \
           --minified-path-prefix=/_next/static \
