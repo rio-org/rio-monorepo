@@ -13,48 +13,37 @@ jobs:
     name: Build packages
     uses: ./.github/workflows/build.yaml
     with:
-      sha: ${{ github.sha }}
+      SHA: ${{ github.sha }}
 
   lint-and-format:
     needs: build
     name: Lint and format packages
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Load cache and/or build packages
-        uses: ./.github/workflows/build.yaml
-        with:
-          sha: ${{ github.sha }}
-
-      - name: Lint & format packages
-        run: pnpm lint-format
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      RUN_LINT_AND_FORMAT: true
 
   typecheck:
     needs: build
     name: Type-check packages
-    runs-on: ubuntu-latest
-    steps:
-      - name: Load cache and/or build packages
-        uses: ./.github/workflows/build.yaml
-        with:
-          sha: ${{ github.sha }}
-
-      - name: Typecheck packages
-        run: pnpm typecheck
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      RUN_TYPECHECK: true
 
   test:
     needs: build
     name: Test packages
-    runs-on: ubuntu-latest
-    steps:
-      - name: Load cache and/or build packages
-        uses: ./.github/workflows/build.yaml
-        with:
-          sha: ${{ github.sha }}
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      RUN_TESTS: true
 
-      - name: Test packages
-        run: pnpm test --filter='!subgraph'
+  datadog-sourcemaps:
+    needs: build
+    name: Upload sourcemaps to Datadog
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      DATADOG_API_KEY: ${{ vars.DATADOG_API_KEY }}
+      RUN_DATADOG_UPLOAD: true
