@@ -89,12 +89,12 @@ jobs:
       - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
         name: Upload sourcemap for Restake App
         run: |
-          GIT_HASH=$(git rev-parse --short HEAD)
-          datadog-ci sourcemaps upload ./packages/frontend/.next/static \
-          --service=$SERVICE \
-          --release-version=$(git rev-parse --short HEAD) \
-          --minified-path-prefix=/_next/static \
-          --dry-run=true
+          datadog-ci sourcemaps upload \
+            --dry-run \
+            --minified-path-prefix=/_next/static \
+            --release-version=$(git rev-parse --short HEAD) \
+            --service=$SERVICE \
+          ./packages/frontend/.next/static
         env:
           SERVICE: rio_network_app_-_production
           DATADOG_SITE: us5.datadoghq.com
