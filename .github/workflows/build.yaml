@@ -34,6 +34,7 @@ env:
 
 jobs:
   build:
+    name: Install + Compile
     runs-on: ubuntu-latest
 
     steps:
@@ -89,8 +90,8 @@ jobs:
       - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
         name: Upload sourcemap for Restake App
         run: |
-          npx datadog-cli sourcemaps upload ./packages/frontend/.next/static \
-          --service=rio_network_app_-_production \
+          datadog-ci sourcemaps upload ./packages/frontend/.next/static \
+          --service=rio-network-app \
           --release-version=$GITHUB_SHA \
           --minified-path-prefix=/_next/static \
           --dry-run=true \
