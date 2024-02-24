@@ -3,111 +3,37 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: ['main']
 
   pull_request:
-    types:
-      - opened
-      - synchronize
-
-env:
-  NODE_VERSION: 18
-  PNPM_VERSION: 8
+    types: [opened, synchronize]
 
 jobs:
   lint-and-format:
     name: Lint and format packages
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup NodeJS environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Typecheck packages
-        run: pnpm lint-format
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      RUN_LINT_AND_FORMAT: true
 
   typecheck:
     name: Type-check packages
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup NodeJS environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Typecheck packages
-        run: pnpm typecheck
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      RUN_TYPECHECK: true
 
   test:
     name: Test packages
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      RUN_TESTS: true
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup NodeJS environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Build packages
-        run: pnpm build
-
-      - name: Test packages
-        run: pnpm test --filter='!subgraph'
+  datadog-sourcemaps:
+    name: Upload sourcemaps to Datadog
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      DATADOG_API_KEY: ${{ vars.DATADOG_API_KEY }}
+      RUN_DATADOG_UPLOAD: true
