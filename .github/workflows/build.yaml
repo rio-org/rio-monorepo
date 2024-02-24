@@ -65,7 +65,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build packages
         run: pnpm run build:ci
@@ -83,19 +83,19 @@ jobs:
         run: pnpm test --filter='!subgraph'
 
       - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
-        name: Get git short hash
-        id: get_git_short_hash
-        run: echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        name: Install datadog-ci
+        run: pnpm install --global @datadog/datadog-ci
 
       - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
         name: Upload sourcemap for Restake App
         run: |
-          datadog-ci sourcemaps upload ./packages/frontend/.next/static \
-          --service=rio-network-app \
-          --release-version=$GITHUB_SHA \
-          --minified-path-prefix=/_next/static \
-          --dry-run=true \
+          datadog-ci sourcemaps upload ./packages/frontend/.next/static
+          --service=$SERVICE
+          --release-version=$(git rev-parse --short HEAD)
+          --minified-path-prefix=/_next/static
+          --dry-run=true
         env:
+          SERVICE: rio_network_app_-_production
           DATADOG_SITE: us5.datadoghq.com
           DATADOG_API_HOST: api.us5.datadoghq.com
           DATADOG_API_KEY: ${{ inputs.DATADOG_API_KEY }}
