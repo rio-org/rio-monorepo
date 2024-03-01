@@ -40,7 +40,7 @@ import { CHAIN_ID } from '../config';
 import WalletAndTermsStoreProvider from '../contexts/WalletAndTermsStore';
 import { TouchProvider } from '../contexts/TouchProvider';
 import { Toaster } from './shadcn/toaster';
-import { asType } from 'lib/utilities';
+import { asType } from '../lib/utilities';
 
 // Create the cache client
 const queryClient = new QueryClient();
