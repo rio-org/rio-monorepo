@@ -1,4 +1,8 @@
-import { UseQueryOptions, useQuery } from 'react-query';
+import {
+  type UseQueryOptions,
+  type UseQueryResult,
+  useQuery
+} from '@tanstack/react-query';
 import { Address } from 'viem';
 import { getLatestAssetUSDPrice } from '../lib/graphqlQueries';
 import {
@@ -31,15 +35,16 @@ export function useGetLatestAssetPrice(
     tokenAddress?: Address;
     chainId?: CHAIN_ID_NUMBER;
   },
-  queryConfig?: UseQueryOptions<AssetDetails, Error>
-) {
-  return useQuery<AssetDetails, Error>(
-    ['useGetLatestAssetPrice', chainId, tokenAddress] as const,
-    () => fetcher({ tokenAddress, chainId }),
-    {
-      staleTime: 60 * 1000,
-      ...queryConfig,
-      enabled: !!tokenAddress && queryConfig?.enabled !== false
-    }
-  );
+  queryConfig?: Omit<
+    UseQueryOptions<AssetDetails, Error>,
+    'queryKey' | 'queryFn'
+  >
+): UseQueryResult<AssetDetails> {
+  return useQuery<AssetDetails, Error>({
+    queryKey: ['useGetLatestAssetPrice', chainId, tokenAddress] as const,
+    queryFn: () => fetcher({ tokenAddress, chainId }),
+    staleTime: 60 * 1000,
+    ...queryConfig,
+    enabled: !!tokenAddress && queryConfig?.enabled !== false
+  });
 }

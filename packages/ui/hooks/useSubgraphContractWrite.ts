@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Hash } from 'viem';
-import { useWaitForTransaction } from 'wagmi';
+import { useWaitForTransactionReceipt } from 'wagmi';
 import { ContractError } from '../lib/typings';
 
 interface TxState {
@@ -46,7 +46,7 @@ export const useSubgraphConstractWrite = <T extends Hash = Hash, R = unknown>({
     error: txError,
     isLoading: isTxLoading,
     isSuccess: isTxSuccess
-  } = useWaitForTransaction({ hash: txHash, confirmations });
+  } = useWaitForTransactionReceipt({ hash: txHash, confirmations });
 
   const reset = useCallback(() => {
     onReset?.().catch(console.error);

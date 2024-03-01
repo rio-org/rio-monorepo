@@ -1,5 +1,5 @@
-import { useNetwork, useSwitchNetwork, useWaitForTransaction } from 'wagmi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
 import { type Hash } from 'viem';
 import { useWalletAndTermsStore } from '../contexts/WalletAndTermsStore';
 import {
@@ -31,13 +31,16 @@ export const useTransactionButton = ({
   write,
   isSigning
 }: UseTransactionButtonConfig) => {
-  const wrongNetwork = useNetwork().chain?.unsupported;
+  const { address, chain } = useAccountIfMounted();
+  const {
+    chains,
+    switchChain,
+    isPending: isSwitchNetworkLoading
+  } = useSwitchChain();
+  const wrongNetwork = !!address && !chains.find((c) => c.id === chain?.id);
   const { openWalletModal } = useWalletAndTermsStore();
-  const { address } = useAccountIfMounted();
   const pendingTxs = usePendingTransactions();
   const addTransaction = useAddTransaction();
-  const { isLoading: isSwitchNetworkLoading, switchNetwork } =
-    useSwitchNetwork();
   const [internalError, setInternalError] = useState<ContractError | null>(
     error || null
   );
@@ -59,11 +62,11 @@ export const useTransactionButton = ({
     isSuccess: isTxSuccess,
     isError: isTxError,
     error: txError
-  } = useWaitForTransaction({
+  } = useWaitForTransactionReceipt({
     hash: prevTx?.isSame ? prevTx.hash : hash
   });
 
-  const { isSuccess: isPrevTxSuccess } = useWaitForTransaction({
+  const { isSuccess: isPrevTxSuccess } = useWaitForTransactionReceipt({
     hash: prevTx?.isSame ? undefined : prevTx?.hash
   });
 
@@ -98,13 +101,13 @@ export const useTransactionButton = ({
     if (isDisabled) return;
     if (!address) return openWalletModal();
     handleClearErrors();
-    wrongNetwork ? switchNetwork?.(CHAIN_ID) : write?.();
+    wrongNetwork ? switchChain?.({ chainId: CHAIN_ID }) : write?.();
   }, [
     isDisabled,
     address,
     wrongNetwork,
     handleClearErrors,
-    switchNetwork,
+    switchChain,
     write
   ]);
 

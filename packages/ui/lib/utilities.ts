@@ -341,8 +341,8 @@ export function isUndefined(value: unknown): value is undefined {
 }
 
 export const storeBoolValueInStorage = (key: string, store?: Storage) => {
-  return async (value: boolean) =>
-    new Promise((resolve) => {
+  return async (value: boolean | undefined) =>
+    new Promise<boolean | undefined>((resolve) => {
       try {
         store?.setItem(key, String(value));
         return resolve(value);

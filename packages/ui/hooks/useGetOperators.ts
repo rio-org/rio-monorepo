@@ -1,5 +1,9 @@
 import { buildRioSdkRestakingKey } from '../lib/utilities';
-import { useQuery, UseQueryOptions } from 'react-query';
+import {
+  useQuery,
+  type UseQueryOptions,
+  type UseQueryResult
+} from '@tanstack/react-query';
 import {
   OperatorDelegator,
   SubgraphClient,
@@ -18,16 +22,16 @@ function buildFetcherAndParser(
 
 export function useGetOperators(
   config?: Parameters<SubgraphClient['getOperatorDelegators']>[0],
-  queryConfig?: UseQueryOptions<OperatorDelegator[], Error>
-) {
+  queryConfig?: Partial<
+    Omit<UseQueryOptions<OperatorDelegator[], Error>, 'queryKey' | 'queryFn'>
+  >
+): UseQueryResult<OperatorDelegator[], Error> {
   const subgraph = useSubgraph();
-  return useQuery<OperatorDelegator[], Error>(
-    buildRioSdkRestakingKey('getOperatorDelegators', config),
-    buildFetcherAndParser(subgraph, config),
-    {
-      staleTime: 30 * 1000,
-      ...queryConfig,
-      enabled: queryConfig?.enabled !== false
-    }
-  );
+  return useQuery<OperatorDelegator[], Error>({
+    queryKey: buildRioSdkRestakingKey('getOperatorDelegators', config),
+    queryFn: buildFetcherAndParser(subgraph, config),
+    staleTime: 30 * 1000,
+    ...queryConfig,
+    enabled: queryConfig?.enabled !== false
+  });
 }

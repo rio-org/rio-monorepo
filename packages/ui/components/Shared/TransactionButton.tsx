@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useNetwork, useSwitchNetwork } from 'wagmi';
+import { useSwitchChain } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
 import { twJoin } from 'tailwind-merge';
 import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
@@ -35,9 +35,9 @@ const TransactionButton = ({
   className,
   children
 }: TransactionButtonProps) => {
-  const wrongNetwork = useNetwork().chain?.unsupported;
-  const { address } = useAccountIfMounted();
-  const { isLoading: isSwitchNetworkLoading } = useSwitchNetwork();
+  const { address, chain } = useAccountIfMounted();
+  const { chains, isPending: isSwitchNetworkLoading } = useSwitchChain();
+  const wrongNetwork = !!address && !chains.find((c) => c.id === chain?.id);
 
   const {
     errorMessage,

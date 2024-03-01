@@ -28,7 +28,6 @@ import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import { toast } from 'sonner';
 import { IconSad } from '@rio-monorepo/ui/components/Icons/IconSad';
 import { useTransactionButton } from '@rio-monorepo/ui/hooks/useTransactionButton';
-import { useNetwork } from 'wagmi';
 import { IconLightning } from '@rio-monorepo/ui/components/Icons/IconLightning';
 import { IconParty } from '@rio-monorepo/ui/components/Icons/IconParty';
 
@@ -97,8 +96,7 @@ export function ClaimSectionBase({
   refetch,
   isWithdrawalsLoading
 }: ClaimSectionProps & { lrtClient?: LiquidRestakingTokenClient | null }) {
-  const { address } = useAccountIfMounted();
-  const { chain } = useNetwork();
+  const { address, chain } = useAccountIfMounted();
   const execute = useCallback(async () => {
     if (!lrtClient || !address || !withdrawalParams) return;
 

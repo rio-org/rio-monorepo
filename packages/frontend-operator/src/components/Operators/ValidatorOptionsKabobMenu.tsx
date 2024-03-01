@@ -51,7 +51,8 @@ export function ValidatorOptionsKabobMenu({
 
   const {
     status: { isTxPending, isUserSigning, txError },
-    contractWrite: { write, data, reset }
+    prepareContractWrite: { data: simulatedData },
+    contractWrite: { writeContract, data: hash, reset }
   } = useCompleteContractWrite({
     address: operatorRegistryAddress ?? zeroAddress,
     abi: RioLRTOperatorRegistryABI,
@@ -61,11 +62,13 @@ export function ValidatorOptionsKabobMenu({
       BigInt(onchainDetail?.validatorDetails.confirmed || 0),
       BigInt(pending || 0)
     ],
-    enabled:
-      !!onchainDetail &&
-      !!pending &&
-      !!operatorRegistryAddress &&
-      !!operatorDelegator
+    query: {
+      enabled:
+        !!onchainDetail &&
+        !!pending &&
+        !!operatorRegistryAddress &&
+        !!operatorDelegator
+    }
   });
   const canCloseWindow = !isTxPending && !isUserSigning;
 
@@ -148,14 +151,18 @@ export function ValidatorOptionsKabobMenu({
           </p>
           <TransactionButton
             transactionType={RioTransactionType.UPDATE_OPERATOR_VALUE}
-            hash={data?.hash}
+            hash={hash}
             refetch={handleCloseDialog}
             disabled={isTxPending || isUserSigning}
             isSigning={isUserSigning}
             error={txError}
             reset={reset}
             clearErrors={reset}
-            write={write}
+            write={
+              !simulatedData?.request
+                ? undefined
+                : () => writeContract(simulatedData.request)
+            }
           >
             Submit
           </TransactionButton>

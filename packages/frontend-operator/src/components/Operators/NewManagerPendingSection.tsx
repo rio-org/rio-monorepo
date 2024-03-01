@@ -28,18 +28,21 @@ export function NewManagerPendingSection({
 
   const {
     status: { isTxComplete, isTxPending, isUserSigning },
-    contractWrite: { write, reset }
+    prepareContractWrite: { data: simulatedData },
+    contractWrite: { writeContract, reset }
   } = useCompleteContractWrite({
     address: operatorRegistryAddress ?? zeroAddress,
     abi: RioLRTOperatorRegistryABI,
     functionName: 'setOperatorPendingManager',
     args: [operatorDelegator.delegatorId, address || zeroAddress],
-    enabled:
-      !!address &&
-      !!operatorRegistryAddress &&
-      pendingManager &&
-      pendingManager !== zeroAddress &&
-      !isEqualAddress(address, pendingManager)
+    query: {
+      enabled:
+        !!address &&
+        !!operatorRegistryAddress &&
+        pendingManager &&
+        pendingManager !== zeroAddress &&
+        !isEqualAddress(address, pendingManager)
+    }
   });
 
   useEffect(() => {
@@ -67,9 +70,15 @@ export function NewManagerPendingSection({
                 <span className="leading-snug">New Manager Pending</span>
               </div>
               <button
-                disabled={isTxPending || !write || isUserSigning}
+                disabled={
+                  isTxPending || !simulatedData?.request || isUserSigning
+                }
                 className="relative py-1.5 px-2.5 text-xs font-medium rounded-lg bg-[#EEBA00] text-black"
-                onClick={write}
+                onClick={
+                  !simulatedData?.request
+                    ? undefined
+                    : () => writeContract(simulatedData.request)
+                }
               >
                 {(isTxPending || isUserSigning) && (
                   <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">

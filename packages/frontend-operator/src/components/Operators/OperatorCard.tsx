@@ -2,8 +2,7 @@ import { type OperatorDelegator } from '@rionetwork/sdk-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Skeleton from 'react-loading-skeleton';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { type Address } from 'wagmi';
-import { zeroAddress } from 'viem';
+import { type Address, zeroAddress } from 'viem';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 

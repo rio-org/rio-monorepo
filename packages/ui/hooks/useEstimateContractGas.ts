@@ -1,10 +1,20 @@
-import { PublicClient, useNetwork, usePublicClient } from 'wagmi';
+import { usePublicClient } from 'wagmi';
+import {
+  type PublicClient,
+  type Abi,
+  type Account,
+  type Address,
+  type EstimateContractGasParameters,
+  type ContractFunctionName
+} from 'viem';
+import {
+  type UseQueryOptions,
+  type UseQueryResult,
+  useQuery
+} from '@tanstack/react-query';
 import { useAccountIfMounted } from './useAccountIfMounted';
-import { CHAIN_ID } from '../config';
-import { Abi, Account, Address, EstimateContractGasParameters } from 'viem';
-import { UseQueryOptions, useQuery } from 'react-query';
 import { asType } from '../lib/utilities';
-import { ExtractAbiFunctionNames } from 'abitype';
+import { CHAIN_ID } from '../config';
 
 /////////////////
 // Module Types
@@ -14,7 +24,7 @@ export type UseEstimateContractGasResult = bigint;
 
 export type UseEstimateContractGasParameters<
   TAbi extends Abi,
-  TFunctionName extends ExtractAbiFunctionNames<TAbi>
+  TFunctionName extends ContractFunctionName<TAbi, 'payable' | 'nonpayable'>
 > = Pick<
   EstimateContractGasParameters<TAbi, TFunctionName>,
   'address' | 'args' | 'value'
@@ -32,7 +42,7 @@ export type UseEstimateContractGasParameters<
 
 export function useEstimateContractGas<
   TAbi extends Abi,
-  TFunctionName extends ExtractAbiFunctionNames<TAbi>
+  TFunctionName extends ContractFunctionName<TAbi>
 >(
   {
     account: configAddress,
@@ -46,16 +56,16 @@ export function useEstimateContractGas<
   }: UseEstimateContractGasParameters<TAbi, TFunctionName>,
   queryConfig?: Omit<
     UseQueryOptions<UseEstimateContractGasResult, Error>,
-    'enabled'
+    'enabled' | 'queryKey' | 'queryFn'
   >
-) {
-  const { address: accountAddress } = useAccountIfMounted();
-  const networkChainId = useNetwork().chain?.id || CHAIN_ID;
+): UseQueryResult<UseEstimateContractGasResult, Error> {
+  const { address: accountAddress, chain } = useAccountIfMounted();
+  const networkChainId = chain?.id || CHAIN_ID;
   const chainId = _chainId ?? networkChainId;
   const client = usePublicClient({ chainId });
   const account = configAddress ?? accountAddress;
-  return useQuery<UseEstimateContractGasResult, Error>(
-    [
+  return useQuery<UseEstimateContractGasResult, Error>({
+    queryKey: [
       'useEstimateContractGas',
       chainId,
       account,
@@ -63,16 +73,14 @@ export function useEstimateContractGas<
       functionName,
       value?.toString() ?? jsonifyDeep(args)
     ] as const,
-    buildFetcher({
+    queryFn: buildFetcher({
       client,
       config: { account, abi, address, functionName, args, value }
     }),
-    {
-      staleTime: 12 * 1000,
-      ...queryConfig,
-      enabled: !!account && !!address && enabled !== false
-    }
-  );
+    staleTime: 12 * 1000,
+    ...queryConfig,
+    enabled: !!account && !!address && enabled !== false
+  });
 }
 
 ////////////
@@ -81,7 +89,7 @@ export function useEstimateContractGas<
 
 function buildFetcher<
   TAbi extends Abi,
-  TFunctionName extends ExtractAbiFunctionNames<TAbi>
+  TFunctionName extends ContractFunctionName<TAbi, 'payable' | 'nonpayable'>
 >(opts: {
   client?: PublicClient;
   config: Omit<

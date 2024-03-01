@@ -1,6 +1,9 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, Spinner } from '@material-tailwind/react';
 import {
-  Address,
-  Hash,
+  type Address,
+  type Hash,
+  erc20Abi,
   formatUnits,
   getAddress,
   parseEther,
@@ -8,14 +11,11 @@ import {
   zeroAddress
 } from 'viem';
 import {
-  erc20ABI,
-  useContractRead,
-  useContractWrite,
-  usePrepareContractWrite,
-  useWaitForTransaction
+  useReadContract,
+  useSimulateContract,
+  useWaitForTransactionReceipt,
+  useWriteContract
 } from 'wagmi';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Spinner } from '@material-tailwind/react';
 import {
   type AssetDetails,
   type ContractError,
@@ -201,17 +201,19 @@ function RestakeFormBase({
     setActiveToken((_activeToken) => _activeToken || assets?.[0]);
   }, [address, assets]);
 
-  const { data: allowance, refetch: refetchAllowance } = useContractRead({
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: activeToken?.address,
-    abi: erc20ABI,
+    abi: erc20Abi,
     functionName: 'allowance',
     args: [address || zeroAddress, allowanceTarget || zeroAddress],
-    enabled:
-      !!address &&
-      !!allowanceTarget &&
-      getAddress(allowanceTarget) !== NATIVE_ETH_ADDRESS &&
-      !!activeToken &&
-      activeToken.symbol !== 'ETH'
+    query: {
+      enabled:
+        !!address &&
+        !!allowanceTarget &&
+        getAddress(allowanceTarget) !== NATIVE_ETH_ADDRESS &&
+        !!activeToken &&
+        activeToken.symbol !== 'ETH'
+    }
   });
 
   const handleRefetchAllowance = () => {
@@ -277,9 +279,9 @@ function RestakeFormBase({
     isError: isTxError,
     isLoading: isTxLoading,
     error: txError
-  } = useWaitForTransaction({
+  } = useWaitForTransactionReceipt({
     hash: depositTxHash,
-    enabled: !!depositTxHash
+    query: { enabled: !!depositTxHash }
   });
 
   useEffect(() => {
@@ -306,33 +308,35 @@ function RestakeFormBase({
     }
   }, [txData, isTxLoading, isTxError, txError]);
 
-  const { config, error: prepareWriteError } = usePrepareContractWrite({
+  const { data: writeData, error: prepareWriteError } = useSimulateContract({
     ...contractWriteConfig,
     ...gas,
-    enabled:
-      !!coordinatorAddress &&
-      !!activeToken?.address &&
-      !!address &&
-      isValidAmount &&
-      !!contractWriteConfig.enabled &&
-      !!gasEstimates &&
-      !isGasLoading &&
-      !!amount
+    query: {
+      enabled:
+        !!coordinatorAddress &&
+        !!activeToken?.address &&
+        !!address &&
+        isValidAmount &&
+        !!contractWriteConfig.enabled &&
+        !!gasEstimates &&
+        !isGasLoading &&
+        !!amount
+    }
   });
 
   const {
-    data: writeData,
-    write,
+    data: hash,
+    writeContract,
     error: writeError,
     reset: resetWrite
-  } = useContractWrite(config);
+  } = useWriteContract();
 
   useEffect(
     function storeHash() {
-      if (!writeData?.hash) return;
-      setDepositTxHash(writeData.hash);
+      if (!hash) return;
+      setDepositTxHash(hash);
     },
-    [writeData?.hash]
+    [hash]
   );
 
   const executionError = writeError || prepareWriteError;
@@ -346,19 +350,25 @@ function RestakeFormBase({
   );
 
   const handleExecute = () => {
-    if (!activeToken || isDepositLoading || !amount || !write) {
+    if (
+      !activeToken ||
+      isDepositLoading ||
+      !amount ||
+      !writeContract ||
+      !writeData?.request
+    ) {
       return;
     }
     setIsDepositLoading(true);
     setDepositError(null);
     setDepositTxHash(undefined);
-    write?.();
+    writeContract?.(writeData?.request);
   };
 
-  const { data: txReceipt } = useWaitForTransaction({
+  const { data: txReceipt } = useWaitForTransactionReceipt({
     hash: depositTxHash,
     confirmations: 1,
-    enabled: !!depositTxHash
+    query: { enabled: !!depositTxHash }
   });
 
   const refetchUserBalances = useCallback(() => {

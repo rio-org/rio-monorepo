@@ -1,4 +1,8 @@
-import { UseQueryOptions, useQuery } from 'react-query';
+import {
+  type UseQueryResult,
+  type UseQueryOptions,
+  useQuery
+} from '@tanstack/react-query';
 import {
   ClaimWithdrawalParams,
   SubgraphClient,
@@ -73,27 +77,28 @@ function buildFetcherAndParser(
 
 export function useGetAccountWithdrawals(
   config?: Parameters<SubgraphClient['getWithdrawalRequests']>[0],
-  queryConfig?: UseQueryOptions<UseGetAccountWithdrawalsReturn, Error>
+  queryConfig?: Omit<
+    UseQueryOptions<UseGetAccountWithdrawalsReturn, Error>,
+    'queryKey' | 'queryFn'
+  >
 ) {
   const subgraph = useSubgraph();
   const { data: assets } = useGetAssetsList();
-  const { data, ...rest } = useQuery<UseGetAccountWithdrawalsReturn, Error>(
-    buildRioSdkRestakingKey('getWithdrawalRequests', config),
-    buildFetcherAndParser(subgraph, assets, config),
-    {
-      staleTime: 30 * 1000,
-      placeholderData: {
-        withdrawalParams: [],
-        withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
-      },
-      ...queryConfig,
-      enabled:
-        !!assets?.length &&
-        (!config?.where ||
-          !Object.values(config.where).some((v) => v === undefined)) &&
-        queryConfig?.enabled !== false
-    }
-  );
+  const { data, ...rest } = useQuery<UseGetAccountWithdrawalsReturn, Error>({
+    queryKey: buildRioSdkRestakingKey('getWithdrawalRequests', config),
+    queryFn: buildFetcherAndParser(subgraph, assets, config),
+    staleTime: 30 * 1000,
+    placeholderData: {
+      withdrawalParams: [],
+      withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
+    },
+    ...queryConfig,
+    enabled:
+      !!assets?.length &&
+      (!config?.where ||
+        !Object.values(config.where).some((v) => v === undefined)) &&
+      queryConfig?.enabled !== false
+  });
 
   return {
     data: data || {
@@ -101,5 +106,7 @@ export function useGetAccountWithdrawals(
       withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
     },
     ...rest
+  } as Omit<UseQueryResult<UseGetAccountWithdrawalsReturn, Error>, 'data'> & {
+    data: UseGetAccountWithdrawalsReturn;
   };
 }
