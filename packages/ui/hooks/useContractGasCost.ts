@@ -57,7 +57,7 @@ export function useContractGasCost<
         : {
             maxFeePerGas: (feeData.maxFeePerGas * 110n) / 100n,
             maxPriorityFeePerGas: (feeData.maxPriorityFeePerGas * 110n) / 100n,
-            gas: (estimatedGas * 110n) / 100n
+            gas: (estimatedGas * 110n) / 100n + 20_000n
           },
     [feeData?.maxFeePerGas, feeData?.maxPriorityFeePerGas, estimatedGas]
   );
