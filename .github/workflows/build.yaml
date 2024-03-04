@@ -96,7 +96,7 @@ jobs:
            ./packages/frontend
         env:
           SERVICE: rio_network_app_-_production
-          DATADOG_SITE: us5.datadoghq.com
+          DATADOG_SITE: datadoghq.com
           DATADOG_API_HOST: api.us5.datadoghq.com
           DATADOG_API_KEY: ${{ inputs.DATADOG_API_KEY }}
           GIT_HASH: ${{ steps.get_git_short_hash.outputs.GIT_HASH }}
