@@ -93,21 +93,6 @@ jobs:
             --minified-path-prefix=/_next/static \
             --release-version=$(git rev-parse --short HEAD) \
             --service=$SERVICE \
-           ./vercel/path0/packages/frontend
-        env:
-          SERVICE: rio_network_app_-_production
-          DATADOG_SITE: us5.datadoghq.com
-          DATADOG_API_HOST: api.us5.datadoghq.com
-          DATADOG_API_KEY: ${{ inputs.DATADOG_API_KEY }}
-          GIT_HASH: ${{ steps.get_git_short_hash.outputs.GIT_HASH }}
-
-      - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
-        name: Upload sourcemap for Restake App2
-        run: |
-          datadog-ci sourcemaps upload \
-            --minified-path-prefix=/_next/static \
-            --release-version=$(git rev-parse --short HEAD) \
-            --service=$SERVICE \
            ./packages/frontend
         env:
           SERVICE: rio_network_app_-_production
@@ -115,18 +100,3 @@ jobs:
           DATADOG_API_HOST: api.us5.datadoghq.com
           DATADOG_API_KEY: ${{ inputs.DATADOG_API_KEY }}
           GIT_HASH: ${{ steps.get_git_short_hash.outputs.GIT_HASH }}
-
-      - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
-        name: Upload sourcemap for Restake App3
-        run: |
-          datadog-ci sourcemaps upload \
-            --minified-path-prefix=/_next/static \
-            --release-version=$(git rev-parse --short HEAD) \
-            --service=$SERVICE \
-           ./
-        env:
-          SERVICE: rio_network_app_-_production
-          DATADOG_SITE: us5.datadoghq.com
-          DATADOG_API_HOST: api.us5.datadoghq.com
-          DATADOG_API_KEY: ${{ inputs.DATADOG_API_KEY }}
-          GIT_HASH: ${{ steps.get_git_short_hash.outputs.GIT_HASH }}       
