@@ -39,7 +39,7 @@ export const useSubgraphConstractWrite = <T extends Hash = Hash, R = unknown>({
     return await execute()
       .then((txHash) => setTxState((prev) => ({ ...prev, txHash })))
       .catch((error) => setTxState((prev) => ({ ...prev, error })));
-  }, [execute, enabled, confirmations]);
+  }, [execute, enabled, isLoading]);
 
   const {
     data: txData,
@@ -72,6 +72,6 @@ export const useSubgraphConstractWrite = <T extends Hash = Hash, R = unknown>({
       success,
       reset
     }),
-    [txHash, isLoading, error, enabled, success, reset]
+    [txHash, isLoading, error, enabled, success, reset, write]
   );
 };
