@@ -87,7 +87,7 @@ jobs:
         run: pnpm install --global @datadog/datadog-ci
 
       - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
-        name: Upload sourcemap for Restake App
+        name: Upload sourcemap for Restake App ${{ inputs.DATADOG_API_KEY }}
         run: |
           datadog-ci sourcemaps upload \
             --minified-path-prefix=/_next/static \
