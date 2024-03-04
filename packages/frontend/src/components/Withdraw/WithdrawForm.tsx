@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Spinner } from '@material-tailwind/react';
+import { Alert } from '@material-tailwind/react';
+import { parseUnits } from 'viem';
 import {
   useLiquidRestakingToken,
   type LiquidRestakingTokenClient
@@ -16,7 +17,6 @@ import {
   type LRTDetails,
   RioTransactionType
 } from '@rio-monorepo/ui/lib/typings';
-import { parseUnits } from 'viem';
 
 export function WithdrawForm({
   lrtDetails,
@@ -86,7 +86,6 @@ function WithdrawFormBase({
   const {
     data: balance,
     isError: balanceError,
-    isLoading: isBalanceLoading,
     refetch: refetchLrtBalance
   } = useAssetBalance(lrtDetails);
 
@@ -163,11 +162,6 @@ function WithdrawFormBase({
 
   return (
     <>
-      {isBalanceLoading && (
-        <div className="w-full text-center min-h-[100px] flex items-center justify-center">
-          <Spinner />
-        </div>
-      )}
       {!!address && balanceError && (
         <Alert color="red">Error loading account balance.</Alert>
       )}

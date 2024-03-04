@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Spinner } from '@material-tailwind/react';
+import { Alert } from '@material-tailwind/react';
 import {
   type Address,
   type Hash,
@@ -127,7 +127,6 @@ function RestakeFormBase({
   const {
     data,
     isError,
-    isLoading,
     refetch: refetchBalance
   } = useAssetBalance(activeToken);
 
@@ -405,125 +404,111 @@ function RestakeFormBase({
 
   return (
     <>
-      {isLoading && (
-        <div className="w-full text-center min-h-[100px] flex items-center justify-center">
-          <Spinner />
-        </div>
-      )}
       {!!address && isError && (
         <Alert color="red">Error loading account balance.</Alert>
       )}
-      {!isLoading && (
-        <>
-          <StakeField
-            amount={inputAmount}
-            activeToken={activeToken}
-            accountTokenBalance={accountTokenBalance}
-            isDisabled={isDepositLoading}
-            assets={assets}
-            lrt={lrtDetails}
-            estimatedMaxGas={gasEstimates?.estimatedTotalCost}
-            setAmount={handleChangeAmount}
-            setActiveToken={handleChangeActiveToken}
+      <StakeField
+        amount={inputAmount}
+        activeToken={activeToken}
+        accountTokenBalance={accountTokenBalance}
+        isDisabled={isDepositLoading}
+        assets={assets}
+        lrt={lrtDetails}
+        estimatedMaxGas={gasEstimates?.estimatedTotalCost}
+        setAmount={handleChangeAmount}
+        setActiveToken={handleChangeActiveToken}
+      />
+      <div className="flex flex-col gap-2 mt-4">
+        <div className="flex justify-between">
+          <span className="flex items-center text-black gap-1">
+            <span className="opacity-50 text-[14px]">Exchange rate</span>
+
+            <InfoTooltip
+              align="center"
+              contentClassName="max-w-[300px] space-y-1 p-3"
+            >
+              <p>
+                The amount of {lrtDetails?.symbol} you will receive for each{' '}
+                {activeToken?.symbol} deposited.
+              </p>
+              <p className="opacity-75 text-xs">
+                The exchange rate increases ({lrtDetails?.symbol} is worth more
+                than {activeToken?.symbol}) as restaking rewards are earned and
+                may decrease if there is a slashing event.
+              </p>
+            </InfoTooltip>
+          </span>
+          <RestakingTokenExchangeRate
+            assetSymbol={activeToken?.symbol}
+            restakingTokenSymbol={lrtDetails?.symbol}
+            defaultRateDenominator="asset"
           />
-          <div className="flex flex-col gap-2 mt-4">
-            <div className="flex justify-between">
-              <span className="flex items-center text-black gap-1">
-                <span className="opacity-50 text-[14px]">Exchange rate</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="flex items-center text-black gap-1">
+            <span className="opacity-50 text-[14px]">Reward fee</span>
 
-                <InfoTooltip
-                  align="center"
-                  contentClassName="max-w-[300px] space-y-1 p-3"
-                >
-                  <p>
-                    The amount of {lrtDetails?.symbol} you will receive for each{' '}
-                    {activeToken?.symbol} deposited.
-                  </p>
-                  <p className="opacity-75 text-xs">
-                    The exchange rate increases ({lrtDetails?.symbol} is worth
-                    more than {activeToken?.symbol}) as restaking rewards are
-                    earned and may decrease if there is a slashing event.
-                  </p>
-                </InfoTooltip>
-              </span>
-              <RestakingTokenExchangeRate
-                assetSymbol={activeToken?.symbol}
-                restakingTokenSymbol={lrtDetails?.symbol}
-                defaultRateDenominator="asset"
-              />
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center text-black gap-1">
-                <span className="opacity-50 text-[14px]">Reward fee</span>
+            <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
+              <p>
+                The percentage taken from all staking and restaking rewards (not
+                withdrawals or deposits).
+              </p>
+            </InfoTooltip>
+          </span>
+          <strong className="text-right text-[14px]">10%</strong>
+        </div>
+      </div>
+      <HR />
+      <div className="flex justify-between">
+        <span className="flex items-center text-black gap-1">
+          <span className="font-bold text-[14px]">Received</span>
 
-                <InfoTooltip
-                  align="center"
-                  contentClassName="max-w-[300px] p-3"
-                >
-                  <p>
-                    The percentage taken from all staking and restaking rewards
-                    (not withdrawals or deposits).
-                  </p>
-                </InfoTooltip>
-              </span>
-              <strong className="text-right text-[14px]">10%</strong>
-            </div>
-          </div>
-          <HR />
-          <div className="flex justify-between">
-            <span className="flex items-center text-black gap-1">
-              <span className="font-bold text-[14px]">Received</span>
-
-              <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
-                <p>
-                  Estimation is based on current market conditions. Actual
-                  amounts may change based on market fluctuations, pending
-                  rewards, and slashing events.
-                </p>
-              </InfoTooltip>
-            </span>
-            <strong className="text-[14px]">
-              {minAmountOut && typeof minAmountOut === 'bigint'
-                ? displayEthAmount(
-                    formatUnits(minAmountOut, activeToken.decimals)
-                  )
-                : displayAmount(0)}{' '}
-              {lrtDetails?.symbol}
-            </strong>
-          </div>
-          {isAllowed && (
-            <>
-              <TransactionButton
-                transactionType={RioTransactionType.DEPOSIT}
-                refetch={refetchUserBalances}
-                hash={depositTxHash}
-                disabled={!isValidAmount || isEmpty || isDepositLoading}
-                isSigning={isDepositLoading}
-                error={depositError}
-                reset={resetForm}
-                clearErrors={clearErrors}
-                write={handleExecute}
-              >
-                Restake
-              </TransactionButton>
-            </>
-          )}
-          {!isAllowed && address && (
-            <ApproveButtons
-              allowanceTarget={allowanceTarget}
-              accountAddress={address}
-              isValidAmount={isValidAmount}
-              amount={amount || BigInt(0)}
-              token={activeToken}
-              refetchAllowance={handleRefetchAllowance}
-            />
-          )}
-          {allowanceNote && (
-            <p className="text-sm text-center px-2 mt-2 text-gray-500 font-normal">
-              {allowanceNote}
+          <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
+            <p>
+              Estimation is based on current market conditions. Actual amounts
+              may change based on market fluctuations, pending rewards, and
+              slashing events.
             </p>
-          )}
+          </InfoTooltip>
+        </span>
+        <strong className="text-[14px]">
+          {minAmountOut && typeof minAmountOut === 'bigint'
+            ? displayEthAmount(formatUnits(minAmountOut, activeToken.decimals))
+            : displayAmount(0)}{' '}
+          {lrtDetails?.symbol}
+        </strong>
+      </div>
+      {isAllowed && (
+        <>
+          <TransactionButton
+            transactionType={RioTransactionType.DEPOSIT}
+            refetch={refetchUserBalances}
+            hash={depositTxHash}
+            disabled={!isValidAmount || isEmpty || isDepositLoading}
+            isSigning={isDepositLoading}
+            error={depositError}
+            reset={resetForm}
+            clearErrors={clearErrors}
+            write={handleExecute}
+          >
+            Restake
+          </TransactionButton>
         </>
+      )}
+      {!isAllowed && address && (
+        <ApproveButtons
+          allowanceTarget={allowanceTarget}
+          accountAddress={address}
+          isValidAmount={isValidAmount}
+          amount={amount || BigInt(0)}
+          token={activeToken}
+          refetchAllowance={handleRefetchAllowance}
+        />
+      )}
+      {allowanceNote && (
+        <p className="text-sm text-center px-2 mt-2 text-gray-500 font-normal">
+          {allowanceNote}
+        </p>
       )}
     </>
   );
