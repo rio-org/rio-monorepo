@@ -90,7 +90,6 @@ jobs:
         name: Upload sourcemap for Restake App
         run: |
           datadog-ci sourcemaps upload \
-            --dry-run \
             --minified-path-prefix=/_next/static \
             --release-version=$(git rev-parse --short HEAD) \
             --service=$SERVICE \
