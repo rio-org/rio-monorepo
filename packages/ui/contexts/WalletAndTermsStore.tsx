@@ -98,7 +98,7 @@ export default function WalletAndTermsStoreProvider({
     disconnect();
   }, [requireGeofence, isRegionBlocked, isMainnet, address, disconnect]);
 
-  const mutate = useCallback(() => regionCheckedMutation.mutate(undefined), []);
+  const mutate = useCallback(() => regionCheckedMutation.mutate(null), []);
 
   const fetchRegionBlockOnModalOpen = useCallback(() => {
     if (!isMainnet) return;

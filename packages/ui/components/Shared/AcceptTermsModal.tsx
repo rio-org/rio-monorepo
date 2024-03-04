@@ -41,7 +41,7 @@ export function AcceptTermsModal({
       <DialogBody>
         <Checkbox
           crossOrigin="false"
-          checked={accepted}
+          checked={accepted ?? undefined}
           onChange={() => setAccepted((prev) => !prev)}
           className="shrink-0 min-w-[20px]"
           containerProps={{ className: 'min-w-[44px]' }}

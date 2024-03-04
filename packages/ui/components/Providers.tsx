@@ -1,6 +1,24 @@
 import '../styles/global.scss';
 import 'react-loading-skeleton/dist/skeleton.css';
 import '@rainbow-me/rainbowkit/styles.css';
+
+import {
+  createConfig,
+  CreateConnectorFn,
+  fallback,
+  unstable_connector,
+  type WagmiProviderProps
+} from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RioNetworkProvider } from '@rionetwork/sdk-react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { ThemeProvider } from '@material-tailwind/react';
+import { mainnet, sepolia, goerli } from 'wagmi/chains';
+import CssBaseline from '@mui/material/CssBaseline';
+import { Analytics } from '@vercel/analytics/react';
+import { http, type Chain } from 'viem';
+import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
 import {
   injectedWallet,
   argentWallet,
@@ -10,37 +28,32 @@ import {
   ledgerWallet,
   braveWallet
 } from '@rainbow-me/rainbowkit/wallets';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RioNetworkProvider } from '@rionetwork/sdk-react';
-import { mainnet, sepolia, goerli } from 'wagmi/chains';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   RainbowKitProvider,
-  getDefaultConfig,
+  connectorsForWallets,
   getDefaultWallets
 } from '@rainbow-me/rainbowkit';
-import { ThemeProvider } from '@material-tailwind/react';
-import CssBaseline from '@mui/material/CssBaseline';
 import {
-  CreateConnectorFn,
-  fallback,
-  unstable_connector,
-  useConfig,
-  WagmiProvider,
-  WagmiProviderProps
-} from 'wagmi';
-import { http, type Chain } from 'viem';
-import RioTransactionStoreProvider from '../contexts/RioTransactionStore';
+  injected,
+  walletConnect,
+  metaMask,
+  coinbaseWallet,
+  safe
+} from 'wagmi/connectors';
 import { RainbowKitDisclaimer } from './Shared/RainbowKitDisclaimer';
 import Layout, { type LayoutProps } from './Layout';
-import { theme } from '../lib/theme';
-import { CHAIN_ID } from '../config';
+import { getAlchemyRpcUrl, getInfuraRpcUrl } from '../lib/utilities';
+import RioTransactionStoreProvider from '../contexts/RioTransactionStore';
 import WalletAndTermsStoreProvider from '../contexts/WalletAndTermsStore';
 import { TouchProvider } from '../contexts/TouchProvider';
 import { Toaster } from './shadcn/toaster';
-import { asType } from '../lib/utilities';
+import { theme } from '../lib/theme';
+import { CHAIN_ID } from '../config';
+
+const WagmiProvider = dynamic(
+  import('wagmi').then((mod) => mod.WagmiProvider),
+  { ssr: false }
+);
 
 // Create the cache client
 const queryClient = new QueryClient();
@@ -58,149 +71,49 @@ const chooseChain = (chainId: number): [Chain, ...Chain[]] => {
   }
 };
 
-// const { chains, publicClient, webSocketPublicClient } = configureChains(
-//   chooseChain(CHAIN_ID),
-//   [
-//     infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
-//     publicProvider()
-//   ],
-//   { batch: { multicall: true } }
-// );
-
 interface Props extends LayoutProps {
   requireGeofence?: boolean;
   requireTerms?: boolean;
   appTitle: string;
 }
 
-type ConnectorType = ReturnType<CreateConnectorFn>['type'];
-
-type ConnectorStoreState = {
-  connector: ConnectorType | null;
-  setConnector: React.Dispatch<React.SetStateAction<ConnectorType | null>>;
+const _appInfo = {
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'CI',
+  disclaimer: RainbowKitDisclaimer
 };
 
-const ConnectorStore = createContext<ConnectorStoreState>({
-  connector: null,
-  setConnector: () => {}
-});
-const useConnectorStore = () => useContext(ConnectorStore);
+const { wallets } = getDefaultWallets();
 
-function ProviderWrapper({ children }: { children: React.ReactNode }) {
-  const [connector, setConnector] = useState<ConnectorType | null>(null);
-
-  return (
-    <ConnectorStore.Provider value={{ connector, setConnector }}>
-      {children}
-    </ConnectorStore.Provider>
-  );
-}
-
-function ConnectorSelector() {
-  const { setConnector } = useConnectorStore();
-  const config = useConfig();
-
-  const connector = useMemo(() => {
-    if (!config.state.current) return null;
-    return config.state.connections.get(config.state.current)?.connector?.type;
-  }, [config.state.connections, config.state.current]);
-
-  useEffect(() => {
-    console.log('connector', connector ?? null);
-    setConnector(asType<ConnectorStoreState['connector']>(connector) ?? null);
-  }, [connector]);
-
-  return null;
-}
-
-function _Providers({
+export function Providers({
   appTitle,
   nav,
   children,
   requireGeofence = false,
   requireTerms = true
 }: Props) {
-  const { connector } = useConnectorStore();
-
   const appInfo = useMemo(
-    () => ({
-      appName: appTitle,
-      projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'CI',
-      disclaimer: RainbowKitDisclaimer
-    }),
+    () => ({ appName: appTitle, ..._appInfo }),
     [appTitle]
   );
 
-  // const {
-  //   wallets: [{ groupName, wallets }]
-  // } = useMemo(
-  //   () =>
-  //     getDefaultWallets(appInfo),
-  //   [appInfo.appName]
-  // );
-
-  // const projectId = appInfo.projectId;
-  // const connectors = useMemo(
-  //   () =>
-  //     connectorsForWallets([
-  //       {
-  //         groupName,
-  //         wallets: [
-  //           injectedWallet,
-  //           metaMaskWallet,
-  //           rainbowWallet,
-  //           coinbaseWallet,
-  //           walletConnectWallet,
-  //           rabbyWallet
-  //         ]
-  //       },
-  //       {
-  //         groupName: 'Other',
-  //         wallets: [
-  //           argentWallet,
-  //           trustWallet,
-  //           braveWallet,
-  //           ledgerWallet,
-  //           safeWallet,
-  //         ]
-  //       }
-  //     ], appInfo),
-  //   [wallets, groupName, projectId, chains]
-  // );
-
-  // const wagmiConfig = useMemo(
-  //   () =>
-  //     createConfig({
-  //       connectors,
-  //       publicClient,
-  //       webSocketPublicClient
-  //     }),
-  //   [connectors]
-  // );
-
-  const { wallets } = useMemo(getDefaultWallets, []);
-
   const transports = useMemo(() => {
     const _transports: Parameters<typeof fallback>[0] = [];
-    if (connector)
-      _transports.push(
-        unstable_connector(
-          asType<Parameters<typeof unstable_connector>[0]>(connector)
-        )
-      );
-    if (process.env.NEXT_PUBLIC_ALCHEMY_ID) _transports.push(http());
-    if (process.env.NEXT_PUBLIC_INFURA_ID) _transports.push(http());
+    _transports.push(unstable_connector(injected));
+    _transports.push(unstable_connector(metaMask));
+    _transports.push(unstable_connector(walletConnect));
+    _transports.push(unstable_connector(coinbaseWallet));
+    _transports.push(unstable_connector(safe));
+    if (process.env.NEXT_PUBLIC_ALCHEMY_ID)
+      _transports.push(http(getAlchemyRpcUrl(CHAIN_ID)));
+    if (process.env.NEXT_PUBLIC_INFURA_ID)
+      _transports.push(http(getInfuraRpcUrl(CHAIN_ID)));
     _transports.push(http());
     return _transports;
-  }, [connector]);
+  }, []);
 
-  const config = useMemo(() => {
-    return getDefaultConfig({
-      ...appInfo,
-      ssr: true,
-      chains: chooseChain(CHAIN_ID),
-      batch: { multicall: true },
-      wallets: [
+  const connectors = useMemo(() => {
+    return connectorsForWallets(
+      [
         ...wallets,
         {
           groupName: 'Other',
@@ -215,11 +128,22 @@ function _Providers({
           ]
         }
       ],
+      appInfo
+    ) as CreateConnectorFn[];
+  }, [appInfo]);
+
+  const config = useMemo(() => {
+    return createConfig({
+      ...appInfo,
+      ssr: true,
+      chains: chooseChain(CHAIN_ID),
+      batch: { multicall: true },
+      connectors,
       transports: {
         [chooseChain(CHAIN_ID)[0].id]: fallback(transports)
       }
     }) as WagmiProviderProps['config'];
-  }, [appInfo, connector]);
+  }, [appInfo, wallets, transports]);
 
   return (
     <WagmiProvider config={config}>
@@ -237,8 +161,6 @@ function _Providers({
               >
                 <ThemeProvider value={theme}>
                   <TouchProvider>
-                    <ConnectorSelector />
-
                     <CssBaseline />
                     <Layout nav={nav}>
                       {children}
@@ -254,14 +176,6 @@ function _Providers({
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
-  );
-}
-
-export function Providers(props: Props) {
-  return (
-    <ProviderWrapper>
-      <_Providers {...props} />
-    </ProviderWrapper>
   );
 }
 

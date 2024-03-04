@@ -10,7 +10,7 @@ import { storeBoolValueInStorage } from '../lib/utilities';
 
 const QUERY_KEY = [ACCEPTED_TOS_KEY] as const;
 
-type ValueType = boolean | undefined;
+type ValueType = boolean | null;
 
 export function useAcceptedTerms(): readonly [
   UseQueryResult<ValueType, Error>,

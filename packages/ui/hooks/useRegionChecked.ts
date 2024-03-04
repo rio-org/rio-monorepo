@@ -10,7 +10,7 @@ import { storeBoolValueInStorage } from '../lib/utilities';
 
 const QUERY_KEY = [REGION_CHECKED_SESSION_KEY] as const;
 
-type ValueType = boolean | undefined;
+type ValueType = boolean | null;
 
 export function useRegionChecked(): readonly [
   UseQueryResult<ValueType, Error>,
@@ -20,7 +20,7 @@ export function useRegionChecked(): readonly [
 
   const queryFn = () => {
     const item = global.localStorage?.getItem(REGION_CHECKED_SESSION_KEY);
-    if (!item) return undefined;
+    if (!item) return null;
     return item === 'true';
   };
 
