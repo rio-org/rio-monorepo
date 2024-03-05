@@ -151,6 +151,11 @@ export function ValidatorOptionsKabobMenu({
           </p>
           <TransactionButton
             transactionType={RioTransactionType.UPDATE_OPERATOR_VALUE}
+            toasts={{
+              sent: `Removing ${pending ?? ''} pending keys`,
+              error: `Failed to remove ${pending ?? ''} pending keys`,
+              success: `Pending keys removed`
+            }}
             hash={hash}
             refetch={handleCloseDialog}
             disabled={isTxPending || isUserSigning}

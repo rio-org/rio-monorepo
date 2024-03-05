@@ -1,17 +1,25 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
 import { type Hash } from 'viem';
+import { toast } from 'sonner';
 import { useWalletAndTermsStore } from '../contexts/WalletAndTermsStore';
+import { useAccountIfMounted } from './useAccountIfMounted';
 import {
   useAddTransaction,
   usePendingTransactions
 } from '../contexts/RioTransactionStore';
-import { useAccountIfMounted } from './useAccountIfMounted';
+import { TransactionToast } from '../components/Shared/TransactionToast';
+import { IconSad } from '../components/Icons/IconSad';
 import { CHAIN_ID } from 'config';
-import { type ContractError, type RioTransactionType } from '../lib/typings';
+import {
+  PendingTransaction,
+  type ContractError,
+  type RioTransactionType
+} from '../lib/typings';
 
 export type UseTransactionButtonConfig = {
   transactionType: RioTransactionType;
+  toasts: PendingTransaction['toasts'];
   disabled?: boolean;
   isSigning?: boolean;
   hash?: Hash;
@@ -23,6 +31,7 @@ export type UseTransactionButtonConfig = {
 
 export const useTransactionButton = ({
   transactionType: type,
+  toasts,
   disabled,
   hash,
   error,
@@ -75,8 +84,16 @@ export const useTransactionButton = ({
 
   useEffect(() => {
     if (!hash) return;
-    addTransaction({ hash, type });
-  }, [hash, type]);
+    addTransaction({
+      hash,
+      type,
+      toasts: {
+        sent: toasts.sent,
+        success: toasts.success,
+        error: toasts.error
+      }
+    });
+  }, [hash, type, toasts.sent, toasts.success, toasts.error]);
 
   useEffect(() => {
     if (!error && !txError) return;
@@ -110,6 +127,21 @@ export const useTransactionButton = ({
     switchChain,
     write
   ]);
+
+  useEffect(
+    function emitTxErrorToast() {
+      if (!errorMessage || hash) return;
+      toast(
+        <TransactionToast
+          icon={<IconSad />}
+          title={errorMessage}
+          hash={hash}
+          chainId={chain?.id}
+        />
+      );
+    },
+    [hash, errorMessage, !!refetch]
+  );
 
   return {
     errorMessage,

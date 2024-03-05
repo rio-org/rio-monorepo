@@ -1,35 +1,22 @@
 import { Spinner } from '@material-tailwind/react';
-import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
-import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
+import { useCallback, useEffect } from 'react';
+import {
+  useLiquidRestakingToken,
+  type ClaimWithdrawalParams,
+  type LiquidRestakingTokenClient
+} from '@rionetwork/sdk-react';
 import { useSubgraphConstractWrite } from '@rio-monorepo/ui/hooks/useSubgraphContractWrite';
+import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
+import { useTransactionButton } from '@rio-monorepo/ui/hooks/useTransactionButton';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { cn, displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import {
   RioTransactionType,
   type LRTDetails,
   type TokenSymbol
 } from '@rio-monorepo/ui/lib/typings';
-import {
-  cn,
-  displayEthAmount,
-  linkToTxOnBlockExplorer
-} from '@rio-monorepo/ui/lib/utilities';
-import {
-  ClaimWithdrawalParams,
-  LiquidRestakingTokenClient,
-  useLiquidRestakingToken
-} from '@rionetwork/sdk-react';
-import { useCallback, useEffect } from 'react';
-import ClaimButton from './ClaimButton';
 import { PageWrapper } from '@rio-monorepo/ui/components/Shared/PageWrapper';
-import dayjs from 'dayjs';
-import { twJoin } from 'tailwind-merge';
-import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
-import { Hash } from 'viem';
-import { CHAIN_ID } from '@rio-monorepo/ui/config';
-import { toast } from 'sonner';
-import { IconSad } from '@rio-monorepo/ui/components/Icons/IconSad';
-import { useTransactionButton } from '@rio-monorepo/ui/hooks/useTransactionButton';
-import { IconLightning } from '@rio-monorepo/ui/components/Icons/IconLightning';
-import { IconParty } from '@rio-monorepo/ui/components/Icons/IconParty';
+import ClaimButton from './ClaimButton';
 
 interface ClaimSectionProps {
   withdrawalAssets: { amount: number; symbol: TokenSymbol }[];
@@ -96,7 +83,7 @@ export function ClaimSectionBase({
   refetch,
   isWithdrawalsLoading
 }: ClaimSectionProps & { lrtClient?: LiquidRestakingTokenClient | null }) {
-  const { address, chain } = useAccountIfMounted();
+  const { address } = useAccountIfMounted();
   const execute = useCallback(async () => {
     if (!lrtClient || !address || !withdrawalParams) return;
 
@@ -135,6 +122,14 @@ export function ClaimSectionBase({
 
   const useTransactionButtonReturn = useTransactionButton({
     transactionType: RioTransactionType.CLAIM,
+    toasts: {
+      sent: 'Claim transaction sent',
+      error: 'Claim failed',
+      success:
+        formattedAmount !== '0'
+          ? `Successfully claimed ${formattedAmount} ${claimAssetSymbol || ''}`
+          : 'Claim successful'
+    },
     disabled: !canClaim || isLoading || isWithdrawalsLoading,
     hash: txHash,
     error,
@@ -142,68 +137,6 @@ export function ClaimSectionBase({
     write,
     isSigning: isLoading
   });
-
-  useEffect(
-    function emitTxSentToast() {
-      if (!txHash || !useTransactionButtonReturn.isTxLoading) return;
-      toast(
-        <ToastContent
-          icon={<IconLightning />}
-          title="Claim transaction sent"
-          hash={txHash}
-          chainId={chain?.id}
-        />
-      );
-    },
-    [txHash, useTransactionButtonReturn.isTxLoading]
-  );
-
-  useEffect(
-    function emitTxSuccessToast() {
-      if (!txHash || !useTransactionButtonReturn.isTxSuccess || !claimAmount) {
-        return;
-      }
-
-      toast(
-        <ToastContent
-          icon={<IconParty />}
-          title={
-            formattedAmount !== '0'
-              ? `Successfully claimed ${formattedAmount} ${
-                  claimAssetSymbol || ''
-                }`
-              : 'Claim successful'
-          }
-          hash={txHash}
-          chainId={chain?.id}
-        />
-      );
-    },
-    [
-      txHash,
-      useTransactionButtonReturn.isTxSuccess,
-      formattedAmount,
-      claimAssetSymbol
-    ]
-  );
-
-  useEffect(
-    function emitTxErrorToast() {
-      if (!useTransactionButtonReturn.errorMessage) return;
-      reset?.();
-      toast(
-        <ToastContent
-          icon={<IconSad />}
-          title={
-            txHash ? 'Claim failed' : useTransactionButtonReturn.errorMessage
-          }
-          hash={txHash}
-          chainId={chain?.id}
-        />
-      );
-    },
-    [txHash, useTransactionButtonReturn.errorMessage, !!reset, !!refetch]
-  );
 
   return (
     <PageWrapper>
@@ -239,48 +172,5 @@ export function ClaimSectionBase({
         </div>
       </div>
     </PageWrapper>
-  );
-}
-
-function ToastContent({
-  icon,
-  title,
-  hash,
-  chainId = CHAIN_ID
-}: {
-  icon: React.ReactNode;
-  title: string;
-  hash?: Hash;
-  chainId?: number;
-}) {
-  return (
-    <div className="flex gap-4 whitespace-nowrap items-center justify-between font-medium w-full">
-      <div className="text-[14px] space-y-1.5">
-        <span className="flex items-center gap-1 font-medium">
-          {icon} <span>{title}</span>
-        </span>
-        <span className="font-normal opacity-50">
-          {dayjs().format('MMMM D, YYYY * h:mm A').replace(/\*/, 'at')}
-        </span>
-      </div>
-      {!hash ? (
-        <div />
-      ) : (
-        <a
-          className={twJoin(
-            'flex items-center gap-1.5',
-            'h-6 px-2 py-1',
-            'bg-blackA2 rounded-[4px] text-xs text-black',
-            'opacity-50 hover:opacity-90 active:opacity-100'
-          )}
-          href={linkToTxOnBlockExplorer(hash, chainId)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <span>View</span>
-          <IconExternal className="w-[10px] h-[10px]" />
-        </a>
-      )}
-    </div>
   );
 }

@@ -189,6 +189,11 @@ function WithdrawFormBase({
 
       <TransactionButton
         transactionType={RioTransactionType.WITHDRAW_REQUEST}
+        toasts={{
+          sent: `Withdrawal request sent`,
+          success: `Sucessfully requested to unstake ${inputAmount} ${lrtDetails?.symbol}`,
+          error: `An error occurred  requesting withdrawal`
+        }}
         hash={txHash}
         refetch={refetch}
         disabled={!address || !amount || !isValidAmount || isLoading}

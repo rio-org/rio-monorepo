@@ -113,6 +113,11 @@ export function EditOperatorFieldDialog({
         </p>
         <TransactionButton
           transactionType={RioTransactionType.UPDATE_OPERATOR_VALUE}
+          toasts={{
+            sent: `Updating ${fieldName}`,
+            error: `Failed to update ${fieldName}`,
+            success: `Operator ${fieldName} updated`
+          }}
           hash={hash}
           refetch={handleCloseWindow}
           disabled={isTxPending || isUserSigning || !simulatedData?.request}

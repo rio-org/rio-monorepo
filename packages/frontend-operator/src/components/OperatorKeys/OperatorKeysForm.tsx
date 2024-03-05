@@ -26,6 +26,7 @@ import {
   useWaitForTransactionReceipt
 } from 'wagmi';
 import SubmitterField from './SubmitterField';
+import { displayAmount } from '@rio-monorepo/ui/lib/utilities';
 
 const DEFAULT_ARGS = [255, 0n, '0x', '0x'] as const;
 
@@ -243,6 +244,13 @@ function OperatorKeysFormInternal({
       </div>
       <TransactionButton
         transactionType={RioTransactionType.SUBMIT_KEYS}
+        toasts={{
+          sent: 'Submitting keys',
+          error: 'Key submission failed',
+          success: `Successfully submitted ${displayAmount(
+            Number(args[1])
+          )} keys`
+        }}
         hash={hash}
         disabled={isNotOperator || isWriteLoading || isPrepareLoading}
         isSigning={isWriteLoading}

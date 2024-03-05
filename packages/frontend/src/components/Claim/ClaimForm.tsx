@@ -17,6 +17,7 @@ import {
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import { useSubgraphConstractWrite } from '@rio-monorepo/ui/hooks/useSubgraphContractWrite';
+import { displayAmount } from '@rio-monorepo/ui/lib/utilities';
 
 interface Props {
   lrt: LRTDetails;
@@ -61,6 +62,16 @@ export const HydratedClaimForm = ({ lrt }: Props) => {
     });
 
   useEffect(() => void (success && onReset()), [success, onReset]);
+
+  const claimAmount = isWithdrawalsLoading
+    ? undefined
+    : withdrawalAssets.reduce((a, b) => a + b.amount, 0);
+
+  const claimAssetSymbol = !lrt?.symbol
+    ? ''
+    : withdrawalAssets.length > 1
+    ? `＊${lrt.symbol.match(/[A-Z]+$/)?.[0] || 'ETH'}`
+    : withdrawalAssets[0]?.symbol;
 
   return (
     <div>
@@ -115,6 +126,16 @@ export const HydratedClaimForm = ({ lrt }: Props) => {
 
       <TransactionButton
         transactionType={RioTransactionType.CLAIM}
+        toasts={{
+          sent: 'Claim transaction sent',
+          error: 'Claim failed',
+          success:
+            claimAmount && claimAmount !== 0
+              ? `Successfully claimed ${displayAmount(claimAmount)} ${
+                  claimAssetSymbol || ''
+                }`
+              : 'Claim successful'
+        }}
         hash={txHash}
         refetch={onReset}
         disabled={!canClaim || isLoading}

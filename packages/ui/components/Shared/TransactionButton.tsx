@@ -12,8 +12,8 @@ import { cn, getChainName } from '../../lib/utilities';
 import { ViewTransactionLink } from './ViewTransactionLink';
 import { IconWarning } from '../Icons/IconWarning';
 import { IconX } from '../Icons/IconX';
-import Alert from './Alert';
 import { CHAIN_ID } from '../../config';
+import { useEffect } from 'react';
 
 export type TransactionButtonProps = UseTransactionButtonConfig & {
   reset?: () => void;
@@ -24,6 +24,7 @@ export type TransactionButtonProps = UseTransactionButtonConfig & {
 
 const TransactionButton = ({
   transactionType: type,
+  toasts,
   disabled,
   hash,
   error,
@@ -49,6 +50,7 @@ const TransactionButton = ({
     prevTx
   } = useTransactionButton({
     transactionType: type,
+    toasts,
     disabled,
     hash,
     error,
@@ -57,6 +59,8 @@ const TransactionButton = ({
     write,
     isSigning
   });
+
+  useEffect(() => void isTxSuccess && reset?.(), [isTxSuccess, reset]);
 
   return (
     <div className={cn('flex flex-col w-full max-w-full mt-4', className)}>
@@ -71,7 +75,7 @@ const TransactionButton = ({
               borderWidth: 1
             }}
             exit={{ opacity: 0, height: 0, marginBottom: 0, borderWidth: 0 }}
-            className="w-full border rounded-lg border-[#EEBA00] px-3 py-3 space-y-2 text-[14px]"
+            className="w-full border rounded-lg border-[#EEBA00] bg-[#EEBA000C] px-3 py-3 space-y-2 text-[14px]"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 font-semibold">
@@ -100,65 +104,48 @@ const TransactionButton = ({
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {isTxSuccess ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <Alert
-              isSuccess={isTxSuccess}
-              isError={false}
-              setIsSuccess={reset}
-              setIsError={clearErrors || reset}
-            />
-          </motion.div>
-        ) : (
-          <motion.button
-            variants={TX_BUTTON_VARIANTS}
-            disabled={isDisabled}
-            onClick={handleClick}
-            className={twJoin(
-              'w-full py-3 rounded-full',
-              'text-white font-bold',
-              'bg-black transition-colors duration-200',
-              'hover:bg-[var(--color-dark-gray)]',
-              'disabled:!bg-opacity-5 disabled:!bg-black',
-              'disabled:[&>span]:!opacity-20 disabled:[&>span]:!text-black'
-            )}
-          >
-            {(() => {
-              if (!address) {
-                <span className={cn(isDisabled && 'opacity-20 text-black')}>
-                  Connect your wallet
-                </span>;
-              }
+        <motion.button
+          variants={TX_BUTTON_VARIANTS}
+          disabled={isDisabled}
+          onClick={handleClick}
+          className={twJoin(
+            'w-full py-3 rounded-full',
+            'text-white font-bold',
+            'bg-black transition-colors duration-200',
+            'hover:bg-[var(--color-dark-gray)]',
+            'disabled:!bg-opacity-5 disabled:!bg-black',
+            'disabled:[&>span]:!opacity-20 disabled:[&>span]:!text-black'
+          )}
+        >
+          {(() => {
+            if (!address) {
+              <span className={cn(isDisabled && 'opacity-20 text-black')}>
+                Connect your wallet
+              </span>;
+            }
 
-              if (
-                isTxLoading ||
-                isSwitchNetworkLoading ||
-                isSigning ||
-                prevTx?.hash
-              ) {
-                return (
-                  <LoadingTransactionContent>
-                    {prevTx &&
-                      !prevTx?.isSame &&
-                      'Awaiting previous transaction'}
-                  </LoadingTransactionContent>
-                );
-              }
-
+            if (
+              isTxLoading ||
+              isSwitchNetworkLoading ||
+              isSigning ||
+              prevTx?.hash
+            ) {
               return (
-                <span className={cn(isDisabled && 'opacity-20 text-black')}>
-                  {wrongNetwork
-                    ? `Switch to ${getChainName(CHAIN_ID)}`
-                    : children || 'Submit'}
-                </span>
+                <LoadingTransactionContent>
+                  {prevTx && !prevTx?.isSame && 'Awaiting previous transaction'}
+                </LoadingTransactionContent>
               );
-            })()}
-          </motion.button>
-        )}
+            }
+
+            return (
+              <span className={cn(isDisabled && 'opacity-20 text-black')}>
+                {wrongNetwork
+                  ? `Switch to ${getChainName(CHAIN_ID)}`
+                  : children || 'Submit'}
+              </span>
+            );
+          })()}
+        </motion.button>
       </AnimatePresence>
 
       <AnimatePresence>
