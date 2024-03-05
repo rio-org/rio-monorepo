@@ -21,9 +21,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Address, Hex, formatEther, zeroAddress } from 'viem';
 import {
-  useContractWrite,
-  usePrepareContractWrite,
-  useWaitForTransaction
+  useWriteContract,
+  useSimulateContract,
+  useWaitForTransactionReceipt
 } from 'wagmi';
 import SubmitterField from './SubmitterField';
 
@@ -131,21 +131,21 @@ function OperatorKeysFormInternal({
   }, [gasEstimates]);
 
   const {
-    config,
+    data: simulatedData,
     isLoading: isPrepareLoading,
     error: prepareError
-  } = usePrepareContractWrite({ ...contractWriteOptions, ...gas });
+  } = useSimulateContract({ ...contractWriteOptions, ...gas });
 
   const {
-    data,
-    write,
-    isLoading: isWriteLoading,
+    data: hash,
+    writeContract,
+    isPending: isWriteLoading,
     error: writeError,
     reset: resetWrite
-  } = useContractWrite(config);
+  } = useWriteContract();
 
-  const { error: txError } = useWaitForTransaction({
-    hash: data?.hash
+  const { error: txError } = useWaitForTransactionReceipt({
+    hash
   });
 
   useEffect(() => {
@@ -243,19 +243,23 @@ function OperatorKeysFormInternal({
       </div>
       <TransactionButton
         transactionType={RioTransactionType.SUBMIT_KEYS}
-        hash={data?.hash}
+        hash={hash}
         disabled={isNotOperator || isWriteLoading || isPrepareLoading}
         isSigning={isWriteLoading}
         error={error}
         reset={resetForm}
         clearErrors={clearErrors}
-        write={write}
+        write={
+          simulatedData?.request
+            ? () => writeContract(simulatedData?.request)
+            : undefined
+        }
       >
         {!!address && isFetched && !operators?.length
           ? 'Not a registered operator'
           : !value
           ? 'Enter your keys'
-          : !write
+          : !simulatedData?.request
           ? 'Keys entered are invalid'
           : null}
       </TransactionButton>

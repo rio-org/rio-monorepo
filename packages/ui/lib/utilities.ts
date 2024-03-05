@@ -74,6 +74,31 @@ export const getAlchemyChainLabel = (chainId: CHAIN_ID_NUMBER) => {
   }
 };
 
+export const getInfuraChainLabel = (chainId: CHAIN_ID_NUMBER) => {
+  switch (chainId) {
+    case 1:
+      return 'mainnet';
+    case 5:
+      return 'goerli';
+    case 11155111:
+      return 'sepolia';
+    default:
+      return 'unknown';
+  }
+};
+
+export const getAlchemyRpcUrl = (chainId: CHAIN_ID_NUMBER) => {
+  return `https://${getAlchemyChainLabel(chainId)}.g.alchemy.com/v2/${
+    process.env.NEXT_PUBLIC_ALCHEMY_ID
+  }`;
+};
+
+export const getInfuraRpcUrl = (chainId: CHAIN_ID_NUMBER) => {
+  return `https://${getInfuraChainLabel(chainId)}.infura.io/v3/${
+    process.env.NEXT_PUBLIC_INFURA_ID
+  }`;
+};
+
 export const linkToAddressOnBlockExplorer = (
   address: Address,
   chainId: number
@@ -341,13 +366,13 @@ export function isUndefined(value: unknown): value is undefined {
 }
 
 export const storeBoolValueInStorage = (key: string, store?: Storage) => {
-  return async (value: boolean) =>
-    new Promise((resolve) => {
+  return async (value: boolean | null) =>
+    new Promise<boolean | null>((resolve) => {
       try {
         store?.setItem(key, String(value));
         return resolve(value);
       } catch (e) {
-        return resolve(undefined);
+        return resolve(null);
       }
     });
 };

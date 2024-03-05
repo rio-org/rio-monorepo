@@ -3,13 +3,12 @@ import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import {
-  erc20ABI,
-  useContractWrite,
-  usePrepareContractWrite,
-  useWaitForTransaction
+  useWriteContract,
+  useSimulateContract,
+  useWaitForTransactionReceipt
 } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
-import { Address, getAddress, zeroAddress } from 'viem';
+import { erc20Abi, type Address, getAddress, zeroAddress } from 'viem';
 import { AssetDetails } from '../../lib/typings';
 import { NATIVE_ETH_ADDRESS } from '../../config';
 
@@ -42,41 +41,46 @@ const ApproveButton = ({
 }: Props) => {
   const [isButtonLoading, setIsButtonLoading] = useState(false);
   const {
-    config,
+    data: simulatedData,
     error: prepareError,
     isError: isPrepareError
-  } = usePrepareContractWrite({
+  } = useSimulateContract({
     address: token?.address,
-    abi: erc20ABI,
+    abi: erc20Abi,
     functionName: 'approve',
     args: [allowanceTarget || zeroAddress, amount],
-    enabled:
-      !!isValidAmount &&
-      !!allowanceTarget &&
-      getAddress(allowanceTarget) !== NATIVE_ETH_ADDRESS &&
-      !!accountAddress,
-    onError(error) {
-      setIsApprovalError(true);
-      console.log('Prepare error', error);
+    query: {
+      enabled:
+        !!isValidAmount &&
+        !!allowanceTarget &&
+        getAddress(allowanceTarget) !== NATIVE_ETH_ADDRESS &&
+        !!accountAddress
     }
   });
 
   const {
-    data: writeContractResult,
-    writeAsync: approveAsync,
+    data: hash,
+    writeContractAsync: approveAsync,
     error: writeError,
     isError: isWriteError
-  } = useContractWrite(config);
+  } = useWriteContract();
 
-  const transactionResult = useWaitForTransaction({
-    hash: writeContractResult?.hash
+  const transactionResult = useWaitForTransactionReceipt({
+    hash
+  });
+
+  useEffect(() => {
+    if (!prepareError) return;
+    setIsApprovalError(true);
+    console.error('Prepare error', prepareError);
   });
 
   const handleExecute = () => {
+    if (!simulatedData?.request) return;
     setIsApprovalLoading(true);
     setIsButtonLoading(true);
     setIsApprovalError(false);
-    approveAsync?.().catch((error) => {
+    approveAsync?.(simulatedData.request).catch((error) => {
       console.log('Error', error);
     });
   };

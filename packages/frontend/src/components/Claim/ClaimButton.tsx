@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
+import { useSwitchChain } from 'wagmi';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useTransactionButton } from '@rio-monorepo/ui/hooks/useTransactionButton';
 import { type TransactionButtonProps } from '@rio-monorepo/ui/components/Shared/TransactionButton';
@@ -20,10 +20,9 @@ const ClaimButton = ({
   useTransactionButtonReturn,
   className
 }: ClaimButtonProps) => {
-  const { chain } = useNetwork();
-  const { address } = useAccountIfMounted();
-  const { isLoading: isSwitchNetworkLoading } = useSwitchNetwork();
-  const wrongNetwork = chain?.unsupported;
+  const { address, chain } = useAccountIfMounted();
+  const { chains, isPending: isSwitchNetworkLoading } = useSwitchChain();
+  const wrongNetwork = !!address && !chains.find((c) => c.id === chain?.id);
   const formattedAmount = displayEthAmount(claimAmount ?? '0');
 
   const { handleClick, isDisabled, isTxLoading, prevTx } =

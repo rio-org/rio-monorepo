@@ -1,11 +1,15 @@
 import { getAssetList } from '../lib/graphqlQueries';
 import { BaseAssetDetails, BaseLRTSubgraphResponse } from '../lib/typings';
 import { parseBaseSubgraphAssetList } from '../lib/utilities';
-import { UseQueryOptions, useQuery } from 'react-query';
+import {
+  type UseQueryResult,
+  type UseQueryOptions,
+  useQuery
+} from '@tanstack/react-query';
 import subgraphClient from '../lib/subgraphClient';
 import { CHAIN_ID } from '../config';
 
-const fetcher = async () => {
+const queryFn = async () => {
   const client = subgraphClient(CHAIN_ID);
   const { data } = await client.query<{
     assets: BaseAssetDetails[];
@@ -18,15 +22,16 @@ const fetcher = async () => {
 };
 
 export function useGetAssetsList(
-  queryConfig?: UseQueryOptions<BaseAssetDetails[], Error>
-) {
-  return useQuery<BaseAssetDetails[], Error>(
-    ['useGetAssetsList', CHAIN_ID] as const,
-    fetcher,
-    {
-      staleTime: 60 * 1000,
-      ...queryConfig,
-      enabled: queryConfig?.enabled !== false
-    }
-  );
+  queryConfig?: Omit<
+    UseQueryOptions<BaseAssetDetails[], Error>,
+    'queryKey' | 'queryFn'
+  >
+): UseQueryResult<BaseAssetDetails[], Error> {
+  return useQuery<BaseAssetDetails[], Error>({
+    queryKey: ['useGetAssetsList', CHAIN_ID] as const,
+    queryFn,
+    staleTime: 60 * 1000,
+    ...queryConfig,
+    enabled: queryConfig?.enabled !== false
+  });
 }

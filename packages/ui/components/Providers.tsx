@@ -1,6 +1,24 @@
 import '../styles/global.scss';
 import 'react-loading-skeleton/dist/skeleton.css';
 import '@rainbow-me/rainbowkit/styles.css';
+
+import {
+  createConfig,
+  CreateConnectorFn,
+  fallback,
+  unstable_connector,
+  type WagmiProviderProps
+} from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RioNetworkProvider } from '@rionetwork/sdk-react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { ThemeProvider } from '@material-tailwind/react';
+import { mainnet, sepolia, goerli } from 'wagmi/chains';
+import CssBaseline from '@mui/material/CssBaseline';
+import { Analytics } from '@vercel/analytics/react';
+import { http, type Chain } from 'viem';
+import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
 import {
   injectedWallet,
   argentWallet,
@@ -10,67 +28,61 @@ import {
   ledgerWallet,
   braveWallet
 } from '@rainbow-me/rainbowkit/wallets';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { RioNetworkProvider } from '@rionetwork/sdk-react';
-import { publicProvider } from 'wagmi/providers/public';
-import { mainnet, sepolia, goerli } from 'wagmi/chains';
-import { infuraProvider } from 'wagmi/providers/infura';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
-import { useMemo } from 'react';
 import {
   RainbowKitProvider,
-  getDefaultWallets,
   connectorsForWallets,
-  type WalletList
+  getDefaultWallets
 } from '@rainbow-me/rainbowkit';
-import { ThemeProvider } from '@material-tailwind/react';
-import CssBaseline from '@mui/material/CssBaseline';
 import {
-  createConfig,
-  configureChains,
-  WagmiConfig,
-  type Chain,
-  type Connector
-} from 'wagmi';
-import RioTransactionStoreProvider from '../contexts/RioTransactionStore';
+  injected,
+  walletConnect,
+  metaMask,
+  coinbaseWallet,
+  safe
+} from 'wagmi/connectors';
 import { RainbowKitDisclaimer } from './Shared/RainbowKitDisclaimer';
 import Layout, { type LayoutProps } from './Layout';
-import { theme } from '../lib/theme';
-import { CHAIN_ID } from '../config';
+import { getAlchemyRpcUrl, getInfuraRpcUrl } from '../lib/utilities';
+import RioTransactionStoreProvider from '../contexts/RioTransactionStore';
 import WalletAndTermsStoreProvider from '../contexts/WalletAndTermsStore';
 import { TouchProvider } from '../contexts/TouchProvider';
 import { Toaster } from './shadcn/toaster';
+import { theme } from '../lib/theme';
+import { CHAIN_ID } from '../config';
+
+const WagmiProvider = dynamic(
+  import('wagmi').then((mod) => mod.WagmiProvider),
+  { ssr: false }
+);
 
 // Create the cache client
 const queryClient = new QueryClient();
 
-const chooseChain = (chainId: number) => {
+const chooseChain = (chainId: number): [Chain, ...Chain[]] => {
   if (chainId === 1) {
-    return [mainnet] as Chain[];
+    return [mainnet] as [Chain, ...Chain[]];
   } else if (chainId === 5) {
-    return [goerli] as Chain[];
+    return [goerli] as [Chain, ...Chain[]];
   } else if (chainId === 11155111) {
-    return [sepolia] as Chain[];
+    return [sepolia] as [Chain, ...Chain[]];
   } else {
-    throw new Error('Invalid chain id');
+    console.error('Invalid chain id');
+    return [goerli] as [Chain, ...Chain[]];
   }
 };
-
-const { chains, publicClient, webSocketPublicClient } = configureChains(
-  chooseChain(CHAIN_ID),
-  [
-    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_ID || '' }),
-    publicProvider()
-  ],
-  { batch: { multicall: true } }
-);
 
 interface Props extends LayoutProps {
   requireGeofence?: boolean;
   requireTerms?: boolean;
   appTitle: string;
 }
+
+const _appInfo = {
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'CI',
+  disclaimer: RainbowKitDisclaimer
+};
+
+const { wallets } = getDefaultWallets();
 
 export function Providers({
   appTitle,
@@ -80,67 +92,67 @@ export function Providers({
   requireTerms = true
 }: Props) {
   const appInfo = useMemo(
-    () => ({
-      appName: appTitle,
-      projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'CI',
-      disclaimer: RainbowKitDisclaimer
-    }),
+    () => ({ appName: appTitle, ..._appInfo }),
     [appTitle]
   );
 
-  const {
-    wallets: [{ groupName, wallets }]
-  } = useMemo(
-    () =>
-      getDefaultWallets({
-        appName: appInfo.appName,
-        projectId: appInfo.projectId,
-        chains
-      }) as { wallets: WalletList },
-    [appInfo.appName]
-  );
+  const transports = useMemo(() => {
+    const _transports: Parameters<typeof fallback>[0] = [];
+    _transports.push(unstable_connector(injected));
+    _transports.push(unstable_connector(metaMask));
+    _transports.push(unstable_connector(walletConnect));
+    _transports.push(unstable_connector(coinbaseWallet));
+    _transports.push(unstable_connector(safe));
+    if (process.env.NEXT_PUBLIC_ALCHEMY_ID)
+      _transports.push(http(getAlchemyRpcUrl(CHAIN_ID)));
+    if (process.env.NEXT_PUBLIC_INFURA_ID)
+      _transports.push(http(getInfuraRpcUrl(CHAIN_ID)));
+    _transports.push(http());
+    return _transports;
+  }, []);
 
-  const projectId = appInfo.projectId;
-  const connectors = useMemo(
-    () =>
-      connectorsForWallets([
-        {
-          groupName,
-          wallets: [
-            injectedWallet({ chains }),
-            ...wallets,
-            rabbyWallet({ chains })
-          ]
-        },
+  const connectors = useMemo(() => {
+    return connectorsForWallets(
+      [
+        ...wallets,
         {
           groupName: 'Other',
           wallets: [
-            argentWallet({ projectId, chains }),
-            trustWallet({ projectId, chains }),
-            braveWallet({ chains }),
-            ledgerWallet({ projectId, chains }),
-            safeWallet({ chains })
+            injectedWallet,
+            rabbyWallet,
+            argentWallet,
+            trustWallet,
+            braveWallet,
+            ledgerWallet,
+            safeWallet
           ]
         }
-      ]) as unknown as Connector[],
-    [wallets, groupName, projectId, chains]
-  );
+      ],
+      appInfo
+    ) as CreateConnectorFn[];
+  }, [appInfo]);
 
-  const wagmiConfig = useMemo(
-    () =>
-      createConfig({
-        autoConnect: true,
-        connectors,
-        publicClient,
-        webSocketPublicClient
-      }),
-    [connectors]
-  );
+  const config = useMemo(() => {
+    return createConfig({
+      ...appInfo,
+      ssr: true,
+      chains: chooseChain(CHAIN_ID),
+      batch: { multicall: true },
+      connectors,
+      transports: {
+        [chooseChain(CHAIN_ID)[0].id]: fallback(transports)
+      }
+    }) as WagmiProviderProps['config'];
+  }, [appInfo, wallets, transports]);
 
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider modalSize="compact" appInfo={appInfo} chains={chains}>
-        <QueryClientProvider client={queryClient}>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider
+          modalSize="compact"
+          appInfo={appInfo}
+          initialChain={CHAIN_ID}
+        >
           <RioNetworkProvider>
             <RioTransactionStoreProvider>
               <WalletAndTermsStoreProvider
@@ -161,9 +173,9 @@ export function Providers({
               </WalletAndTermsStoreProvider>
             </RioTransactionStoreProvider>
           </RioNetworkProvider>
-        </QueryClientProvider>
-      </RainbowKitProvider>
-    </WagmiConfig>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
 

@@ -1,13 +1,13 @@
 import { Hash } from '@wagmi/core';
 import { createContext, useContext, useEffect, useMemo } from 'react';
-import { useChainId, useWaitForTransaction } from 'wagmi';
+import { useChainId, useWaitForTransactionReceipt } from 'wagmi';
 import { CHAIN_ID } from '../config';
 import {
   QueryClient,
   useMutation,
   useQuery,
   useQueryClient
-} from 'react-query';
+} from '@tanstack/react-query';
 import {
   CHAIN_ID_NUMBER,
   PendingTransaction,
@@ -44,7 +44,9 @@ export default function RioTransactionStoreProvider({
 
   const nextTx = useMemo(() => data[chainId]?.[0], [data, chainId]);
 
-  const { isError, isSuccess } = useWaitForTransaction({ hash: nextTx?.hash });
+  const { isError, isSuccess } = useWaitForTransactionReceipt({
+    hash: nextTx?.hash
+  });
 
   useEffect(() => {
     if (!!nextTx?.hash && (isError || isSuccess)) {
@@ -95,9 +97,9 @@ export function useAddTransaction() {
 /////////////////////
 
 function useLocalStorageTransactions() {
-  const { data, ...etc } = useQuery<TransactionStore, Error>(
-    QUERY_KEY,
-    () => {
+  const { data, ...etc } = useQuery<TransactionStore, Error>({
+    queryKey: QUERY_KEY,
+    queryFn: () => {
       try {
         return JSON.parse(
           localStorage.getItem(STORE_VAR) || '{}'
@@ -106,12 +108,10 @@ function useLocalStorageTransactions() {
         return DEFAULT_STATE.data;
       }
     },
-    {
-      staleTime: 0,
-      enabled: true,
-      placeholderData: DEFAULT_STATE.data
-    }
-  );
+    staleTime: 0,
+    enabled: true,
+    placeholderData: DEFAULT_STATE.data
+  });
   return { data: data || DEFAULT_STATE.data, ...etc };
 }
 

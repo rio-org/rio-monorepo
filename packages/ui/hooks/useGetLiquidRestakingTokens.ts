@@ -1,11 +1,15 @@
+import {
+  useQuery,
+  type UseQueryOptions,
+  type UseBaseQueryResult
+} from '@tanstack/react-query';
 import { LRTDetails, LRTSubgraphResponse } from '../lib/typings';
 import { getLiquidRestakingTokenList } from '../lib/graphqlQueries';
 import { parseSubgraphLRTList } from '../lib/utilities';
 import subgraphClient from '../lib/subgraphClient';
 import { CHAIN_ID } from '../config';
-import { useQuery, UseQueryOptions } from 'react-query';
 
-const fetcher = async () => {
+const queryFn = async () => {
   const { data } = await subgraphClient(CHAIN_ID).query<{
     liquidRestakingTokens: LRTSubgraphResponse[];
   }>({ query: getLiquidRestakingTokenList() });
@@ -13,11 +17,15 @@ const fetcher = async () => {
 };
 
 export function useGetLiquidRestakingTokens(
-  queryConfig?: UseQueryOptions<LRTDetails[], Error>
-) {
-  return useQuery<LRTDetails[], Error>(
-    ['useGetLiquidRestakingTokens', CHAIN_ID] as const,
-    fetcher,
-    { staleTime: 60 * 1000, ...queryConfig }
-  );
+  queryConfig?: Omit<
+    UseQueryOptions<LRTDetails[], Error>,
+    'queryKey' | 'queryFn'
+  >
+): UseBaseQueryResult<LRTDetails[], Error> {
+  return useQuery<LRTDetails[], Error>({
+    queryKey: ['useGetLiquidRestakingTokens', CHAIN_ID] as const,
+    queryFn,
+    staleTime: 60 * 1000,
+    ...queryConfig
+  });
 }

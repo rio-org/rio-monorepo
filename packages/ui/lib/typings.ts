@@ -2,7 +2,7 @@ import { AbiParametersToPrimitiveTypes, ExtractAbiFunction } from 'abitype';
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { StaticImageData } from 'next/image';
-import { Chain as WagmiChain } from 'wagmi';
+import { Chain as WagmiChain } from 'wagmi/chains';
 import { NextRequest } from 'next/server';
 import { Address, Hash } from 'viem';
 import { RioLRTOperatorRegistryABI } from '../abi/RioLRTOperatorRegistryABI';

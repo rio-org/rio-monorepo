@@ -8,7 +8,8 @@ import {
   Drawer,
   Spinner
 } from '@material-tailwind/react';
-import { mainnet, useBalance, useDisconnect } from 'wagmi';
+import { useBalance, useDisconnect } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
 import { useMediaQuery } from 'react-responsive';
 import { useEffect, useRef, useState } from 'react';
 import { DESKTOP_MQ } from '../../lib/constants';
@@ -52,10 +53,12 @@ export const CustomConnectButton = () => {
         const [{ data: isInAllowedRegion }] = useRegionChecked();
 
         const { disconnect } = useDisconnect({
-          onSuccess() {
-            setIsDisconnected(true);
-            setIsLoading(false);
-            setOpenNav(false);
+          mutation: {
+            onSuccess() {
+              setIsDisconnected(true);
+              setIsLoading(false);
+              setOpenNav(false);
+            }
           }
         });
 

@@ -2,7 +2,7 @@ import { useGetDeposits } from './useGetDeposits';
 import { useGetWithdrawalClaims } from './useGetWithdrawalClaims';
 import { useGetAccountWithdrawals } from './useGetAccountWithdrawals';
 import { useCallback, useMemo } from 'react';
-import { UseQueryResult } from 'react-query';
+import { type UseQueryResult } from '@tanstack/react-query';
 import { Address } from 'viem';
 import {
   BaseAssetDetails,
@@ -103,7 +103,7 @@ export const useTransactionHistory = (config?: {
     requestsValues,
     depositsValues,
     lrtListValues
-  ] as const;
+  ] as (Partial<UseQueryResult<unknown, Error>> & { refetch(): void })[];
 
   const refetch = useCallback(
     () => refetchAll(values),
@@ -132,7 +132,9 @@ export const useTransactionHistory = (config?: {
 ///////////
 
 function refetchAll(
-  values: readonly (Partial<UseQueryResult> & { refetch(): void })[]
+  values: readonly (Partial<UseQueryResult<unknown, Error>> & {
+    refetch(): void;
+  })[]
 ) {
   values.forEach((v) => {
     v.refetch().catch((e) => console.error(`refetch error`, e));

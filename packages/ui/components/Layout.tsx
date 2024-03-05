@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import AppNav from './Nav/AppNav';
 import { AnimatePresence, motion } from 'framer-motion';
+import { twJoin } from 'tailwind-merge';
 import { useRouter } from 'next/router';
 import MobileNav from './Nav/MobileNav';
 import { useMediaQuery } from 'react-responsive';
@@ -13,7 +14,6 @@ import {
   NavItem,
   SocialNavItem
 } from '../lib/typings';
-import { twJoin } from 'tailwind-merge';
 
 export type LayoutProps = {
   nav: {

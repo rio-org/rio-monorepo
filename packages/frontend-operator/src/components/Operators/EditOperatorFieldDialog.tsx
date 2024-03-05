@@ -43,7 +43,8 @@ export function EditOperatorFieldDialog({
 
   const {
     status: { isTxPending, isUserSigning, txError },
-    contractWrite: { write, data, reset }
+    prepareContractWrite: { data: simulatedData },
+    contractWrite: { writeContract, data: hash, reset }
   } = useCompleteContractWrite({
     address: operatorRegistryAddress ?? zeroAddress,
     abi: RioLRTOperatorRegistryABI,
@@ -52,11 +53,13 @@ export function EditOperatorFieldDialog({
       operatorDelegator.delegatorId,
       (inputValue as Address) || zeroAddress
     ],
-    enabled:
-      !!debouncedFxnName &&
-      !!inputValue &&
-      /0x[a-fA-F0-9]{40}/.test(inputValue) &&
-      inputValue !== zeroAddress
+    query: {
+      enabled:
+        !!debouncedFxnName &&
+        !!inputValue &&
+        /0x[a-fA-F0-9]{40}/.test(inputValue) &&
+        inputValue !== zeroAddress
+    }
   });
   const canCloseWindow = !isTxPending && !isUserSigning;
 
@@ -110,14 +113,18 @@ export function EditOperatorFieldDialog({
         </p>
         <TransactionButton
           transactionType={RioTransactionType.UPDATE_OPERATOR_VALUE}
-          hash={data?.hash}
+          hash={hash}
           refetch={handleCloseWindow}
-          disabled={isTxPending || isUserSigning}
+          disabled={isTxPending || isUserSigning || !simulatedData?.request}
           isSigning={isUserSigning}
           error={txError}
           reset={reset}
           clearErrors={reset}
-          write={write}
+          write={
+            !simulatedData?.request
+              ? undefined
+              : () => writeContract(simulatedData.request)
+          }
         >
           Submit
         </TransactionButton>
