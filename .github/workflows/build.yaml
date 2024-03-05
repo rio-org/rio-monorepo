@@ -93,7 +93,7 @@ jobs:
             --minified-path-prefix=/_next/static \
             --release-version=$(git rev-parse --short HEAD) \
             --service=$SERVICE \
-           /home/runner/work/rio-monorepo/rio-monorepo/packages/frontend
+           ./packages/frontend/.next/static
         env:
           SERVICE: rio_network_app_-_production
           DATADOG_SITE: datadoghq.com
