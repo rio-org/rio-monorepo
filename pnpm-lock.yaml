@@ -116,8 +116,8 @@ importers:
         specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.21
-        version: 0.1.0-alpha.21(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.23
+        version: 0.1.0-alpha.23(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@tailwindcss/container-queries':
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@3.3.5)
@@ -249,8 +249,8 @@ importers:
         specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.21
-        version: 0.1.0-alpha.21(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.23
+        version: 0.1.0-alpha.23(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@tailwindcss/container-queries':
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@3.3.5)
@@ -441,8 +441,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@1.19.9)(wagmi@1.4.5)
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.21
-        version: 0.1.0-alpha.21(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
+        specifier: 0.1.0-alpha.23
+        version: 0.1.0-alpha.23(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5)
       '@tailwindcss/container-queries':
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@3.3.5)
@@ -4751,14 +4751,14 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.21(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
-    resolution: {integrity: sha512-auX5+vg3SsSfV8Ffgl0JTy+QWboR08s68oxn9bhZLOmU/MrJ6D7+XgjIca9VJraAe3kx2gJIoF0gVFrRM6HY2Q==}
+  /@rionetwork/sdk-react@0.1.0-alpha.23(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@1.4.5):
+    resolution: {integrity: sha512-/yImo8FQjIJE/9tunGxF9PSBOCFGCi++KGYPmSojQFGVjYz7Fv5H3puYBxYDSqSYuE0Z5281Tck2bwHCMk4xKQ==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     peerDependencies:
       react: '>=16.13.1'
       wagmi: '>=1.2'
     dependencies:
-      '@rionetwork/sdk': 0.1.0-alpha.19(graphql@16.8.1)(typescript@5.2.2)
+      '@rionetwork/sdk': 0.1.0-alpha.22(graphql@16.8.1)(typescript@5.2.2)
       react: 18.2.0
       wagmi: 1.4.5(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)(viem@1.19.9)
     transitivePeerDependencies:
@@ -4789,8 +4789,8 @@ packages:
       - zod
     dev: false
 
-  /@rionetwork/sdk@0.1.0-alpha.19(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-gct6X+fgXvct1yTmcm+V/uq0HQCuiHKaxivGzLTA/rWYYvPDs73mSfeNtPE1g4KEOMrvr+e4J2OSVrakaFU1cg==}
+  /@rionetwork/sdk@0.1.0-alpha.20(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-beVMSpKl7IEPL4/HAjRUAlCsPXWy7HJYcUPKUQ4I8ftskpNVkDjZI6CITQZyhu0rDHdAHqE/Hcl5O8ceRMqsAQ==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
@@ -4808,8 +4808,8 @@ packages:
       - zod
     dev: false
 
-  /@rionetwork/sdk@0.1.0-alpha.20(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-beVMSpKl7IEPL4/HAjRUAlCsPXWy7HJYcUPKUQ4I8ftskpNVkDjZI6CITQZyhu0rDHdAHqE/Hcl5O8ceRMqsAQ==}
+  /@rionetwork/sdk@0.1.0-alpha.22(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-4ju6fgEdA0K4P9dkUf6WMYeSx3JxWNUds33dpHQBmqLI8Yk1tQJtUf7n32Srl3KjBl71Gp5QMMGy1G7ayticrw==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)

@@ -21,7 +21,7 @@
     "@radix-ui/colors": "^3.0.0",
     "@rainbow-me/rainbowkit": "^1.2.0",
     "@rio-monorepo/ui": "workspace:*",
-    "@rionetwork/sdk-react": "0.1.0-alpha.21",
+    "@rionetwork/sdk-react": "0.1.0-alpha.23",
     "@tailwindcss/container-queries": "^0.1.1",
     "@wagmi/core": "^1.4.5",
     "abitype": "^0.10.3",

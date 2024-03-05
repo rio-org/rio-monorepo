@@ -55,9 +55,10 @@ export function useContractGasCost<
       typeof estimatedGas === 'undefined'
         ? undefined
         : {
-            maxFeePerGas: (feeData.maxFeePerGas * 110n) / 100n,
-            maxPriorityFeePerGas: (feeData.maxPriorityFeePerGas * 110n) / 100n,
-            gas: (estimatedGas * 110n) / 100n + 20_000n
+            maxFeePerGas: (BigInt(feeData.maxFeePerGas) * 110n) / 100n,
+            maxPriorityFeePerGas:
+              (BigInt(feeData.maxPriorityFeePerGas) * 110n) / 100n,
+            gas: (BigInt(estimatedGas) * 110n) / 100n + 20_000n
           },
     [feeData?.maxFeePerGas, feeData?.maxPriorityFeePerGas, estimatedGas]
   );
