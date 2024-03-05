@@ -132,19 +132,46 @@ function RestakeFormBase({
 
   const isEth = activeToken?.symbol === 'ETH';
 
-  const contractWriteConfig = useMemo(
+  type WriteConfig<T extends 'depositETH' | 'deposit'> = T extends 'depositETH'
+    ? {
+        address: Address;
+        abi: typeof RioLRTCoordinatorABI;
+        functionName: 'depositETH';
+        args: undefined;
+        value: bigint;
+        enabled: boolean;
+      }
+    : {
+        address: Address;
+        abi: typeof RioLRTCoordinatorABI;
+        functionName: 'deposit';
+        args: [Address, bigint];
+        value: undefined;
+        enabled: boolean;
+      };
+
+  const functionName = isEth ? 'depositETH' : 'deposit';
+
+  const contractWriteConfig = useMemo<WriteConfig<typeof functionName>>(
     () =>
       ({
         address: coordinatorAddress || zeroAddress,
         abi: RioLRTCoordinatorABI,
-        functionName: isEth ? 'depositETH' : 'deposit',
+        functionName,
         args: isEth
           ? undefined
           : ([activeToken?.address || zeroAddress, amount || 0n] as const),
         value: isEth ? amount || 0n : undefined,
         enabled: !!coordinatorAddress && !!activeToken?.address
-      }) as const,
-    [coordinatorAddress, isEth, activeToken?.address, amount, address]
+      }) as WriteConfig<typeof functionName>,
+    [
+      coordinatorAddress,
+      isEth,
+      activeToken?.address,
+      amount,
+      address,
+      functionName
+    ]
   );
 
   const gasEstimateArgAmount = isEth
@@ -153,9 +180,15 @@ function RestakeFormBase({
 
   const { data: gasEstimates, isLoading: isGasLoading } = useContractGasCost({
     ...contractWriteConfig,
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     args: isEth
       ? undefined
       : ([activeToken?.address || zeroAddress, gasEstimateArgAmount] as const),
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     value: isEth ? gasEstimateArgAmount : undefined
   });
 
@@ -307,6 +340,8 @@ function RestakeFormBase({
     }
   }, [txData, isTxLoading, isTxError, txError]);
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const { data: writeData, error: prepareWriteError } = useSimulateContract({
     ...contractWriteConfig,
     ...gas,
