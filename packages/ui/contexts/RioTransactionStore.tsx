@@ -64,20 +64,9 @@ export default function RioTransactionStoreProvider({
         <TransactionToast
           hash={nextTx.hash}
           icon={<IconLightning />}
-          title={
-            nextTx.toasts?.sent +
-              ' ' +
-              nextTx.toasts?.sent +
-              ' ' +
-              nextTx.toasts?.sent +
-              ' ' +
-              nextTx.toasts?.sent || 'Transaction Sent'
-          }
+          title={nextTx.toasts?.sent || 'Transaction Sent'}
           chainId={chainId}
-        />,
-        {
-          duration: 999999999
-        }
+        />
       );
     }
 
@@ -91,10 +80,7 @@ export default function RioTransactionStoreProvider({
             ? nextTx.toasts?.error || 'Transaction Reverted'
             : nextTx.toasts?.success || 'Transaction Confirmed'
         }
-      />,
-      {
-        duration: 999999999
-      }
+      />
     );
     removeTransaction({ hash: nextTx.hash });
   }, [nextTx?.hash, isError, isSuccess]);
