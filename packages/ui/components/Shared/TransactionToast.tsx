@@ -19,8 +19,11 @@ export function TransactionToast({
   return (
     <div className="flex gap-4 whitespace-nowrap items-center justify-between font-medium w-full">
       <div className="text-[14px] space-y-1.5">
-        <span className="flex items-center gap-1 font-medium">
-          {icon} <span>{title}</span>
+        <span className="flex items-center gap-1.5 font-medium whitespace-pre-line">
+          <span className="flex h-[21px] min-w-[16px] items-center">
+            {icon}
+          </span>{' '}
+          <span>{title}</span>
         </span>
         <span className="font-normal opacity-50">
           {dayjs().format('MMMM D, YYYY * h:mm A').replace(/\*/, 'at')}
