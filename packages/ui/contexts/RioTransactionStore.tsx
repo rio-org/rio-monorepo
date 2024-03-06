@@ -132,10 +132,11 @@ function useLocalStorageTransactions() {
     queryKey: QUERY_KEY,
     queryFn: () => {
       try {
-        return JSON.parse(
-          localStorage.getItem(STORE_VAR) ||
-            JSON.stringify({ current: {}, past: {} })
-        ) as TransactionStore;
+        return {
+          current: {},
+          past: {},
+          ...JSON.parse(localStorage.getItem(STORE_VAR) || '{}')
+        } as TransactionStore;
       } catch (e) {
         return DEFAULT_STATE.data;
       }
