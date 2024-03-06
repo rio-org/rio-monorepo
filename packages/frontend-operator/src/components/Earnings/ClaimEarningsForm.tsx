@@ -46,7 +46,7 @@ function HydratedClaimEarningsForm({ lrt }: Props) {
   );
 
   const operator = operators?.[0];
-  const amountToClaim = 0;
+  const amountToClaim: number = 0;
 
   const execute = useCallback(async () => {
     if (!lrtClient || !address || !operator) return;
@@ -82,6 +82,14 @@ function HydratedClaimEarningsForm({ lrt }: Props) {
 
       <TransactionButton
         transactionType={RioTransactionType.CLAIM_EARNINGS}
+        toasts={{
+          sent: 'Claim transaction sent',
+          success:
+            amountToClaim !== 0
+              ? `Successfully claimed ${amountToClaim} ETH`
+              : 'Claim successful',
+          error: `An error occurred  requesting withdrawal`
+        }}
         hash={txHash}
         refetch={onReset}
         disabled={!canClaim || isLoading}

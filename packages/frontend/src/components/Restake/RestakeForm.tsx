@@ -517,6 +517,13 @@ function RestakeFormBase({
         <>
           <TransactionButton
             transactionType={RioTransactionType.DEPOSIT}
+            toasts={{
+              sent: 'Restake transaction sent',
+              error: 'Failed to restake',
+              success: `Sucessfully restaked ${displayAmount(
+                Number(inputAmount)
+              )} ${activeToken?.symbol ?? ''}`
+            }}
             refetch={refetchUserBalances}
             hash={depositTxHash}
             disabled={!isValidAmount || isEmpty || isDepositLoading}

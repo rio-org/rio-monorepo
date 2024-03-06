@@ -326,10 +326,20 @@ export enum RioTransactionType {
 export type PendingTransaction = {
   hash: Hash;
   type: RioTransactionType;
+  toasts: {
+    sent: string;
+    success: string;
+    error: string;
+  };
 };
 
 export interface TransactionStore {
-  [chainId: number]: PendingTransaction[];
+  past: {
+    [hash: Hash]: true;
+  };
+  current: {
+    [chainId: number]: PendingTransaction[];
+  };
 }
 
 ////////
