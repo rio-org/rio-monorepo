@@ -24,7 +24,7 @@ export const InfoBadge = ({
         'inline-flex items-center gap-1',
         'text-rio-blue text-xs leading-none tracking-tight',
         'py-1.5 px-3.5',
-        'rounded-full border border-[var(--color-light-blue)]',
+        'rounded-full border border-rio-blue',
         '[&>span]:inline-block [&>span]:uppercase [&>span]:leading-none [&>span]:font-mono',
         className
       )}
@@ -58,7 +58,7 @@ export const InfoBadge = ({
             className="h-3 inline"
           >
             <InfoTooltip
-              iconClassName="[&>path]:stroke-[blue] opacity-60 w-[12px] h-[12px] -translate-y-[1px] ml-0.5"
+              iconClassName="[&>path]:stroke-rio-blue opacity-80 w-[12px] h-[12px] -translate-y-[1px] ml-0.5"
               contentClassName="max-w-[300px]"
               align="center"
               side={isTouch ? 'bottom' : 'top'}

@@ -110,7 +110,7 @@ function FaqsExpandIcon({
       expanded={expanded}
       className={cn(
         twJoin(
-          '[&>path]:fill-black',
+          '[&>path]:fill-foreground',
           'w-6 min-w-6 h-6',
           'opacity-50 group-hover:opacity-80 group-active:opacity-100'
         ),

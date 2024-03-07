@@ -101,7 +101,7 @@ const WithdrawalRequestRow = ({
                 )}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-lg bg-forgegr px-3 py-2 opacity-50 hover:opacity-100 transition-opacity"
+                className="rounded-lg bg-foregroundA2 px-3 py-2 opacity-50 hover:opacity-100 transition-opacity"
               >
                 <span className="flex items-center gap-1.5">
                   <span>View</span>

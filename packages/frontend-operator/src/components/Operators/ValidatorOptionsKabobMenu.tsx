@@ -119,7 +119,7 @@ export function ValidatorOptionsKabobMenu({
             <IconBoxX
               height={14}
               width={14}
-              className="[&>path]:stroke-black"
+              className="[&>path]:stroke-foreground"
             />
             <span className="text-[13px] leading-none">
               No pending keys to remove

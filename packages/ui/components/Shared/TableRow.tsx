@@ -153,7 +153,7 @@ const MobileRow: MobileTableRowComponent = ({
               'overflow-hidden w-full',
               'flex flex-row justify-between gap-4',
               'mx-4 px-4',
-              'rounded-xl bg-bg-appBackground bg-opacity-25'
+              'rounded-xl bg-appBackground bg-opacity-25'
             )}
             initial={{ height: 0, marginBottom: 0 }}
             animate={{ height: 'auto', marginBottom: '1rem' }}

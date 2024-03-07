@@ -68,7 +68,7 @@ export function PendingManagerInvitation({
           className="w-full flex justify-between gap-8 px-3 py-2 overflow-hidden bg-[#EDCD5E] rounded-md"
         >
           <div className="flex gap-2 items-center text-[14px] font-medium text-foreground">
-            <IconWarning className="[&>path]:stroke-black" />
+            <IconWarning className="[&>path]:stroke-foreground" />
             <span className="leading-snug">
               Invitation to manage an operator
             </span>
