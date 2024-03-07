@@ -145,7 +145,9 @@ export function ClaimSectionBase({
           'flex justify-between items-center',
           'w-full p-2 mt-4 rounded-2xl',
           'bg-foregroundA1 text-foregroundA8 transition-colors',
-          !!address && !!claimAmount && 'bg-rio-blue text-background'
+          !!address &&
+            !!claimAmount &&
+            'bg-rio-blue text-background dark:text-foreground'
         )}
       >
         <div className="w-full flex justify-between items-center gap-4 text-[14px]">
