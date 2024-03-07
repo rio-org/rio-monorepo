@@ -31,7 +31,7 @@ const Wrapper = ({
       {title && (
         <h1 className="text-2xl mb-2 font-medium hidden lg:block">{title}</h1>
       )}
-      <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-[16px] p-1">
+      <div className="flex flex-col items-center justify-center w-full h-full bg-foregroundA1 rounded-[16px] p-1">
         <div
           className={twMerge(
             'flex flex-col lg:flex-row justify-start lg:justify-between',
@@ -61,7 +61,7 @@ const Body = ({
 }: Pick<FormCardContainerProps, 'children' | 'noPadding' | 'className'>) => (
   <motion.div
     className={cn(
-      'bg-white rounded-[14px] w-full flex flex-col gap-4',
+      'bg-card rounded-[14px] w-full flex flex-col gap-4',
       noPadding ? '' : ' p-4 lg:p-6',
       className
     )}
@@ -98,11 +98,11 @@ const Tabs = ({ items, baseUrl }: TabsProps) => {
   ).slug;
 
   return (
-    <div className="flex w-full text-center content-center text-gray-600 gap-4">
+    <div className="flex w-full text-center content-center text-foregroundA5 gap-4">
       {items.map(({ label, slug }) => {
         const className = cn(
           'font-medium',
-          activeTab === slug && 'text-black font-bold'
+          activeTab === slug && 'text-foregraound font-bold'
         );
 
         if (slug === activeTab) {
@@ -120,7 +120,7 @@ const Tabs = ({ items, baseUrl }: TabsProps) => {
             scroll={false}
             passHref
             aria-disabled={slug === activeTab}
-            className={cn(className, 'hover:text-black')}
+            className={cn(className, 'hover:text-foreground')}
           >
             {label}
           </Link>

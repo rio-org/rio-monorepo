@@ -455,7 +455,7 @@ function RestakeFormBase({
       />
       <div className="flex flex-col gap-2 mt-4">
         <div className="flex justify-between">
-          <span className="flex items-center text-black gap-1">
+          <span className="flex items-center text-foreground gap-1">
             <span className="opacity-50 text-[14px]">Exchange rate</span>
 
             <InfoTooltip
@@ -480,7 +480,7 @@ function RestakeFormBase({
           />
         </div>
         <div className="flex justify-between">
-          <span className="flex items-center text-black gap-1">
+          <span className="flex items-center text-foreground gap-1">
             <span className="opacity-50 text-[14px]">Reward fee</span>
 
             <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
@@ -495,7 +495,7 @@ function RestakeFormBase({
       </div>
       <HR />
       <div className="flex justify-between">
-        <span className="flex items-center text-black gap-1">
+        <span className="flex items-center text-foreground gap-1">
           <span className="font-bold text-[14px]">Received</span>
 
           <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
@@ -548,7 +548,7 @@ function RestakeFormBase({
         />
       )}
       {allowanceNote && (
-        <p className="text-sm text-center px-2 mt-2 text-gray-500 font-normal">
+        <p className="text-sm text-center px-2 mt-2 text-foregroundA8 font-normal">
           {allowanceNote}
         </p>
       )}

@@ -75,16 +75,16 @@ const TransactionButton = ({
               borderWidth: 1
             }}
             exit={{ opacity: 0, height: 0, marginBottom: 0, borderWidth: 0 }}
-            className="w-full border rounded-lg border-[#EEBA00] bg-[#EEBA000C] px-3 py-3 space-y-2 text-[14px]"
+            className="w-full border rounded-lg border-warning-foreground bg-warning px-3 py-3 space-y-2 text-[14px]"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 font-semibold">
                 <IconWarning
                   height={14}
                   width={14}
-                  className="[&>path]:stroke-[#EEBA00] [&>path]:stroke-[2]"
+                  className="[&>path]:stroke-warning-foreground [&>path]:stroke-[2]"
                 />
-                <span className="text-[#EEBA00] leading-none">
+                <span className="text-warning-foreground leading-none">
                   Transaction Error
                 </span>
               </div>
@@ -110,16 +110,16 @@ const TransactionButton = ({
           onClick={handleClick}
           className={twJoin(
             'w-full py-3 rounded-full',
-            'text-white font-bold',
-            'bg-black transition-colors duration-200',
-            'hover:bg-[var(--color-dark-gray)]',
-            'disabled:!bg-opacity-5 disabled:!bg-black',
-            'disabled:[&>span]:!opacity-20 disabled:[&>span]:!text-black'
+            'text-primary-foreground font-bold',
+            'bg-primary transition-colors duration-200',
+            'hover:bg-primaryA11 focus:bg-primaryA10',
+            'disabled:!bg-primaryA1',
+            'disabled:[&>span]:!opacity-20 disabled:[&>span]:!text-primary'
           )}
         >
           {(() => {
             if (!address) {
-              <span className={cn(isDisabled && 'opacity-20 text-black')}>
+              <span className={cn(isDisabled && 'opacity-20 text-primary')}>
                 Connect your wallet
               </span>;
             }
@@ -138,7 +138,7 @@ const TransactionButton = ({
             }
 
             return (
-              <span className={cn(isDisabled && 'opacity-20 text-black')}>
+              <span className={cn(isDisabled && 'opacity-20 text-primary')}>
                 {wrongNetwork
                   ? `Switch to ${getChainName(CHAIN_ID)}`
                   : children || 'Submit'}
@@ -172,7 +172,7 @@ function LoadingTransactionContent({
   return (
     <div className="w-full text-center flex items-center justify-center gap-2">
       <Spinner width={16} />
-      <span className="text-black opacity-40">
+      <span className="text-primaryA6">
         {children || 'Awaiting confirmation'}
       </span>
     </div>

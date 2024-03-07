@@ -28,7 +28,7 @@ const SecondaryMenuItems = ({
               <MenuItem key={label + index}>
                 <Link
                   href={url}
-                  className="py-1 px-0 hover:text-black flex flex-row gap-2 items-center text-black font-medium"
+                  className="py-1 px-0 hover:text-foreground flex flex-row gap-2 items-center text-foreground font-medium"
                   onClick={() => setIsSecondaryMenuOpen(false)}
                 >
                   {icon && (
@@ -40,7 +40,7 @@ const SecondaryMenuItems = ({
             )
         )}
       </div>
-      <hr className="mx-2 my-2 border-t border-black border-opacity-10 bg-transparent " />
+      <hr className="mx-2 my-2 border-t border-foreground border-opacity-10 bg-transparent " />
       <div className="mb-4">
         {tertiaryItems.map(
           ({ label, url, external, disabled }, index) =>
@@ -54,7 +54,7 @@ const SecondaryMenuItems = ({
                   <span
                     className={twJoin(
                       'py-0 px-0 flex flex-row gap-1 items-center',
-                      'text-black font-medium opacity-50 text-[14px]'
+                      'text-foreground font-medium opacity-50 text-[14px]'
                     )}
                   >
                     {label} <IconLineArrow direction="external" />
@@ -66,7 +66,7 @@ const SecondaryMenuItems = ({
                     rel={external ? 'noopener noreferrer' : undefined}
                     className={twJoin(
                       'py-0 px-0 flex flex-row gap-1 items-center',
-                      'text-black font-medium opacity-50 text-[14px]',
+                      'text-foreground font-medium opacity-50 text-[14px]',
                       'group-hover:opacity-100'
                     )}
                   >
@@ -87,8 +87,8 @@ const SecondaryMenuItems = ({
             className={twJoin(
               'p-2 aspect-square rounded-full',
               'flex justify-center items-center font-medium opacity-40',
-              'hover:opacity-100 hover:bg-blue-gray-50 hover:bg-opacity-80',
-              'focus:bg-blue-gray-50 focus:bg-opacity-80 active:bg-blue-gray-50 active:bg-opacity-80'
+              'hover:opacity-100 hover:bg-rio-blue hover:bg-opacity-5',
+              'focus:bg-rio-blue focus:bg-opacity-5 active:bg-rio-blue active:bg-opacity-5'
             )}
           >
             <Image src={icon} width={16} height={16} alt={label} />

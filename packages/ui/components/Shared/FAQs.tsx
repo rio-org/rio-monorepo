@@ -14,8 +14,9 @@ const APPEAR_VARIANTS = {
 
 const buttonHoverCN = twJoin(
   'w-full flex justify-between rounded-xl',
-  'transition-colors duration-200',
-  'bg-transparent hover:bg-[#00000005] active:bg-[#00000008]'
+  'transition-colors duration-200 bg-transparent',
+  'hover:bg-foreground hover:bg-opacity-[0.019]',
+  'active:bg-foreground active:bg-opacity-[0.031]'
 );
 
 export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
@@ -64,10 +65,7 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
             className="w-full space-y-4 overflow-hidden"
           >
             {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className="w-full rounded-xl bg-[var(--color-element-wrapper-bg)]"
-              >
+              <div key={i} className="w-full rounded-xl bg-foregroundA1">
                 <button
                   onClick={curriedExpandQuestion(i)}
                   className={twJoin('py-2.5 px-4 items-start', buttonHoverCN)}
@@ -112,7 +110,7 @@ function FaqsExpandIcon({
       expanded={expanded}
       className={cn(
         twJoin(
-          '[&>path]:fill-black',
+          '[&>path]:fill-foreground',
           'w-6 min-w-6 h-6',
           'opacity-50 group-hover:opacity-80 group-active:opacity-100'
         ),

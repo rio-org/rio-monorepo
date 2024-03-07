@@ -101,7 +101,7 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={openWalletModal}
                     type="button"
-                    className="relative flex flex-col text-right items-end px-4 py-2 hover:bg-opacity-70 bg-black text-white rounded-full font-medium"
+                    className="relative flex flex-col text-right items-end px-4 py-2 hover:bg-opacity-70 bg-primary text-primary-foreground rounded-full font-medium"
                   >
                     <span className={cx(isLoading && 'text-transparent')}>
                       Connect wallet
@@ -119,7 +119,7 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={openChainModal}
                     type="button"
-                    className="flex flex-col text-right items-end px-2 py-1 hover:bg-black hover:bg-opacity-5 rounded-md"
+                    className="flex flex-col text-right items-end px-2 py-1 hover:bg-foregroundA1 rounded-md"
                   >
                     Wrong network
                   </button>
@@ -130,14 +130,14 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={() => !isDesktopOrLaptop && setOpenNav(true)}
                     type="button"
-                    className="lg:hidden flex flex-col text-right items-end px-2 py-1 hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer"
+                    className="lg:hidden flex flex-col text-right items-end px-2 py-1 hover:bg-foregroundA1 rounded-md hover:cursor-pointer"
                   >
                     {isLoading ? <Spinner /> : account?.displayName}
                   </button>
                   <div className="hidden lg:block">
                     <Menu placement="bottom-end">
                       <MenuHandler>
-                        <div className="flex flex-col py-1 px-2 text-right items-end hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer text-[14px]">
+                        <div className="flex flex-col py-1 px-2 text-right items-end hover:bg-foregroundA1 rounded-md hover:cursor-pointer text-[14px]">
                           {account?.displayName}
                           <span className="text-sm opacity-50 hidden lg:block">
                             {reEthBalance &&
@@ -153,6 +153,7 @@ export const CustomConnectButton = () => {
                       </MenuHandler>
                       <MenuList>
                         <MenuItem
+                          className="text-foregroundA7 hover:text-foreground"
                           onClick={() => {
                             disconnect();
                             setIsLoading(true);
@@ -175,7 +176,7 @@ export const CustomConnectButton = () => {
                         ref={drawerContentRef}
                         className="p-4 pb-6 flex flex-col gap-2"
                       >
-                        <div className="flex flex-row justify-between mb-2 text-black">
+                        <div className="flex flex-row justify-between mb-2 text-foreground">
                           {account?.displayName}
                           <span className="text-sm opacity-50 -tracking-tighter">
                             {reEthBalance
@@ -192,7 +193,7 @@ export const CustomConnectButton = () => {
                             disconnect();
                             setIsLoading(true);
                           }}
-                          className="flex flex-col items-center px-4 py-2 hover:bg-opacity-70 bg-black text-white rounded-full font-medium w-full text-center"
+                          className="flex flex-col items-center px-4 py-2 hover:bg-opacity-70 bg-foreground text-background rounded-full font-medium w-full text-center"
                         >
                           {isLoading || !account ? <Spinner /> : 'Disconnect'}
                         </button>

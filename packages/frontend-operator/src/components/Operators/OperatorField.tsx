@@ -49,8 +49,8 @@ export function OperatorField({
             onClick={onEdit}
             className={twJoin(
               'flex items-center justify-center',
-              'relative top-0 bottom-0  h-[41px] px-4',
-              'rounded-md bg-black text-white text-sm font-semibold'
+              'relative top-0 bottom-0 h-[41px] px-4',
+              'rounded-md bg-primary leading-none text-primary-foreground text-sm font-semibold'
             )}
           >
             Edit

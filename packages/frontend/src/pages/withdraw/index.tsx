@@ -84,11 +84,11 @@ const Withdraw: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   return (
     <>
       <PageWrapper>
-        <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-2xl p-1">
+        <div className="flex flex-col items-center justify-center w-full h-full bg-foregroundA1 rounded-2xl p-1">
           <div className="flex flex-col lg:flex-row gap-2 lg:gap-8 w-full px-4 lg:px-5 pt-3 lg:pt-5 pb-3">
             <h1 className="text-2xl font-medium">Request withdrawal</h1>
           </div>
-          <div className="bg-white rounded-xl p-4 lg:p-6 space-y-4 w-full">
+          <div className="bg-background rounded-xl p-4 lg:p-6 space-y-4 w-full">
             <WithdrawForm
               lrtDetails={activeLrt}
               onSuccess={handleRequestSuccess}

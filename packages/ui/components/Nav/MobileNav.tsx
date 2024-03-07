@@ -38,7 +38,7 @@ const MobileNav = ({
 
   return (
     <>
-      <div className="fixed bottom-0 lg:hidden bg-[var(--color-app-bg)] px-3 py-4 w-full justify-around items-center border-t border-t-[var(--color-element-wrapper-bg)]">
+      <div className="fixed bottom-0 lg:hidden bg-appBackground px-3 py-4 w-full justify-around items-center border-t border-t-foregroundA1">
         <Tabs value={activeTab} className="p-2 duration-100">
           <TabsHeader className="justify-around p-0 duration-100">
             {items.map(({ label, slug }, index) => (
@@ -47,16 +47,16 @@ const MobileNav = ({
                 key={label + index}
                 scroll={false}
                 className={cx(
-                  'font-medium  rounded-full hover:text-black hover:bg-[var(--color-element-wrapper-bg)]',
-                  activeTab === slug ? 'text-black' : 'text-gray-500'
+                  'font-medium  rounded-full hover:text-foreground hover:bg-foregroundA1',
+                  activeTab === slug ? 'text-foreground' : 'text-foregroundA6'
                 )}
               >
                 <Tab
                   key={label + index}
                   value={slug}
                   className={cx(
-                    'py-2 px-4 font-medium  hover:text-black hover:bg-[var(--color-element-wrapper-bg)] rounded-full',
-                    activeTab === slug ? 'text-black' : 'text-gray-500'
+                    'py-2 px-4 font-medium  hover:text-foreground hover:bg-foregroundA1 rounded-full',
+                    activeTab === slug ? 'text-foreground' : 'text-foregroundA6'
                   )}
                 >
                   {label}

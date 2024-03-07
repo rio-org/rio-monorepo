@@ -111,11 +111,13 @@ function OperatorKeysFormInternal({
         abi: RioLRTOperatorRegistryABI,
         functionName: 'addValidatorDetails',
         args,
-        enabled:
-          !!address &&
-          isValid &&
-          args !== DEFAULT_ARGS &&
-          !!lrtClient?.token?.deployment?.operatorRegistry
+        query: {
+          enabled:
+            !!address &&
+            isValid &&
+            args !== DEFAULT_ARGS &&
+            !!lrtClient?.token?.deployment?.operatorRegistry
+        }
       }) as const,
     [address, isValid, args, operatorAddress]
   );
@@ -213,12 +215,14 @@ function OperatorKeysFormInternal({
       />
       <div className="flex flex-col gap-2 mt-4">
         <div className="flex justify-between text-[14px]">
-          <span className="text-black opacity-50">Total Keys</span>
+          <span className="text-foreground text-opacity-50">Total Keys</span>
           <strong>{args[1].toString()}</strong>
         </div>
         <HR />
         <div className="flex justify-between text-[14px]">
-          <span className="text-black opacity-50">Estimated Gas Price</span>
+          <span className="text-foreground text-opacity-50">
+            Estimated Gas Price
+          </span>
           {!pricesLoaded ? (
             <Skeleton height="0.875rem" width={80} />
           ) : (

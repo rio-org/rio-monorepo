@@ -22,9 +22,9 @@ export const InfoBadge = ({
     <span
       className={cn(
         'inline-flex items-center gap-1',
-        'text-[var(--color-blue)] text-xs leading-none tracking-tight',
+        'text-rio-blue text-xs leading-none tracking-tight',
         'py-1.5 px-3.5',
-        'rounded-full border border-[var(--color-light-blue)]',
+        'rounded-full border border-rio-blue',
         '[&>span]:inline-block [&>span]:uppercase [&>span]:leading-none [&>span]:font-mono',
         className
       )}
@@ -44,7 +44,7 @@ export const InfoBadge = ({
       ) : (
         <Skeleton
           width={40}
-          containerClassName="!bg-[var(--color-blue)] !bg-opacity-20 rounded-[4px] overflow-hidden"
+          containerClassName="!bg-rio-blue !bg-opacity-20 rounded-[4px] overflow-hidden"
           className="!opacity-70 after:!opacity-10"
         />
       )}
@@ -58,7 +58,7 @@ export const InfoBadge = ({
             className="h-3 inline"
           >
             <InfoTooltip
-              iconClassName="[&>path]:stroke-[blue] opacity-60 w-[12px] h-[12px] -translate-y-[1px] ml-0.5"
+              iconClassName="[&>path]:stroke-rio-blue opacity-80 w-[12px] h-[12px] -translate-y-[1px] ml-0.5"
               contentClassName="max-w-[300px]"
               align="center"
               side={isTouch ? 'bottom' : 'top'}

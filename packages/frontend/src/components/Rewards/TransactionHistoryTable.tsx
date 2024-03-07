@@ -247,7 +247,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
       <AnimatePresence mode="wait">
         {isLoading || !address || !txHistory?.length ? (
           <motion.div
-            className="bg-[var(--color-element-wrapper-bg)] p-1 rounded-t-2xl rounded-b-2xl relative"
+            className="bg-foregroundA1 p-1 rounded-t-2xl rounded-b-2xl relative"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -257,7 +257,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
             <table className="w-full">{tableHeader}</table>
             <motion.div
               key="loading"
-              className="bg-white w-full h-30 flex items-center justify-center border-t border-blue-gray-50 px-4 py-8 rounded-xl"
+              className="bg-background w-full h-30 flex items-center justify-center border-t border-border px-4 py-8 rounded-xl"
             >
               {isLoading ? (
                 <Spinner color="blue" />
@@ -273,7 +273,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         ) : (
           <>
             <motion.div
-              className="bg-[var(--color-element-wrapper-bg)] p-1 rounded-t-2xl rounded-b-xl relative"
+              className="bg-foregroundA1 p-1 rounded-t-2xl rounded-b-xl relative"
               layout
               key={pagination.currentPage}
               initial={false}
@@ -289,7 +289,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
                 {tableHeader}
 
                 <motion.tbody
-                  className="divide-y divide-[var(--color-element-wrapper-bg)]"
+                  className="divide-y divide-foregroundA1"
                   layoutId="table-body"
                   transition={{
                     duration: 0.075

@@ -11,7 +11,7 @@ const SymbolPill = ({ symbol }: Props) => {
     return <Skeleton width={60} height={28} />;
   }
   return (
-    <span className="bg-[var(--color-element-wrapper-bg)] rounded-[4px] text-[12px] px-2 py-1 min-w-[60px] text-center block text-gray-600 font-medium">
+    <span className="bg-foregroundA1 rounded-[4px] text-[12px] px-2 py-1 min-w-[60px] text-center block text-foregroundA7 font-medium">
       {symbol}
     </span>
   );

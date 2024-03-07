@@ -50,7 +50,7 @@ const WithdrawItemized = ({
     <div>
       <div className="flex flex-col gap-2">
         <div className="flex justify-between">
-          <span className="flex items-center whitespace-nowrap text-black gap-1">
+          <span className="flex items-center whitespace-nowrap text-foreground gap-1">
             <span className="opacity-50 text-[14px]">Exchange rate</span>
 
             <InfoTooltip
@@ -75,7 +75,7 @@ const WithdrawItemized = ({
           />
         </div>
         <div className="flex justify-between">
-          <span className="flex items-center text-black gap-1">
+          <span className="flex items-center text-foreground gap-1">
             <span className="opacity-50 text-[14px]">Waiting period</span>
 
             <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
@@ -88,7 +88,7 @@ const WithdrawItemized = ({
           <strong className="text-right text-[14px]">1-8 Days</strong>
         </div>
         <div className="flex justify-between">
-          <span className="flex items-center text-black gap-1">
+          <span className="flex items-center text-foreground gap-1">
             <span className="opacity-50 text-[14px]">Withdrawal fee</span>
 
             <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
@@ -101,7 +101,7 @@ const WithdrawItemized = ({
       <HR />
       {onlySingleAsset ? (
         <div className="text-[14px] space-y-2 mt-4">
-          <span className="flex items-center text-black gap-1">
+          <span className="flex items-center text-foreground gap-1">
             <span className="font-bold text-[14px]">Estimated amount</span>
 
             <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">

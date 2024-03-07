@@ -53,7 +53,7 @@ const WithdrawalRequestRow = ({
   return (
     <AnimatePresence>
       <motion.tr
-        className="flex w-full border-b border-b-gray-200"
+        className="flex w-full border-b border-b-foregroundA1"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: exitDuration } }}
@@ -64,7 +64,7 @@ const WithdrawalRequestRow = ({
       >
         <td className="w-full flex flex-row justify-between items-center">
           <div className="w-full py-4 lg:py-2 flex flex-row justify-between items-center">
-            <div className="flex flex-col items-start gap-1 px-4 lg:pl-6 whitespace-nowrap text-sm font-medium text-gray-900">
+            <div className="flex flex-col items-start gap-1 px-4 lg:pl-6 whitespace-nowrap text-sm font-medium text-foregroundA11">
               <span className="mb-1 lg:mb-0">
                 {dateFromTimestamp(+transaction.timestamp)}
               </span>
@@ -101,7 +101,7 @@ const WithdrawalRequestRow = ({
                 )}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-lg bg-blackA2 px-3 py-2 opacity-50 hover:opacity-100 transition-opacity"
+                className="rounded-lg bg-foregroundA2 px-3 py-2 opacity-50 hover:opacity-100 transition-opacity"
               >
                 <span className="flex items-center gap-1.5">
                   <span>View</span>

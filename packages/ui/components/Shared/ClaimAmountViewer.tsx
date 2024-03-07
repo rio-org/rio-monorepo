@@ -21,8 +21,8 @@ export function ClaimAmountViewer({
       className={twJoin(
         'flex flex-col justify-center items-center',
         'w-full min-h-[160px] p-4',
-        'text-center text-black',
-        'rounded-xl bg-black bg-opacity-5'
+        'text-center text-foreground',
+        'rounded-xl bg-foregroundA1'
       )}
     >
       <div>

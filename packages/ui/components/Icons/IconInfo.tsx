@@ -9,7 +9,7 @@ export function IconInfo({ className, ...props }: React.ComponentProps<'svg'>) {
       viewBox="0 0 12 12"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn('[&>path]:stroke-gray-500', className)}
+      className={cn('[&>path]:stroke-foregroundA8', className)}
       {...props}
     >
       <path

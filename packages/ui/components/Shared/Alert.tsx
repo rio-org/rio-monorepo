@@ -57,7 +57,7 @@ const Alert = ({
                 href={txHash ? linkToTxOnBlockExplorer(txHash, CHAIN_ID) : ''}
                 target="_blank"
                 rel="noreferrer"
-                className="flex flex-row justify-center text-center px-[8px] py-[2px] text-gray-500 font-normal whitespace-nowrap text-sm items-center rounded-full w-full gap-2 h-fit transition-colors duration-200 leading-none"
+                className="flex flex-row justify-center text-center px-[8px] py-[2px] text-foregroundA6 font-normal whitespace-nowrap text-sm items-center rounded-full w-full gap-2 h-fit transition-colors duration-200 leading-none"
               >
                 View transaction
                 <div className="opacity-50">

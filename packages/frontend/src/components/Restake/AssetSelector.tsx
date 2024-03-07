@@ -64,9 +64,9 @@ const AssetSelector = ({
   const buttonClassName = useMemo(() => {
     return twMerge(
       'flex flex-row gap-1 justify-center items-center',
-      'py-1 pl-1 pr-2 rounded-full bg-[var(--color-element-wrapper-bg-light)]',
+      'py-1 pl-1 pr-2 rounded-full bg-foreground bg-opacity-[0.06]',
       isDropdown
-        ? 'duration-200 hover:bg-[var(--color-element-wrapper-bg-light-hover)] transition-colors'
+        ? 'duration-200 hover:bg-foreground hover:bg-opacity-[0.12] transition-colors'
         : 'pr-0 cursor-default'
     );
   }, [isDropdown]);
@@ -106,7 +106,7 @@ const AssetSelector = ({
               onClick={() => !isDisabled && handleClick()}
               className={cn(
                 buttonClassName,
-                isListOpen && 'bg-[var(--color-element-wrapper-bg-light-hover)]'
+                isListOpen && 'bg-foreground bg-opacity-[0.12]'
               )}
               disabled={isDisabled}
               onMouseEnter={() => setIsButtonHovered(true)}
@@ -127,7 +127,7 @@ const AssetSelector = ({
           ref={listRef}
           className={twJoin(
             'absolute top-[calc(100%+10px)] left-0 w-full',
-            'bg-white rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit'
+            'bg-background rounded-xl shadow-xl z-10 overflow-y-auto p-[2px] h-fit'
           )}
         >
           <AssetList

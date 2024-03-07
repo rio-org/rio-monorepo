@@ -83,11 +83,11 @@ const WithdrawAssetSelector = ({
               twJoin(
                 'flex flex-row items-center gap-4 lg:gap-4',
                 'w-full p-4 lg:px-[20px] lg:py-4',
-                'text-left text-black',
-                'bg-black bg-opacity-5',
-                'rounded-xl border border-transparent hover:border-gray-300'
+                'text-left text-foreground',
+                'bg-primaryA1',
+                'rounded-xl border border-transparent hover:border-foregroundA2'
               ),
-              isListOpen && 'border-gray-400 hover:border-gray-400'
+              isListOpen && 'border-foregroundA3 hover:border-foregroundA3'
             )}
             disabled={disabled}
             id="asset"
@@ -113,7 +113,7 @@ const WithdrawAssetSelector = ({
             className={twJoin(
               'absolute z-10 top-[calc(100%+10px)]',
               'left-0 w-full h-fit p-[2px] overflow-y-auto',
-              'bg-white rounded-xl shadow-xl'
+              'bg-background rounded-xl shadow-xl'
             )}
           >
             <List

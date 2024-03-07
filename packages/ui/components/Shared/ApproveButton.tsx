@@ -112,11 +112,11 @@ const ApproveButton = ({
     <AnimatePresence>
       <motion.button
         className={cx(
-          'mt-4 rounded-full w-full py-3 font-bold bg-black text-white transition-colors duration-200',
+          'mt-4 rounded-full w-full py-3 font-bold bg-primary text-primary-foreground transition-colors duration-200',
           !isValidAmount && 'bg-opacity-20',
           (isValidAmount || isApprovalLoading) &&
             !isApprovalLoading &&
-            'hover:bg-[var(--color-dark-gray)]',
+            'hover:bg-primaryA3',
           isApprovalLoading &&
             !isButtonLoading &&
             'bg-opacity-50 !hover:bg-opacity-50'
@@ -137,7 +137,7 @@ const ApproveButton = ({
         ) : (
           <span
             className={cx(
-              !isValidAmount && 'opacity-20 text-black',
+              !isValidAmount && 'opacity-20 text-primary-foreground',
               isApprovalLoading && 'opacity-20'
             )}
           >

@@ -36,7 +36,7 @@ export function TransactionToast({
           className={twJoin(
             'flex items-center gap-1.5',
             'h-6 px-2 py-1',
-            'bg-blackA2 rounded-[4px] text-xs text-black',
+            'bg-foregroundA2 rounded-[4px] text-xs text-foreground',
             'opacity-50 hover:opacity-90 active:opacity-100'
           )}
           href={linkToTxOnBlockExplorer(hash, chainId)}

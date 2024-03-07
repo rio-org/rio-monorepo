@@ -32,7 +32,7 @@ const Stat = ({ label, value, denominator, infoTooltipContent }: Props) => {
       className={twJoin(
         'flex flex-col gap-6 w-full rounded-xl',
         'p-4 lg:p-6',
-        'bg-[var(--color-element-wrapper-bg)]'
+        'bg-foregroundA1'
       )}
     >
       <StatLabel label={label} infoTooltipContent={infoTooltipContent} />
