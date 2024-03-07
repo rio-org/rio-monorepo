@@ -25,8 +25,8 @@ const WithdrawTabs = () => {
           scroll={false}
           passHref
           className={cx(
-            'font-medium hover:text-black ',
-            activeTab === slug ? '' : 'text-gray-500 font-bold'
+            'font-medium hover:text-foreground ',
+            activeTab === slug ? '' : 'text-foregroundA6 font-bold'
           )}
         >
           {label}

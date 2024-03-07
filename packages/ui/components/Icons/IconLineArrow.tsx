@@ -1,10 +1,11 @@
+import { cn } from '../../lib/utilities';
 import React from 'react';
 
-type Props = {
+type Props = React.ComponentProps<'svg'> & {
   direction: 'up' | 'down' | 'left' | 'right' | 'external';
 };
 
-const IconLineArrow = ({ direction = 'right' }: Props) => {
+const IconLineArrow = ({ direction = 'right', className, ...props }: Props) => {
   const rotation = (direction: string) => {
     switch (direction) {
       case 'up':
@@ -30,6 +31,8 @@ const IconLineArrow = ({ direction = 'right' }: Props) => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       transform={`rotate(${rotation(direction)})`}
+      className={cn('[&>path]:fill-foreground', className)}
+      {...props}
     >
       <path
         d="M54.6647 95.6687L45.9184 87.0197L76.2877 56.6511H0V44.0177H76.2877L45.9184 13.6976L54.6647 5L100 50.3344L54.6647 95.6687Z"

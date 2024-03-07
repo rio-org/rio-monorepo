@@ -22,7 +22,7 @@ export const InfoBadge = ({
     <span
       className={cn(
         'inline-flex items-center gap-1',
-        'text-[var(--color-blue)] text-xs leading-none tracking-tight',
+        'text-rio-blue text-xs leading-none tracking-tight',
         'py-1.5 px-3.5',
         'rounded-full border border-[var(--color-light-blue)]',
         '[&>span]:inline-block [&>span]:uppercase [&>span]:leading-none [&>span]:font-mono',
@@ -44,7 +44,7 @@ export const InfoBadge = ({
       ) : (
         <Skeleton
           width={40}
-          containerClassName="!bg-[var(--color-blue)] !bg-opacity-20 rounded-[4px] overflow-hidden"
+          containerClassName="!bg-rio-blue !bg-opacity-20 rounded-[4px] overflow-hidden"
           className="!opacity-70 after:!opacity-10"
         />
       )}

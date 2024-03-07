@@ -35,12 +35,12 @@ const ClaimButton = ({
       transition={{ duration: 0.2 }}
       className={cn(
         'flex items-center px-3 h-9 text-[14px] font-bold rounded-lg',
-        'bg-white text-[#301FC4] disabled:text-white',
+        'bg-background text-rio-blue disabled:text-background',
         claimAmount &&
           claimAmount !== '0' &&
           (isSigning || isSwitchNetworkLoading || isTxLoading || prevTx?.hash)
           ? 'disabled:opacity-70 disabled:bg-transparent '
-          : 'disabled:opacity-10 disabled:bg-black',
+          : 'disabled:opacity-10 disabled:bg-primary',
         className
       )}
     >

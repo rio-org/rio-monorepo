@@ -21,7 +21,7 @@ export const ClaimEarningsForm = ({ lrt }: Partial<Props>) => {
     return (
       <div>
         <ClaimAmountViewer title="Earnings available to claim" />
-        <motion.button className="rounded-full w-full py-3 mt-4 font-bold bg-black duration-200 bg-opacity-20">
+        <motion.button className="rounded-full w-full py-3 mt-4 font-bold bg-foreground duration-200 bg-opacity-20">
           <Skeleton height="1rem" width={100} className="opacity-30" />
         </motion.button>
       </div>

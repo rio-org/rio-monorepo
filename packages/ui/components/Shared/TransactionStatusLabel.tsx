@@ -80,7 +80,7 @@ const TransactionStatusLabel = ({
     switch (status) {
       case 'Claimed':
         return cn(
-          'bg-[var(--color-blue-bg)] text-[var(--color-blue)] cursor-default',
+          'bg-[var(--color-blue-bg)] text-rio-blue cursor-default',
           isLink && 'hover:bg-[var(--color-blue-bg-hover)] cursor-pointer'
         );
       case 'Available':

@@ -198,7 +198,7 @@ const StakeField = ({
                     onClick={handleMaxBalance}
                     disabled={isDisabled || !estimatedMaxGas}
                     className={twJoin(
-                      'text-black font-bold mx-1',
+                      'text-foreground font-bold mx-1',
                       'disabled:opacity-50 enabled:hover:opacity-75 enabled:underline'
                     )}
                     onBlur={() => {
@@ -229,8 +229,8 @@ const StakeField = ({
             className={twJoin(
               'absolute bottom-0 left-0',
               'flex items-center gap-2',
-              'w-full bg-gray-300 py-1 px-4 rounded-b-xl',
-              'text-black text-xs'
+              'w-full bg-border py-1 px-4 rounded-b-xl',
+              'text-foreground text-xs'
             )}
           >
             <IconWarning height={12} width={12} />

@@ -38,13 +38,19 @@ const Pagination = ({
       transition={{ delay: 0 }}
       className={className}
     >
-      <div className="bg-white w-full flex items-center justify-between border-t border-blue-gray-50 p-4 rounded-b-xl">
+      <div className="bg-background w-full flex items-center justify-between border-t border-border p-4 rounded-b-xl">
         <button
-          className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-[var(--color-element-wrapper-bg)] transition-colors flex flex-row gap-1 items-center group disabled:opacity-40 disabled:hover:bg-white"
+          className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-foregroundA1 transition-colors flex flex-row gap-1 items-center group disabled:opacity-40 disabled:hover:bg-background"
           onClick={goToPreviousPage}
           disabled={currentPage === 0}
         >
-          <IconLineArrow direction="left" />{' '}
+          <IconLineArrow
+            direction="left"
+            className={cx(
+              'opacity-50 group-hover:opacity-100 hidden lg:block',
+              currentPage === 0 && 'group-hover:opacity-40'
+            )}
+          />{' '}
           <span
             className={cx(
               'opacity-50 group-hover:opacity-100 hidden lg:block',
@@ -76,18 +82,18 @@ const Pagination = ({
 
               <AnimatePresence>
                 {currentPage === i && (
-                  <motion.div className="absolute z-0 inset-0 opacity-40 bg-[var(--color-element-wrapper-bg)] rounded-lg" />
+                  <motion.div className="absolute z-0 inset-0 opacity-40 bg-foregroundA1 rounded-lg" />
                 )}
               </AnimatePresence>
               {!isButtonHovered && currentPage === i && (
                 <motion.div
-                  className="absolute z-0 inset-0 bg-[var(--color-element-wrapper-bg)] rounded-lg"
+                  className="absolute z-0 inset-0 bg-foregroundA1 rounded-lg"
                   layoutId="page-button-bg"
                 />
               )}
               {isButtonHovered && buttonHoverIndex === i && (
                 <motion.div
-                  className="absolute z-0 inset-0 bg-[var(--color-element-wrapper-bg)] rounded-lg"
+                  className="absolute z-0 inset-0 bg-foregroundA1 rounded-lg"
                   layoutId="page-button-bg"
                 />
               )}
@@ -96,7 +102,7 @@ const Pagination = ({
         </div>
 
         <button
-          className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-[var(--color-element-wrapper-bg)] transition-colors flex flex-row gap-1 items-center group disabled:opacity-40 disabled:hover:bg-white"
+          className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-foregroundA1 transition-colors flex flex-row gap-1 items-center group disabled:opacity-40 disabled:hover:bg-background"
           onClick={goToNextPage}
           disabled={!hasNextPage}
         >
@@ -108,7 +114,13 @@ const Pagination = ({
           >
             {nextLabel}
           </span>{' '}
-          <IconLineArrow direction="right" />
+          <IconLineArrow
+            direction="right"
+            className={cx(
+              'opacity-50 group-hover:opacity-100 hidden lg:block',
+              !hasNextPage && 'group-hover:opacity-40'
+            )}
+          />
         </button>
       </div>
     </motion.div>

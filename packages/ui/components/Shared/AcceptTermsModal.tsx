@@ -61,11 +61,11 @@ export function AcceptTermsModal({
           onClick={handleClick}
           className={twJoin(
             'w-full py-3 rounded-full',
-            'text-white font-bold',
-            'bg-black transition-colors duration-200',
-            'hover:bg-[var(--color-dark-gray)]',
-            'disabled:!bg-opacity-20 disabled:!bg-black',
-            'disabled:[&>span]:!opacity-20 disabled:[&>span]:!text-black'
+            'text-primary-foreground font-bold',
+            'bg-primary transition-colors duration-200',
+            'hover:bg-foregroundA2',
+            'disabled:!bg-opacity-20 disabled:!bg-primary',
+            'disabled:[&>span]:!opacity-20 disabled:[&>span]:!text-primary'
           )}
         >
           Connect wallet

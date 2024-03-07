@@ -55,8 +55,8 @@ const NavList = ({
             key={label + index}
             scroll={false}
             className={cx(
-              'py-2 px-4 font-medium  rounded-xl hover:text-black hover:bg-[var(--color-element-wrapper-bg)]',
-              activeTab === slug ? 'text-black' : 'text-gray-500'
+              'py-2 px-4 font-medium  rounded-xl hover:text-foreground hover:bg-foregroundA1 duration-75',
+              activeTab === slug ? 'text-foreground' : 'text-foregroundA6'
             )}
           >
             {label}
@@ -110,7 +110,7 @@ const AppNav = React.forwardRef<
           variant="filled"
           color="transparent"
         >
-          <div className="flex items-center justify-between text-blue-gray-900">
+          <div className="flex items-center justify-between text-foreground">
             <div className="flex flex-row gap-4 items-center justify-between w-full">
               <Link
                 href={logoItem.url}

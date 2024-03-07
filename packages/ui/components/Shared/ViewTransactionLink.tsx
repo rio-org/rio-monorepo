@@ -8,7 +8,7 @@ import { CHAIN_ID } from '../../config';
 const baseClassName = twJoin(
   'flex flex-row flex-nowrap items-center gap-2',
   'max-w-full h-fit overflow-hidden px-2 py-0.5',
-  'text-center text-gray-500 text-sm font-normal leading-none whitespace-nowrap',
+  'text-center text-foregroundA6 text-sm font-normal leading-none whitespace-nowrap',
   'transition-colors duration-200 '
 );
 

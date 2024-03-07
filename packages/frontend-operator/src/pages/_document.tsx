@@ -10,7 +10,7 @@ export default function Document() {
           'relative w-full max-w-full',
           'min-h-full max-h-full',
           'overflow-hidden',
-          'bg-[var(--color-app-bg)]',
+          'bg-bg-appBackground',
           'font-sans'
         )}
       >

@@ -38,7 +38,7 @@ export const theme = {
   tooltip: {
     styles: {
       base: {
-        bg: 'bg-white',
+        bg: 'bg-card',
         textColor: 'text-[var(--color-dark-gray)]',
         boxShadow: 'shadow-lg'
       }

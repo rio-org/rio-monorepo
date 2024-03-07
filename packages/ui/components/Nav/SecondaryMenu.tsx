@@ -51,10 +51,8 @@ const SecondaryMenu = ({
             <MenuHandler>
               <div
                 className={cx(
-                  'group py-3 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-[var(--color-element-wrapper-bg)]',
-                  isSecondaryMenuOpen
-                    ? 'bg-[var(--color-element-wrapper-bg)]'
-                    : ''
+                  'group py-3 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-foregroundA1',
+                  isSecondaryMenuOpen ? 'bg-foregroundA1' : ''
                 )}
               >
                 <Image
@@ -83,10 +81,8 @@ const SecondaryMenu = ({
             <button
               onClick={() => handleMenuClick()}
               className={cx(
-                'group py-3 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-[var(--color-element-wrapper-bg)]',
-                isSecondaryMenuOpen
-                  ? 'bg-[var(--color-element-wrapper-bg)]'
-                  : ''
+                'group py-3 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-foregroundA1',
+                isSecondaryMenuOpen ? 'bg-foregroundA1' : ''
               )}
             >
               <Image

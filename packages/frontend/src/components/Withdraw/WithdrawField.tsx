@@ -171,9 +171,9 @@ const WithdrawField = ({
       </div>
       <div
         className={cn(
-          'relative z-10 bg-black bg-opacity-5 text-black px-[20px] py-4 rounded-xl hover:border-gray-300 border border-transparent transition-all',
+          'relative z-10 bg-input text-foreground px-[20px] py-4 rounded-xl hover:border-border border border-transparent transition-all',
           errorMessage && 'rounded-b-none',
-          isFocused && 'border-gray-400 hover:border-gray-400'
+          isFocused && 'border-border hover:border-border'
         )}
         onClick={focusInput}
       >
@@ -189,7 +189,7 @@ const WithdrawField = ({
                     '[&::-webkit-inner-spin-button]:top-0',
                     '[&::-webkit-inner-spin-button]:bottom-0',
                     '[&::-webkit-inner-spin-button]:scale-75',
-                    disabled && 'text-gray-700'
+                    disabled && 'text-foregroundA7'
                   )}
                   id="withdraw-amount"
                   type="number"
@@ -231,8 +231,8 @@ const WithdrawField = ({
             id="withdraw-max"
             className={twJoin(
               'ml-2 px-3 py-2 font-medium',
-              'bg-[var(--color-element-wrapper-bg)] rounded-xl',
-              'enabled:hover:bg-black enabled:hover:bg-opacity-10 transition-colors duration-200',
+              'bg-foregroundA1 rounded-xl',
+              'enabled:hover:bg-foregroundA2 transition-colors duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed'
             )}
             onClick={handleMaxAmount}
@@ -258,8 +258,8 @@ const WithdrawField = ({
             className={twJoin(
               'absolute bottom-0 left-0',
               'flex items-center gap-2',
-              'w-full bg-gray-300 py-1 px-4 rounded-b-xl',
-              'text-black text-xs'
+              'w-full bg-border py-1 px-4 rounded-b-xl',
+              'text-foreground text-xs'
             )}
           >
             <IconWarning height={12} width={12} />

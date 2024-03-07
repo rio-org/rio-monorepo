@@ -129,7 +129,7 @@ export function ValidatorOptionsKabobMenu({
       </KabobMenu>
 
       <Dialog
-        className="bg-[var(--color-element-wrapper-bg)] rounded-[16px] pt-0 pb-1 px-1"
+        className="bg-foregroundA1 rounded-[16px] pt-0 pb-1 px-1"
         size="sm"
         open={dialogOpen}
         handler={setDialogOpen}
@@ -137,7 +137,7 @@ export function ValidatorOptionsKabobMenu({
         <DialogHeader className="px-4 py-3 text-base font-medium">
           Remove All Pending Validator Keys
         </DialogHeader>
-        <DialogBody className="bg-white text-black  rounded-t-[14px] w-full px-4 pt-6 pb-4">
+        <DialogBody className="bg-card text-card-foreground  rounded-t-[14px] w-full px-4 pt-6 pb-4">
           <p className="w-full text-sm mb-2 opacity-75">
             You are removing {pending} pending validator keys. This operation
             cannot be undone. If you want to re-add these keys for your
@@ -145,8 +145,8 @@ export function ValidatorOptionsKabobMenu({
             form again.
           </p>
         </DialogBody>
-        <DialogFooter className="bg-white rounded-b-[14px] w-full pt-0 px-3 pb-3">
-          <p className="text-center w-full text-xs opacity-50 text-black">
+        <DialogFooter className="bg-card rounded-b-[14px] w-full pt-0 px-3 pb-3">
+          <p className="text-center w-full text-xs opacity-50 text-card-foreground">
             Note: Continuing with this action requires submitting a transaction
           </p>
           <TransactionButton
@@ -173,7 +173,7 @@ export function ValidatorOptionsKabobMenu({
           </TransactionButton>
           <div className="flex justify-center w-full mt-3">
             <button
-              className="bg-transparent text-sm text-black opacity-50"
+              className="bg-transparent text-sm text-card-foreground opacity-50"
               onClick={() => setDialogOpen(false)}
             >
               Close

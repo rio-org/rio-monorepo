@@ -67,7 +67,7 @@ export function PendingManagerInvitation({
           exit={{ height: 0, marginBottom: 0, opacity: 0 }}
           className="w-full flex justify-between gap-8 px-3 py-2 overflow-hidden bg-[#EDCD5E] rounded-md"
         >
-          <div className="flex gap-2 items-center text-[14px] font-medium text-black">
+          <div className="flex gap-2 items-center text-[14px] font-medium text-foreground">
             <IconWarning className="[&>path]:stroke-black" />
             <span className="leading-snug">
               Invitation to manage an operator
@@ -80,7 +80,7 @@ export function PendingManagerInvitation({
               !simulatedData?.request ||
               isUserSigning
             }
-            className="relative py-1.5 px-2.5 text-xs font-medium rounded-lg bg-black text-white"
+            className="relative py-1.5 px-2.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground"
             onClick={
               !simulatedData?.request
                 ? undefined

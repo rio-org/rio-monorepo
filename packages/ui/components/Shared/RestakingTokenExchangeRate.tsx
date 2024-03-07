@@ -3,13 +3,12 @@ import { useMediaQuery } from 'react-responsive';
 import Skeleton from 'react-loading-skeleton';
 import { motion } from 'framer-motion';
 import { twJoin } from 'tailwind-merge';
-import Image from 'next/image';
 import { InfoTooltip } from './InfoTooltip';
 import { useAssetExchangeRate } from '../../hooks/useAssetExchangeRate';
-import iconTransaction from '../../assets/icon-transaction.svg';
 import { cn, displayAmount } from '../../lib/utilities';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { TokenSymbol } from '../../lib/typings';
+import { IconSwitch } from '../Icons/IconSwitch';
 
 export type RestakingTokenExchangeRateProps = Omit<
   React.ComponentPropsWithoutRef<'div'>,
@@ -52,7 +51,7 @@ export const RestakingTokenExchangeRate = ({
     >
       {exchangeRate && (
         <div className="flex items-center gap-1 text-right">
-          <span className="text-black text-xs font-bold">
+          <span className="text-foreground text-xs font-bold">
             {!exchangeRate ? (
               <Skeleton className="inline-block" width={160} height={12} />
             ) : isRestakingTokenBase ? (
@@ -97,18 +96,16 @@ export const RestakingTokenExchangeRate = ({
         className={twJoin(
           'group flex justify-center items-center flex-shrink-0',
           'w-6 min-w-6 h-6 rounded-[4px] select-none',
-          'bg-blackA1 hover:bg-blackA3 active:bg-blackA4'
+          'bg-primaryA1 hover:bg-primaryA3 active:bg-primaryA4'
         )}
       >
         <motion.div
           animate={{ rotate: isRestakingTokenBase ? 180 : -180 }}
           transition={{ duration: 0.2 }}
         >
-          <Image
-            src={iconTransaction}
+          <IconSwitch
             width={10}
             height={10}
-            alt="swap"
             className={twJoin(
               'opacity-25 group-hover:opacity-50 group-active:opacity-70',
               'transition-opacity'
