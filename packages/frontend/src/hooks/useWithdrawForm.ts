@@ -128,7 +128,8 @@ export const useWithdrawForm = ({
     resetForm,
     isValidAmount,
     amount,
-    amountOut
+    amountOut,
+    refetch
   };
 };
 
