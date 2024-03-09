@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
+import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 
 interface IRioLRTOperatorDelegator {
     /// @notice Thrown when the earnings receiver is not set to the reward distributor.
@@ -17,6 +18,9 @@ interface IRioLRTOperatorDelegator {
     /// @notice Thrown when the validator count is `0` or does not match the provided ETH value.
     error INVALID_VALIDATOR_COUNT();
 
+    /// @notice Thrown when the asset provided for the beacon chain strategy is not valid.
+    error INVALID_ASSET_FOR_BEACON_CHAIN_STRATEGY();
+
     /// @notice Thrown when the public keys batch length does not match the validator count.
     /// @param actual The actual length of the batch.
     /// @param expected The expected length of the batch.
@@ -29,6 +33,9 @@ interface IRioLRTOperatorDelegator {
 
     /// @notice Thrown when there isn't enough excess full withdrawal ETH to initiate a scrape from the EigenPod.
     error INSUFFICIENT_EXCESS_FULL_WITHDRAWAL_ETH();
+
+    /// @notice Thrown when the calling account is not authorized to claim a withdrawal.
+    error UNAUTHORIZED_CLAIMER();
 
     /// @notice Initializes the contract by delegating to the provided EigenLayer operator.
     /// @param token The address of the liquid restaking token.
@@ -89,12 +96,13 @@ interface IRioLRTOperatorDelegator {
     /// @param shares The amount of shares to withdraw.
     function queueWithdrawalForOperatorExit(address strategy, uint256 shares) external returns (bytes32 root);
 
-    /// @notice Decrease the amount of ETH queued from EigenLayer for user settlement.
-    /// @param amountWei The amount of ETH to decrease by, in wei.
-    function decreaseETHQueuedForUserSettlement(uint256 amountWei) external;
-
-    /// @dev Decrease the amount of ETH queued for operator exit or excess full withdrawal scrape
-    /// from EigenLayer.
-    /// @param amountWei The amount of ETH to decrease by, in wei.
-    function decreaseETHQueuedForOperatorExitOrScrape(uint256 amountWei) external;
+    /// @notice Completes a queued withdrawal of the specified `queuedWithdrawal` for the given `asset`.
+    /// @param queuedWithdrawal The withdrawal to complete.
+    /// @param asset The asset to withdraw.
+    /// @param middlewareTimesIndex The index of the middleware times to use for the withdrawal.
+    function completeQueuedWithdrawal(
+        IDelegationManager.Withdrawal calldata queuedWithdrawal,
+        address asset,
+        uint256 middlewareTimesIndex
+    ) external returns (bytes32 root);
 }

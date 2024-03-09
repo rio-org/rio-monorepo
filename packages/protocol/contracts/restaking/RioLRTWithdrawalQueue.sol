@@ -10,16 +10,11 @@ import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
-import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using FixedPointMathLib for *;
     using Asset for address;
-    using Array for *;
-
-    /// @notice The primary delegation contract for EigenLayer.
-    IDelegationManager public immutable delegationManager;
 
     /// @notice Current asset withdrawal epochs. Incoming withdrawals are included
     /// in the current epoch, which will be processed by the asset manager.
@@ -30,10 +25,7 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     mapping(address asset => mapping(uint256 epoch => EpochWithdrawals withdrawals)) internal epochWithdrawalsByAsset;
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    /// @param delegationManager_ The EigenLayer delegation manager.
-    constructor(address issuer_, address delegationManager_) RioLRTCore(issuer_) {
-        delegationManager = IDelegationManager(delegationManager_);
-    }
+    constructor(address issuer_) RioLRTCore(issuer_) {}
 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
@@ -241,23 +233,14 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
         uint256 balanceBefore = asset.getSelfBalance();
 
-        address[] memory assets = asset.toArray();
         bytes32[] memory roots = new bytes32[](queuedWithdrawalCount);
 
         IDelegationManager.Withdrawal memory queuedWithdrawal;
         for (uint256 i; i < queuedWithdrawalCount; ++i) {
             queuedWithdrawal = queuedWithdrawals[i];
-
-            roots[i] = _computeWithdrawalRoot(queuedWithdrawal);
-            delegationManager.completeQueuedWithdrawal(queuedWithdrawal, assets, middlewareTimesIndexes[i], true);
-
-            // Decrease the amount of ETH queued for withdrawal. We do not need to validate the staker as
-            // the aggregate root will be validated below.
-            if (asset == ETH_ADDRESS) {
-                IRioLRTOperatorDelegator(queuedWithdrawal.staker).decreaseETHQueuedForUserSettlement(
-                    queuedWithdrawal.shares[0]
-                );
-            }
+            roots[i] = IRioLRTOperatorDelegator(queuedWithdrawal.staker).completeQueuedWithdrawal(
+                queuedWithdrawal, asset, middlewareTimesIndexes[i]
+            );
         }
         if (epochWithdrawals.aggregateRoot != keccak256(abi.encode(roots))) {
             revert INVALID_AGGREGATE_WITHDRAWAL_ROOT();
@@ -272,12 +255,6 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
     /// @dev Receives ETH for withdrawals.
     receive() external payable {}
-
-    /// @dev Returns the keccak256 hash of `withdrawal`.
-    /// @param withdrawal The withdrawal.
-    function _computeWithdrawalRoot(IDelegationManager.Withdrawal memory withdrawal) public pure returns (bytes32) {
-        return keccak256(abi.encode(withdrawal));
-    }
 
     function _getEpochWithdrawals(address asset, uint256 epoch) internal view returns (EpochWithdrawals storage) {
         return epochWithdrawalsByAsset[asset][epoch];

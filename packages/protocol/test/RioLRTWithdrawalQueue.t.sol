@@ -90,7 +90,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
             delegatedTo: address(1),
-            withdrawer: address(reETH.withdrawalQueue),
+            withdrawer: operatorDelegator,
             nonce: 0,
             startBlock: 1,
             strategies: BEACON_CHAIN_STRATEGY.toArray(),
@@ -156,7 +156,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
             delegatedTo: address(1),
-            withdrawer: address(reETH.withdrawalQueue),
+            withdrawer: operatorDelegator,
             nonce: 0,
             startBlock: 1,
             strategies: BEACON_CHAIN_STRATEGY.toArray(),
@@ -214,7 +214,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
             delegatedTo: address(1),
-            withdrawer: address(reETH.withdrawalQueue),
+            withdrawer: operatorDelegator,
             nonce: 0,
             startBlock: 1,
             strategies: BEACON_CHAIN_STRATEGY.toArray(),
@@ -274,7 +274,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
             delegatedTo: address(1),
-            withdrawer: address(reETH.withdrawalQueue),
+            withdrawer: operatorDelegator,
             nonce: 0,
             startBlock: 1,
             strategies: BEACON_CHAIN_STRATEGY.toArray(),
@@ -377,7 +377,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
             delegatedTo: address(1),
-            withdrawer: address(reLST.withdrawalQueue),
+            withdrawer: operatorDelegator,
             nonce: 0,
             startBlock: 1,
             strategies: CBETH_STRATEGY.toArray(),
@@ -436,7 +436,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
             delegatedTo: address(1),
-            withdrawer: address(reLST.withdrawalQueue),
+            withdrawer: operatorDelegator,
             nonce: 0,
             startBlock: 1,
             strategies: CBETH_STRATEGY.toArray(),
