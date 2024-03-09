@@ -247,8 +247,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
         address authorizedClaimer = authorizedClaimerByWithdrawalRoot[root];
         if (msg.sender != authorizedClaimer) revert UNAUTHORIZED_CLAIMER();
 
-        // Decrease the amount of ETH queued for withdrawal. We do not need to validate the staker as
-        // the aggregate root will be validated below.
+        // Decrease the amount of ETH queued for withdrawal, if applicable.
         if (queuedWithdrawal.strategies[0] == BEACON_CHAIN_STRATEGY) {
             if (asset != ETH_ADDRESS) revert INVALID_ASSET_FOR_BEACON_CHAIN_STRATEGY();
 
