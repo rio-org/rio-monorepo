@@ -88,10 +88,6 @@ interface IEigenPod {
     /// @notice The max amount of eth, in gwei, that can be restaked per validator
     function MAX_RESTAKED_BALANCE_GWEI_PER_VALIDATOR() external view returns (uint64);
 
-    /// @notice This variable tracks the total amount of partial withdrawals claimed via merkle proofs
-    /// prior to a switch to ZK proofs for claiming partial withdrawals
-    function sumOfPartialWithdrawalsClaimedGwei() external view returns (uint64);
-
     /// @notice Contract used for withdrawal routing, to provide an extra "safety net" mechanism
     function delayedWithdrawalRouter() external view returns (address);
 

@@ -57,9 +57,6 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     /// operator exits and excess full withdrawal scrapes, in gwei.
     uint64 public ethQueuedForOperatorExitsAndScrapesGwei;
 
-    /// @notice The estimated amount of ETH rewards received from partial withdrawals, in gwei.
-    uint64 public ethRewardsReceivedFromPartialWithdrawalsEstimatedGwei;
-
     /// @notice The mapping of withdrawal roots to the address that's allowed to claim them.
     mapping(bytes32 root => address claimer) public authorizedClaimerByWithdrawalRoot;
 
@@ -118,22 +115,8 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
 
         uint64 userSettlementGwei = uint64(ethQueuedSlotData);
         uint64 operatorExitAndScrapeGwei = uint64(ethQueuedSlotData >> 64);
-        uint64 rewardsReceivedEstimatedGwei = uint64(ethQueuedSlotData >> 128);
 
-        // forgefmt: disable-next-item
-        // Include partial withdrawals that have not yet been claimed.
-        uint64 queuedRewardsGwei = eigenPod.sumOfPartialWithdrawalsClaimedGwei() - rewardsReceivedEstimatedGwei;
-
-        return (userSettlementGwei + operatorExitAndScrapeGwei + queuedRewardsGwei).toWei();
-    }
-
-    /// @notice Returns the total estimated amount of unclaimed partial withdrawals for the operator delegator's EigenPod, in gwei.
-    /// @dev This function provides an estimate. It might report a zero value for unclaimed partial withdrawals under two conditions:
-    /// 1. If non-beacon chain ETH is contributed to the operator delegator's EigenPod.
-    /// 2. If excess ETH was received from a full withdrawal process.
-    /// These scenarios could lead to unclaimed partial withdrawals appearing as zero despite their existence.
-    function getEstimatedUnclaimedPartialWithdrawalsGwei() public view returns (uint256) {
-        return eigenPod.sumOfPartialWithdrawalsClaimedGwei() - ethRewardsReceivedFromPartialWithdrawalsEstimatedGwei;
+        return (userSettlementGwei + operatorExitAndScrapeGwei).toWei();
     }
 
     /// @notice Returns the total amount of ETH under management by the operator delegator.
@@ -287,17 +270,6 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
     /// amount in excess of 32 ETH for full withdrawals, and non-beacon chain ETH.
     receive() external payable {
         if (msg.sender == eigenPod.delayedWithdrawalRouter()) {
-            uint64 incomingRewardsGwei = msg.value.toGwei();
-
-            uint64 sumOfPartialWithdrawalClaimsInitiatedGwei_ = eigenPod.sumOfPartialWithdrawalsClaimedGwei();
-            uint64 ethRewardsReceivedFromPartialWithdrawalsEstimatedGwei_ = ethRewardsReceivedFromPartialWithdrawalsEstimatedGwei;
-            uint64 ethRewardsReceivedGwei = ethRewardsReceivedFromPartialWithdrawalsEstimatedGwei_ + incomingRewardsGwei;
-
-            // If the amount of rewards received from the delayed withdrawal router exceeds the sum of partial withdrawals initiated,
-            // then we received rewards from non-beacon chain ETH OR excess full withdrawal ETH. In this case, we cap the amount of rewards
-            // received from the delayed withdrawal router to the sum of partial withdrawals initiated to avoid double-counting.
-            ethRewardsReceivedFromPartialWithdrawalsEstimatedGwei = _min(ethRewardsReceivedGwei, sumOfPartialWithdrawalClaimsInitiatedGwei_);
-
             address(rewardDistributor()).transferETH(msg.value);
         }
     }
@@ -393,10 +365,5 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
                 sha256(abi.encodePacked(ETH_DEPOSIT_SIZE_IN_GWEI_LE64, bytes24(0), signatureRoot))
             )
         );
-    }
-
-    /// @dev Returns the smallest of two `uint64` numbers.
-    function _min(uint64 a, uint64 b) internal pure returns (uint64) {
-        return a < b ? a : b;
     }
 }
