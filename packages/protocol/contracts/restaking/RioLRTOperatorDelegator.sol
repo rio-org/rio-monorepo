@@ -122,9 +122,9 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
 
         // forgefmt: disable-next-item
         // Include partial withdrawals that have not yet been claimed.
-        uint64 unclaimedRewardsGwei = eigenPod.sumOfPartialWithdrawalsClaimedGwei() - rewardsReceivedEstimatedGwei;
+        uint64 queuedRewardsGwei = eigenPod.sumOfPartialWithdrawalsClaimedGwei() - rewardsReceivedEstimatedGwei;
 
-        return (userSettlementGwei + operatorExitAndScrapeGwei + unclaimedRewardsGwei).toWei();
+        return (userSettlementGwei + operatorExitAndScrapeGwei + queuedRewardsGwei).toWei();
     }
 
     /// @notice Returns the total estimated amount of unclaimed partial withdrawals for the operator delegator's EigenPod, in gwei.
