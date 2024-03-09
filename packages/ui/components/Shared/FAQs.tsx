@@ -46,7 +46,7 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
   );
 
   return (
-    <motion.div className="space-y-4 w-full px-4">
+    <motion.div className="space-y-4 w-full">
       <button
         onClick={toggleFaqs}
         className={twJoin(

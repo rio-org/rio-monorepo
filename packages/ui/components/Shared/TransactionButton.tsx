@@ -1,19 +1,18 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSwitchChain } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
-import { twJoin } from 'tailwind-merge';
 import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 import {
   useTransactionButton,
   type UseTransactionButtonConfig
 } from '../../hooks/useTransactionButton';
-import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { cn, getChainName } from '../../lib/utilities';
 import { ViewTransactionLink } from './ViewTransactionLink';
 import { IconWarning } from '../Icons/IconWarning';
 import { IconX } from '../Icons/IconX';
 import { CHAIN_ID } from '../../config';
 import { useEffect } from 'react';
+import { Button } from '../shadcn/button';
 
 export type TransactionButtonProps = UseTransactionButtonConfig & {
   reset?: () => void;
@@ -75,7 +74,7 @@ const TransactionButton = ({
               borderWidth: 1
             }}
             exit={{ opacity: 0, height: 0, marginBottom: 0, borderWidth: 0 }}
-            className="w-full border rounded-lg border-warning-foreground bg-warning px-3 py-3 space-y-2 text-[14px]"
+            className="w-full border rounded-[4px] border-warning-foreground bg-warning px-3 py-3 space-y-2 text-[14px]"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 font-semibold">
@@ -104,22 +103,15 @@ const TransactionButton = ({
         )}
       </AnimatePresence>
       <AnimatePresence>
-        <motion.button
-          variants={TX_BUTTON_VARIANTS}
+        <Button
           disabled={isDisabled}
           onClick={handleClick}
-          className={twJoin(
-            'w-full py-3 rounded-full',
-            'text-primary-foreground font-bold',
-            'bg-primary transition-colors duration-200',
-            'hover:bg-primaryA11 focus:bg-primaryA10',
-            'disabled:!bg-primaryA1',
-            'disabled:[&>span]:!opacity-20 disabled:[&>span]:!text-primary'
-          )}
+          className="w-full font-bold text-base py-3 leading-6 h-12"
         >
           {(() => {
             if (!address) {
-              <span className={cn(isDisabled && 'opacity-20 text-primary')}>
+              <span //className={cn(isDisabled && 'opacity-20 text-primary')}
+              >
                 Connect your wallet
               </span>;
             }
@@ -138,14 +130,14 @@ const TransactionButton = ({
             }
 
             return (
-              <span className={cn(isDisabled && 'opacity-20 text-primary')}>
+              <span>
                 {wrongNetwork
                   ? `Switch to ${getChainName(CHAIN_ID)}`
                   : children || 'Submit'}
               </span>
             );
           })()}
-        </motion.button>
+        </Button>
       </AnimatePresence>
 
       <AnimatePresence>
@@ -172,9 +164,7 @@ function LoadingTransactionContent({
   return (
     <div className="w-full text-center flex items-center justify-center gap-2">
       <Spinner width={16} />
-      <span className="text-primaryA6">
-        {children || 'Awaiting confirmation'}
-      </span>
+      <span>{children || 'Awaiting confirmation'}</span>
     </div>
   );
 }

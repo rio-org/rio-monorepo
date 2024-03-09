@@ -5,6 +5,7 @@ import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted'
 import { useTransactionButton } from '@rio-monorepo/ui/hooks/useTransactionButton';
 import { type TransactionButtonProps } from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import { cn, displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
+import { Button } from '@rio-monorepo/ui/components/shadcn/button';
 
 export type ClaimButtonProps = Pick<TransactionButtonProps, 'isSigning'> & {
   claimAmount?: string;
@@ -12,6 +13,8 @@ export type ClaimButtonProps = Pick<TransactionButtonProps, 'isSigning'> & {
   useTransactionButtonReturn: ReturnType<typeof useTransactionButton>;
   className?: string;
 };
+
+const MotionBtn = motion(Button);
 
 const ClaimButton = ({
   isSigning,
@@ -29,18 +32,20 @@ const ClaimButton = ({
     useTransactionButtonReturn;
 
   return (
-    <motion.button
+    <MotionBtn
       disabled={isDisabled || !address}
+      // disabled={true}
       onClick={handleClick}
       transition={{ duration: 0.2 }}
       className={cn(
-        'flex items-center px-3 h-9 text-[14px] font-bold rounded-lg',
+        'flex items-center px-3 h-9 text-[14px] font-bold rounded-[2px]',
         'bg-background dark:bg-backgroundA7 text-rio-blue disabled:text-background',
+        'hover:bg-background/80',
         claimAmount &&
           claimAmount !== '0' &&
           (isSigning || isSwitchNetworkLoading || isTxLoading || prevTx?.hash)
           ? 'disabled:opacity-70 disabled:bg-transparent '
-          : 'disabled:opacity-10 disabled:bg-primary',
+          : 'disabled:bg-opacity-10 disabled:bg-primary',
         className
       )}
     >
@@ -72,7 +77,7 @@ const ClaimButton = ({
           return `Claim ${formattedAmount} ${claimAssetSymbol}`;
         })()}
       </span>
-    </motion.button>
+    </MotionBtn>
   );
 };
 

@@ -143,14 +143,14 @@ export function ClaimSectionBase({
       <div
         className={cn(
           'flex justify-between items-center',
-          'w-full p-2 mt-4 rounded-2xl',
+          'w-full p-2 mt-4 rounded-[4px] shadow-card-foreground',
           'bg-foregroundA1 text-foregroundA8 transition-colors',
           !!address &&
             !!claimAmount &&
             'bg-rio-blue text-background dark:text-foreground'
         )}
       >
-        <div className="w-full flex justify-between items-center gap-4 text-[14px]">
+        <div className="w-full flex justify-between items-center gap-4 text-base">
           <h3 className="flex items-center gap-1 font-medium pl-2 lg:pl-3">
             {isWithdrawalsLoading ? (
               <>
