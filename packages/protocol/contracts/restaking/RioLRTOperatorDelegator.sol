@@ -264,7 +264,6 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
         asset.transferTo(authorizedClaimer, asset.getSelfBalance());
     }
 
-    // forgefmt: disable-next-item
     /// @notice Forwards ETH rewards to the reward distributor. We consider any ETH sent from
     /// the delayed withdrawal router as a reward - this includes partial withdrawals, any
     /// amount in excess of 32 ETH for full withdrawals, and non-beacon chain ETH.
