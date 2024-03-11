@@ -40,20 +40,20 @@ const Pagination = ({
     >
       <div className="bg-background w-full flex items-center justify-between border-t border-border p-4 rounded-b-xl">
         <button
-          className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-foregroundA1 transition-colors flex flex-row gap-1 items-center group disabled:opacity-40 disabled:hover:bg-background"
+          className="text-sm whitespace-nowrap py-1 px-2 rounded-lg hover:bg-foregroundA1 transition-colors flex flex-row gap-1 items-center group disabled:opacity-40 disabled:hover:bg-background"
           onClick={goToPreviousPage}
           disabled={currentPage === 0}
         >
           <IconLineArrow
             direction="left"
             className={cx(
-              'opacity-50 group-hover:opacity-100 hidden md:block',
+              'opacity-80 group-hover:opacity-100 hidden md:block',
               currentPage === 0 && 'group-hover:opacity-40'
             )}
           />{' '}
           <span
             className={cx(
-              'opacity-50 group-hover:opacity-100 hidden md:block',
+              'opacity-80 group-hover:opacity-100 hidden md:block',
               currentPage === 0 && 'group-hover:opacity-40'
             )}
           >
@@ -65,7 +65,7 @@ const Pagination = ({
             <button
               key={i}
               className={cx(
-                'text-[12px] py-1 px-2 rounded-lg opacity-50 transition-colors relative'
+                'text-sm py-1 px-2 rounded-lg disabled:opacity-50 transition-colors relative'
               )}
               onClick={() => setCurrentPage(i)}
               onMouseOver={() => {
@@ -102,13 +102,13 @@ const Pagination = ({
         </div>
 
         <button
-          className="text-[12px] whitespace-nowrap py-1 px-2 rounded-lg hover:bg-foregroundA1 transition-colors flex flex-row gap-1 items-center group disabled:opacity-40 disabled:hover:bg-background"
+          className="group text-sm whitespace-nowrap py-1 px-2 rounded-lg hover:bg-foregroundA1 transition-colors flex flex-row gap-1 items-center group disabled:opacity-40 disabled:hover:bg-background"
           onClick={goToNextPage}
           disabled={!hasNextPage}
         >
           <span
             className={cx(
-              'opacity-50 group-hover:opacity-100 hidden md:block',
+              'opacity-80 group-hover:opacity-100 hidden md:block',
               !hasNextPage && 'group-hover:opacity-40'
             )}
           >
@@ -117,7 +117,7 @@ const Pagination = ({
           <IconLineArrow
             direction="right"
             className={cx(
-              'opacity-50 group-hover:opacity-100 hidden md:block',
+              'opacity-80 group-hover:opacity-100 hidden md:block',
               !hasNextPage && 'group-hover:opacity-40'
             )}
           />

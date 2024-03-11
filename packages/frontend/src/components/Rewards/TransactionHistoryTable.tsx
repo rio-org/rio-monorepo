@@ -228,7 +228,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
           <th
             key={head}
             className={cn(
-              'text-[12px] font-normal px-4 py-2 opacity-50',
+              'text-sm font-bold px-4 py-4 opacity-50',
               i < 2 ? 'text-left' : 'text-right',
               i === 0 && 'pl-6',
               i === TX_HISTORY_TABLE_HEADER_LABELS.length - 1 && 'pr-6'
@@ -247,17 +247,19 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
       <AnimatePresence mode="wait">
         {isLoading || !address || !txHistory?.length ? (
           <motion.div
-            className="bg-foregroundA1 p-1 rounded-t-2xl rounded-b-2xl relative"
+            className="bg-background rounded-[4px] border border-border shadow-cardlight relative"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
             layoutId="table-wrapper"
           >
-            <table className="w-full">{tableHeader}</table>
+            <table className="w-full border-b border-border p-1">
+              {tableHeader}
+            </table>
             <motion.div
               key="loading"
-              className="bg-background w-full h-30 flex items-center justify-center border-t border-border px-4 py-8 rounded-xl"
+              className="w-full h-30 flex items-center justify-center px-4 py-8"
             >
               {isLoading ? (
                 <Spinner color="blue" />
@@ -273,7 +275,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         ) : (
           <>
             <motion.div
-              className="bg-foregroundA1 p-1 rounded-t-2xl rounded-b-xl relative"
+              className="bg-background rounded-[4px] border border-border shadow-cardlight relative"
               layout
               key={pagination.currentPage}
               initial={false}
@@ -282,14 +284,14 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
             >
               <motion.table
                 className={cn(
-                  'w-full min-w-fit table-auto text-left rounded-t-xl',
-                  pagination.pageCount < 2 && 'rounded-b-xl overflow-hidden'
+                  'w-full min-w-fit table-auto text-left',
+                  pagination.pageCount < 2 && 'overflow-hidden'
                 )}
               >
                 {tableHeader}
 
                 <motion.tbody
-                  className="divide-y divide-foregroundA1"
+                  className="divide-y divide-border divide-opacity-50 md:border-t border-border"
                   layoutId="table-body"
                   transition={{
                     duration: 0.075
