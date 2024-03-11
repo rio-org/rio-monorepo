@@ -18,7 +18,7 @@ import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWi
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { getFAQsFromEdge } from '@rio-monorepo/ui/lib/api';
-import { asType } from '@rio-monorepo/ui/lib/utilities';
+import { asType, cn } from '@rio-monorepo/ui/lib/utilities';
 import { APP_ENV } from '@rio-monorepo/ui/config';
 import {
   type FAQ,
@@ -108,14 +108,24 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
           isWithdrawalsLoading={withdrawalRequestsLoading}
         />
 
-        <div className="w-full bg-background border-border rounded-[4px] shadow-cardlight">
+        <div
+          className={cn(
+            'w-full bg-background border border-border rounded-[4px] shadow-cardlight opacity-70 transition-opacity',
+            !!requestsLength && 'opacity-100'
+          )}
+        >
           <div
             className={twJoin(
               'w-full flex justify-between items-center gap-4 text-[14px] p-2',
-              withdrawalRequests?.length ? 'border-b border-border/50' : ''
+              !!requestsLength && 'border-b border-border'
             )}
           >
-            <h3 className="flex items-center gap-1 font-medium pl-2 lg:pl-3">
+            <h3
+              className={cn(
+                'flex items-center gap-1 font-bold text-foregroundA8 text-sm pl-2 lg:pl-3',
+                !!requestsLength && 'text-foreground'
+              )}
+            >
               {isLoading ? (
                 <>
                   <Spinner /> <span>Pending requests loading</span>

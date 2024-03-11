@@ -65,10 +65,7 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
             className="w-full space-y-4 overflow-hidden"
           >
             {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className="w-full rounded-[4px] bg-foregroundA1 border border-border"
-              >
+              <div key={i} className="w-full rounded-[4px] bg-foregroundA1">
                 <button
                   onClick={curriedExpandQuestion(i)}
                   className={twJoin('py-2.5 px-4 items-start', buttonHoverCN)}
@@ -85,7 +82,7 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
                   {expandedQuestions[i] && (
                     <motion.div
                       {...APPEAR_VARIANTS}
-                      className="w-full text-sm overflow-hidden px-4 text-foreground/90 bg-background"
+                      className="w-full text-sm overflow-hidden px-2 text-foreground/90"
                     >
                       {' '}
                       <Markdown children={faq.a} />

@@ -54,7 +54,7 @@ const WithdrawalRequestRow = ({
   return (
     <AnimatePresence>
       <motion.tr
-        className="flex w-full border-b border-b-foregroundA1"
+        className="flex w-full border-t border-t-border/40 dark:border-t-border/80 first:border-t-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: exitDuration } }}

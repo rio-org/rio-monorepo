@@ -19,7 +19,7 @@ export function Markdown({
   return (
     <ReactMarkdown
       className={cn(
-        'pt-4 pb-4 px-2 space-y-4 font-sans text-sm opacity-80',
+        'pt-2 pb-4 px-2 space-y-4 font-sans text-sm opacity-80',
         '[&_h1,&_h2,&_h3,&_h4,&_h5,&_h6,&_strong]:font-bold',
         '[&&_a]:font-semibold [&_h6]:font-bold [&_h3]:font-bold [&_h4]:font-bold',
         className
