@@ -19,6 +19,7 @@ import {
   type LRTDetails
 } from '@rio-monorepo/ui/lib/typings';
 import { Button } from '@rio-monorepo/ui/components/shadcn/button';
+import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 
 type Props = {
   tab: string;
@@ -183,6 +184,7 @@ const RestakeField = ({
         </label>
         <AccountBalance
           displayBalance={displayBalance}
+          formattedBalance={formattedBalance}
           token={token}
           restakingTokenBalance={restakingTokenBalance}
           lrtDetails={lrtDetails}
@@ -205,6 +207,7 @@ const RestakeField = ({
                 <SymbolAnimator amount={amount} symbol={token?.symbol} />
                 <input
                   className={cn(
+                    'restake-input',
                     'text-2xl bg-transparent w-full focus:outline-none pb-4 leading-none',
                     '[&::-webkit-inner-spin-button]:absolute',
                     '[&::-webkit-inner-spin-button]:right-0',
@@ -317,6 +320,7 @@ export default RestakeField;
 
 function AccountBalance({
   displayBalance,
+  formattedBalance,
   token,
   restakingTokenBalance,
   lrtDetails,
@@ -324,47 +328,80 @@ function AccountBalance({
   activeToken
 }: {
   displayBalance?: string;
+  formattedBalance?: string;
   token?: LRTDetails | AssetDetails;
   restakingTokenBalance: bigint;
   lrtDetails?: LRTDetails;
   activeTokenBalance: bigint;
   activeToken?: AssetDetails;
 }) {
+  const formattedLrtBalance = formatUnits(
+    restakingTokenBalance || 0n,
+    lrtDetails?.decimals ?? 18
+  );
+  const formattedTokenBalance = formatUnits(
+    activeTokenBalance || 0n,
+    activeToken?.decimals ?? 18
+  );
   return (
     <>
       {typeof displayBalance !== 'undefined' ? (
         <span className="flex items-center gap-1">
-          <span className="opacity-50 text-[13px] font-mono -tracking-tight md:hidden">
-            Balance: {displayBalance} {token?.symbol}
+          <span className="flex items-center gap-1.5 text-[13px] font-mono -tracking-tight md:hidden">
+            <span className="opacity-50">Balance:</span>
+            <span>
+              {displayBalance} {token?.symbol}
+            </span>
+            <ExactBalanceTooltip
+              balance={formattedBalance}
+              symbol={token?.symbol}
+            />
           </span>
-          <span className="text-[13px] font-mono -tracking-tight hidden md:inline">
-            <span className="opacity-50 ">Balances:</span>{' '}
-            {displayEthAmount(
-              formatUnits(restakingTokenBalance, lrtDetails?.decimals ?? 18)
-            )}{' '}
-            {lrtDetails?.symbol} <span className="opacity-50 ">|</span>{' '}
-            {displayEthAmount(
-              formatUnits(activeTokenBalance, activeToken?.decimals ?? 18)
-            )}{' '}
-            {activeToken?.symbol}
+          <span className="items-center gap-1.5 text-[13px] font-mono -tracking-tight hidden md:inline-flex">
+            <span className="opacity-50 ">Balances:</span>
+            <span>
+              {displayEthAmount(formattedLrtBalance)} {lrtDetails?.symbol}
+            </span>
+            <ExactBalanceTooltip
+              balance={formattedLrtBalance}
+              symbol={lrtDetails?.symbol}
+            />
+            <span className="opacity-50 ">|</span>
+            <span>
+              {displayEthAmount(formattedTokenBalance)} {activeToken?.symbol}
+            </span>
+            <ExactBalanceTooltip
+              balance={formattedTokenBalance}
+              symbol={activeToken?.symbol}
+            />
           </span>
-          {/* {formattedBalance &&
-              (isNaN(+displayBalance) ||
-                +displayBalance !== +formattedBalance) && (
-                <InfoTooltip>
-                  <p>
-                    <span className="font-semibold block">Exact balance</span>
-                    <span className="block">
-                      {formattedBalance} {lrtDetails?.symbol}
-                    </span>
-                  </p>
-                </InfoTooltip>
-              )} */}
         </span>
       ) : (
         <Skeleton width={50} />
       )}
     </>
+  );
+}
+
+function ExactBalanceTooltip({
+  balance,
+  symbol
+}: {
+  balance?: string;
+  symbol?: string;
+}) {
+  return (
+    balance !== undefined &&
+    !!+balance && (
+      <InfoTooltip iconClassName="opacity-50">
+        <p>
+          <span className="font-semibold block mb-1">Exact balance</span>
+          <span className="block opacity-50">
+            {balance} {symbol}
+          </span>
+        </p>
+      </InfoTooltip>
+    )
   );
 }
 
@@ -455,7 +492,7 @@ function InputSpinner({
     <div className="hover:flex text-xs absolute z-[1] right-0 top-0 bottom-0 gap-1 hidden flex-col items-center justify-evenly">
       <InputSpinnerButton
         onClick={() =>
-          setAmount(`${(Math.round(+amount || 0) * 100 + 1) / 100}`)
+          setAmount(`${Math.round((+amount || 0) * 100 + 1) / 100}`)
         }
       >
         +

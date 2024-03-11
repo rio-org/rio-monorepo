@@ -26,7 +26,7 @@ const TooltipContent = React.forwardRef<
     sideOffset={sideOffset}
     className={cn(
       twJoin(
-        'z-50 overflow-hidden rounded-md border bg-popover',
+        'z-50 overflow-hidden rounded-md border border-border bg-popover',
         'px-3 py-1.5',
         'text-sm text-popover-foreground shadow-md',
         'animate-in fade-in-0 zoom-in-95',

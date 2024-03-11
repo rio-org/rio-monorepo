@@ -62,7 +62,7 @@ const SecondaryMenu = ({
                 />
               </div>
             </MenuHandler>
-            <MenuList>
+            <MenuList className="bg-background border-border shadow-cardlight rounded-[4px]">
               <SecondaryMenuItems
                 secondaryItems={secondaryItems}
                 tertiaryItems={tertiaryItems}

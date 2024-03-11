@@ -26,7 +26,7 @@ const Stats = ({ lrt }: Props) => {
         denominator: '',
         infoTooltipContent: (
           <p>
-            The share of EigenLayer points that have been earned by this
+            The number of EigenLayer points that have been earned by this
             {" address's"} deposits.
           </p>
         )

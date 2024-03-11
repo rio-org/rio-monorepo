@@ -145,7 +145,12 @@ const AppNav = React.forwardRef<
                   </AnimatePresence>
                 )}
               </div>
-              {isMounted && !isDesktopOrLaptop && <CustomConnectButton />}
+              {isMounted && !isDesktopOrLaptop && (
+                <div className="flex justify-end items-center gap-4">
+                  <ThemeSelector />
+                  <CustomConnectButton />
+                </div>
+              )}
             </div>
           </div>
 

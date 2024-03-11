@@ -111,6 +111,11 @@
     text-rendering: optimizeLegibility;
   }
 
+  .restake-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
   html,
   body,
   #__next,

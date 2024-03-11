@@ -24,7 +24,6 @@ export type RestakingTokenExchangeRateProps = Omit<
 export const RestakingTokenExchangeRate = ({
   restakingTokenSymbol,
   assetSymbol,
-  // className,
   defaultRateDenominator = 'asset',
   rateDenominator,
   ...props
@@ -96,7 +95,8 @@ export const RestakingTokenExchangeRate = ({
             className={twJoin(
               'group flex justify-center items-center flex-shrink-0',
               'w-[16px] min-w-[16px] h-[16px] rounded-[4px] select-none',
-              'bg-primaryA1 hover:bg-primaryA3 active:bg-primaryA4'
+              'bg-primaryA2 hover:bg-primaryA3 active:bg-primaryA4',
+              'dark:bg-primaryA2 dark:hover:bg-primaryA5 dark:active:bg-primaryA6'
             )}
           >
             <motion.div
@@ -107,7 +107,7 @@ export const RestakingTokenExchangeRate = ({
                 width={10}
                 height={10}
                 className={twJoin(
-                  'opacity-25 group-hover:opacity-50 group-active:opacity-70',
+                  'opacity-70 group-hover:opacity-90 group-active:opacity-100',
                   'transition-opacity'
                 )}
               />

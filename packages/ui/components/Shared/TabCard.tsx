@@ -116,7 +116,7 @@ function Spacer({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'bg-background h-[6px] w-full border-t border-border',
+        'bg-background h-[5px] w-full border-t border-border',
         className
       )}
     />
@@ -125,11 +125,11 @@ function Spacer({ className }: { className?: string }) {
 
 const tabsTriggerBaseCn = twJoin(
   'bg-foreground bg-opacity-[0.03] border-t border-l border-r border-transparent',
-  'text-foreground text-opacity-40 text-base text-medium px-4 py-[8px]',
+  'text-foreground text-opacity-40 text-base text-medium px-4 py-[9px]',
   'shadow-cardinactive rounded-b-none rounded-t-[4px]',
   'data-[state=active]:border-border data-[state=active]:text-opacity-100',
   'data-[state=active]:bg-background data-[state=active]:bg-opacity-100',
-  'data-[state=active]:!shadow-cardlight data-[state=active]:py-[9px]'
+  'data-[state=active]:!shadow-cardlight' // data-[state=active]:py-[9px]'
 );
 
 function Trigger({
@@ -153,7 +153,7 @@ function Trigger({
           {...tabsTriggerProps}
           className={cn(
             tabsTriggerBaseCn,
-            isActive && '[&+div]:border-t-transparent [&+div]:h-[5px]',
+            isActive && '[&+div]:border-t-transparent', // [&+div]:h-[5px]',
             tabsTriggerProps?.className
           )}
         >

@@ -52,6 +52,7 @@ import { Toaster } from './shadcn/toaster';
 import { Theme } from '../lib/typings';
 import { theme } from '../lib/theme';
 import { CHAIN_ID } from '../config';
+import { SkeletonTheme } from 'react-loading-skeleton';
 
 const WagmiProvider = dynamic(
   import('wagmi').then((mod) => mod.WagmiProvider),
@@ -171,12 +172,17 @@ export function Providers({
                   <ThemeProvider value={theme}>
                     <TouchProvider>
                       <CssBaseline />
-                      <Layout nav={nav}>
-                        {children}
-                        <Toaster />
-                        <Analytics />
-                        <SpeedInsights />
-                      </Layout>
+                      <SkeletonTheme
+                        baseColor="hsl(var(--foreground) / 6%)"
+                        highlightColor="hsl(var(--foreground) / 6%)"
+                      >
+                        <Layout nav={nav}>
+                          {children}
+                          <Toaster />
+                          <Analytics />
+                          <SpeedInsights />
+                        </Layout>
+                      </SkeletonTheme>
                     </TouchProvider>
                   </ThemeProvider>
                 </WalletAndTermsStoreProvider>

@@ -28,7 +28,7 @@ const SecondaryMenuItems = ({
               <MenuItem
                 key={label + index}
                 className={twJoin(
-                  'hover:opacity-100 hover:bg-foreground/5',
+                  'hover:opacity-100 hover:bg-foreground/5 rounded-[4px]',
                   'focus:bg-foreground/5 active:bg-foreground/5'
                 )}
               >
@@ -60,7 +60,7 @@ const SecondaryMenuItems = ({
               <MenuItem
                 disabled={disabled}
                 className={twJoin(
-                  'group',
+                  'group rounded-[4px]',
                   'hover:opacity-100 hover:bg-foreground/5',
                   'focus:bg-foreground/5 active:bg-foreground/5'
                 )}

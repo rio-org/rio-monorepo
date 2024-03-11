@@ -236,10 +236,6 @@ function RestakeFormBase({
           setRestakingAmount={restakeForm.handleChangeAmount}
           setWithdrawalAmount={handleChangeAmount}
         />
-        {/* <TabsContent value="Restake">Restake</TabsContent>
-        <TabsContent value="Withdraw">Withdraw</TabsContent>
-        <TabsContent value="Restake">Restake</TabsContent>
-        <TabsContent value="Withdraw">Withdraw</TabsContent> */}
         <div className="flex flex-col items-center w-full md:flex-row">
           <RestakingTokenExchangeRate
             assetSymbol={restakeForm.activeToken?.symbol}
@@ -309,6 +305,20 @@ function RestakeFormBase({
                       })
                 }}
                 className="relative origin-[50% 50%] w-full md:w-[unset]"
+                style={
+                  isMobile
+                    ? {
+                        maxHeight: 200,
+                        height: 'auto',
+                        marginTop: '0.5rem',
+                        marginBottom: '0.5rem'
+                      }
+                    : {
+                        width: '100%',
+                        marginLeft: '0.5rem',
+                        marginRight: '0.5rem'
+                      }
+                }
               >
                 <DetailBox
                   title={<span className="leading-none">Withdrawal delay</span>}
