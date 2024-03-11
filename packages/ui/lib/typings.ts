@@ -7,6 +7,11 @@ import { NextRequest } from 'next/server';
 import { Address, Hash } from 'viem';
 import { RioLRTOperatorRegistryABI } from '../abi/RioLRTOperatorRegistryABI';
 
+export enum Theme {
+  LIGHT = 'light',
+  DARK = 'dark',
+}
+
 export type NumberString = `${number}`;
 export type EthereumTransactionHash = `0x${string}`;
 export type EthereumCalldata = string;

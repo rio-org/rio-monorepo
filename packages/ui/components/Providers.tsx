@@ -2,13 +2,7 @@ import '../styles/global.scss';
 import 'react-loading-skeleton/dist/skeleton.css';
 import '@rainbow-me/rainbowkit/styles.css';
 
-import {
-  createConfig,
-  CreateConnectorFn,
-  fallback,
-  unstable_connector,
-  type WagmiProviderProps
-} from 'wagmi';
+import { ThemeProvider as NextThemesProvider, useTheme } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RioNetworkProvider } from '@rionetwork/sdk-react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -31,7 +25,8 @@ import {
 import {
   RainbowKitProvider,
   connectorsForWallets,
-  getDefaultWallets
+  getDefaultWallets,
+  darkTheme as rainbowDarkTheme
 } from '@rainbow-me/rainbowkit';
 import {
   injected,
@@ -40,6 +35,13 @@ import {
   coinbaseWallet,
   safe
 } from 'wagmi/connectors';
+import {
+  createConfig,
+  fallback,
+  unstable_connector,
+  type CreateConnectorFn,
+  type WagmiProviderProps
+} from 'wagmi';
 import { RainbowKitDisclaimer } from './Shared/RainbowKitDisclaimer';
 import Layout, { type LayoutProps } from './Layout';
 import { getAlchemyRpcUrl, getInfuraRpcUrl } from '../lib/utilities';
@@ -47,6 +49,7 @@ import RioTransactionStoreProvider from '../contexts/RioTransactionStore';
 import WalletAndTermsStoreProvider from '../contexts/WalletAndTermsStore';
 import { TouchProvider } from '../contexts/TouchProvider';
 import { Toaster } from './shadcn/toaster';
+import { Theme } from '../lib/typings';
 import { theme } from '../lib/theme';
 import { CHAIN_ID } from '../config';
 
@@ -146,37 +149,54 @@ export function Providers({
   }, [appInfo, wallets, transports]);
 
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          modalSize="compact"
-          appInfo={appInfo}
-          initialChain={CHAIN_ID}
-        >
-          <RioNetworkProvider>
-            <RioTransactionStoreProvider>
-              <WalletAndTermsStoreProvider
-                requireGeofence={requireGeofence}
-                requireTerms={requireTerms}
-              >
-                <ThemeProvider value={theme}>
-                  <TouchProvider>
-                    <CssBaseline />
-                    <Layout nav={nav}>
-                      {children}
-                      <Toaster />
-                      <Analytics />
-                      <SpeedInsights />
-                    </Layout>
-                  </TouchProvider>
-                </ThemeProvider>
-              </WalletAndTermsStoreProvider>
-            </RioTransactionStoreProvider>
-          </RioNetworkProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <_RainbowKitProvider
+            modalSize="compact"
+            appInfo={appInfo}
+            initialChain={CHAIN_ID}
+          >
+            <RioNetworkProvider>
+              <RioTransactionStoreProvider>
+                <WalletAndTermsStoreProvider
+                  requireGeofence={requireGeofence}
+                  requireTerms={requireTerms}
+                >
+                  <ThemeProvider value={theme}>
+                    <TouchProvider>
+                      <CssBaseline />
+                      <Layout nav={nav}>
+                        {children}
+                        <Toaster />
+                        <Analytics />
+                        <SpeedInsights />
+                      </Layout>
+                    </TouchProvider>
+                  </ThemeProvider>
+                </WalletAndTermsStoreProvider>
+              </RioTransactionStoreProvider>
+            </RioNetworkProvider>
+          </_RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </NextThemesProvider>
   );
 }
 
 export default Providers;
+
+function _RainbowKitProvider(props: Parameters<typeof RainbowKitProvider>[0]) {
+  const { theme } = useTheme();
+  return (
+    <RainbowKitProvider
+      {...props}
+      theme={theme === Theme.DARK ? rainbowDarkTheme() : undefined}
+    />
+  );
+}

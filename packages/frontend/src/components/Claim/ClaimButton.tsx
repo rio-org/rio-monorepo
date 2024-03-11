@@ -38,9 +38,10 @@ const ClaimButton = ({
       onClick={handleClick}
       transition={{ duration: 0.2 }}
       className={cn(
-        'flex items-center px-3 h-9 text-[14px] font-bold rounded-[2px]',
-        'bg-background dark:bg-backgroundA7 text-rio-blue disabled:text-background',
-        'hover:bg-background/80',
+        'flex items-center px-3 h-9 text-[14px] font-bold rounded-[4px]',
+        'bg-background text-rio-blue disabled:text-background',
+        'dark:bg-background/50 dark:text-foreground',
+        'hover:bg-background/80 dark:hover:bg-background/70',
         claimAmount &&
           claimAmount !== '0' &&
           (isSigning || isSwitchNetworkLoading || isTxLoading || prevTx?.hash)

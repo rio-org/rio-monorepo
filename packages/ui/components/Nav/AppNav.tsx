@@ -3,8 +3,6 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { Collapse, Navbar } from '@material-tailwind/react';
 import cx from 'classnames';
-import logo from '../../assets/rio-logo.png';
-import Image from 'next/image';
 import { CustomConnectButton } from './CustomConnectButton';
 import SecondaryMenu from './SecondaryMenu';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -19,6 +17,8 @@ import {
   SocialNavItem
 } from '../../lib/typings';
 import { cn } from '../../lib/utilities';
+import { ThemeSelector } from '../Shared/ThemeSelector';
+import { IconRio } from '../Icons/IconRio';
 
 const slugUrl = (slug: string) => {
   if (slug === '/') return '/';
@@ -43,34 +43,42 @@ const NavList = ({
   const [isSecondaryMenuOpen, setIsSecondaryMenuOpen] = React.useState(false);
   return (
     <motion.nav
-      className={cn('lg:flex flex-row gap-1 items-center w-full', className)}
+      className={cn(
+        'lg:flex flex-row gap-1 justify-between items-center w-full',
+        className
+      )}
       initial="initial"
       animate="loaded"
       variants={mainNavVariants}
     >
-      {items.map(({ label, slug }, index) => (
-        <motion.div key={label + index} variants={mainNavChildrenVariants}>
-          <Link
-            href={slugUrl(slug)}
-            key={label + index}
-            scroll={false}
-            className={cx(
-              'py-2 px-4 font-medium  rounded-xl hover:text-foreground hover:bg-foregroundA1 duration-75',
-              activeTab === slug ? 'text-foreground' : 'text-foregroundA6'
-            )}
-          >
-            {label}
-          </Link>
-        </motion.div>
-      ))}
-      <SecondaryMenu
-        secondaryItems={secondaryItems}
-        tertiaryItems={tertiaryItems}
-        socialItems={socialItems}
-        isSecondaryMenuOpen={isSecondaryMenuOpen}
-        setIsSecondaryMenuOpen={setIsSecondaryMenuOpen}
-      />
-      <CustomConnectButton />
+      <ul className="list-none flex gap-1 items-center">
+        {items.map(({ label, slug }, index) => (
+          <motion.li key={label + index} variants={mainNavChildrenVariants}>
+            <Link
+              href={slugUrl(slug)}
+              key={label + index}
+              scroll={false}
+              className={cx(
+                'py-2 px-4 font-medium  rounded-xl hover:text-foreground hover:bg-foregroundA1 duration-75',
+                activeTab === slug ? 'text-foreground' : 'text-foregroundA6'
+              )}
+            >
+              {label}
+            </Link>
+          </motion.li>
+        ))}
+        <SecondaryMenu
+          secondaryItems={secondaryItems}
+          tertiaryItems={tertiaryItems}
+          socialItems={socialItems}
+          isSecondaryMenuOpen={isSecondaryMenuOpen}
+          setIsSecondaryMenuOpen={setIsSecondaryMenuOpen}
+        />
+      </ul>
+      <div className="flex justify-end items-center gap-4">
+        <ThemeSelector />
+        <CustomConnectButton />
+      </div>
     </motion.nav>
   );
 };
@@ -118,9 +126,7 @@ const AppNav = React.forwardRef<
                 rel={logoItem.external ? 'noopener noreferrer' : undefined}
                 className="w-[37px] h-[37px] lg:w-[32px] lg:h-[32px] aspect-square block my-2"
               >
-                <Image
-                  src={logo}
-                  alt="Rio"
+                <IconRio
                   width={logoDimensions}
                   height={logoDimensions}
                   className="w-full h-full"
