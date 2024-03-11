@@ -15,9 +15,9 @@ export const DetailBox = React.forwardRef<HTMLDivElement, DetailBoxProps>(
       className={cn(
         'flex items-center gap-3 shadow-none flex-grow flex-shrink-0',
         'flex-row justify-between py-[14px] px-[20px]',
-        'lg:flex-col lg:justify-center',
+        'md:flex-col md:justify-center',
         direction === 'column' && 'flex-col justify-center',
-        direction === 'row' && 'lg:flex-row lg:justify-between',
+        direction === 'row' && 'md:flex-row md:justify-between',
         className
       )}
       {...props}

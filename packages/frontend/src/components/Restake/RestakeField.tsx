@@ -198,7 +198,7 @@ const RestakeField = ({
         )}
         onClick={focusInput}
       >
-        <div className="relative z-10 flex flex-row gap-2 lg:gap-4 items-center">
+        <div className="relative z-10 flex flex-row gap-2 md:gap-4 items-center">
           <div className="relative flex flex-col gap-1 w-full flex-1">
             {isMounted ? (
               <>
@@ -213,9 +213,9 @@ const RestakeField = ({
                     '[&::-webkit-inner-spin-button]:scale-75',
                     '[&::-webkit-inner-spin-button]:hidden',
                     '[&:not(:focus)]:text-ellipsis',
-                    'pr-[75px] lg:pr-[95px]',
-                    'lg:[&:hover+div]:flex',
-                    'lg:[&:focus+div]:flex',
+                    'pr-[75px] md:pr-[95px]',
+                    'md:[&:hover+div]:flex',
+                    'md:[&:focus+div]:flex',
                     disabled && 'text-foregroundA7'
                   )}
                   id="input-amount"
@@ -245,7 +245,7 @@ const RestakeField = ({
                     tab === 'Restake' ? setRestakingAmount : setWithdrawalAmount
                   }
                 />
-                <span className="absolute left-0 bottom-0 text-xs tracking-tighter font-mono w-full opacity-50 max-w-full lg:pr-[20px] overflow-hidden text-ellipsis">
+                <span className="absolute left-0 bottom-0 text-xs tracking-tighter font-mono w-full opacity-50 max-w-full md:pr-[20px] overflow-hidden text-ellipsis">
                   ${!usdAmount ? '0' : displayAmount(usdAmount, 2, 2)}
                 </span>
               </>
@@ -334,10 +334,10 @@ function AccountBalance({
     <>
       {typeof displayBalance !== 'undefined' ? (
         <span className="flex items-center gap-1">
-          <span className="opacity-50 text-[13px] font-mono -tracking-tight lg:hidden">
+          <span className="opacity-50 text-[13px] font-mono -tracking-tight md:hidden">
             Balance: {displayBalance} {token?.symbol}
           </span>
-          <span className="text-[13px] font-mono -tracking-tight lg-max:hidden">
+          <span className="text-[13px] font-mono -tracking-tight hidden md:inline">
             <span className="opacity-50 ">Balances:</span>{' '}
             {displayEthAmount(
               formatUnits(restakingTokenBalance, lrtDetails?.decimals ?? 18)
@@ -390,7 +390,7 @@ function SymbolAnimator({
   }, [symbol]);
 
   return (
-    <div className="absolute flex items-start text-2xl leading-none -translate-y-[1px] bg-transparent w-full max-w-full lg:pr-[20px] pb-4 select-none pointer-events-none">
+    <div className="absolute flex items-start text-2xl leading-none -translate-y-[1px] bg-transparent w-full max-w-full md:pr-[20px] pb-4 select-none pointer-events-none">
       <motion.div
         className="inline-block opacity-0 mr-2"
         key={(symbol ?? '') + 'number'}

@@ -47,20 +47,20 @@ const Pagination = ({
           <IconLineArrow
             direction="left"
             className={cx(
-              'opacity-50 group-hover:opacity-100 hidden lg:block',
+              'opacity-50 group-hover:opacity-100 hidden md:block',
               currentPage === 0 && 'group-hover:opacity-40'
             )}
           />{' '}
           <span
             className={cx(
-              'opacity-50 group-hover:opacity-100 hidden lg:block',
+              'opacity-50 group-hover:opacity-100 hidden md:block',
               currentPage === 0 && 'group-hover:opacity-40'
             )}
           >
             {prevLabel}
           </span>
         </button>
-        <div className="flex items-center justify-center gap-3 lg:gap-1 w-full">
+        <div className="flex items-center justify-center gap-3 md:gap-1 w-full">
           {pages.map((i) => (
             <button
               key={i}
@@ -108,7 +108,7 @@ const Pagination = ({
         >
           <span
             className={cx(
-              'opacity-50 group-hover:opacity-100 hidden lg:block',
+              'opacity-50 group-hover:opacity-100 hidden md:block',
               !hasNextPage && 'group-hover:opacity-40'
             )}
           >
@@ -117,7 +117,7 @@ const Pagination = ({
           <IconLineArrow
             direction="right"
             className={cx(
-              'opacity-50 group-hover:opacity-100 hidden lg:block',
+              'opacity-50 group-hover:opacity-100 hidden md:block',
               !hasNextPage && 'group-hover:opacity-40'
             )}
           />

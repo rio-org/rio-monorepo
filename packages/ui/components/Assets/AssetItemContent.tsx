@@ -42,7 +42,7 @@ const AssetItemContent = ({
         width={46}
         height={46}
         className={cx(
-          'w-[32px] h-[32px] lg:w-[24px] lg:h-[24px]',
+          'w-[32px] h-[32px] md:w-[24px] md:h-[24px]',
           asset.symbol === '＊ETH' && '!w-[46px] !h-[46px] -ml-[12px] mt-2', // if *eth, make image larger to account for shadow in logo
           isSelectorDisplay && asset.symbol === '＊ETH' && '!ml-0'
         )}

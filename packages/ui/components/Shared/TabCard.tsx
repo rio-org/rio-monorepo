@@ -65,14 +65,14 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps>(
         <div
           className={twJoin(
             'flex items-center flex-col-reverse gap-2 w-full',
-            'lg:items-end lg:flex-row lg:gap-0'
+            'md:items-end md:flex-row md:gap-0'
           )}
         >
           <TabsList
             ref={listRef}
             {...tabsListProps}
             className={cn(
-              'h-[unset] flex items-end gap-0 bg-transparent lg-max:w-full p-0',
+              'h-[unset] flex items-end gap-0 bg-transparent w-full md:w-[unset] p-0',
               tabsListProps?.className
             )}
           >
@@ -87,14 +87,14 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps>(
               />
             ))}
           </TabsList>
-          <div className="flex flex-col items-end justify-end shrink-0 w-full lg:shrink">
+          <div className="flex flex-col items-end justify-end shrink-0 w-full md:shrink">
             <div
               className="flex justify-end items-center px-3 w-full"
               style={{ height: height ? Math.max(0, height - 7) : undefined }}
             >
               {tabDetails}
             </div>
-            <Spacer className="hidden lg:block w-full rounded-tr-[4px] border-r shadow-cardlight" />
+            <Spacer className="hidden md:block w-full rounded-tr-[4px] border-r shadow-cardlight" />
           </div>
         </div>
         <Card
@@ -161,9 +161,9 @@ function Trigger({
         </TabsTrigger>
         <Spacer
           className={twJoin(
-            'transition-all',
+            'transition-all md:border-r-0',
             isFirst && 'border-l',
-            isLast && 'lg-max:border-r'
+            isLast && 'border-r'
           )}
         />
       </div>

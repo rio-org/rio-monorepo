@@ -67,7 +67,7 @@ const TextAreaField = forwardRef<HTMLTextAreaElement, Props>(
         {title && <span className="mb-1 font-medium block">{title}</span>}
         <div
           className={cn(
-            'bg-input text-foreground px-4 lg:px-[20px] py-4 rounded-xl border border-transparent hover:border-border',
+            'bg-input text-foreground px-4 md:px-[20px] py-4 rounded-xl border border-transparent hover:border-border',
             isFocused && 'border-border hover:border-border'
           )}
         >

@@ -88,7 +88,7 @@ export const CustomConnectButton = () => {
                 userSelect: 'none'
               }
             })}
-            className="lg:ml-auto"
+            className="md:ml-auto"
             variants={mainNavConnectVariants}
           >
             {(() => {
@@ -130,16 +130,16 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={() => !isDesktopOrLaptop && setOpenNav(true)}
                     type="button"
-                    className="lg:hidden flex flex-col text-right items-end px-2 py-1 hover:bg-foregroundA1 rounded-md hover:cursor-pointer"
+                    className="md:hidden flex flex-col text-right items-end px-2 py-1 hover:bg-foregroundA1 rounded-md hover:cursor-pointer"
                   >
                     {isLoading ? <Spinner /> : account?.displayName}
                   </button>
-                  <div className="hidden lg:block">
+                  <div className="hidden md:block">
                     <Menu placement="bottom-end">
                       <MenuHandler>
                         <div className="flex flex-col py-1 px-2 text-right items-end hover:bg-foregroundA1 rounded-md hover:cursor-pointer text-[14px]">
                           {account?.displayName}
-                          <span className="text-sm opacity-50 hidden lg:block">
+                          <span className="text-sm opacity-50 hidden md:block">
                             {reEthBalance &&
                               displayEthAmount(
                                 formatUnits(

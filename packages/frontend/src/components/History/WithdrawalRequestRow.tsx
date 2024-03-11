@@ -64,9 +64,9 @@ const WithdrawalRequestRow = ({
         }}
       >
         <td className="w-full flex flex-row justify-between items-center">
-          <div className="w-full py-4 lg:py-2 flex flex-row justify-between items-center">
-            <div className="flex flex-col items-start gap-1 px-4 lg:pl-6 whitespace-nowrap text-sm font-medium text-foregroundA11">
-              <span className="mb-1 lg:mb-0 text-foreground/50">
+          <div className="w-full py-4 md:py-2 flex flex-row justify-between items-center">
+            <div className="flex flex-col items-start gap-1 px-4 md:pl-6 whitespace-nowrap text-sm font-medium text-foregroundA11">
+              <span className="mb-1 md:mb-0 text-foreground/50">
                 {dateFromTimestamp(+transaction.timestamp)}
               </span>
               {!isDesktopOrLaptop && (
@@ -88,7 +88,7 @@ const WithdrawalRequestRow = ({
               </div>
             )}
 
-            <div className="px-4 lg:px-2 whitespace-nowrap text-sm flex items-center justify-end gap-4 font-medium">
+            <div className="px-4 md:px-2 whitespace-nowrap text-sm flex items-center justify-end gap-4 font-medium">
               {amount && (
                 <div className="text-foreground/50">
                   {displayEthAmount(amount)} {asset?.symbol}

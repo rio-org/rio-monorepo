@@ -44,7 +44,7 @@ const NavList = ({
   return (
     <motion.nav
       className={cn(
-        'lg:flex flex-row gap-1 justify-between items-center w-full',
+        'md:flex flex-row gap-1 justify-between items-center w-full',
         className
       )}
       initial="initial"
@@ -124,7 +124,7 @@ const AppNav = React.forwardRef<
                 href={logoItem.url}
                 target={logoItem.external ? '_blank' : undefined}
                 rel={logoItem.external ? 'noopener noreferrer' : undefined}
-                className="w-[37px] h-[37px] lg:w-[32px] lg:h-[32px] aspect-square block my-2"
+                className="w-[37px] h-[37px] md:w-[32px] md:h-[32px] aspect-square block my-2"
               >
                 <IconRio
                   width={logoDimensions}
@@ -132,7 +132,7 @@ const AppNav = React.forwardRef<
                   className="w-full h-full"
                 />
               </Link>
-              <div className="hidden lg:flex flex-row gap-1 items-center w-full">
+              <div className="hidden md:flex flex-row gap-1 items-center w-full">
                 {isMounted && (
                   <AnimatePresence>
                     <NavList

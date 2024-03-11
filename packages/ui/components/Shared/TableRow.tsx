@@ -98,7 +98,7 @@ const MobileRow: MobileTableRowComponent = ({
   return (
     <tr
       className={cn(
-        'group bg-background flex flex-wrap lg:table-row',
+        'group bg-background flex flex-wrap md:table-row',
         isFirst && 'rounded-t-xl'
       )}
     >

@@ -38,7 +38,7 @@ const MobileNav = ({
 
   return (
     <>
-      <div className="fixed bottom-0 lg:hidden bg-appBackground px-3 py-2 w-full justify-around items-center border-t border-t-foregroundA1">
+      <div className="fixed bottom-0 md:hidden bg-appBackground px-3 py-2 w-full justify-around items-center border-t border-t-foregroundA1">
         <Tabs value={activeTab} className="p-2 duration-100">
           <TabsHeader className="justify-around p-0 bg-transparent duration-100">
             {items.map(({ label, slug }, index) => (

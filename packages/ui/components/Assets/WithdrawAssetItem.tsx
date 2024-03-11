@@ -61,7 +61,7 @@ const WithdrawAssetItem = ({
       }}
       disabled={isError ? true : false}
       className={cx(
-        'flex flex-row gap-2 w-full py-3 lg:py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
+        'flex flex-row gap-2 w-full py-3 md:py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
         !isError && 'hover:bg-foregroundA1',
         isError && 'opacity-40',
         isDesktopOrLaptop ? 'gap-2' : 'gap-4'

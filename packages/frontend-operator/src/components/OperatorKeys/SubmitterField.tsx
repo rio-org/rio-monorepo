@@ -82,7 +82,7 @@ const SubmitterField = ({
             animate={{ opacity: 1, translateY: -8, maxHeight: 90 }}
             exit={{ opacity: 0, translateY: -64, maxHeight: 0 }}
             className={twJoin(
-              'relative -z-1 w-full rounded-b-xl bg-red-100 bg-opacity-25 overflow-hidden',
+              'relative -z-1 w-full rounded-b-xl bg-red-100 dark:bg-opacity-10 bg-opacity-25 overflow-hidden',
               'text-red-500 text-sm w-full h-full max-h-full px-3 pb-3 pt-4 overflow-hidden line-clamp-3'
             )}
           >

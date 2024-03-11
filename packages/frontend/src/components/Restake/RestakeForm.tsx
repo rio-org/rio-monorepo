@@ -191,7 +191,7 @@ function RestakeFormBase({
         onValueChange={setTab}
         cardProps={{ className: 'p-4' }}
         tabDetails={
-          <div className="flex lg-max:justify-between items-center lg-max:w-full gap-6">
+          <div className="flex justify-between items-center w-full md:justify-start md:w-[unset] gap-6">
             <InfoBadge
               icon={
                 <IconMedal strokeWidth={1} className="-translate-y-[1px]" />
@@ -240,12 +240,12 @@ function RestakeFormBase({
         <TabsContent value="Withdraw">Withdraw</TabsContent>
         <TabsContent value="Restake">Restake</TabsContent>
         <TabsContent value="Withdraw">Withdraw</TabsContent> */}
-        <div className="flex flex-col items-center w-full lg:flex-row">
+        <div className="flex flex-col items-center w-full md:flex-row">
           <RestakingTokenExchangeRate
             assetSymbol={restakeForm.activeToken?.symbol}
             restakingTokenSymbol={lrtDetails?.symbol}
             rateDenominator={tab === 'Restake' ? 'asset' : 'restakingToken'}
-            className="basis-[calc(33%-32px)] mb-2 lg:mb-0 lg:mr-2 lg-max:w-full"
+            className="basis-[calc(33%-32px)] mb-2 md:mb-0 md:mr-2 w-full md:w-[unset]"
           />
           <AnimatePresence>
             {tab === 'Withdraw' && (
@@ -308,7 +308,7 @@ function RestakeFormBase({
                         marginRight: 0
                       })
                 }}
-                className="relative origin-[50% 50%] lg-max:w-full"
+                className="relative origin-[50% 50%] w-full md:w-[unset]"
               >
                 <DetailBox
                   title={<span className="leading-none">Withdrawal delay</span>}
@@ -325,7 +325,7 @@ function RestakeFormBase({
                 {tab === 'Restake' ? 'Reward fee' : 'Withdrawal fee'}
               </span>
             }
-            className="lg-max:w-full basis-[calc(33%-32px)] mt-2 lg:mt-0 lg:ml-2"
+            className="w-full md:w-[unset] basis-[calc(33%-32px)] mt-2 md:mt-0 md:ml-2"
           >
             <span className="leading-none">
               {tab === 'Restake' ? '10%' : 'None'}

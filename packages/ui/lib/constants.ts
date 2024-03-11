@@ -179,8 +179,8 @@ export const TX_BUTTON_VARIANTS = {
   }
 };
 
-export const DESKTOP_MQ = '(min-width: 960px)';
-export const MOBILE_MQ = '(max-width: 959px)';
+export const DESKTOP_MQ = '(min-width: 720px)';
+export const MOBILE_MQ = '(max-width: 719px)';
 
 // txHistoryTableHeader
 export const TX_HISTORY_TABLE_HEADER_LABELS = [

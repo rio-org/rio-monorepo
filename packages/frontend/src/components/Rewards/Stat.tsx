@@ -29,7 +29,7 @@ const Stat = ({ label, value, denominator, infoTooltipContent }: Props) => {
   }, [value, denominator]);
 
   return (
-    <Card className={twJoin('flex flex-col gap-6 w-full', 'p-4 lg:p-6')}>
+    <Card className={twJoin('flex flex-col gap-6 w-full', 'p-4 md:p-6')}>
       <StatLabel label={label} infoTooltipContent={infoTooltipContent} />
       <span className="flex text-[28px] leading-none">
         {_value} {denominator}

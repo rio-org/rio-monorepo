@@ -151,7 +151,7 @@ export function ClaimSectionBase({
         )}
       >
         <div className="w-full flex justify-between items-center gap-4 text-sm">
-          <h3 className="flex items-center gap-1 font-bold pl-2 lg:pl-3">
+          <h3 className="flex items-center gap-1 font-bold pl-2 md:pl-3">
             {isWithdrawalsLoading ? (
               <>
                 <Spinner /> <span>Pending requests loading</span>

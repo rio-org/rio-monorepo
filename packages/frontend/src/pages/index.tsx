@@ -122,7 +122,7 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
           >
             <h3
               className={cn(
-                'flex items-center gap-1 font-bold text-foregroundA8 text-sm pl-2 lg:pl-3',
+                'flex items-center gap-1 font-bold text-foregroundA8 text-sm pl-2 md:pl-3',
                 !!requestsLength && 'text-foreground'
               )}
             >
