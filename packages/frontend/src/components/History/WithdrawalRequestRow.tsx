@@ -5,6 +5,7 @@ import { type Hash } from 'viem';
 import { useMemo } from 'react';
 import TransactionStatusLabel from '@rio-monorepo/ui/components/Shared/TransactionStatusLabel';
 import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
+import { Button } from '@rio-monorepo/ui/components/shadcn/button';
 import { useGetAssetsList } from '@rio-monorepo/ui/hooks/useGetAssetsList';
 import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import { CHAIN_ID } from '@rio-monorepo/ui/config';
@@ -65,7 +66,7 @@ const WithdrawalRequestRow = ({
         <td className="w-full flex flex-row justify-between items-center">
           <div className="w-full py-4 lg:py-2 flex flex-row justify-between items-center">
             <div className="flex flex-col items-start gap-1 px-4 lg:pl-6 whitespace-nowrap text-sm font-medium text-foregroundA11">
-              <span className="mb-1 lg:mb-0">
+              <span className="mb-1 lg:mb-0 text-foreground/50">
                 {dateFromTimestamp(+transaction.timestamp)}
               </span>
               {!isDesktopOrLaptop && (
@@ -89,25 +90,31 @@ const WithdrawalRequestRow = ({
 
             <div className="px-4 lg:px-2 whitespace-nowrap text-sm flex items-center justify-end gap-4 font-medium">
               {amount && (
-                <div>
+                <div className="text-foreground/50">
                   {displayEthAmount(amount)} {asset?.symbol}
                 </div>
               )}
 
-              <a
-                href={linkToTxOnBlockExplorer(
-                  (transaction.claimTx || transaction.tx) as Hash,
-                  CHAIN_ID
-                )}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-lg bg-foregroundA2 px-3 py-2 opacity-50 hover:opacity-100 transition-opacity"
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="h-[unset] py-1.5"
               >
-                <span className="flex items-center gap-1.5">
-                  <span>View</span>
-                  <IconExternal />
-                </span>
-              </a>
+                <a
+                  href={linkToTxOnBlockExplorer(
+                    (transaction.claimTx || transaction.tx) as Hash,
+                    CHAIN_ID
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>View</span>
+                    <IconExternal />
+                  </span>
+                </a>
+              </Button>
             </div>
           </div>
         </td>

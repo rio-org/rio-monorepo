@@ -19,25 +19,6 @@ export const APP_NAV_ITEMS: InternalAppNavItem[] = [
     slug: '/'
   },
   {
-    label: 'Withdraw',
-    slug: 'withdraw'
-  },
-  {
-    label: 'Rewards',
-    slug: 'rewards'
-  }
-];
-
-export const WITHDRAW_NAV_ITEMS = [
-  {
-    label: 'Request',
-    slug: ''
-  },
-  {
-    label: 'Claim',
-    slug: 'claim'
-  },
-  {
     label: 'History',
     slug: 'history'
   }

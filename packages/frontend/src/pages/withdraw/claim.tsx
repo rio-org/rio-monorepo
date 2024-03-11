@@ -6,6 +6,6 @@ export default function ClaimRedirect() {
 
 export const getServerSideProps: GetServerSideProps = async () => {
   return Promise.resolve({
-    redirect: { destination: '/withdraw', permanent: true }
+    redirect: { destination: '/', permanent: true }
   });
 };

@@ -132,7 +132,7 @@ function WithdrawalRequestHistoryInternal({
   return (
     <motion.div
       className={cn(
-        'bg-background rounded-b-xl overflow-hidden border-t border-t-border',
+        'overflow-hidden border-t border-t-border first:border-t-0 pr-2',
         className
       )}
       layoutId="withdraw-history"

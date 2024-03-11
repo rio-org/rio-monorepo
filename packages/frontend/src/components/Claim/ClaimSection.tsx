@@ -143,7 +143,7 @@ export function ClaimSectionBase({
       <div
         className={cn(
           'flex justify-between items-center',
-          'w-full p-2 mt-4 rounded-[4px] shadow-card-foreground',
+          'w-full p-2 rounded-[4px] shadow-cardlight',
           'bg-foregroundA1 text-foregroundA8 transition-colors',
           !!address &&
             !!claimAmount &&
