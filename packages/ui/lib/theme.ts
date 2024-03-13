@@ -3,6 +3,8 @@ export const theme = {
     styles: {
       base: {
         indicator: {
+          backgroundColor: 'bg-background',
+          borderColor: 'border-border',
           borderRadius: 'rounded-full'
         }
       }
