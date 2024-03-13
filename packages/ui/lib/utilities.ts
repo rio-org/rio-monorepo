@@ -8,7 +8,6 @@ import {
   type BaseAssetDetails,
   type BaseAssetSubgraphResponse,
   type BaseLRTSubgraphResponse,
-  type CHAIN_ID_NUMBER,
   type ContractError,
   type LRTDetails,
   type LRTSubgraphResponse,
@@ -49,7 +48,7 @@ export const getChainName = (chainId: number) => {
   }
 };
 
-export const getAlchemyChainLabel = (chainId: CHAIN_ID_NUMBER) => {
+export const getAlchemyChainLabel = (chainId: number) => {
   switch (chainId) {
     case 1:
       return 'eth-mainnet';
@@ -74,7 +73,7 @@ export const getAlchemyChainLabel = (chainId: CHAIN_ID_NUMBER) => {
   }
 };
 
-export const getInfuraChainLabel = (chainId: CHAIN_ID_NUMBER) => {
+export const getInfuraChainLabel = (chainId: number) => {
   switch (chainId) {
     case 1:
       return 'mainnet';
