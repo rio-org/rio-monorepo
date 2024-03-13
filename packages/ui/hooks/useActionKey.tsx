@@ -3,18 +3,25 @@
 import { useAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 
+import { IconKeyCmd } from '../components/Icons/IconKeyCmd';
 import { NavigatorWithUAD } from '../lib/typings';
 
 type ActionKeyConfig = {
   actionKey: {
-    short: string;
+    short: string | React.ReactNode;
     long: string;
   };
   os: 'mac' | 'windows' | 'other';
 };
 
-const ACTION_KEY_DEFAULT = { short: 'Ctrl', long: 'Control' } as const;
-const ACTION_KEY_APPLE = { short: '⌘', long: 'Command' } as const;
+const ACTION_KEY_DEFAULT = {
+  short: <span className="mr-0.5">Ctrl</span>,
+  long: 'Control'
+} as const;
+const ACTION_KEY_APPLE = {
+  short: <IconKeyCmd height={8.5} width={8.5} />,
+  long: 'Command'
+} as const;
 
 const macRegEx = /Mac|iPhone|iPod|iPad/i;
 const windowsRegEx = /Win/i;

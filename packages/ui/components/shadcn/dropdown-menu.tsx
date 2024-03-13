@@ -1,7 +1,7 @@
 'use client';
 
-import * as React from 'react';
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
+import * as React from 'react';
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -10,7 +10,8 @@ import {
 
 import { useActionKey } from '../../hooks/useActionKey';
 import { useRegisterHotKey } from '../../contexts/AppContext';
-
+import { IconKeyShift } from '../Icons/IconKeyShift';
+import { IconKeyAlt } from '../Icons/IconKeyAlt';
 import { cn } from '../../lib/utilities';
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
@@ -215,15 +216,16 @@ const DropdownMenuShortcut = ({
   return (
     <span
       className={cn(
-        'block ml-auto font-sans text-[10px] text-bold rounded-[4px] text-foreground text-opacity-60 tracking-widest',
+        'flex items-center ml-auto font-sans text-[10px] text-bold rounded-[4px] text-foreground text-opacity-60 tracking-widest',
+        '[&>svg]:inline [&>svg]:opacity-60 [&>svg]:-translate-y-[0.5px] [&>svg]:mr-0.5',
         className
       )}
       {...props}
     >
-      {shift && '⇧'}
-      {alt && '⌥'}
+      {shift && <IconKeyShift height={8.5} width={8.5} />}
+      {alt && <IconKeyAlt height={8.5} width={8.5} />}
       {action && actionKey.short}
-      <span className="font-mono">{character.toUpperCase()}</span>
+      <span className="font-mono leading-none">{character.toUpperCase()}</span>
       {children}
     </span>
   );

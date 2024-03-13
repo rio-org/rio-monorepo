@@ -109,7 +109,6 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
   });
 
   useRegisterHotKey({
-    shift: true,
     action: true,
     character: 'I',
     callback: openWalletModal,
@@ -117,7 +116,6 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
   });
 
   useRegisterHotKey({
-    shift: true,
     action: true,
     character: 'I',
     callback: toggleMenu,
@@ -322,7 +320,6 @@ function BuildConnectWalletMenuTrigger(
                 'group-hover:opacity-0 group-focus:opacity-0 group-rdx-state-open:opacity-0'
               ]
             )}
-            shift
             action
             character="I"
             enable={false}
