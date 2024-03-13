@@ -111,7 +111,7 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
     action: true,
     character: 'I',
     callback: address ? toggleMenu : openWalletModal,
-    enable: !address
+    enable: true
   });
 
   return (
