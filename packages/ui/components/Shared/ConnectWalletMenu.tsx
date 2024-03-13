@@ -1,8 +1,13 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { CaretSortIcon, GearIcon } from '@radix-ui/react-icons';
+import { useDisconnect, useSwitchChain } from 'wagmi';
+import { twJoin, twMerge } from 'tailwind-merge';
+import Skeleton from 'react-loading-skeleton';
+import { mainnet } from 'viem/chains';
+import { toast } from 'sonner';
+import Link from 'next/link';
 import {
   AlertTriangleIcon,
   CircleSlashIcon,
@@ -11,13 +16,13 @@ import {
   SplitIcon,
   WalletIcon
 } from 'lucide-react';
-import { toast } from 'sonner';
-import { twJoin, twMerge } from 'tailwind-merge';
-import { useDisconnect, useSwitchChain } from 'wagmi';
 
-import { useLocaleBalance } from '../../hooks/useLocaleBalance';
+import { useWalletAndTermsStore } from '../../contexts/WalletAndTermsStore';
+import { useRegisterHotKey } from '../../contexts/AppContext';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 import { useMainnetEnsName } from '../../hooks/useMainnetEnsName';
-// import { useActionKey } from '../../hooks/useActionKey';
+import { useRegionChecked } from '../../hooks/useRegionChecked';
+import { useLocaleBalance } from '../../hooks/useLocaleBalance';
 
 import {
   DropdownMenu,
@@ -32,21 +37,15 @@ import {
   DropdownMenuSubTrigger
 } from '../shadcn/dropdown-menu';
 
+import { IconEtherscan } from '../Icons/IconEtherscan';
 import { ContentFlipper } from './ContentFlipper';
+import { EnsAvatar } from './EnsAvatar';
 import {
   ConnectWalletButton,
-  ConnectWalletButtonRenderProps
+  type ConnectWalletButtonRenderProps
 } from './ConnectWalletButton';
-import { EnsAvatar } from './EnsAvatar';
-import { IconEtherscan } from '../Icons/IconEtherscan';
 
 import { abbreviateAddress } from '../../lib/utilities';
-import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
-import Skeleton from 'react-loading-skeleton';
-import { useRegisterHotKey } from '../../contexts/AppContext';
-import { useWalletAndTermsStore } from '../../contexts/WalletAndTermsStore';
-import { mainnet } from 'viem/chains';
-import { useRegionChecked } from '../../hooks/useRegionChecked';
 
 export function ConnectWalletMenu({ className }: { className?: string }) {
   const { address, chain } = useAccountIfMounted();
@@ -111,15 +110,8 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
   useRegisterHotKey({
     action: true,
     character: 'I',
-    callback: openWalletModal,
+    callback: address ? toggleMenu : openWalletModal,
     enable: !address
-  });
-
-  useRegisterHotKey({
-    action: true,
-    character: 'I',
-    callback: toggleMenu,
-    enable: !!address
   });
 
   return (

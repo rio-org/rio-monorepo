@@ -116,17 +116,18 @@ export const RestakingTokenExchangeRate = ({
         </div>
       }
     >
-      <span className="leading-none">
+      <span className="leading-none whitespace-nowrap">
         {!exchangeRate ? (
           <Skeleton className="inline-block" width={160} height={12} />
         ) : isRestakingTokenBase ? (
           <>
-            {displayAmount(1 / exchangeRate.lrt, ...rateDecimals)} {assetSymbol}
+            {displayAmount(1 / exchangeRate.lrt, ...rateDecimals)}{' '}
+            <span>{assetSymbol}</span>
           </>
         ) : (
           <>
             {displayAmount(exchangeRate.lrt, ...rateDecimals)}{' '}
-            {restakingTokenSymbol}
+            <span>{restakingTokenSymbol}</span>
           </>
         )}
       </span>

@@ -321,7 +321,20 @@ function RestakeFormBase({
                 }
               >
                 <DetailBox
-                  title={<span className="leading-none">Withdrawal delay</span>}
+                  title={
+                    <div className="flex items-center gap-1">
+                      <span className="leading-none">Withdrawal delay</span>
+                      <InfoTooltip
+                        align="center"
+                        contentClassName="max-w-[300px] p-3"
+                      >
+                        <p className="font-normal block whitespace-break-spaces max-w-full">
+                          The waiting period for your funds to be claimable
+                          after making a withdrawal request.
+                        </p>
+                      </InfoTooltip>
+                    </div>
+                  }
                   className="w-full h-full whitespace-nowrap flex-grow flex-shrink-0 basis-full"
                 >
                   <span className="leading-none">1-8 days</span>
@@ -331,9 +344,28 @@ function RestakeFormBase({
           </AnimatePresence>
           <DetailBox
             title={
-              <span className="leading-none">
-                {tab === 'Restake' ? 'Reward fee' : 'Withdrawal fee'}
-              </span>
+              <div className="flex items-center gap-1 leading-none">
+                <span className="leading-none">
+                  {tab === 'Restake' ? 'Reward fee' : 'Withdrawal fee'}
+                </span>
+
+                <InfoTooltip
+                  align="center"
+                  contentClassName="max-w-[300px] p-3 font-normal"
+                >
+                  {tab === 'Restake' ? (
+                    <p>
+                      The percentage taken from all staking and restaking
+                      rewards (not withdrawals or deposits).
+                    </p>
+                  ) : (
+                    <p>
+                      Fees applied when funds are withdrawn from the Rio
+                      Network.
+                    </p>
+                  )}
+                </InfoTooltip>
+              </div>
             }
             className="w-full md:w-[unset] basis-[calc(33%-32px)] mt-2 md:mt-0 md:ml-2"
           >

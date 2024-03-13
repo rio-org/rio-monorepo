@@ -1,7 +1,8 @@
 'use client';
 
-import { useAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
+import { PlusIcon } from 'lucide-react';
+import { useAtom } from 'jotai';
 
 import { IconKeyCmd } from '../components/Icons/IconKeyCmd';
 import { NavigatorWithUAD } from '../lib/typings';
@@ -15,7 +16,12 @@ type ActionKeyConfig = {
 };
 
 const ACTION_KEY_DEFAULT = {
-  short: <span className="mr-0.5">Ctrl</span>,
+  short: (
+    <span className="inline-block text-[7px] mr-0.5 tracking-tighter">
+      Ctrl
+      <PlusIcon size="8" className="inline-block -translate-y-px ml-0.5" />
+    </span>
+  ),
   long: 'Control'
 } as const;
 const ACTION_KEY_APPLE = {
