@@ -141,13 +141,13 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
 
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="flex w-full items-center gap-2 font-semibold">
-          <EnsAvatar />
+          <EnsAvatar size={12} />
           {isEnsLoading ? (
             <span className="max-h-4 [&>span]:block [&>span]:!h-4 -translate-y-px">
               <Skeleton height={16} width={48} className="h-[16px]" />
             </span>
           ) : (
-            <span className="opacity-70">{name}</span>
+            <span className="opacity-70 translate-y-px">{name}</span>
           )}
         </DropdownMenuLabel>
 
