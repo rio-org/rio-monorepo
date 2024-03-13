@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { Collapse, Navbar } from '@material-tailwind/react';
 import cx from 'classnames';
-import { CustomConnectButton } from './CustomConnectButton';
 import SecondaryMenu from './SecondaryMenu';
 import { AnimatePresence, motion } from 'framer-motion';
 import { mainNavChildrenVariants, mainNavVariants } from '../../lib/motion';
@@ -19,6 +18,7 @@ import {
 import { cn } from '../../lib/utilities';
 import { ThemeSelector } from '../Shared/ThemeSelector';
 import { IconRio } from '../Icons/IconRio';
+import { ConnectWalletMenu } from '../Shared/ConnectWalletMenu';
 
 const slugUrl = (slug: string) => {
   if (slug === '/') return '/';
@@ -75,9 +75,9 @@ const NavList = ({
           setIsSecondaryMenuOpen={setIsSecondaryMenuOpen}
         />
       </ul>
-      <div className="flex justify-end items-center gap-4">
+      <div className="flex justify-end items-center gap-2">
         <ThemeSelector />
-        <CustomConnectButton />
+        <ConnectWalletMenu />
       </div>
     </motion.nav>
   );
@@ -133,7 +133,7 @@ const AppNav = React.forwardRef<
                 />
               </Link>
               <div className="hidden md:flex flex-row gap-1 items-center w-full">
-                {isMounted && (
+                {isMounted && isDesktopOrLaptop && (
                   <AnimatePresence>
                     <NavList
                       secondaryItems={secondaryItems}
@@ -148,21 +148,23 @@ const AppNav = React.forwardRef<
               {isMounted && !isDesktopOrLaptop && (
                 <div className="flex justify-end items-center gap-4">
                   <ThemeSelector />
-                  <CustomConnectButton />
+                  <ConnectWalletMenu />
                 </div>
               )}
             </div>
           </div>
 
-          <Collapse open={openNav}>
-            <NavList
-              secondaryItems={secondaryItems}
-              tertiaryItems={tertiaryItems}
-              socialItems={socialItems}
-              activeTab={activeTab}
-              items={items}
-            />
-          </Collapse>
+          {!isDesktopOrLaptop && (
+            <Collapse open={openNav}>
+              <NavList
+                secondaryItems={secondaryItems}
+                tertiaryItems={tertiaryItems}
+                socialItems={socialItems}
+                activeTab={activeTab}
+                items={items}
+              />
+            </Collapse>
+          )}
         </Navbar>
       </>
     );

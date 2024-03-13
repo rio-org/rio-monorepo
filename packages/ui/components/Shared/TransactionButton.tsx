@@ -13,6 +13,8 @@ import { IconX } from '../Icons/IconX';
 import { CHAIN_ID } from '../../config';
 import { useEffect } from 'react';
 import { Button } from '../shadcn/button';
+import { useRegionChecked } from '../../hooks/useRegionChecked';
+import { mainnet } from 'viem/chains';
 
 export type TransactionButtonProps = UseTransactionButtonConfig & {
   reset?: () => void;
@@ -38,6 +40,7 @@ const TransactionButton = ({
   const { address, chain } = useAccountIfMounted();
   const { chains, isPending: isSwitchNetworkLoading } = useSwitchChain();
   const wrongNetwork = !!address && !chains.find((c) => c.id === chain?.id);
+  const [{ data: isInAllowedRegion }] = useRegionChecked();
 
   const {
     errorMessage,
@@ -104,16 +107,20 @@ const TransactionButton = ({
       </AnimatePresence>
       <AnimatePresence>
         <Button
-          disabled={isDisabled}
+          disabled={
+            isDisabled ||
+            (chain?.id === mainnet.id && isInAllowedRegion === false)
+          }
           onClick={handleClick}
           className="w-full font-bold text-base py-3 leading-6 h-12"
         >
           {(() => {
             if (!address) {
-              <span //className={cn(isDisabled && 'opacity-20 text-primary')}
-              >
-                Connect your wallet
-              </span>;
+              <span>Connect your wallet</span>;
+            }
+
+            if (chain?.id === mainnet.id && isInAllowedRegion === false) {
+              return <span>Unsupported region</span>;
             }
 
             if (

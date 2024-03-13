@@ -16,6 +16,8 @@ import {
   type ContractError,
   type RioTransactionType
 } from '../lib/typings';
+import { useRegionChecked } from './useRegionChecked';
+import { mainnet } from 'viem/chains';
 
 export type UseTransactionButtonConfig = {
   transactionType: RioTransactionType;
@@ -46,6 +48,7 @@ export const useTransactionButton = ({
     switchChain,
     isPending: isSwitchNetworkLoading
   } = useSwitchChain();
+  const [{ data: isInAllowedRegion }] = useRegionChecked();
   const wrongNetwork = !!address && !chains.find((c) => c.id === chain?.id);
   const { openWalletModal } = useWalletAndTermsStore();
   const pendingTxs = usePendingTransactions();
@@ -107,7 +110,12 @@ export const useTransactionButton = ({
 
   const isDisabled = wrongNetwork
     ? isSwitchNetworkLoading
-    : isTxLoading || isSigning || disabled || !write || !!prevTx?.hash;
+    : isTxLoading ||
+      isSigning ||
+      disabled ||
+      !write ||
+      !!prevTx?.hash ||
+      (chain?.id === mainnet.id && isInAllowedRegion === false);
 
   const handleClearErrors = useCallback(() => {
     clearErrors?.();
@@ -115,11 +123,13 @@ export const useTransactionButton = ({
   }, [clearErrors]);
 
   const handleClick = useCallback((): void => {
+    if (isInAllowedRegion === false) return;
     if (isDisabled) return;
     if (!address) return openWalletModal();
     handleClearErrors();
     wrongNetwork ? switchChain?.({ chainId: CHAIN_ID }) : write?.();
   }, [
+    isInAllowedRegion,
     isDisabled,
     address,
     wrongNetwork,

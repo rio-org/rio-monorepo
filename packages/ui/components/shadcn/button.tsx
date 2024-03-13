@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { motion } from 'framer-motion';
 
 import { cn } from '../../lib/utilities';
 
@@ -53,4 +54,21 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = 'Button';
 
-export { Button, buttonVariants };
+export interface FramerButtonProps
+  extends React.ComponentProps<typeof motion.button>,
+    VariantProps<typeof buttonVariants> {}
+
+const FramerButton = React.forwardRef<HTMLButtonElement, FramerButtonProps>(
+  ({ className, variant, size, ...props }, ref) => {
+    return (
+      <motion.button
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+FramerButton.displayName = 'FramerButton';
+
+export { Button, FramerButton, buttonVariants };

@@ -68,23 +68,21 @@ export default function Layout({ children, nav }: LayoutProps) {
         socialItems={nav.socialItems}
         logoItem={nav.logoItem}
         className={twJoin(
-          'absolute z-[90] py-3 px-4 md:px-5',
+          'py-3 px-4 md:px-5',
           'md:max-w-full bg-appBackground',
           'rounded-b-none'
         )}
       />
       <main
         className={cx(
-          'p-4 md:px-4 md:py-2 relative top-[72px]',
+          'p-4 md:px-4 md:pt-2',
           'w-full max-w-full',
-          'overflow-x-hidden overflow-y-auto',
-          'h-full'
+          'overflow-x-hidden overflow-y-visible'
+          // 'h-full'
         )}
         style={{
-          maxHeight:
-            isDesktopOrLaptop || !isMounted
-              ? 'calc(100vh - 72px)'
-              : `calc(100vh - ${72 + mobileNavHeight}px)`
+          paddingBottom:
+            isDesktopOrLaptop || !isMounted ? undefined : mobileNavHeight
         }}
       >
         <div

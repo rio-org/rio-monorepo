@@ -87,13 +87,13 @@ export const getInfuraChainLabel = (chainId: CHAIN_ID_NUMBER) => {
   }
 };
 
-export const getAlchemyRpcUrl = (chainId: CHAIN_ID_NUMBER) => {
+export const getAlchemyRpcUrl = (chainId: number) => {
   return `https://${getAlchemyChainLabel(chainId)}.g.alchemy.com/v2/${
     process.env.NEXT_PUBLIC_ALCHEMY_ID
   }`;
 };
 
-export const getInfuraRpcUrl = (chainId: CHAIN_ID_NUMBER) => {
+export const getInfuraRpcUrl = (chainId: number) => {
   return `https://${getInfuraChainLabel(chainId)}.infura.io/v3/${
     process.env.NEXT_PUBLIC_INFURA_ID
   }`;
@@ -385,3 +385,21 @@ export const stripTokenDecimals = (amount: string, decimals: number = 18) => {
     ? normalized
     : `${whole}.${normalized.slice(pointIdx + 1, pointIdx + decimals + 1)}`;
 };
+
+export function abbreviateAddress(
+  address?: string | null,
+  config?: {
+    startChars?: boolean | number;
+    lastChars?: boolean | number;
+  }
+) {
+  const { startChars = 6, lastChars = 4 } = config || {};
+  const startCharCount =
+    typeof startChars === 'number' ? startChars : startChars ? 6 : 0;
+  const _startChars = !startCharCount ? '' : address?.slice(0, startCharCount);
+  const lastCharCount =
+    typeof lastChars === 'number' ? lastChars : lastChars ? 4 : 0;
+  const _lastChars = !lastCharCount ? '' : address?.slice(-lastCharCount);
+  const ellipsis = _startChars && _lastChars ? '...' : '';
+  return address ? `${_startChars}${ellipsis}${_lastChars}` : null;
+}

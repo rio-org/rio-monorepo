@@ -1,6 +1,4 @@
 import { useCallback, useState } from 'react';
-import { motion } from 'framer-motion';
-import { twJoin } from 'tailwind-merge';
 import {
   Dialog,
   DialogHeader,
@@ -13,6 +11,7 @@ import {
   RainbowKitDisclaimerType
 } from './RainbowKitDisclaimer';
 import { useAcceptedTerms } from '../../hooks/useAcceptedTerms';
+import { FramerButton } from '../shadcn/button';
 
 export function AcceptTermsModal({
   isOpen,
@@ -34,18 +33,25 @@ export function AcceptTermsModal({
   }, [accepted, setAcceptedTerms, onAccept]);
 
   return (
-    <Dialog size="sm" open={isOpen} handler={handler}>
-      <DialogHeader>
+    <Dialog
+      className="text-foreground bg-background border border-border rounded-[4px]"
+      size="sm"
+      open={isOpen}
+      handler={handler}
+    >
+      <DialogHeader className="text-foreground">
         <h2 className="text-xl font-medium">Terms of Service</h2>
       </DialogHeader>
-      <DialogBody>
+      <DialogBody className="text-foreground">
         <Checkbox
           crossOrigin="false"
           checked={accepted ?? undefined}
           onChange={() => setAccepted((prev) => !prev)}
-          className="shrink-0 min-w-[20px]"
+          className="shrink-0 min-w-[20px] rounded-[4px] border-foreground/50 checked:bg-primary [&+span_path]:fill-primary-foreground [&+span_path]:stroke-primary-foreground"
           containerProps={{ className: 'min-w-[44px]' }}
-          labelProps={{ className: 'p-2 leading-snug' }}
+          labelProps={{
+            className: 'p-2 leading-snug font-sans text-foreground'
+          }}
           label={
             <RainbowKitDisclaimer
               action={RainbowKitDisclaimerType.CHECKING}
@@ -56,20 +62,13 @@ export function AcceptTermsModal({
         />
       </DialogBody>
       <DialogFooter>
-        <motion.button
+        <FramerButton
           disabled={!accepted}
           onClick={handleClick}
-          className={twJoin(
-            'w-full py-3 rounded-full',
-            'text-primary-foreground font-bold',
-            'bg-primary transition-colors duration-200',
-            'hover:bg-foregroundA2',
-            'disabled:!bg-opacity-20 disabled:!bg-primary',
-            'disabled:[&>span]:!opacity-20 disabled:[&>span]:!text-primary'
-          )}
+          className="w-full rounded-[4px]"
         >
           Connect wallet
-        </motion.button>
+        </FramerButton>
       </DialogFooter>
     </Dialog>
   );
