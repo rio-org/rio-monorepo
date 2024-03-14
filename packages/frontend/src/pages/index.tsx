@@ -9,6 +9,7 @@ import {
   type InferGetStaticPropsType,
   type NextPage
 } from 'next';
+import { TestnetBanner } from '@rio-monorepo/ui/components/Shared/TestnetBanner';
 import { PageWrapper } from '@rio-monorepo/ui/components/Shared/PageWrapper';
 import IconLineArrow from '@rio-monorepo/ui/components/Icons/IconLineArrow';
 import { Button } from '@rio-monorepo/ui/components/shadcn/button';
@@ -93,81 +94,84 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
 
   return (
     <>
-      <PageWrapper className="[&>div]:space-y-4 mb-24">
-        <RestakeForm
-          lrtDetails={activeLrt}
-          networkStats={networkStats}
-          onWithdrawSuccess={handleRequestSuccess}
-        />
+      <PageWrapper className="mb-24">
+        <TestnetBanner />
+        <div className="w-full space-y-4">
+          <RestakeForm
+            lrtDetails={activeLrt}
+            networkStats={networkStats}
+            onWithdrawSuccess={handleRequestSuccess}
+          />
 
-        <ClaimSection
-          withdrawalAssets={withdrawalAssets}
-          withdrawalParams={withdrawalParams}
-          refetch={refetchWithdrawals}
-          restakingToken={activeLrt}
-          isWithdrawalsLoading={withdrawalRequestsLoading}
-        />
+          <ClaimSection
+            withdrawalAssets={withdrawalAssets}
+            withdrawalParams={withdrawalParams}
+            refetch={refetchWithdrawals}
+            restakingToken={activeLrt}
+            isWithdrawalsLoading={withdrawalRequestsLoading}
+          />
 
-        <div
-          className={cn(
-            'w-full bg-background border border-border rounded-[4px] shadow-cardlight opacity-70 transition-opacity',
-            !!requestsLength && 'opacity-100'
-          )}
-        >
           <div
-            className={twJoin(
-              'w-full flex justify-between items-center gap-4 text-[14px] p-2',
-              !!requestsLength && 'border-b border-border'
+            className={cn(
+              'w-full bg-background border border-border rounded-[4px] shadow-cardlight opacity-70 transition-opacity',
+              !!requestsLength && 'opacity-100'
             )}
           >
-            <h3
-              className={cn(
-                'flex items-center gap-1 font-bold text-foregroundA8 text-sm pl-2 md:pl-3',
-                !!requestsLength && 'text-foreground'
+            <div
+              className={twJoin(
+                'w-full flex justify-between items-center gap-4 text-[14px] p-2',
+                !!requestsLength && 'border-b border-border'
               )}
             >
-              {isLoading ? (
-                <>
-                  <Spinner /> <span>Pending requests loading</span>
-                </>
-              ) : (
-                <>
-                  {requestsLength ? `${requestsLength} P` : 'No p'}
-                  ending request{requestsLength !== 1 ? 's' : ''}
-                </>
-              )}
-            </h3>
-            {historySlug && (
-              <Button asChild variant="link" size="sm">
-                <Link
-                  className="flex items-center gap-1 font-medium opacity-50 hover:opacity-100 transition-opacity"
-                  href={historySlug.replace(/\/+/g, '/')}
-                >
-                  <span>History</span>
-                  <IconLineArrow direction="right" />
-                </Link>
-              </Button>
-            )}
-          </div>
-
-          <AnimatePresence>
-            {withdrawalRequests?.length && (
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: 'auto' }}
-                exit={{ height: 0 }}
-                className="w-full overflow-hidden"
+              <h3
+                className={cn(
+                  'flex items-center gap-1 font-bold text-foregroundA8 text-sm pl-2 md:pl-3',
+                  !!requestsLength && 'text-foreground'
+                )}
               >
-                <WithdrawalRequestHistory
-                  lrt={activeLrt}
-                  withdrawalRequests={withdrawalRequests}
-                  className="rounded-xl"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+                {isLoading ? (
+                  <>
+                    <Spinner /> <span>Pending requests loading</span>
+                  </>
+                ) : (
+                  <>
+                    {requestsLength ? `${requestsLength} P` : 'No p'}
+                    ending request{requestsLength !== 1 ? 's' : ''}
+                  </>
+                )}
+              </h3>
+              {historySlug && (
+                <Button asChild variant="link" size="sm">
+                  <Link
+                    className="flex items-center gap-1 font-medium opacity-50 hover:opacity-100 transition-opacity"
+                    href={historySlug.replace(/\/+/g, '/')}
+                  >
+                    <span>History</span>
+                    <IconLineArrow direction="right" />
+                  </Link>
+                </Button>
+              )}
+            </div>
+
+            <AnimatePresence>
+              {withdrawalRequests?.length && (
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: 'auto' }}
+                  exit={{ height: 0 }}
+                  className="w-full overflow-hidden"
+                >
+                  <WithdrawalRequestHistory
+                    lrt={activeLrt}
+                    withdrawalRequests={withdrawalRequests}
+                    className="rounded-xl"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          {!!faqs.length && <FAQS faqs={faqs} />}
         </div>
-        {!!faqs.length && <FAQS faqs={faqs} />}
       </PageWrapper>
     </>
   );

@@ -18,7 +18,7 @@ import {
 } from './typings';
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
-import { NATIVE_ETH_ADDRESS } from '../config';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
 import { type SubgraphClient } from '@rionetwork/sdk-react';
 
 export const getChainName = (chainId: number) => {
@@ -100,7 +100,7 @@ export const getInfuraRpcUrl = (chainId: number) => {
 
 export const linkToAddressOnBlockExplorer = (
   address: Address,
-  chainId: number
+  chainId: number = CHAIN_ID
 ) => {
   const chainName = getChainName(chainId);
   const subdomain =
@@ -112,7 +112,10 @@ export const linkToAddressOnBlockExplorer = (
   return `https://${subdomain}etherscan.io/address/${address}`;
 };
 
-export const linkToTxOnBlockExplorer = (address: Address, chainId: number) => {
+export const linkToTxOnBlockExplorer = (
+  address: Address,
+  chainId: number = CHAIN_ID
+) => {
   const chainName = getChainName(chainId);
   const subdomain =
     chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';

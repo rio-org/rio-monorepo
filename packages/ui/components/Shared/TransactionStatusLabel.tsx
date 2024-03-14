@@ -9,10 +9,10 @@ import {
 } from '@rionetwork/sdk-react';
 import IconExternal from '../Icons/IconExternal';
 import { IconClock } from '../Icons/IconClock';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 import { cn, linkToTxOnBlockExplorer } from '../../lib/utilities';
 import { TransactionStatus } from '../../lib/typings';
 import { SECONDS } from '../../lib/constants';
-import { CHAIN_ID } from '../../config';
 
 dayjs.extend(relativeTime, {
   thresholds: [
@@ -59,6 +59,7 @@ const TransactionStatusLabel = ({
   nextRebalanceTimestamp,
   isLink = true
 }: Props) => {
+  const { chain } = useAccountIfMounted();
   const now = Date.now();
   const requestTimestamp = Number(+transaction.timestamp);
   const lastTimeToBeAvailable = requestTimestamp + SECONDS.DAYS * 8;
@@ -127,7 +128,7 @@ const TransactionStatusLabel = ({
         <a
           href={linkToTxOnBlockExplorer(
             (transaction.claimTx || transaction.tx) as Hash,
-            CHAIN_ID
+            chain?.id
           )}
           target="_blank"
           rel="noreferrer"

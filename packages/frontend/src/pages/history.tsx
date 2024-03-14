@@ -6,6 +6,7 @@ import {
 } from 'next';
 import Stats from '@/components/Rewards/Stats';
 import TransactionHistoryTable from '@/components/Rewards/TransactionHistoryTable';
+import { TestnetBanner } from '@rio-monorepo/ui/components/Shared/TestnetBanner';
 import { PageWrapper } from '@rio-monorepo/ui/components/Shared/PageWrapper';
 import { FAQS } from '@rio-monorepo/ui/components/Shared/FAQs';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
@@ -22,6 +23,7 @@ const History: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   return (
     <>
       <PageWrapper isWide={true}>
+        <TestnetBanner />
         <Stats lrt={activeLrt} />
         <TransactionHistoryTable lrt={activeLrt} />
       </PageWrapper>

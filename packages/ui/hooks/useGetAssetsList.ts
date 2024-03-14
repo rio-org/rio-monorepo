@@ -6,19 +6,22 @@ import {
   type UseQueryOptions,
   useQuery
 } from '@tanstack/react-query';
+import { useAccountIfMounted } from './useAccountIfMounted';
 import subgraphClient from '../lib/subgraphClient';
 import { CHAIN_ID } from '../config';
 
-const queryFn = async () => {
-  const client = subgraphClient(CHAIN_ID);
-  const { data } = await client.query<{
-    assets: BaseAssetDetails[];
-    liquidRestakingTokens: BaseLRTSubgraphResponse[];
-  }>({ query: getAssetList() });
+const buildQueryFn = (chainId: number = CHAIN_ID) => {
+  return async () => {
+    const client = subgraphClient(chainId);
+    const { data } = await client.query<{
+      assets: BaseAssetDetails[];
+      liquidRestakingTokens: BaseLRTSubgraphResponse[];
+    }>({ query: getAssetList() });
 
-  return parseBaseSubgraphAssetList(
-    [data?.assets, data?.liquidRestakingTokens].filter(Boolean).flat()
-  );
+    return parseBaseSubgraphAssetList(
+      [data?.assets, data?.liquidRestakingTokens].filter(Boolean).flat()
+    );
+  };
 };
 
 export function useGetAssetsList(
@@ -27,9 +30,11 @@ export function useGetAssetsList(
     'queryKey' | 'queryFn'
   >
 ): UseQueryResult<BaseAssetDetails[], Error> {
+  const { chain } = useAccountIfMounted();
+  const chainId = chain?.id ?? CHAIN_ID;
   return useQuery<BaseAssetDetails[], Error>({
-    queryKey: ['useGetAssetsList', CHAIN_ID] as const,
-    queryFn,
+    queryKey: ['useGetAssetsList', chainId] as const,
+    queryFn: buildQueryFn(chainId),
     staleTime: 60 * 1000,
     ...queryConfig,
     enabled: queryConfig?.enabled !== false

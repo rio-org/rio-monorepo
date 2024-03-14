@@ -9,7 +9,7 @@ import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { useGetLatestAssetPrice } from '../../hooks/useGetLatestAssetPrice';
-import { CHAIN_ID } from '../../config';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 
 type Props = {
   asset: AssetDetails;
@@ -30,7 +30,11 @@ const AssetItemContent = ({
   amount,
   isSelectorDisplay
 }: Props) => {
-  useGetLatestAssetPrice({ tokenAddress: asset.address, chainId: CHAIN_ID });
+  const { chain } = useAccountIfMounted();
+  useGetLatestAssetPrice({
+    tokenAddress: asset.address,
+    chainId: chain?.id
+  });
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });

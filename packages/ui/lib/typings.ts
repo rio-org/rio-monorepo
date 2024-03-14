@@ -358,6 +358,7 @@ export enum RioTransactionType {
 export type PendingTransaction = {
   hash: Hash;
   type: RioTransactionType;
+  chainId: number;
   toasts: {
     sent: string;
     success: string;

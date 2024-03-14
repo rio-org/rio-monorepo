@@ -6,7 +6,7 @@ import Skeleton from 'react-loading-skeleton';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { useGetLatestAssetPrice } from '../../hooks/useGetLatestAssetPrice';
-import { CHAIN_ID } from '../../config';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 
 type Props = {
   token: AssetDetails;
@@ -23,9 +23,10 @@ const WithdrawAssetItem = ({
   setActiveToken,
   setIsListOpen
 }: Props) => {
+  const { chain } = useAccountIfMounted();
   const { data, isLoading, isError } = useGetLatestAssetPrice({
     tokenAddress: token.address,
-    chainId: CHAIN_ID
+    chainId: chain?.id
   });
   const handleClick = (token: AssetDetails) => {
     setActiveToken(token);

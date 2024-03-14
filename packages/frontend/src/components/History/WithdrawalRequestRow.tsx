@@ -8,13 +8,13 @@ import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
 import { Button } from '@rio-monorepo/ui/components/shadcn/button';
 import { useGetAssetsList } from '@rio-monorepo/ui/hooks/useGetAssetsList';
 import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
-import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import {
   dateFromTimestamp,
   displayEthAmount,
   isEqualAddress,
   linkToTxOnBlockExplorer
 } from '@rio-monorepo/ui/lib/utilities';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 
 type Props = {
   transaction: WithdrawalRequest;
@@ -27,6 +27,7 @@ const WithdrawalRequestRow = ({
   index,
   nextRebalanceTimestamp
 }: Props) => {
+  const { chain } = useAccountIfMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
@@ -104,7 +105,7 @@ const WithdrawalRequestRow = ({
                 <a
                   href={linkToTxOnBlockExplorer(
                     (transaction.claimTx || transaction.tx) as Hash,
-                    CHAIN_ID
+                    chain?.id
                   )}
                   target="_blank"
                   rel="noreferrer"

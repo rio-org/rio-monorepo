@@ -1,11 +1,11 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
 import { CaretSortIcon, GearIcon } from '@radix-ui/react-icons';
+import { useCallback, useMemo, useState } from 'react';
 import { useDisconnect, useSwitchChain } from 'wagmi';
+import { type Chain, mainnet } from 'viem/chains';
 import { twJoin, twMerge } from 'tailwind-merge';
 import Skeleton from 'react-loading-skeleton';
-import { mainnet } from 'viem/chains';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import {
@@ -90,6 +90,17 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
     () => BuildConnectWalletMenuTrigger(setIsOpen),
     []
   );
+
+  const [testnetChains, mainnetChains] = useMemo(() => {
+    return chains?.reduce(
+      (a, b) => {
+        if (b.testnet) a[0].push(b);
+        else a[1].push(b);
+        return a;
+      },
+      [[], []] as [Chain[], Chain[]]
+    );
+  }, [chains]);
 
   useRegisterHotKey({
     shift: true,
@@ -234,13 +245,41 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
-                {chains?.map((c) => (
+                {!!mainnetChains.length && !!testnetChains.length && (
+                  <>
+                    <DropdownMenuLabel className="text-[10px] font-bold opacity-30">
+                      Mainnet
+                    </DropdownMenuLabel>
+                  </>
+                )}
+                {mainnetChains?.map((c) => (
                   <DropdownMenuItem
-                    key={c.id}
+                    key={`mainnet-${c.id}`}
                     disabled={c.id === chain?.id}
                     onSelect={() => switchChain?.({ chainId: c.id })}
+                    className="flex items-center justify-between gap-3"
                   >
-                    {c.name}
+                    <span>{c.name}</span>
+                    {c.id === chain?.id && <Current />}
+                  </DropdownMenuItem>
+                ))}
+                {!!mainnetChains.length && !!testnetChains.length && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-[10px] font-bold opacity-30">
+                      Testnet
+                    </DropdownMenuLabel>
+                  </>
+                )}
+                {testnetChains?.map((c) => (
+                  <DropdownMenuItem
+                    key={`testnet-${c.id}`}
+                    disabled={c.id === chain?.id}
+                    onSelect={() => switchChain?.({ chainId: c.id })}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <span>{c.name}</span>
+                    {c.id === chain?.id && <Current />}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuSubContent>
@@ -248,9 +287,16 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
           </DropdownMenuSub>
         )}
 
-        {chains.length === 1 && chainUnsupported && (
+        {(chainUnsupported ||
+          (showUnsupportedRegion && !!testnetChains[0])) && (
           <DropdownMenuItem
-            onSelect={() => switchChain?.({ chainId: chains?.[0].id })}
+            onSelect={() =>
+              switchChain?.({
+                chainId: showUnsupportedRegion
+                  ? testnetChains[0].id
+                  : mainnetChains[0].id || chains[0].id
+              })
+            }
           >
             <SplitIcon className="mr-2 h-3 w-3" />
             Change Network
@@ -335,4 +381,17 @@ function BuildConnectWalletMenuTrigger(
       </>
     );
   };
+}
+
+function Current() {
+  return (
+    <span
+      className={twJoin(
+        'bg-foreground px-1 pt-[3px] pb-0.5 opacity-80 rounded-[3px]',
+        'text-[10px] text-background font-bold leading-none'
+      )}
+    >
+      CURRENT
+    </span>
+  );
 }

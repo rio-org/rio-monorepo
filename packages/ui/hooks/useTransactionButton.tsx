@@ -10,7 +10,7 @@ import {
 } from '../contexts/RioTransactionStore';
 import { TransactionToast } from '../components/Shared/TransactionToast';
 import { IconSad } from '../components/Icons/IconSad';
-import { CHAIN_ID } from 'config';
+import { CHAIN_ID } from '../config';
 import {
   PendingTransaction,
   type ContractError,
@@ -123,11 +123,15 @@ export const useTransactionButton = ({
   }, [clearErrors]);
 
   const handleClick = useCallback((): void => {
-    if (isInAllowedRegion === false) return;
     if (isDisabled) return;
     if (!address) return openWalletModal();
     handleClearErrors();
-    wrongNetwork ? switchChain?.({ chainId: CHAIN_ID }) : write?.();
+    const chainId =
+      isInAllowedRegion === false
+        ? chains.find((c) => c.testnet)?.id
+        : CHAIN_ID;
+    if (!chainId) return;
+    wrongNetwork ? switchChain?.({ chainId }) : write?.();
   }, [
     isInAllowedRegion,
     isDisabled,

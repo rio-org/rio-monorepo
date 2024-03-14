@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Hash } from 'viem';
 import IconExternal from '../Icons/IconExternal';
 import { cn, linkToTxOnBlockExplorer } from '../../lib/utilities';
-import { CHAIN_ID } from '../../config';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 
 const baseClassName = twJoin(
   'flex flex-row flex-nowrap items-center gap-2',
@@ -16,15 +16,18 @@ export const ViewTransactionLink = ({
   hash,
   className,
   ...props
-}: Parameters<typeof motion.a>[0] & { hash?: Hash }) => (
-  <motion.a
-    href={hash ? linkToTxOnBlockExplorer(hash, CHAIN_ID) : ''}
-    target="_blank"
-    rel="noreferrer"
-    className={cn(baseClassName, className)}
-    {...props}
-  >
-    <span>View transaction</span>
-    <IconExternal className="opacity-50" />
-  </motion.a>
-);
+}: Parameters<typeof motion.a>[0] & { hash?: Hash }) => {
+  const { chain } = useAccountIfMounted();
+  return (
+    <motion.a
+      href={hash ? linkToTxOnBlockExplorer(hash, chain?.id) : ''}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(baseClassName, className)}
+      {...props}
+    >
+      <span>View transaction</span>
+      <IconExternal className="opacity-50" />
+    </motion.a>
+  );
+};

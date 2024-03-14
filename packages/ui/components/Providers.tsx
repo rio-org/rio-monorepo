@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RioNetworkProvider } from '@rionetwork/sdk-react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from '@material-tailwind/react';
-import { mainnet, sepolia, goerli } from 'wagmi/chains';
+import { mainnet, goerli, holesky } from 'wagmi/chains';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Analytics } from '@vercel/analytics/react';
@@ -51,9 +51,9 @@ import WalletAndTermsStoreProvider from '../contexts/WalletAndTermsStore';
 import { AppContextProvider } from '../contexts/AppContext';
 import { TouchProvider } from '../contexts/TouchProvider';
 import { getAlchemyRpcUrl, getInfuraRpcUrl } from '../lib/utilities';
-import { Theme } from '../lib/typings';
+import { AppEnv, Theme } from '../lib/typings';
 import { theme } from '../lib/theme';
-import { CHAIN_ID } from '../config';
+import { APP_ENV } from '../config';
 
 const WagmiProvider = dynamic(
   import('wagmi').then((mod) => mod.WagmiProvider),
@@ -63,16 +63,11 @@ const WagmiProvider = dynamic(
 // Create the cache client
 const queryClient = new QueryClient();
 
-const chooseChain = (chainId: number): [Chain, ...Chain[]] => {
-  if (chainId === 1) {
-    return [mainnet] as [Chain, ...Chain[]];
-  } else if (chainId === 5) {
+const chooseChain = (): [Chain, ...Chain[]] => {
+  if (APP_ENV === AppEnv.PRODUCTION) {
     return [goerli] as [Chain, ...Chain[]];
-  } else if (chainId === 11155111) {
-    return [sepolia] as [Chain, ...Chain[]];
   } else {
-    console.error('Invalid chain id');
-    return [goerli] as [Chain, ...Chain[]];
+    return [goerli, holesky, mainnet] as [Chain, ...Chain[]];
   }
 };
 
@@ -83,10 +78,12 @@ const getTransports = (chainId: number) => {
   _transports.push(unstable_connector(walletConnect));
   _transports.push(unstable_connector(coinbaseWallet));
   _transports.push(unstable_connector(safe));
-  if (process.env.NEXT_PUBLIC_INFURA_ID)
-    _transports.push(http(getInfuraRpcUrl(chainId)));
-  if (process.env.NEXT_PUBLIC_ALCHEMY_ID)
-    _transports.push(http(getAlchemyRpcUrl(chainId)));
+  if (chainId !== holesky.id) {
+    if (process.env.NEXT_PUBLIC_INFURA_ID)
+      _transports.push(http(getInfuraRpcUrl(chainId)));
+    if (process.env.NEXT_PUBLIC_ALCHEMY_ID)
+      _transports.push(http(getAlchemyRpcUrl(chainId)));
+  }
   _transports.push(http());
   return _transports;
 };
@@ -103,7 +100,7 @@ const _appInfo = {
 };
 
 const { wallets } = getDefaultWallets();
-const chains = chooseChain(CHAIN_ID);
+const chains = chooseChain();
 
 export function Providers({
   appTitle,
@@ -167,7 +164,7 @@ export function Providers({
           <_RainbowKitProvider
             modalSize="compact"
             appInfo={appInfo}
-            initialChain={CHAIN_ID}
+            initialChain={chains[0]}
           >
             <RioNetworkProvider>
               <RioTransactionStoreProvider>

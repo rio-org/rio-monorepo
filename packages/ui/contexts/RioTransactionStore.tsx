@@ -25,9 +25,10 @@ const QUERY_KEY = [STORE_VAR] as const;
 
 interface ContextState {
   data: TransactionStore;
-  addTransaction: (tx: PendingTransaction) => void;
+  addTransaction: (tx: Omit<PendingTransaction, 'chainId'>) => void;
   removeTransaction: (tx: {
     hash: Hash;
+    chainId: number;
     type?: RioTransactionType;
     toasts?: PendingTransaction['toasts'];
   }) => void;
@@ -65,7 +66,7 @@ export default function RioTransactionStoreProvider({
           hash={nextTx.hash}
           icon={<IconLightning />}
           title={nextTx.toasts?.sent || 'Transaction Sent'}
-          chainId={chainId}
+          chainId={nextTx.chainId}
         />
       );
     }
@@ -73,7 +74,7 @@ export default function RioTransactionStoreProvider({
     toast(
       <TransactionToast
         hash={nextTx.hash}
-        chainId={chainId}
+        chainId={nextTx.chainId}
         icon={isError ? <IconSad /> : <IconParty />}
         title={
           isError
@@ -82,7 +83,7 @@ export default function RioTransactionStoreProvider({
         }
       />
     );
-    removeTransaction({ hash: nextTx.hash });
+    removeTransaction({ hash: nextTx.hash, chainId: nextTx.chainId });
   }, [nextTx?.hash, isError, isSuccess]);
 
   return (
@@ -149,18 +150,17 @@ function useLocalStorageTransactions() {
 }
 
 function useRemoveTransactionMutation() {
-  const _chainId = (useChainId() || CHAIN_ID) as CHAIN_ID_NUMBER;
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: QUERY_KEY,
     mutationFn: async ({
-      chainId = _chainId,
+      chainId,
       hash
     }: {
-      chainId?: CHAIN_ID_NUMBER;
-      type?: RioTransactionType;
       hash: Hash;
+      chainId: number;
+      type?: RioTransactionType;
     }) => {
       const txs =
         queryClient.getQueryData<TransactionStore>(QUERY_KEY) ??
@@ -180,15 +180,12 @@ function useRemoveTransactionMutation() {
 }
 
 function useAddTransactionMutation() {
-  const _chainId = (useChainId() || CHAIN_ID) as CHAIN_ID_NUMBER;
   const queryClient = useQueryClient();
+  const chainId = useChainId() || CHAIN_ID;
 
   return useMutation({
     mutationKey: QUERY_KEY,
-    mutationFn: async ({
-      chainId = _chainId,
-      ...tx
-    }: PendingTransaction & { chainId?: CHAIN_ID_NUMBER }) => {
+    mutationFn: async (tx: Omit<PendingTransaction, 'chainId'>) => {
       const txs =
         queryClient.getQueryData<TransactionStore>(QUERY_KEY) ??
         DEFAULT_STATE.data;
@@ -198,7 +195,10 @@ function useAddTransactionMutation() {
 
       return txExists || txAlreadyFinished
         ? Promise.resolve(txs)
-        : txStoreMutationFn(txs, queryClient, chainId, [...txList, tx]);
+        : txStoreMutationFn(txs, queryClient, chainId, [
+            ...txList,
+            { ...tx, chainId }
+          ]);
     }
   });
 }
@@ -206,7 +206,7 @@ function useAddTransactionMutation() {
 function txStoreMutationFn(
   txStore: TransactionStore,
   queryClient: QueryClient,
-  chainId: CHAIN_ID_NUMBER,
+  chainId: number,
   newTxList: PendingTransaction[]
 ) {
   return new Promise((resolve) => {

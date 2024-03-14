@@ -18,7 +18,6 @@ import {
   displayEthAmount,
   linkToTxOnBlockExplorer
 } from '@rio-monorepo/ui/lib/utilities';
-import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import {
   type LRTDetails,
   type MobileTableColumns,
@@ -37,7 +36,7 @@ interface Props {
 
 const TransactionHistoryTable = ({ lrt }: Props) => {
   const isDesktopOrLaptop = useMediaQuery({ query: DESKTOP_MQ });
-  const { address } = useAccountIfMounted();
+  const { address, chain } = useAccountIfMounted();
   const isMounted = useIsMounted();
 
   const { data: txHistory, isLoading } = useTransactionHistory({
@@ -58,7 +57,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
           return (
             <TableLabel>
               <a
-                href={linkToTxOnBlockExplorer(item.tx, CHAIN_ID)}
+                href={linkToTxOnBlockExplorer(item.tx, chain?.id)}
                 target="_blank"
                 rel="noreferrer"
                 className={cn(
@@ -129,7 +128,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         }
       }
     ],
-    []
+    [chain?.id]
   );
 
   const mobileColumns = useMemo<MobileTableColumns<TransactionEvent>>(
@@ -142,7 +141,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
             return (
               <TableLabel>
                 <a
-                  href={linkToTxOnBlockExplorer(item.tx, CHAIN_ID)}
+                  href={linkToTxOnBlockExplorer(item.tx, chain?.id)}
                   target="_blank"
                   rel="noreferrer"
                   className={cn(
@@ -218,7 +217,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         }
       ]
     }),
-    []
+    [chain?.id]
   );
 
   const tableHeader = isMounted && isDesktopOrLaptop && (
