@@ -7,6 +7,11 @@ import { NextRequest } from 'next/server';
 import { Address, Hash } from 'viem';
 import { RioLRTOperatorRegistryABI } from '../abi/RioLRTOperatorRegistryABI';
 
+export enum Theme {
+  LIGHT = 'light',
+  DARK = 'dark'
+}
+
 export type NumberString = `${number}`;
 export type EthereumTransactionHash = `0x${string}`;
 export type EthereumCalldata = string;
@@ -48,6 +53,33 @@ export type Not<T, R> = T extends R ? never : T;
 //////////////
 // Interface
 //////////////
+
+export interface NavigatorWithUAD extends Navigator {
+  userAgentData?: {
+    brands?: string[];
+    mobile?: boolean;
+    platform?: string;
+  };
+}
+
+export type HotKeyShift = 'shift' | 'no-shift';
+export type HotKeyAction = 'action' | 'no-action';
+export type HotKeyAlt = 'alt' | 'no-alt';
+export type HotKeyKey = string;
+export type HotKeyString =
+  `${HotKeyShift}+${HotKeyAlt}+${HotKeyAction}+${HotKeyKey}`;
+export type HotKeys = Record<HotKeyString, () => void>;
+
+export type WindowSize = {
+  width: number;
+  height: number;
+};
+
+export type MousePosition = {
+  clientX: number;
+  clientY: number;
+};
+
 export interface InternalAppNavItem {
   label: string;
   slug: string;
@@ -326,6 +358,7 @@ export enum RioTransactionType {
 export type PendingTransaction = {
   hash: Hash;
   type: RioTransactionType;
+  chainId: number;
   toasts: {
     sent: string;
     success: string;

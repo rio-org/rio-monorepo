@@ -38,25 +38,29 @@ const MobileNav = ({
 
   return (
     <>
-      <div className="fixed bottom-0 lg:hidden bg-appBackground px-3 py-4 w-full justify-around items-center border-t border-t-foregroundA1">
+      <div className="fixed bottom-0 md:hidden bg-appBackground px-3 py-2 w-full justify-around items-center border-t border-t-border">
         <Tabs value={activeTab} className="p-2 duration-100">
-          <TabsHeader className="justify-around p-0 duration-100">
+          <TabsHeader className="justify-around p-0 bg-transparent duration-100">
             {items.map(({ label, slug }, index) => (
               <Link
                 href={slugUrl(slug)}
                 key={label + index}
                 scroll={false}
                 className={cx(
-                  'font-medium  rounded-full hover:text-foreground hover:bg-foregroundA1',
-                  activeTab === slug ? 'text-foreground' : 'text-foregroundA6'
+                  'font-medium  rounded-full hover:text-foreground hover:bg-backgroundA1',
+                  activeTab === slug
+                    ? 'bg-background [&_div]:!bg-background text-foreground'
+                    : 'text-foregroundA7'
                 )}
               >
                 <Tab
                   key={label + index}
                   value={slug}
                   className={cx(
-                    'py-2 px-4 font-medium  hover:text-foreground hover:bg-foregroundA1 rounded-full',
-                    activeTab === slug ? 'text-foreground' : 'text-foregroundA6'
+                    'py-2 px-4 font-medium hover:text-foreground hover:bg-backgroundA1 rounded-full',
+                    activeTab === slug
+                      ? 'bg-background [&_div]:!bg-background text-foreground'
+                      : 'text-foregroundA7'
                   )}
                 >
                   {label}
@@ -78,7 +82,7 @@ const MobileNav = ({
         size={drawerContentRef.current?.offsetHeight}
         open={!isDesktopOrLaptop && isSecondaryMenuOpen}
         onClose={() => !isDesktopOrLaptop && setIsSecondaryMenuOpen(false)}
-        className="rounded-t-2xl"
+        className="rounded-t-[4px] border border-border bg-background"
       >
         <div ref={drawerContentRef} className="p-2">
           <SecondaryMenuItems

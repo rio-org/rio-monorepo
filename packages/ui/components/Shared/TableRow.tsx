@@ -98,7 +98,7 @@ const MobileRow: MobileTableRowComponent = ({
   return (
     <tr
       className={cn(
-        'group bg-background flex flex-wrap lg:table-row',
+        'group bg-background flex flex-wrap md:table-row',
         isFirst && 'rounded-t-xl'
       )}
     >
@@ -132,14 +132,18 @@ const MobileRow: MobileTableRowComponent = ({
               <button
                 onClick={() => setIsOpen && setIsOpen(!isOpen)}
                 className={twJoin(
-                  'flex flex-row gap-1 justify-center items-center',
+                  'flex flex-row gap-2 justify-center items-center',
                   'min-w-[90px] mt-2 px-3 py-[2px]',
-                  'rounded-full border border-rio-blue',
-                  'text-[12px] text-rio-blue transition-colors'
+                  'rounded-[4px] border border-rio-blue',
+                  'text-xs text-rio-blue transition-colors',
+                  'dark:bg-rio-blue dark:text-white'
                 )}
               >
                 <span className="">{isOpen ? 'Collapse' : 'Expand'}</span>
-                <IconExpand isExpanded={isOpen} />
+                <IconExpand
+                  isExpanded={isOpen}
+                  className="dark:after:bg-white dark:before:bg-white"
+                />
               </button>
             )}
           </td>
@@ -153,7 +157,7 @@ const MobileRow: MobileTableRowComponent = ({
               'overflow-hidden w-full',
               'flex flex-row justify-between gap-4',
               'mx-4 px-4',
-              'rounded-xl bg-appBackground bg-opacity-25'
+              'rounded-[4px] bg-foregroundA1 bg-opacity-25'
             )}
             initial={{ height: 0, marginBottom: 0 }}
             animate={{ height: 'auto', marginBottom: '1rem' }}

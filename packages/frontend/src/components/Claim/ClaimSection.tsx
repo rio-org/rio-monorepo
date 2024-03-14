@@ -143,15 +143,15 @@ export function ClaimSectionBase({
       <div
         className={cn(
           'flex justify-between items-center',
-          'w-full p-2 mt-4 rounded-2xl',
-          'bg-foregroundA1 text-foregroundA8 transition-colors',
-          !!address &&
-            !!claimAmount &&
-            'bg-rio-blue text-background dark:text-foreground'
+          'w-full p-2 rounded-[4px] shadow-cardlight border',
+          'bg-background text-foregroundA8 transition-all',
+          !!address && !!claimAmount
+            ? 'bg-rio-blue text-background dark:text-foreground border-rio-blue'
+            : 'border-border opacity-70'
         )}
       >
-        <div className="w-full flex justify-between items-center gap-4 text-[14px]">
-          <h3 className="flex items-center gap-1 font-medium pl-2 lg:pl-3">
+        <div className="w-full flex justify-between items-center gap-4 text-sm">
+          <h3 className="flex items-center gap-1 font-bold pl-2 md:pl-3">
             {isWithdrawalsLoading ? (
               <>
                 <Spinner /> <span>Pending requests loading</span>

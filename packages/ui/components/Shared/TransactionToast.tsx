@@ -1,15 +1,14 @@
 import { twJoin } from 'tailwind-merge';
+import { Hash } from 'viem';
 import dayjs from 'dayjs';
 import IconExternal from '../Icons/IconExternal';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
-import { CHAIN_ID } from '../../config';
-import { Hash } from 'viem';
 
 export function TransactionToast({
   icon,
   title,
   hash,
-  chainId = CHAIN_ID
+  chainId
 }: {
   icon: React.ReactNode;
   title: string;
@@ -22,7 +21,7 @@ export function TransactionToast({
         <span className="flex items-center gap-1.5 font-medium whitespace-pre-line">
           <span className="flex h-[21px] min-w-[16px] items-center">
             {icon}
-          </span>{' '}
+          </span>
           <span>{title}</span>
         </span>
         <span className="font-normal opacity-50">

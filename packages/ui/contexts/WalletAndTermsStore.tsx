@@ -69,7 +69,6 @@ export default function WalletAndTermsStoreProvider({
 
   const isMainnet = chainId === mainnet.id;
 
-  regionCheckedMutation.isPending || regionChecked.isLoading;
   const isRegionBlocked = useMemo(
     () => regionChecked.data === false,
     [regionChecked.data]

@@ -13,7 +13,7 @@ const APPEAR_VARIANTS = {
 };
 
 const buttonHoverCN = twJoin(
-  'w-full flex justify-between rounded-xl',
+  'w-full flex justify-between rounded-t-[4px]',
   'transition-colors duration-200 bg-transparent',
   'hover:bg-foreground hover:bg-opacity-[0.019]',
   'active:bg-foreground active:bg-opacity-[0.031]'
@@ -46,7 +46,7 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
   );
 
   return (
-    <motion.div className="space-y-4 w-full px-4">
+    <motion.div className="space-y-4 w-full">
       <button
         onClick={toggleFaqs}
         className={twJoin(
@@ -65,12 +65,12 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
             className="w-full space-y-4 overflow-hidden"
           >
             {faqs.map((faq, i) => (
-              <div key={i} className="w-full rounded-xl bg-foregroundA1">
+              <div key={i} className="w-full rounded-[4px] bg-foregroundA1">
                 <button
                   onClick={curriedExpandQuestion(i)}
                   className={twJoin('py-2.5 px-4 items-start', buttonHoverCN)}
                 >
-                  <h3 className="text-[14px] font-medium leading-tight py-1.5 max-w-[calc(100%-2rem)]">
+                  <h3 className="text-base text-foreground/90 text-left font-medium leading-tight py-1.5 max-w-[calc(100%-2rem)]">
                     {faq.q}
                   </h3>
                   <FaqsExpandIcon
@@ -82,7 +82,7 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
                   {expandedQuestions[i] && (
                     <motion.div
                       {...APPEAR_VARIANTS}
-                      className="w-full text-sm overflow-hidden px-4"
+                      className="w-full text-sm overflow-hidden px-2 text-foreground/90"
                     >
                       {' '}
                       <Markdown children={faq.a} />

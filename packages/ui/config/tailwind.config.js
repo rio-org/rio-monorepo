@@ -124,6 +124,10 @@ module.exports = withMT({
         'skeleton-shine':
           'skeleton-shine 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         'header-wallet-size': 'header-wallet-size 3s ease-in-out infinite'
+      },
+      boxShadow: {
+        cardlight: '1px 2px 3px 0 rgba(0, 0, 0, 0.15)',
+        cardinactive: '1px 2px 2px 0 rgba(0, 0, 0, 0.1)'
       }
     }
   },

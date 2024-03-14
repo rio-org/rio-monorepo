@@ -68,29 +68,27 @@ export default function Layout({ children, nav }: LayoutProps) {
         socialItems={nav.socialItems}
         logoItem={nav.logoItem}
         className={twJoin(
-          'absolute z-[90] py-3 px-4 lg:px-5',
-          'lg:max-w-full bg-appBackground',
+          'py-3 px-4 md:px-5',
+          'md:max-w-full bg-appBackground',
           'rounded-b-none'
         )}
       />
       <main
         className={cx(
-          'p-4 lg:px-4 lg:py-2 relative top-[72px]',
+          'p-4 md:px-4 md:pt-2',
           'w-full max-w-full',
-          'overflow-x-hidden overflow-y-auto',
-          'h-full'
+          'overflow-x-hidden overflow-y-visible'
+          // 'h-full'
         )}
         style={{
-          maxHeight:
-            isDesktopOrLaptop || !isMounted
-              ? 'calc(100vh - 72px)'
-              : `calc(100vh - ${72 + mobileNavHeight}px)`
+          paddingBottom:
+            isDesktopOrLaptop || !isMounted ? undefined : mobileNavHeight
         }}
       >
         <div
           className={cx(
             'flex flex-col justify-start items-start w-full relative z-10',
-            'pt-6 lg:pt-[10vh]'
+            'pt-6 md:pt-[10vh]'
           )}
           ref={contentRef}
         >
@@ -122,7 +120,7 @@ export default function Layout({ children, nav }: LayoutProps) {
             >
               <motion.div
                 className={cx(
-                  'w-full mx-auto lg:px-4 pb-8 flex flex-col items-center'
+                  'w-full mx-auto md:px-4 pb-8 flex flex-col items-center'
                 )}
                 style={{
                   paddingBottom:
@@ -140,7 +138,7 @@ export default function Layout({ children, nav }: LayoutProps) {
             </motion.div>
           </AnimatePresence>
         </div>
-        <div className="fixed bottom-8 left-4 pt-4 hidden lg:block lg:sticky lg:mt-auto z-0" />
+        <div className="fixed bottom-8 left-4 pt-4 hidden md:block md:sticky md:mt-auto z-0" />
       </main>
       <div ref={mobileNavRef} className="absolute left-0 bottom-0 z-50">
         <MobileNav

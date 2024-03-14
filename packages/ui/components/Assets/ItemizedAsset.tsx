@@ -32,7 +32,7 @@ const ItemizedAsset = ({
           width={20}
           height={20}
         />
-        <p className="opacity-50 text-[14px] w-[70%] lg:w-full truncate">
+        <p className="opacity-50 text-[14px] w-[70%] md:w-full truncate">
           {asset.name}
         </p>
       </div>

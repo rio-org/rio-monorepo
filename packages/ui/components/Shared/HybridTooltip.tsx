@@ -18,6 +18,7 @@ import {
 } from '../shadcn/tooltip';
 import { Popover, PopoverTrigger, PopoverContent } from '../shadcn/popover';
 import { useIsTouch } from '../../contexts/TouchProvider';
+import { cn } from '../../lib/utilities';
 
 export const HybridTooltip = (props: TooltipProps & PopoverProps) => {
   const isTouch = useIsTouch();
@@ -31,15 +32,22 @@ export const HybridTooltip = (props: TooltipProps & PopoverProps) => {
   );
 };
 
-export const HybridTooltipTrigger = (
-  props: TooltipTriggerProps & PopoverTriggerProps
-) => {
+export const HybridTooltipTrigger = ({
+  className,
+  ...props
+}: TooltipTriggerProps & PopoverTriggerProps) => {
   const isTouch = useIsTouch();
 
   return isTouch ? (
-    <PopoverTrigger {...props} />
+    <PopoverTrigger
+      className={cn('focus:outline-2 focus:outline-foreground', className)}
+      {...props}
+    />
   ) : (
-    <TooltipTrigger {...props} />
+    <TooltipTrigger
+      className={cn('focus:outline-2 focus:outline-foreground', className)}
+      {...props}
+    />
   );
 };
 

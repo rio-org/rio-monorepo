@@ -8,12 +8,15 @@ import { getLiquidRestakingTokenList } from '../lib/graphqlQueries';
 import { parseSubgraphLRTList } from '../lib/utilities';
 import subgraphClient from '../lib/subgraphClient';
 import { CHAIN_ID } from '../config';
+import { useAccountIfMounted } from './useAccountIfMounted';
 
-const queryFn = async () => {
-  const { data } = await subgraphClient(CHAIN_ID).query<{
-    liquidRestakingTokens: LRTSubgraphResponse[];
-  }>({ query: getLiquidRestakingTokenList() });
-  return parseSubgraphLRTList(data?.liquidRestakingTokens || []);
+const buildQueryFn = (chainId: number = CHAIN_ID) => {
+  return async () => {
+    const { data } = await subgraphClient(chainId).query<{
+      liquidRestakingTokens: LRTSubgraphResponse[];
+    }>({ query: getLiquidRestakingTokenList() });
+    return parseSubgraphLRTList(data?.liquidRestakingTokens || []);
+  };
 };
 
 export function useGetLiquidRestakingTokens(
@@ -22,9 +25,11 @@ export function useGetLiquidRestakingTokens(
     'queryKey' | 'queryFn'
   >
 ): UseBaseQueryResult<LRTDetails[], Error> {
+  const { chain } = useAccountIfMounted();
+  const chainId = chain?.id || CHAIN_ID;
   return useQuery<LRTDetails[], Error>({
-    queryKey: ['useGetLiquidRestakingTokens', CHAIN_ID] as const,
-    queryFn,
+    queryKey: ['useGetLiquidRestakingTokens', chainId] as const,
+    queryFn: buildQueryFn(chainId),
     staleTime: 60 * 1000,
     ...queryConfig
   });

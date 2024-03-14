@@ -25,14 +25,26 @@ const SecondaryMenuItems = ({
         {secondaryItems.map(
           ({ label, url, icon }, index) =>
             url && (
-              <MenuItem key={label + index}>
+              <MenuItem
+                key={label + index}
+                className={twJoin(
+                  'hover:opacity-100 hover:bg-foreground/5 rounded-[4px]',
+                  'focus:bg-foreground/5 active:bg-foreground/5'
+                )}
+              >
                 <Link
                   href={url}
                   className="py-1 px-0 hover:text-foreground flex flex-row gap-2 items-center text-foreground font-medium"
                   onClick={() => setIsSecondaryMenuOpen(false)}
                 >
                   {icon && (
-                    <Image src={icon} width={16} height={16} alt={label} />
+                    <Image
+                      src={icon}
+                      width={16}
+                      height={16}
+                      alt={label}
+                      className="dark:invert"
+                    />
                   )}
                   {label}
                 </Link>
@@ -47,7 +59,11 @@ const SecondaryMenuItems = ({
             url && (
               <MenuItem
                 disabled={disabled}
-                className="group"
+                className={twJoin(
+                  'group rounded-[4px]',
+                  'hover:opacity-100 hover:bg-foreground/5',
+                  'focus:bg-foreground/5 active:bg-foreground/5'
+                )}
                 key={`${label}-${index}`}
               >
                 {disabled ? (
@@ -87,11 +103,17 @@ const SecondaryMenuItems = ({
             className={twJoin(
               'p-2 aspect-square rounded-full',
               'flex justify-center items-center font-medium opacity-40',
-              'hover:opacity-100 hover:bg-rio-blue hover:bg-opacity-5',
-              'focus:bg-rio-blue focus:bg-opacity-5 active:bg-rio-blue active:bg-opacity-5'
+              'hover:opacity-100 hover:bg-foreground/5',
+              'focus:bg-foreground/5 active:bg-foreground/5'
             )}
           >
-            <Image src={icon} width={16} height={16} alt={label} />
+            <Image
+              src={icon}
+              width={16}
+              height={16}
+              alt={label}
+              className="dark:invert"
+            />
           </Link>
         ))}
       </div>

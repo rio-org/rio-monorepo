@@ -3,9 +3,6 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { Collapse, Navbar } from '@material-tailwind/react';
 import cx from 'classnames';
-import logo from '../../assets/rio-logo.png';
-import Image from 'next/image';
-import { CustomConnectButton } from './CustomConnectButton';
 import SecondaryMenu from './SecondaryMenu';
 import { AnimatePresence, motion } from 'framer-motion';
 import { mainNavChildrenVariants, mainNavVariants } from '../../lib/motion';
@@ -19,6 +16,9 @@ import {
   SocialNavItem
 } from '../../lib/typings';
 import { cn } from '../../lib/utilities';
+import { ThemeSelector } from '../Shared/ThemeSelector';
+import { IconRio } from '../Icons/IconRio';
+import { ConnectWalletMenu } from '../Shared/ConnectWalletMenu';
 
 const slugUrl = (slug: string) => {
   if (slug === '/') return '/';
@@ -43,34 +43,42 @@ const NavList = ({
   const [isSecondaryMenuOpen, setIsSecondaryMenuOpen] = React.useState(false);
   return (
     <motion.nav
-      className={cn('lg:flex flex-row gap-1 items-center w-full', className)}
+      className={cn(
+        'md:flex flex-row gap-1 justify-between items-center w-full',
+        className
+      )}
       initial="initial"
       animate="loaded"
       variants={mainNavVariants}
     >
-      {items.map(({ label, slug }, index) => (
-        <motion.div key={label + index} variants={mainNavChildrenVariants}>
-          <Link
-            href={slugUrl(slug)}
-            key={label + index}
-            scroll={false}
-            className={cx(
-              'py-2 px-4 font-medium  rounded-xl hover:text-foreground hover:bg-foregroundA1 duration-75',
-              activeTab === slug ? 'text-foreground' : 'text-foregroundA6'
-            )}
-          >
-            {label}
-          </Link>
-        </motion.div>
-      ))}
-      <SecondaryMenu
-        secondaryItems={secondaryItems}
-        tertiaryItems={tertiaryItems}
-        socialItems={socialItems}
-        isSecondaryMenuOpen={isSecondaryMenuOpen}
-        setIsSecondaryMenuOpen={setIsSecondaryMenuOpen}
-      />
-      <CustomConnectButton />
+      <ul className="list-none flex gap-1 items-center">
+        {items.map(({ label, slug }, index) => (
+          <motion.li key={label + index} variants={mainNavChildrenVariants}>
+            <Link
+              href={slugUrl(slug)}
+              key={label + index}
+              scroll={false}
+              className={cx(
+                'py-2 px-4 font-medium  rounded-xl hover:text-foreground hover:bg-foregroundA1 duration-75',
+                activeTab === slug ? 'text-foreground' : 'text-foregroundA6'
+              )}
+            >
+              {label}
+            </Link>
+          </motion.li>
+        ))}
+        <SecondaryMenu
+          secondaryItems={secondaryItems}
+          tertiaryItems={tertiaryItems}
+          socialItems={socialItems}
+          isSecondaryMenuOpen={isSecondaryMenuOpen}
+          setIsSecondaryMenuOpen={setIsSecondaryMenuOpen}
+        />
+      </ul>
+      <div className="flex justify-end items-center gap-2">
+        <ThemeSelector />
+        <ConnectWalletMenu />
+      </div>
     </motion.nav>
   );
 };
@@ -116,18 +124,16 @@ const AppNav = React.forwardRef<
                 href={logoItem.url}
                 target={logoItem.external ? '_blank' : undefined}
                 rel={logoItem.external ? 'noopener noreferrer' : undefined}
-                className="w-[37px] h-[37px] lg:w-[32px] lg:h-[32px] aspect-square block my-2"
+                className="w-[37px] h-[37px] md:w-[32px] md:h-[32px] aspect-square block my-2"
               >
-                <Image
-                  src={logo}
-                  alt="Rio"
+                <IconRio
                   width={logoDimensions}
                   height={logoDimensions}
                   className="w-full h-full"
                 />
               </Link>
-              <div className="hidden lg:flex flex-row gap-1 items-center w-full">
-                {isMounted && (
+              <div className="hidden md:flex flex-row gap-1 items-center w-full">
+                {isMounted && isDesktopOrLaptop && (
                   <AnimatePresence>
                     <NavList
                       secondaryItems={secondaryItems}
@@ -139,19 +145,26 @@ const AppNav = React.forwardRef<
                   </AnimatePresence>
                 )}
               </div>
-              {isMounted && !isDesktopOrLaptop && <CustomConnectButton />}
+              {isMounted && !isDesktopOrLaptop && (
+                <div className="flex justify-end items-center gap-4">
+                  <ThemeSelector />
+                  <ConnectWalletMenu />
+                </div>
+              )}
             </div>
           </div>
 
-          <Collapse open={openNav}>
-            <NavList
-              secondaryItems={secondaryItems}
-              tertiaryItems={tertiaryItems}
-              socialItems={socialItems}
-              activeTab={activeTab}
-              items={items}
-            />
-          </Collapse>
+          {!isDesktopOrLaptop && (
+            <Collapse open={openNav}>
+              <NavList
+                secondaryItems={secondaryItems}
+                tertiaryItems={tertiaryItems}
+                socialItems={socialItems}
+                activeTab={activeTab}
+                items={items}
+              />
+            </Collapse>
+          )}
         </Navbar>
       </>
     );
