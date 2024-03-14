@@ -15,9 +15,16 @@ export function TestnetBanner({ className }: { className?: string }) {
   return (
     <AnimatePresence>
       {isGoerli && (
-        <Banner type="warning" className={className}>
-          Goerli is currently experiencing disruptions. Transactions may fail or
-          take a long time to confirm.
+        <Banner
+          accordion
+          title="Goerli Testnet Disruptions"
+          type="warning"
+          className={className}
+        >
+          The Rio Network and EigenLayer rely on the Goerli Ethereum testnet
+          that is currently in a degraded state. Please take note that
+          transactions may fail or take a long time to confirm. We will launch
+          on the Holesky testnet alongside EigenLayer.
         </Banner>
       )}
       {!isGoerli && chain?.testnet && mainnet && (
@@ -25,6 +32,7 @@ export function TestnetBanner({ className }: { className?: string }) {
           icon={<SatelliteDishIcon className="h-4 w-4" />}
           type="warning"
           className={className}
+          title="Connected to testnet"
           actionComponent={
             <Button
               variant="link"
@@ -39,9 +47,7 @@ export function TestnetBanner({ className }: { className?: string }) {
               Switch to mainnet
             </Button>
           }
-        >
-          Connected to testnet
-        </Banner>
+        />
       )}
     </AnimatePresence>
   );
