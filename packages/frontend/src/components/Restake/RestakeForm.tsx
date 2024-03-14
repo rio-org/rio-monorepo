@@ -208,7 +208,7 @@ function RestakeFormBase({
             </InfoBadge>
             <InfoBadge
               icon={<IconChart className="-translate-y-[1px]" />}
-              title="Rewards"
+              title="APR"
               infoTooltipContent={
                 <p>
                   Rewards are earned through {lrtDetails?.symbol} token value
