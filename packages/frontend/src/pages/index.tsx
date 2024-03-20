@@ -25,16 +25,19 @@ import {
   type FAQ,
   type LRTDetails,
   type InternalAppNavItem,
-  AppEnv
+  AppEnv,
+  RestakeFormTab
 } from '@rio-monorepo/ui/lib/typings';
 import { WithdrawalRequestHistory } from '@/components/History/WithdrawalRequestHistory';
 import { RestakeForm } from '@/components/Restake/RestakeForm';
 import { ClaimSection } from '@/components/Claim/ClaimSection';
 import { APP_NAV_ITEMS } from 'config';
+import { useRouter } from 'next/router';
 
 const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   faqs
 }) => {
+  const { push, asPath } = useRouter();
   const { address } = useAccountIfMounted();
   // When more LRT products are available, we'll offer a way to switch these
   const isMounted = useIsMounted();
@@ -43,6 +46,20 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     lrtList?.[0]
   );
   useEffect(() => setActiveLrt(lrtList?.[0]), [lrtList]);
+
+  const tab = asPath.split('#')[1]?.match(/withdraw/i)
+    ? RestakeFormTab.WITHDRAW
+    : RestakeFormTab.RESTAKE;
+  const handleChangeTab = useCallback(
+    async (nextTab: RestakeFormTab) => {
+      if (nextTab === RestakeFormTab.RESTAKE) {
+        await push({ hash: 'withdraw' });
+      } else {
+        await push({ hash: 'restake' });
+      }
+    },
+    [push]
+  );
 
   const {
     data: {
@@ -98,6 +115,8 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
         <TestnetBanner />
         <div className="w-full space-y-4">
           <RestakeForm
+            tab={tab}
+            onChangeTab={handleChangeTab}
             lrtDetails={activeLrt}
             networkStats={networkStats}
             onWithdrawSuccess={handleRequestSuccess}

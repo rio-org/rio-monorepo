@@ -160,6 +160,11 @@ export type MobileTableColumns<T> = {
   expanded: TableColumn<T>[];
 };
 
+export enum RestakeFormTab {
+  RESTAKE = 'Restake',
+  WITHDRAW = 'Withdraw'
+}
+
 ///////////////////////////
 // asset types
 ///////////////////////////

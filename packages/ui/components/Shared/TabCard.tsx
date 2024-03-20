@@ -4,11 +4,11 @@ import { Tabs, TabsTrigger, TabsList } from '../shadcn/tabs';
 import { twJoin } from 'tailwind-merge';
 import { cn } from '../../lib/utilities';
 
-interface TabCardProps
+interface TabCardProps<T extends string = string>
   extends Omit<React.ComponentProps<typeof Tabs>, 'onValueChange'> {
-  tabs: string[];
+  tabs: T[];
   onValueChange?: (
-    value: string
+    value: T
   ) => void | React.Dispatch<React.SetStateAction<string>>;
   tabDetails?: React.ReactNode | React.ReactNode[];
   cardProps?: React.ComponentProps<typeof Card>;
