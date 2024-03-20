@@ -129,7 +129,7 @@ const tabsTriggerBaseCn = twJoin(
   'shadow-cardinactive rounded-b-none rounded-t-[4px]',
   'data-[state=active]:border-border data-[state=active]:text-opacity-100',
   'data-[state=active]:bg-background data-[state=active]:bg-opacity-100',
-  'data-[state=active]:!shadow-cardlight' // data-[state=active]:py-[9px]'
+  'data-[state=active]:!shadow-cardlight'
 );
 
 function Trigger({
@@ -153,7 +153,7 @@ function Trigger({
           {...tabsTriggerProps}
           className={cn(
             tabsTriggerBaseCn,
-            isActive && '[&+div]:border-t-transparent', // [&+div]:h-[5px]',
+            isActive && '[&+div]:border-t-transparent',
             tabsTriggerProps?.className
           )}
         >
