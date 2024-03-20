@@ -186,7 +186,7 @@ function RestakeFormBase({
   return (
     <>
       <TabCard
-        tabs={['Restake', 'Withdraw'] as const}
+        tabs={['Restake', 'Withdraw']}
         defaultValue={tab}
         onValueChange={handleChangeTab}
         cardProps={{ className: 'p-4' }}
