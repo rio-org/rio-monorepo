@@ -1,12 +1,13 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMediaQuery } from 'react-responsive';
 import Skeleton from 'react-loading-skeleton';
-import { useMemo, useState } from 'react';
 import { formatUnits } from 'viem';
 import {
   type LRTDetails,
   RioTransactionType,
-  AssetDetails
+  AssetDetails,
+  RestakeFormTab
 } from '@rio-monorepo/ui/lib/typings';
 import {
   type LiquidRestakingTokenClient,
@@ -16,6 +17,11 @@ import { RestakingTokenExchangeRate } from '@rio-monorepo/ui/components/Shared/R
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
 import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
+import { InfoBadge } from '@rio-monorepo/ui/components/Shared/InfoBadge';
+import { IconMedal } from '@rio-monorepo/ui/components/Icons/IconMedal';
+import { IconChart } from '@rio-monorepo/ui/components/Icons/IconChart';
+import { DetailBox } from '@rio-monorepo/ui/components/Shared/DetailBox';
+import { TabCard } from '@rio-monorepo/ui/components/Shared/TabCard';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import {
   displayAmount,
@@ -23,61 +29,38 @@ import {
 } from '@rio-monorepo/ui/lib/utilities';
 import { useRestakeForm } from '../../hooks/useRestakeForm';
 import { useWithdrawForm } from '../../hooks/useWithdrawForm';
-import { TabCard } from '@rio-monorepo/ui/components/Shared/TabCard';
-import { InfoBadge } from '@rio-monorepo/ui/components/Shared/InfoBadge';
-import { IconMedal } from '@rio-monorepo/ui/components/Icons/IconMedal';
-import { IconChart } from '@rio-monorepo/ui/components/Icons/IconChart';
-// import { TabsContent } from '@rio-monorepo/ui/components/shadcn/tabs';
 import RestakeField from './RestakeField';
-import { DetailBox } from '@rio-monorepo/ui/components/Shared/DetailBox';
 import { MOBILE_MQ } from '@rio-monorepo/ui/lib/constants';
 
 export function RestakeForm({
   lrtDetails,
-  networkStats,
-  onWithdrawSuccess
+  ...props
 }: {
   lrtDetails?: LRTDetails;
+  tab?: RestakeFormTab;
+  onChangeTab?: (tab: RestakeFormTab) => void;
   onWithdrawSuccess?: () => void;
   networkStats: { tvl: string | null; apy: string | null };
 }) {
   if (lrtDetails) {
-    return (
-      <RestakeFormWithLRTWrapper
-        lrtDetails={lrtDetails}
-        onWithdrawSuccess={onWithdrawSuccess}
-        networkStats={networkStats}
-      />
-    );
+    return <RestakeFormWithLRTWrapper lrtDetails={lrtDetails} {...props} />;
   }
 
-  return (
-    <RestakeFormBase
-      lrtDetails={lrtDetails}
-      restakingTokenClient={null}
-      onWithdrawSuccess={onWithdrawSuccess}
-      networkStats={networkStats}
-    />
-  );
+  return <RestakeFormBase restakingTokenClient={null} {...props} />;
 }
 
-function RestakeFormWithLRTWrapper({
-  lrtDetails,
-  networkStats,
-  onWithdrawSuccess
-}: {
+function RestakeFormWithLRTWrapper(props: {
   lrtDetails: LRTDetails;
   onWithdrawSuccess?: () => void;
+  onChangeTab?: (tab: RestakeFormTab) => void;
+  tab?: RestakeFormTab;
   networkStats: { tvl: string | null; apy: string | null };
 }) {
-  const restakingTokenClient = useLiquidRestakingToken(lrtDetails.address);
+  const restakingTokenClient = useLiquidRestakingToken(
+    props.lrtDetails.address
+  );
   return (
-    <RestakeFormBase
-      restakingTokenClient={restakingTokenClient}
-      lrtDetails={lrtDetails}
-      onWithdrawSuccess={onWithdrawSuccess}
-      networkStats={networkStats}
-    />
+    <RestakeFormBase {...props} restakingTokenClient={restakingTokenClient} />
   );
 }
 
@@ -85,9 +68,13 @@ function RestakeFormBase({
   restakingTokenClient,
   lrtDetails,
   networkStats,
-  onWithdrawSuccess
+  onWithdrawSuccess,
+  tab: tabProp,
+  onChangeTab
 }: {
   restakingTokenClient: LiquidRestakingTokenClient | null;
+  tab?: RestakeFormTab;
+  onChangeTab?: (tab: RestakeFormTab) => void;
   lrtDetails?: LRTDetails;
   onWithdrawSuccess?: () => void;
   networkStats: { tvl: string | null; apy: string | null };
@@ -95,13 +82,26 @@ function RestakeFormBase({
   const { address } = useAccountIfMounted();
   const [restakeInputAmount, setRestakeInputAmount] = useState<string>('');
   const [withdrawInputAmount, setWithdrawInputAmount] = useState<string>('');
-  const [tab, setTab] = useState<string>('Restake');
+  const [tab, setTab] = useState<RestakeFormTab>(
+    tabProp || RestakeFormTab.RESTAKE
+  );
   const assets = useMemo(() => {
     return lrtDetails?.underlyingAssets.map((t) => t.asset) || [];
   }, [lrtDetails]);
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets?.[0]);
 
   const isMobile = useMediaQuery({ query: MOBILE_MQ });
+
+  useEffect(() => {
+    if (tabProp) setTab(tabProp);
+  }, [tabProp]);
+
+  const isRestakeTab = tab === RestakeFormTab.RESTAKE;
+
+  const handleChangeTab = useCallback(
+    (newTab: string) => (onChangeTab || setTab)(newTab as RestakeFormTab),
+    [onChangeTab]
+  );
 
   const {
     contractWrite: withdrawWrite,
@@ -137,7 +137,7 @@ function RestakeFormBase({
   const estimatedWithdrawalAmount = useMemo(
     () => (
       <strong className="flex flex-row gap-2 items-center leading-none">
-        {tab === 'Restake' ? (
+        {tab === RestakeFormTab.RESTAKE ? (
           <>
             {typeof restakeForm.minAmountOut !== 'bigint' ? (
               <Skeleton width={40} />
@@ -168,9 +168,9 @@ function RestakeFormBase({
           </>
         )}
         <span className="leading-none">
-          {(tab === 'Restake' ? lrtDetails?.symbol : activeToken?.symbol) || (
-            <Skeleton className="w-6 h-3.5" />
-          )}
+          {(tab === RestakeFormTab.RESTAKE
+            ? lrtDetails?.symbol
+            : activeToken?.symbol) || <Skeleton className="w-6 h-3.5" />}
         </span>
       </strong>
     ),
@@ -188,7 +188,7 @@ function RestakeFormBase({
       <TabCard
         tabs={['Restake', 'Withdraw']}
         defaultValue={tab}
-        onValueChange={setTab}
+        onValueChange={handleChangeTab}
         cardProps={{ className: 'p-4' }}
         tabDetails={
           <div className="flex justify-between items-center w-full md:justify-start md:w-[unset] gap-6">
@@ -224,10 +224,10 @@ function RestakeFormBase({
       >
         <RestakeField
           tab={tab}
-          amount={tab === 'Restake' ? restakeInputAmount : withdrawInputAmount}
+          amount={isRestakeTab ? restakeInputAmount : withdrawInputAmount}
           activeToken={activeToken}
           disabled={
-            tab === 'Restake' ? restakeWrite.isLoading : withdrawWrite.isLoading
+            isRestakeTab ? restakeWrite.isLoading : withdrawWrite.isLoading
           }
           lrtDetails={lrtDetails}
           activeTokenBalance={restakeForm.accountTokenBalance}
@@ -240,11 +240,11 @@ function RestakeFormBase({
           <RestakingTokenExchangeRate
             assetSymbol={restakeForm.activeToken?.symbol}
             restakingTokenSymbol={lrtDetails?.symbol}
-            rateDenominator={tab === 'Restake' ? 'asset' : 'restakingToken'}
+            rateDenominator={isRestakeTab ? 'asset' : 'restakingToken'}
             className="basis-[calc(33%-32px)] mb-2 md:mb-0 md:mr-2 w-full md:w-[unset]"
           />
           <AnimatePresence>
-            {tab === 'Withdraw' && (
+            {!isRestakeTab && (
               <motion.div
                 initial={{
                   opacity: 0,
@@ -346,14 +346,14 @@ function RestakeFormBase({
             title={
               <div className="flex items-center gap-1 leading-none">
                 <span className="leading-none">
-                  {tab === 'Restake' ? 'Reward fee' : 'Withdrawal fee'}
+                  {isRestakeTab ? 'Reward fee' : 'Withdrawal fee'}
                 </span>
 
                 <InfoTooltip
                   align="center"
                   contentClassName="max-w-[300px] p-3 font-normal"
                 >
-                  {tab === 'Restake' ? (
+                  {isRestakeTab ? (
                     <p>
                       The percentage taken from all staking and restaking
                       rewards (not withdrawals or deposits).
@@ -370,7 +370,7 @@ function RestakeFormBase({
             className="w-full md:w-[unset] basis-[calc(33%-32px)] mt-2 md:mt-0 md:ml-2"
           >
             <span className="leading-none">
-              {tab === 'Restake' ? '10%' : 'None'}
+              {isRestakeTab ? '10%' : 'None'}
             </span>
           </DetailBox>
         </div>
@@ -378,12 +378,10 @@ function RestakeFormBase({
           direction="row"
           title={
             <div className="flex items-center gap-2 leading-none">
-              <span>
-                {tab === 'Restake' ? 'Receive' : 'Estimated to Receive'}
-              </span>
+              <span>{isRestakeTab ? 'Receive' : 'Estimated to Receive'}</span>
 
               <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
-                {tab === 'Restake' ? (
+                {isRestakeTab ? (
                   <p>
                     Estimation is based on current market conditions. Actual
                     amounts may change based on market fluctuations, pending
@@ -403,7 +401,7 @@ function RestakeFormBase({
         </DetailBox>
 
         <TransactionButton
-          {...(tab === 'Restake'
+          {...(isRestakeTab
             ? {
                 transactionType: RioTransactionType.DEPOSIT,
                 toasts: {
@@ -446,7 +444,7 @@ function RestakeFormBase({
                 write: withdrawWrite.write
               })}
         >
-          {tab === 'Restake' ? 'Restake' : 'Request withdrawal'}
+          {isRestakeTab ? 'Restake' : 'Request withdrawal'}
         </TransactionButton>
         {!restakeForm.isAllowed && address && (
           <ApproveButtons

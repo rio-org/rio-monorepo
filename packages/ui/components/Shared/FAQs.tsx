@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { twJoin } from 'tailwind-merge';
 import { IconOpenAccordion } from '../Icons/IconOpenAccordion';
@@ -19,16 +19,25 @@ const buttonHoverCN = twJoin(
   'active:bg-foreground active:bg-opacity-[0.031]'
 );
 
-export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
+export const FAQS = ({ faqs, tab }: { faqs: FAQ[]; tab?: string }) => {
   const [faqsExpanded, setFaqsExpanded] = useState<boolean>(false);
   const [expandedQuestions, setExpandedQuestions] = useState<boolean[]>(
     faqs.map(() => false)
   );
 
+  const filteredFaqs = useMemo(
+    () => (tab ? faqs.filter((faq) => faq.tab === tab?.toLowerCase()) : faqs),
+    [faqs, tab]
+  );
+
+  useEffect(() => {
+    setFaqsExpanded(false);
+  }, [filteredFaqs]);
+
   useEffect(() => {
     if (faqsExpanded) return;
-    setExpandedQuestions(faqs.map(() => false));
-  }, [faqsExpanded]);
+    setExpandedQuestions(filteredFaqs.map(() => false));
+  }, [faqsExpanded, filteredFaqs]);
 
   const toggleFaqs = useCallback(() => {
     setFaqsExpanded((prev) => !prev);
@@ -64,7 +73,7 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
             {...APPEAR_VARIANTS}
             className="w-full space-y-4 overflow-hidden"
           >
-            {faqs.map((faq, i) => (
+            {filteredFaqs.map((faq, i) => (
               <div key={i} className="w-full rounded-[4px] bg-foregroundA1">
                 <button
                   onClick={curriedExpandQuestion(i)}

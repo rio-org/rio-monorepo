@@ -160,6 +160,11 @@ export type MobileTableColumns<T> = {
   expanded: TableColumn<T>[];
 };
 
+export enum RestakeFormTab {
+  RESTAKE = 'Restake',
+  WITHDRAW = 'Withdraw'
+}
+
 ///////////////////////////
 // asset types
 ///////////////////////////
@@ -390,6 +395,7 @@ export type EdgeFunctionHandlers = { [method in Methods]?: EdgeFunction };
 export type FAQ = {
   q: string;
   a: string;
+  tab?: string;
 };
 
 export type FAQsDirectory = {
