@@ -116,7 +116,7 @@ export const getAnkrRpcUrl = (chainId: number) => {
   const param = getAnkrChainParam(chainId);
   const apiKey = process.env.NEXT_PUBLIC_ANKR_ID;
   if (param === 'unknown' || !apiKey) return '';
-  return `https://https://rpc.ankr.com/${param}/${apiKey}`;
+  return `https://rpc.ankr.com/${param}/${apiKey}`;
 };
 
 export const linkToAddressOnBlockExplorer = (
