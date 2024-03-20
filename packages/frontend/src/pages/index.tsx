@@ -52,11 +52,7 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     : RestakeFormTab.RESTAKE;
   const handleChangeTab = useCallback(
     async (nextTab: RestakeFormTab) => {
-      if (nextTab === RestakeFormTab.RESTAKE) {
-        await push({ hash: 'withdraw' });
-      } else {
-        await push({ hash: 'restake' });
-      }
+      await push({ hash: nextTab.toLowerCase() });
     },
     [push]
   );
@@ -189,7 +185,7 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
               )}
             </AnimatePresence>
           </div>
-          {!!faqs.length && <FAQS faqs={faqs} />}
+          {!!faqs.length && <FAQS faqs={faqs} tab={tab} />}
         </div>
       </PageWrapper>
     </>

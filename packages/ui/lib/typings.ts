@@ -395,6 +395,7 @@ export type EdgeFunctionHandlers = { [method in Methods]?: EdgeFunction };
 export type FAQ = {
   q: string;
   a: string;
+  tab?: string;
 };
 
 export type FAQsDirectory = {
