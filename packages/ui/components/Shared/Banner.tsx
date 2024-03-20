@@ -105,7 +105,7 @@ export const Banner = forwardRef<HTMLDivElement, BannerProps>(
               {title}
             </motion.span>
           </div>
-          <div className="flex justify-end items-center gap-2">
+          <div className="flex justify-end items-center gap-3">
             {actionComponent}
             {accordion && (
               <Button

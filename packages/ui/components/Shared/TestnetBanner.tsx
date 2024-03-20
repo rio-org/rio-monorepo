@@ -11,43 +11,48 @@ export function TestnetBanner({ className }: { className?: string }) {
   const { chain } = useAccountIfMounted();
   const { chains, switchChain, isPending } = useSwitchChain();
   const mainnet = chains?.find((c) => c.id === 1);
-  const isGoerli = chain?.id === goerli.id;
+  const goerliExists = chains?.find((c) => c.id === goerli.id);
   return (
     <AnimatePresence>
-      {isGoerli && (
+      {(goerliExists || (chain?.testnet && mainnet)) && (
         <Banner
-          accordion
-          title="Goerli Testnet Disruptions"
-          type="warning"
-          className={className}
-        >
-          The Rio Network and EigenLayer rely on the Goerli Ethereum testnet
-          that is currently in a degraded state. Please take note that
-          transactions may fail or take a long time to confirm. We will launch
-          on the Holesky testnet alongside EigenLayer.
-        </Banner>
-      )}
-      {!isGoerli && chain?.testnet && mainnet && (
-        <Banner
-          icon={<SatelliteDishIcon className="h-4 w-4" />}
-          type="warning"
-          className={className}
-          title="Connected to testnet"
-          actionComponent={
-            <Button
-              variant="link"
-              disabled={isPending}
-              onClick={() => switchChain({ chainId: mainnet.id })}
-              className={twJoin(
-                'py-0 h-[unset] px-0',
-                'text-xs text-warning-foreground font-medium underline leading-none',
-                'transition-opacity opacity-80 hover:opacity-100 focus:opacity-100'
-              )}
-            >
-              Switch to mainnet
-            </Button>
+          accordion={!!goerliExists}
+          icon={
+            goerliExists ? undefined : <SatelliteDishIcon className="h-4 w-4" />
           }
-        />
+          title={
+            goerliExists ? 'Goerli Testnet Disruptions' : 'Connected to testnet'
+          }
+          type="warning"
+          className={className}
+          actionComponent={
+            !mainnet ? null : (
+              <Button
+                variant="link"
+                disabled={isPending}
+                onClick={() => switchChain({ chainId: mainnet.id })}
+                className={twJoin(
+                  'py-0 h-[unset] px-0',
+                  'text-xs text-warning-foreground font-medium underline leading-none',
+                  'transition-opacity opacity-80 hover:opacity-100 focus:opacity-100'
+                )}
+              >
+                Switch to mainnet
+              </Button>
+            )
+          }
+        >
+          {goerliExists ? (
+            <>
+              The Rio Network and EigenLayer rely on the Goerli Ethereum testnet
+              that is currently in a degraded state. Please take note that
+              transactions may fail or take a long time to confirm. We will
+              launch on the Holesky testnet alongside EigenLayer.
+            </>
+          ) : (
+            <>Switch to mainnet</>
+          )}
+        </Banner>
       )}
     </AnimatePresence>
   );
