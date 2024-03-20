@@ -203,11 +203,13 @@ export function Providers({
 export default Providers;
 
 function _RainbowKitProvider(props: Parameters<typeof RainbowKitProvider>[0]) {
-  const { theme } = useTheme();
+  const { theme, systemTheme } = useTheme();
+  const isDark =
+    theme === Theme.DARK || (theme === 'system' && systemTheme === 'dark');
   return (
     <RainbowKitProvider
       {...props}
-      theme={theme === Theme.DARK ? rainbowDarkTheme() : undefined}
+      theme={isDark ? rainbowDarkTheme() : undefined}
     />
   );
 }

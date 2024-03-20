@@ -18,6 +18,7 @@ import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquid
 import { useGetAccountWithdrawals } from '@rio-monorepo/ui/hooks/useGetAccountWithdrawals';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
+import { useHashTabs } from '@rio-monorepo/ui/hooks/useHashTabs';
 import { getFAQsFromEdge } from '@rio-monorepo/ui/lib/api';
 import { asType, cn } from '@rio-monorepo/ui/lib/utilities';
 import { APP_ENV } from '@rio-monorepo/ui/config';
@@ -32,12 +33,10 @@ import { WithdrawalRequestHistory } from '@/components/History/WithdrawalRequest
 import { RestakeForm } from '@/components/Restake/RestakeForm';
 import { ClaimSection } from '@/components/Claim/ClaimSection';
 import { APP_NAV_ITEMS } from 'config';
-import { useRouter } from 'next/router';
 
 const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   faqs
 }) => {
-  const { push, asPath } = useRouter();
   const { address } = useAccountIfMounted();
   // When more LRT products are available, we'll offer a way to switch these
   const isMounted = useIsMounted();
@@ -45,17 +44,13 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   const [activeLrt, setActiveLrt] = useState<LRTDetails | undefined>(
     lrtList?.[0]
   );
-  useEffect(() => setActiveLrt(lrtList?.[0]), [lrtList]);
+  const [tab, setTab] = useHashTabs({
+    index: RestakeFormTab.RESTAKE,
+    withdraw: RestakeFormTab.WITHDRAW,
+    restake: RestakeFormTab.RESTAKE
+  });
 
-  const tab = asPath.split('#')[1]?.match(/withdraw/i)
-    ? RestakeFormTab.WITHDRAW
-    : RestakeFormTab.RESTAKE;
-  const handleChangeTab = useCallback(
-    async (nextTab: RestakeFormTab) => {
-      await push({ hash: nextTab.toLowerCase() });
-    },
-    [push]
-  );
+  useEffect(() => setActiveLrt(lrtList?.[0]), [lrtList]);
 
   const {
     data: {
@@ -112,7 +107,7 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
         <div className="w-full space-y-4">
           <RestakeForm
             tab={tab}
-            onChangeTab={handleChangeTab}
+            onChangeTab={setTab}
             lrtDetails={activeLrt}
             networkStats={networkStats}
             onWithdrawSuccess={handleRequestSuccess}
