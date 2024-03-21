@@ -28,7 +28,7 @@
     "wagmi": ">=1.2"
   },
   "dependencies": {
-    "@rionetwork/sdk": "0.1.0-alpha.20"
+    "@rionetwork/sdk": "0.1.0-alpha.22"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",

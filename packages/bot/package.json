@@ -25,7 +25,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@rionetwork/sdk": "0.1.0-alpha.17",
+    "@rionetwork/sdk": "0.1.0-alpha.22",
     "date-fns": "^3.3.1",
     "dotenv": "^16.3.2",
     "viem": "^1.19.9"

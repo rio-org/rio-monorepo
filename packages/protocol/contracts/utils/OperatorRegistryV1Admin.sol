@@ -105,7 +105,7 @@ library OperatorRegistryV1Admin {
     }
 
     /// Deactivates an operator, exiting all remaining stake to the
-    /// asset manager.
+    /// deposit pool.
     /// @param s The operator registry v1 storage accessor.
     /// @param assetRegistry The asset registry contract.
     /// @param operatorId The operator's ID.
