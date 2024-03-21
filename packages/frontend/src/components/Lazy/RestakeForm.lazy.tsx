@@ -101,68 +101,6 @@ export function RestakeFormSkeleton() {
             </button>
           </div>
         </div>
-        {/* <TransactionButton
-          {...(isRestakeTab
-            ? {
-                transactionType: RioTransactionType.DEPOSIT,
-                toasts: {
-                  sent: 'Restake transaction sent',
-                  error: 'Failed to restake',
-                  success: `Sucessfully restaked ${displayAmount(
-                    Number(restakeInputAmount)
-                  )} ${restakeForm.activeToken?.symbol ?? ''}`
-                },
-                refetch: restakeForm.refetchUserBalances,
-                hash: restakeWrite.txHash,
-                disabled:
-                  !restakeForm.isValidAmount ||
-                  restakeForm.isEmpty ||
-                  restakeWrite.isLoading,
-                isSigning: restakeWrite.isLoading,
-                error: restakeWrite.error,
-                reset: restakeForm.resetForm,
-                clearErrors: restakeForm.clearErrors,
-                write: restakeWrite.write
-              }
-            : {
-                transactionType: RioTransactionType.WITHDRAW_REQUEST,
-                toasts: {
-                  sent: `Withdrawal request sent`,
-                  success: `Sucessfully requested to unstake ${withdrawInputAmount} ${lrtDetails?.symbol}`,
-                  error: `An error occurred requesting withdrawal`
-                },
-                hash: withdrawWrite.txHash,
-                refetch: withdrawForm.refetch,
-                disabled:
-                  !address ||
-                  !withdrawForm.amount ||
-                  !withdrawForm.isValidAmount ||
-                  withdrawWrite.isLoading,
-                isSigning: withdrawWrite.isLoading,
-                error: withdrawWrite.error,
-                reset: withdrawForm.resetForm,
-                clearErrors: withdrawWrite.reset,
-                write: withdrawWrite.write
-              })}
-        >
-          {isRestakeTab ? 'Restake' : 'Request withdrawal'}
-        </TransactionButton>
-        {!restakeForm.isAllowed && address && (
-          <ApproveButtons
-            allowanceTarget={restakeForm.allowanceTarget}
-            accountAddress={address}
-            isValidAmount={restakeForm.isValidAmount}
-            amount={restakeForm.amount || BigInt(0)}
-            token={restakeForm.activeToken}
-            refetchAllowance={restakeForm.handleRefetchAllowance}
-          />
-        )}
-        {restakeForm.allowanceNote && (
-          <p className="text-sm text-center px-2 mt-2 text-foregroundA8 font-normal">
-            {restakeForm.allowanceNote}
-          </p>
-        )}
-      </TabCard> */}
       </div>
     </>
   );
