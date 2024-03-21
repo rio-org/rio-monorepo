@@ -129,7 +129,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         }
 
         // Deposit remaining assets into EigenLayer.
-        (uint256 sharesReceived, bool isDepositCapped) = depositPool().depositBalanceIntoEigenLayer(asset);
+        (uint256 sharesReceived, bool canMakeAdditionalDeposit) = depositPool().depositBalanceIntoEigenLayer(asset);
         if (sharesOwed == 0 && sharesReceived == 0) {
             revert NO_REBALANCE_NEEDED();
         }
@@ -141,10 +141,10 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
             }
         }
 
-        // When the deposit is not capped, the rebalance is considered complete, and the asset rebalance
-        // timestamp is increased by the specified delay. If capped, the asset may be rebalanced again
-        // immediately as there are more assets to deposit.
-        if (!isDepositCapped) {
+        // Additional funds may be available for deposit into EigenLayer, but the single transaction
+        // deposit limit for ETH has been reached to avoid exceeding the block gas limit. In this scenario,
+        // the rebalance timestamp is not updated to prevent unnecessary delays in the next rebalance.
+        if (!canMakeAdditionalDeposit) {
             assetNextRebalanceAfter[asset] = uint40(block.timestamp) + rebalanceDelay;
         }
         emit Rebalanced(asset);

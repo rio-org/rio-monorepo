@@ -26,13 +26,13 @@ contract ScriptBase is Script {
     address public deployer = vm.addr(deployerKey);
 
     /// @dev The EigenLayer strategy manager address.
-    address public strategyManager = EIGENLAYER_ADDRESSES[block.chainid][STRATEGY_MANAGER_LABEL];
+    address public strategyManager;
 
     /// @dev The EigenLayer Eigen Pod Manager address.
-    address public eigenPodManager = EIGENLAYER_ADDRESSES[block.chainid][EIGEN_POD_MANAGER_LABEL];
+    address public eigenPodManager;
 
     /// @dev The EigenLayer Delegation Manager address.
-    address public delegationManager = EIGENLAYER_ADDRESSES[block.chainid][DELEGATION_MANAGER_LABEL];
+    address public delegationManager;
 
     /// @dev A modifier that wraps a function with start and stop broadcast calls.
     modifier broadcast() {
@@ -52,5 +52,10 @@ contract ScriptBase is Script {
         EIGENLAYER_ADDRESSES[5][STRATEGY_MANAGER_LABEL] = 0x8676bb5f792ED407a237234Fe422aC6ed3540055;
         EIGENLAYER_ADDRESSES[5][EIGEN_POD_MANAGER_LABEL] = 0xa286b84C96aF280a49Fe1F40B9627C2A2827df41;
         EIGENLAYER_ADDRESSES[5][DELEGATION_MANAGER_LABEL] = 0x1b7b8F6b258f95Cf9596EabB9aa18B62940Eb0a8;
+
+        // Populate EigenLayer addresses for the current chain ID.
+        strategyManager = EIGENLAYER_ADDRESSES[block.chainid][STRATEGY_MANAGER_LABEL];
+        eigenPodManager = EIGENLAYER_ADDRESSES[block.chainid][EIGEN_POD_MANAGER_LABEL];
+        delegationManager = EIGENLAYER_ADDRESSES[block.chainid][DELEGATION_MANAGER_LABEL];
     }
 }

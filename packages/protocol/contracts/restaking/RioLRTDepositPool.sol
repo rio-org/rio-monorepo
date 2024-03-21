@@ -58,7 +58,12 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
                     (amountToDeposit, isDepositCapped) = (ETH_DEPOSIT_SOFT_CAP, true);
                 }
             }
-            return (OperatorOperations.depositETHToOperators(operatorRegistry(), amountToDeposit), isDepositCapped);
+            // Deposit ETH to the validator keys uploaded by our operators. We return a flag indicating
+            // whether an additional deposit can be made. This requires the deposit pool to have more capacity.
+            uint256 depositAmount = OperatorOperations.depositETHToOperators(
+                operatorRegistry(), amountToDeposit
+            );
+            return (depositAmount, isDepositCapped && depositAmount > 0);
         }
 
         address strategy = assetRegistry().getAssetStrategy(asset);

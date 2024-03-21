@@ -276,7 +276,9 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @param newPriceFeed The new price feed.
     function setAssetPriceFeed(address asset, address newPriceFeed) external onlyOwner {
         if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+
         if (newPriceFeed == address(0)) revert INVALID_PRICE_FEED();
+        if (IPriceFeed(newPriceFeed).decimals() != priceFeedDecimals) revert INVALID_PRICE_FEED_DECIMALS();
 
         assetInfo[asset].priceFeed = newPriceFeed;
 
