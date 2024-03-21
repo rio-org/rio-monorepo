@@ -37,7 +37,8 @@ import {
   WithdrawalEpochStatus,
   WithdrawalClaim,
   OperatorDelegator,
-  Validator
+  Validator,
+  SubgraphClientOptions
 } from './types';
 import { GraphQLClient } from 'graphql-request';
 import BN from 'big.js';
@@ -53,19 +54,20 @@ export class SubgraphClient {
   /**
    * Returns a `SubgraphClient` instance for the provided chain ID
    * @param chainId The chain ID
-   * @param subgraphUrl An optional custom subgraph URL
+   * @param options Optional configuration with custom subgraph URL and/or The Graph API key
    */
-  public static for(chainId: number, subgraphUrl?: string) {
-    return new SubgraphClient(chainId, subgraphUrl);
+  public static for(chainId: number, options?: SubgraphClientOptions) {
+    return new SubgraphClient(chainId, options);
   }
 
   /**
    * @param chainId The chain ID
-   * @param subgraphUrl An optional custom subgraph URL
+   * @param options Optional configuration with custom subgraph URL and/or The Graph API key
    */
-  constructor(chainId: number, subgraphUrl?: string) {
+  constructor(chainId: number, options?: SubgraphClientOptions) {
     this._gql = new GraphQLClient(
-      subgraphUrl ?? getSubgraphUrlForChainOrThrow(chainId)
+      options?.subgraphUrl ??
+        getSubgraphUrlForChainOrThrow(chainId, options?.graphApiKey)
     );
   }
 
@@ -220,7 +222,7 @@ export class SubgraphClient {
           timestamp,
           blockNumber,
           tx,
-  
+
           isClaimed,
           claimId: claim?.id ?? null,
           claimTx: claim?.tx ?? null,

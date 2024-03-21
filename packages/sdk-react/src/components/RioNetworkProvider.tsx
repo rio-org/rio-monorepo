@@ -17,6 +17,7 @@ export interface RioNetwork {
 export type RioNetworkProps = {
   children: React.ReactNode;
   subgraphUrl?: string;
+  graphApiKey?: string;
 };
 
 export const RioNetworkContext = createContext<RioNetwork | undefined>(
@@ -24,13 +25,15 @@ export const RioNetworkContext = createContext<RioNetwork | undefined>(
 );
 
 export const RioNetworkProvider: React.FC<RioNetworkProps> = ({
-  children, subgraphUrl
+  children,
+  subgraphUrl,
+  graphApiKey
 }: RioNetworkProps) => {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
 
   const [subgraphClient, setSubgraphClient] = useState<SubgraphClient>(
-    new SubgraphClient(publicClient.chain.id, subgraphUrl)
+    new SubgraphClient(publicClient.chain.id, { subgraphUrl, graphApiKey })
   );
   const [restakingTokenClients, setRestakingTokenClients] = useState<
     Record<Address, LiquidRestakingTokenClient>
@@ -42,7 +45,8 @@ export const RioNetworkProvider: React.FC<RioNetworkProps> = ({
       client = new LiquidRestakingTokenClient(
         address,
         publicClient,
-        walletClient ?? undefined
+        walletClient ?? undefined,
+        { subgraphUrl, graphApiKey }
       );
       setRestakingTokenClients((clients) => ({
         ...clients,
@@ -72,9 +76,11 @@ export const RioNetworkProvider: React.FC<RioNetworkProps> = ({
       {} as Record<Address, LiquidRestakingTokenClient>
     );
 
-    setSubgraphClient(new SubgraphClient(publicClient.chain.id));
+    setSubgraphClient(
+      new SubgraphClient(publicClient.chain.id, { subgraphUrl, graphApiKey })
+    );
     setRestakingTokenClients(updatedClients);
-  }, [publicClient, walletClient]);
+  }, [publicClient, walletClient, subgraphUrl, graphApiKey]);
 
   const context: RioNetwork = {
     subgraphClient,

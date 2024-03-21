@@ -9,6 +9,11 @@ export interface QueryConfig<OB, W> {
   where?: W;
 }
 
+export interface SubgraphClientOptions {
+  subgraphUrl?: string;
+  graphApiKey?: string;
+}
+
 //#region Entity Types
 
 export interface Issuer {

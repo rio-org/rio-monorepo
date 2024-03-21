@@ -17,6 +17,7 @@ import {
 import {
   LiquidRestakingToken,
   SubgraphClient,
+  SubgraphClientOptions,
   UnderlyingAsset
 } from '../subgraph';
 import {
@@ -105,7 +106,7 @@ export class LiquidRestakingTokenClient {
     address: Address,
     publicClient: PublicClient,
     walletClient?: WalletClient,
-    subgraphUrl?: string
+    subgraphClientOptions?: SubgraphClientOptions
   ) {
     this._address = address;
 
@@ -114,7 +115,10 @@ export class LiquidRestakingTokenClient {
         'Chain ID is not available in the public client provided to `LiquidRestakingToken`.'
       );
     }
-    this._subgraph = new SubgraphClient(publicClient.chain.id, subgraphUrl);
+    this._subgraph = new SubgraphClient(
+      publicClient.chain.id,
+      subgraphClientOptions
+    );
 
     this._public = publicClient;
     this._wallet = walletClient;
