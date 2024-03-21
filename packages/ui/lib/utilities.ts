@@ -85,17 +85,38 @@ export const getInfuraChainLabel = (chainId: number) => {
       return 'unknown';
   }
 };
+export const getAnkrChainParam = (chainId: number) => {
+  switch (chainId) {
+    case 1:
+      return 'eth';
+    case 11155111:
+      return 'eth_sepolia';
+    case 17000:
+      return 'eth_holesky';
+    default:
+      return 'unknown';
+  }
+};
 
 export const getAlchemyRpcUrl = (chainId: number) => {
-  return `https://${getAlchemyChainLabel(chainId)}.g.alchemy.com/v2/${
-    process.env.NEXT_PUBLIC_ALCHEMY_ID
-  }`;
+  const subdomain = getAlchemyChainLabel(chainId);
+  const apiKey = process.env.NEXT_PUBLIC_ALCHEMY_ID;
+  if (subdomain === 'unknown' || !apiKey) return '';
+  return `https://${subdomain}.g.alchemy.com/v2/${apiKey}`;
 };
 
 export const getInfuraRpcUrl = (chainId: number) => {
-  return `https://${getInfuraChainLabel(chainId)}.infura.io/v3/${
-    process.env.NEXT_PUBLIC_INFURA_ID
-  }`;
+  const subdomain = getInfuraChainLabel(chainId);
+  const apiKey = process.env.NEXT_PUBLIC_INFURA_ID;
+  if (subdomain === 'unknown' || !apiKey) return '';
+  return `https://${subdomain}.infura.io/v3/${apiKey}`;
+};
+
+export const getAnkrRpcUrl = (chainId: number) => {
+  const param = getAnkrChainParam(chainId);
+  const apiKey = process.env.NEXT_PUBLIC_ANKR_ID;
+  if (param === 'unknown' || !apiKey) return '';
+  return `https://rpc.ankr.com/${param}/${apiKey}`;
 };
 
 export const linkToAddressOnBlockExplorer = (

@@ -50,10 +50,14 @@ import RioTransactionStoreProvider from '../contexts/RioTransactionStore';
 import WalletAndTermsStoreProvider from '../contexts/WalletAndTermsStore';
 import { AppContextProvider } from '../contexts/AppContext';
 import { TouchProvider } from '../contexts/TouchProvider';
-import { getAlchemyRpcUrl, getInfuraRpcUrl } from '../lib/utilities';
+import {
+  getAlchemyRpcUrl,
+  getAnkrRpcUrl,
+  getInfuraRpcUrl
+} from '../lib/utilities';
 import { AppEnv, Theme } from '../lib/typings';
 import { theme } from '../lib/theme';
-import { APP_ENV } from '../config';
+import { APP_ENV, CHAIN_ID } from '../config';
 
 const WagmiProvider = dynamic(
   import('wagmi').then((mod) => mod.WagmiProvider),
@@ -63,29 +67,38 @@ const WagmiProvider = dynamic(
 // Create the cache client
 const queryClient = new QueryClient();
 
+const chainlist = [goerli, holesky, mainnet] as [Chain, ...Chain[]];
+
 const chooseChain = (): [Chain, ...Chain[]] => {
   if (APP_ENV === AppEnv.PRODUCTION) {
-    return [goerli] as [Chain, ...Chain[]];
+    return [
+      chainlist.find((c) => c.id === CHAIN_ID) ?? goerli,
+      ...(CHAIN_ID === mainnet.id ? [holesky] : [])
+    ];
   } else {
-    return [goerli, holesky, mainnet] as [Chain, ...Chain[]];
+    return chainlist;
   }
 };
 
 const getTransports = (chainId: number) => {
   const _transports: Parameters<typeof fallback>[0] = [];
+  // wallet connectors
+  // note: it sucks that these _all_ have to be added (especially in
+  //       some random order), but if we try to add them all conditionally
+  //       the wallet connector resets and the user gets disconnected on
+  //       page reload and/or navigation
   _transports.push(unstable_connector(injected));
   _transports.push(unstable_connector(metaMask));
   _transports.push(unstable_connector(walletConnect));
   _transports.push(unstable_connector(coinbaseWallet));
   _transports.push(unstable_connector(safe));
-  if (chainId !== holesky.id) {
-    if (process.env.NEXT_PUBLIC_INFURA_ID)
-      _transports.push(http(getInfuraRpcUrl(chainId)));
-    if (process.env.NEXT_PUBLIC_ALCHEMY_ID)
-      _transports.push(http(getAlchemyRpcUrl(chainId)));
-  }
+  // dedicated rpcs
+  _transports.push(http(getInfuraRpcUrl(chainId)));
+  _transports.push(http(getAlchemyRpcUrl(chainId)));
+  _transports.push(http(getAnkrRpcUrl(chainId)));
+  // public rpc
   _transports.push(http());
-  return _transports;
+  return _transports.filter(Boolean);
 };
 
 interface Props extends LayoutProps {
