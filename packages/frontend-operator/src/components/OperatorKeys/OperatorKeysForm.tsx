@@ -21,11 +21,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Address, Hex, formatEther, zeroAddress } from 'viem';
 import {
-  useContractWrite,
-  usePrepareContractWrite,
-  useWaitForTransaction
+  useWriteContract,
+  useSimulateContract,
+  useWaitForTransactionReceipt
 } from 'wagmi';
 import SubmitterField from './SubmitterField';
+import { displayAmount } from '@rio-monorepo/ui/lib/utilities';
 
 const DEFAULT_ARGS = [255, 0n, '0x', '0x'] as const;
 
@@ -110,11 +111,13 @@ function OperatorKeysFormInternal({
         abi: RioLRTOperatorRegistryABI,
         functionName: 'addValidatorDetails',
         args,
-        enabled:
-          !!address &&
-          isValid &&
-          args !== DEFAULT_ARGS &&
-          !!lrtClient?.token?.deployment?.operatorRegistry
+        query: {
+          enabled:
+            !!address &&
+            isValid &&
+            args !== DEFAULT_ARGS &&
+            !!lrtClient?.token?.deployment?.operatorRegistry
+        }
       }) as const,
     [address, isValid, args, operatorAddress]
   );
@@ -131,21 +134,21 @@ function OperatorKeysFormInternal({
   }, [gasEstimates]);
 
   const {
-    config,
+    data: simulatedData,
     isLoading: isPrepareLoading,
     error: prepareError
-  } = usePrepareContractWrite({ ...contractWriteOptions, ...gas });
+  } = useSimulateContract({ ...contractWriteOptions, ...gas });
 
   const {
-    data,
-    write,
-    isLoading: isWriteLoading,
+    data: hash,
+    writeContract,
+    isPending: isWriteLoading,
     error: writeError,
     reset: resetWrite
-  } = useContractWrite(config);
+  } = useWriteContract();
 
-  const { error: txError } = useWaitForTransaction({
-    hash: data?.hash
+  const { error: txError } = useWaitForTransactionReceipt({
+    hash
   });
 
   useEffect(() => {
@@ -212,12 +215,14 @@ function OperatorKeysFormInternal({
       />
       <div className="flex flex-col gap-2 mt-4">
         <div className="flex justify-between text-[14px]">
-          <span className="text-black opacity-50">Total Keys</span>
+          <span className="text-foreground text-opacity-50">Total Keys</span>
           <strong>{args[1].toString()}</strong>
         </div>
         <HR />
         <div className="flex justify-between text-[14px]">
-          <span className="text-black opacity-50">Estimated Gas Price</span>
+          <span className="text-foreground text-opacity-50">
+            Estimated Gas Price
+          </span>
           {!pricesLoaded ? (
             <Skeleton height="0.875rem" width={80} />
           ) : (
@@ -243,19 +248,30 @@ function OperatorKeysFormInternal({
       </div>
       <TransactionButton
         transactionType={RioTransactionType.SUBMIT_KEYS}
-        hash={data?.hash}
+        toasts={{
+          sent: 'Submitting keys',
+          error: 'Key submission failed',
+          success: `Successfully submitted ${displayAmount(
+            Number(args[1])
+          )} keys`
+        }}
+        hash={hash}
         disabled={isNotOperator || isWriteLoading || isPrepareLoading}
         isSigning={isWriteLoading}
         error={error}
         reset={resetForm}
         clearErrors={clearErrors}
-        write={write}
+        write={
+          simulatedData?.request
+            ? () => writeContract(simulatedData?.request)
+            : undefined
+        }
       >
         {!!address && isFetched && !operators?.length
           ? 'Not a registered operator'
           : !value
           ? 'Enter your keys'
-          : !write
+          : !simulatedData?.request
           ? 'Keys entered are invalid'
           : null}
       </TransactionButton>

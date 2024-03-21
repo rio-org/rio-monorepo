@@ -35,7 +35,7 @@ export function IconCircleArrow({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       transform={`rotate(${rotation(direction)})`}
-      className={cn('[&>path]:stroke-gray-500', className)}
+      className={cn('[&>path]:stroke-foregroundA8', className)}
       {...props}
     >
       <path

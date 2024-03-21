@@ -17,6 +17,15 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "tsconfig.tsbuildinfo"]
     },
+    "build:ci": {
+      "dependsOn": ["^build:ci"],
+      "outputs": [
+        "dist/**",
+        "tsconfig.tsbuildinfo",
+        ".next/**",
+        "!.next/cache/**"
+      ]
+    },
     "clean:build": {
       "dependsOn": ["build"]
     },

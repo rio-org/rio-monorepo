@@ -1,8 +1,8 @@
 import { twJoin } from 'tailwind-merge';
 import { Address } from 'viem';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { IconEtherscan } from '@rio-monorepo/ui/components/Icons/IconEtherscan';
 import { MonospaceBox } from '@rio-monorepo/ui/components/Shared/MonospaceBox';
-import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import {
   cn,
   linkToAddressOnBlockExplorer
@@ -21,8 +21,9 @@ export function OperatorField({
   className?: string;
   monospaceBoxClassName?: string;
 }) {
+  const { chain } = useAccountIfMounted();
   const explorerLink = value?.startsWith('0x')
-    ? linkToAddressOnBlockExplorer(value as Address, CHAIN_ID)
+    ? linkToAddressOnBlockExplorer(value as Address, chain?.id)
     : undefined;
 
   return (
@@ -49,8 +50,8 @@ export function OperatorField({
             onClick={onEdit}
             className={twJoin(
               'flex items-center justify-center',
-              'relative top-0 bottom-0  h-[41px] px-4',
-              'rounded-md bg-black text-white text-sm font-semibold'
+              'relative top-0 bottom-0 h-[41px] px-4',
+              'rounded-md bg-primary leading-none text-primary-foreground text-sm font-semibold'
             )}
           >
             Edit

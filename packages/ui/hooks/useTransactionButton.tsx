@@ -1,17 +1,27 @@
-import { useNetwork, useSwitchNetwork, useWaitForTransaction } from 'wagmi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
 import { type Hash } from 'viem';
+import { toast } from 'sonner';
 import { useWalletAndTermsStore } from '../contexts/WalletAndTermsStore';
+import { useAccountIfMounted } from './useAccountIfMounted';
 import {
   useAddTransaction,
   usePendingTransactions
 } from '../contexts/RioTransactionStore';
-import { useAccountIfMounted } from './useAccountIfMounted';
-import { CHAIN_ID } from 'config';
-import { type ContractError, type RioTransactionType } from '../lib/typings';
+import { TransactionToast } from '../components/Shared/TransactionToast';
+import { IconSad } from '../components/Icons/IconSad';
+import { CHAIN_ID } from '../config';
+import {
+  PendingTransaction,
+  type ContractError,
+  type RioTransactionType
+} from '../lib/typings';
+import { useRegionChecked } from './useRegionChecked';
+import { mainnet } from 'viem/chains';
 
 export type UseTransactionButtonConfig = {
   transactionType: RioTransactionType;
+  toasts: PendingTransaction['toasts'];
   disabled?: boolean;
   isSigning?: boolean;
   hash?: Hash;
@@ -23,6 +33,7 @@ export type UseTransactionButtonConfig = {
 
 export const useTransactionButton = ({
   transactionType: type,
+  toasts,
   disabled,
   hash,
   error,
@@ -31,13 +42,17 @@ export const useTransactionButton = ({
   write,
   isSigning
 }: UseTransactionButtonConfig) => {
-  const wrongNetwork = useNetwork().chain?.unsupported;
+  const { address, chain } = useAccountIfMounted();
+  const {
+    chains,
+    switchChain,
+    isPending: isSwitchNetworkLoading
+  } = useSwitchChain();
+  const [{ data: isInAllowedRegion }] = useRegionChecked();
+  const wrongNetwork = !!address && !chains.find((c) => c.id === chain?.id);
   const { openWalletModal } = useWalletAndTermsStore();
-  const { address } = useAccountIfMounted();
   const pendingTxs = usePendingTransactions();
   const addTransaction = useAddTransaction();
-  const { isLoading: isSwitchNetworkLoading, switchNetwork } =
-    useSwitchNetwork();
   const [internalError, setInternalError] = useState<ContractError | null>(
     error || null
   );
@@ -59,11 +74,11 @@ export const useTransactionButton = ({
     isSuccess: isTxSuccess,
     isError: isTxError,
     error: txError
-  } = useWaitForTransaction({
+  } = useWaitForTransactionReceipt({
     hash: prevTx?.isSame ? prevTx.hash : hash
   });
 
-  const { isSuccess: isPrevTxSuccess } = useWaitForTransaction({
+  const { isSuccess: isPrevTxSuccess } = useWaitForTransactionReceipt({
     hash: prevTx?.isSame ? undefined : prevTx?.hash
   });
 
@@ -72,8 +87,16 @@ export const useTransactionButton = ({
 
   useEffect(() => {
     if (!hash) return;
-    addTransaction({ hash, type });
-  }, [hash, type]);
+    addTransaction({
+      hash,
+      type,
+      toasts: {
+        sent: toasts.sent,
+        success: toasts.success,
+        error: toasts.error
+      }
+    });
+  }, [hash, type, toasts.sent, toasts.success, toasts.error]);
 
   useEffect(() => {
     if (!error && !txError) return;
@@ -87,7 +110,12 @@ export const useTransactionButton = ({
 
   const isDisabled = wrongNetwork
     ? isSwitchNetworkLoading
-    : isTxLoading || isSigning || disabled || !write || !!prevTx?.hash;
+    : isTxLoading ||
+      isSigning ||
+      disabled ||
+      !write ||
+      !!prevTx?.hash ||
+      (chain?.id === mainnet.id && isInAllowedRegion === false);
 
   const handleClearErrors = useCallback(() => {
     clearErrors?.();
@@ -98,15 +126,36 @@ export const useTransactionButton = ({
     if (isDisabled) return;
     if (!address) return openWalletModal();
     handleClearErrors();
-    wrongNetwork ? switchNetwork?.(CHAIN_ID) : write?.();
+    const chainId =
+      isInAllowedRegion === false
+        ? chains.find((c) => c.testnet)?.id
+        : CHAIN_ID;
+    if (!chainId) return;
+    wrongNetwork ? switchChain?.({ chainId }) : write?.();
   }, [
+    isInAllowedRegion,
     isDisabled,
     address,
     wrongNetwork,
     handleClearErrors,
-    switchNetwork,
+    switchChain,
     write
   ]);
+
+  useEffect(
+    function emitTxErrorToast() {
+      if (!errorMessage || hash) return;
+      toast(
+        <TransactionToast
+          icon={<IconSad />}
+          title={errorMessage}
+          hash={hash}
+          chainId={chain?.id}
+        />
+      );
+    },
+    [hash, errorMessage, !!refetch]
+  );
 
   return {
     errorMessage,

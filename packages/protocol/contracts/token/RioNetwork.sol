@@ -6,7 +6,7 @@ import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20P
 import {ERC20Votes} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 import {Nonces} from '@openzeppelin/contracts/utils/Nonces.sol';
 
-contract RioToken is ERC20, ERC20Permit, ERC20Votes {
+contract RioNetwork is ERC20, ERC20Permit, ERC20Votes {
     /// @param to The address to mint the initial supply to.
     constructor(address to) ERC20('Rio Network', 'RN') ERC20Permit('Rio Network') {
         _mint(to, 1_000_000_000 * 10 ** decimals());

@@ -8,7 +8,7 @@ type Props = {
 
 const StatLabel = ({ label, infoTooltipContent }: Props) => {
   return (
-    <span className="bg-transparent text-black rounded-full py-[4px] px-3 border border-[var(--color-gray-stroke)] flex items-center gap-1 w-fit">
+    <span className="text-foreground rounded-[4px] py-[4px] px-3 border border-border flex items-center gap-1 w-fit">
       <span className="text-[12px]">{label}</span>
       {infoTooltipContent && (
         <InfoTooltip align="center" contentClassName="max-w-[300px]">

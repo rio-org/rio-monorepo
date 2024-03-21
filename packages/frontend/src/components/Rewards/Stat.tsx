@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import StatLabel from './StatLabel';
+import { Card } from '@rio-monorepo/ui/components/shadcn/card';
 import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import { twJoin } from 'tailwind-merge';
 
@@ -28,18 +29,12 @@ const Stat = ({ label, value, denominator, infoTooltipContent }: Props) => {
   }, [value, denominator]);
 
   return (
-    <div
-      className={twJoin(
-        'flex flex-col gap-6 w-full rounded-xl',
-        'p-4 lg:p-6',
-        'bg-[var(--color-element-wrapper-bg)]'
-      )}
-    >
+    <Card className={twJoin('flex flex-col gap-6 w-full', 'p-4 md:p-6')}>
       <StatLabel label={label} infoTooltipContent={infoTooltipContent} />
       <span className="flex text-[28px] leading-none">
         {_value} {denominator}
       </span>
-    </div>
+    </Card>
   );
 };
 

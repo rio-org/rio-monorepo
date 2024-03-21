@@ -1,16 +1,17 @@
 import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
 import { PUBLIC_SUBGRAPH_URL } from './constants';
-import { CHAIN_ID_NUMBER } from './typings';
 import { getSubgraphUrlForChainOrThrow } from '@rionetwork/sdk-react';
 import { CHAIN_ID } from '../config';
 
-const subgraphClient = (chainId?: CHAIN_ID_NUMBER) => {
+const subgraphClient = (chainId?: number) => {
   let APIURL: string = '';
 
   try {
     APIURL = getSubgraphUrlForChainOrThrow(chainId ?? CHAIN_ID);
   } catch {
-    APIURL = chainId ? PUBLIC_SUBGRAPH_URL[chainId] : '';
+    APIURL = chainId
+      ? PUBLIC_SUBGRAPH_URL[chainId as keyof typeof PUBLIC_SUBGRAPH_URL]
+      : '';
   }
 
   return new ApolloClient({

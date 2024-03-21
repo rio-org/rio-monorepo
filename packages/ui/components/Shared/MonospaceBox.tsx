@@ -43,8 +43,8 @@ export function MonospaceBox({
       className={cn(
         twJoin(
           'flex items-center justify-between',
-          'px-3 py-3 rounded-lg bg-gray-200 bg-opacity-50',
-          'font-mono border border-gray-300'
+          'px-3 py-3 rounded-lg bg-input',
+          'font-mono border border-border'
         ),
         className
       )}
@@ -81,8 +81,8 @@ export function MonospaceBox({
                 className={twJoin(
                   'absolute top-1/2 left-0',
                   'py-1 px-2',
-                  'text-xs font-semibold',
-                  'bg-white rounded-md border border-gray-300'
+                  'text-xs font-semibold cursor-default',
+                  'bg-background rounded-md border border-border'
                 )}
               >
                 Copied

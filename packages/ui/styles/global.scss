@@ -5,6 +5,8 @@
 
 @layer base {
   :root {
+
+    --app-background: 0 0% 93.9%;
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -19,15 +21,33 @@
     --muted-foreground: 240 3.8% 46.1%;
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 356 54% 53%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
+    --border: 0 0% 81%;
+    --input: 0 0% 97%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
 
+    --warning-background: 47 58% 94%;
+    --warning-foreground: 47 100% 37%;
+    --warning-border: 48 57% 84%;
+
+    --a1: 5%;
+    --a2: 10%;
+    --a3: 15%;
+    --a4: 20%;
+    --a5: 30%;
+    --a6: 40%;
+    --a7: 50%;
+    --a8: 60%;
+    --a9: 70%;
+    --a10: 80%;
+    --a11: 90%;
+    --a12: 95%;
+
+    --color-rio-blue: 246 73% 45%;
     --color-app-bg: #efefef;
-    --color-blue: #0000e1;
+    --color-blue: #301FC4;
     --color-light-blue: #4d4dff;
     --color-blue-bg: rgba(0, 0, 225, 0.1);
     --color-blue-bg-hover: rgba(0, 0, 225, 0.25);
@@ -51,11 +71,12 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    --app-background: 0 0% 8%;
+    --background: 0 0% 11%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 0 0% 11%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 0 0% 11%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
@@ -65,11 +86,15 @@
     --muted-foreground: 240 5% 64.9%;
     --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 356 56% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 0 0% 15.9%;
+    --input: 0 0% 13%;
     --ring: 240 4.9% 83.9%;
+
+    --warning-background: 47 28% 13%;
+    --warning-foreground: 47 100% 37%;
+    --warning-border: 46 60% 16%;
   }
 
   * {
@@ -78,7 +103,7 @@
   }
 
   body {
-    @apply font-sans text-foreground m-0;
+    @apply font-sans m-0;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-synthesis-weight: none;
     -webkit-font-smoothing: antialiased;
@@ -86,11 +111,16 @@
     text-rendering: optimizeLegibility;
   }
 
+  .restake-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
   html,
   body,
   #__next,
   #__next>div {
-    @apply h-full
+    @apply h-full text-foreground;
   }
 }
 

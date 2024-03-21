@@ -6,7 +6,7 @@ import Skeleton from 'react-loading-skeleton';
 import { useMediaQuery } from 'react-responsive';
 import { DESKTOP_MQ } from '../../lib/constants';
 import { useGetLatestAssetPrice } from '../../hooks/useGetLatestAssetPrice';
-import { CHAIN_ID } from '../../config';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 
 type Props = {
   token: AssetDetails;
@@ -23,9 +23,10 @@ const WithdrawAssetItem = ({
   setActiveToken,
   setIsListOpen
 }: Props) => {
+  const { chain } = useAccountIfMounted();
   const { data, isLoading, isError } = useGetLatestAssetPrice({
     tokenAddress: token.address,
-    chainId: CHAIN_ID
+    chainId: chain?.id
   });
   const handleClick = (token: AssetDetails) => {
     setActiveToken(token);
@@ -61,8 +62,8 @@ const WithdrawAssetItem = ({
       }}
       disabled={isError ? true : false}
       className={cx(
-        'flex flex-row gap-2 w-full py-3 lg:py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
-        !isError && 'hover:bg-[var(--color-element-wrapper-bg)]',
+        'flex flex-row gap-2 w-full py-3 md:py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
+        !isError && 'hover:bg-foregroundA1',
         isError && 'opacity-40',
         isDesktopOrLaptop ? 'gap-2' : 'gap-4'
       )}

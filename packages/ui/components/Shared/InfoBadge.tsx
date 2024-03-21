@@ -7,13 +7,14 @@ import { cn } from '../../lib/utilities';
 export const InfoBadge = ({
   children,
   className,
-  prefix,
-  suffix,
+  title,
+  icon,
   infoTooltipContent
 }: {
   className?: string;
+  icon?: React.ReactNode;
   children?: React.ReactNode;
-  prefix?: string;
+  title?: string;
   suffix?: string;
   infoTooltipContent?: InfoTooltipProps['children'];
 }) => {
@@ -21,22 +22,22 @@ export const InfoBadge = ({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1',
-        'text-[var(--color-blue)] text-xs leading-none tracking-tight',
-        'py-1.5 px-3.5',
-        'rounded-full border border-[var(--color-light-blue)]',
-        '[&>span]:inline-block [&>span]:uppercase [&>span]:leading-none [&>span]:font-mono',
+        'inline-flex items-center gap-1.5',
+        'text-foreground text-[14px] tracking-tight',
         className
       )}
     >
-      {prefix && <span>{prefix}</span>}
+      <span className="inline-flex items-center opacity-50 gap-1 uppercase leading-none font-mono">
+        {icon}
+        <span>{title}</span>
+      </span>
       {children ? (
         <AnimatePresence>
           <motion.span
             initial={{ width: 40, opacity: 0 }}
             animate={{ width: 'auto', opacity: 1 }}
             exit={{ width: 40, opacity: 0 }}
-            className="whitespace-nowrap"
+            className="whitespace-nowrap uppercase leading-none font-mono"
           >
             {children}
           </motion.span>
@@ -44,21 +45,20 @@ export const InfoBadge = ({
       ) : (
         <Skeleton
           width={40}
-          containerClassName="!bg-[var(--color-blue)] !bg-opacity-20 rounded-[4px] overflow-hidden"
-          className="!opacity-70 after:!opacity-10"
+          containerClassName="!bg-foreground !bg-opacity-20 rounded-[4px] overflow-hidden"
+          className="!opacity-50 after:!opacity-10"
         />
       )}
-      {suffix && <span>{suffix}</span>}
       {children && infoTooltipContent && (
         <AnimatePresence>
           <motion.div
             initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 12, opacity: 1 }}
+            animate={{ width: 13, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
-            className="h-3 inline"
+            className="h-[14px] inline"
           >
             <InfoTooltip
-              iconClassName="[&>path]:stroke-[blue] opacity-60 w-[12px] h-[12px] -translate-y-[1px] ml-0.5"
+              iconClassName="[&>path]:stroke-foreground opacity-40 w-[14px] h-[14px] -translate-y-[1px] ml-0.5"
               contentClassName="max-w-[300px]"
               align="center"
               side={isTouch ? 'bottom' : 'top'}

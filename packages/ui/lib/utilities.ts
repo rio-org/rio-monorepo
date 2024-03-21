@@ -8,7 +8,6 @@ import {
   type BaseAssetDetails,
   type BaseAssetSubgraphResponse,
   type BaseLRTSubgraphResponse,
-  type CHAIN_ID_NUMBER,
   type ContractError,
   type LRTDetails,
   type LRTSubgraphResponse,
@@ -19,7 +18,7 @@ import {
 } from './typings';
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
-import { NATIVE_ETH_ADDRESS } from '../config';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
 import { type SubgraphClient } from '@rionetwork/sdk-react';
 
 export const getChainName = (chainId: number) => {
@@ -49,7 +48,7 @@ export const getChainName = (chainId: number) => {
   }
 };
 
-export const getAlchemyChainLabel = (chainId: CHAIN_ID_NUMBER) => {
+export const getAlchemyChainLabel = (chainId: number) => {
   switch (chainId) {
     case 1:
       return 'eth-mainnet';
@@ -74,9 +73,34 @@ export const getAlchemyChainLabel = (chainId: CHAIN_ID_NUMBER) => {
   }
 };
 
+export const getInfuraChainLabel = (chainId: number) => {
+  switch (chainId) {
+    case 1:
+      return 'mainnet';
+    case 5:
+      return 'goerli';
+    case 11155111:
+      return 'sepolia';
+    default:
+      return 'unknown';
+  }
+};
+
+export const getAlchemyRpcUrl = (chainId: number) => {
+  return `https://${getAlchemyChainLabel(chainId)}.g.alchemy.com/v2/${
+    process.env.NEXT_PUBLIC_ALCHEMY_ID
+  }`;
+};
+
+export const getInfuraRpcUrl = (chainId: number) => {
+  return `https://${getInfuraChainLabel(chainId)}.infura.io/v3/${
+    process.env.NEXT_PUBLIC_INFURA_ID
+  }`;
+};
+
 export const linkToAddressOnBlockExplorer = (
   address: Address,
-  chainId: number
+  chainId: number = CHAIN_ID
 ) => {
   const chainName = getChainName(chainId);
   const subdomain =
@@ -88,7 +112,10 @@ export const linkToAddressOnBlockExplorer = (
   return `https://${subdomain}etherscan.io/address/${address}`;
 };
 
-export const linkToTxOnBlockExplorer = (address: Address, chainId: number) => {
+export const linkToTxOnBlockExplorer = (
+  address: Address,
+  chainId: number = CHAIN_ID
+) => {
   const chainName = getChainName(chainId);
   const subdomain =
     chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';
@@ -341,13 +368,13 @@ export function isUndefined(value: unknown): value is undefined {
 }
 
 export const storeBoolValueInStorage = (key: string, store?: Storage) => {
-  return async (value: boolean) =>
-    new Promise((resolve) => {
+  return async (value: boolean | null) =>
+    new Promise<boolean | null>((resolve) => {
       try {
         store?.setItem(key, String(value));
         return resolve(value);
       } catch (e) {
-        return resolve(undefined);
+        return resolve(null);
       }
     });
 };
@@ -360,3 +387,21 @@ export const stripTokenDecimals = (amount: string, decimals: number = 18) => {
     ? normalized
     : `${whole}.${normalized.slice(pointIdx + 1, pointIdx + decimals + 1)}`;
 };
+
+export function abbreviateAddress(
+  address?: string | null,
+  config?: {
+    startChars?: boolean | number;
+    lastChars?: boolean | number;
+  }
+) {
+  const { startChars = 6, lastChars = 4 } = config || {};
+  const startCharCount =
+    typeof startChars === 'number' ? startChars : startChars ? 6 : 0;
+  const _startChars = !startCharCount ? '' : address?.slice(0, startCharCount);
+  const lastCharCount =
+    typeof lastChars === 'number' ? lastChars : lastChars ? 4 : 0;
+  const _lastChars = !lastCharCount ? '' : address?.slice(-lastCharCount);
+  const ellipsis = _startChars && _lastChars ? '...' : '';
+  return address ? `${_startChars}${ellipsis}${_lastChars}` : null;
+}

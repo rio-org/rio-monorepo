@@ -10,7 +10,7 @@ export const RioExpandedLogo = ({
     viewBox="0 0 86 37"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    className={cn('[&_path]:fill-black', className)}
+    className={cn('[&_path]:fill-foreground', className)}
     {...props}
   >
     <path d="M53.4944 27.933H48.9551V9.92338H57.4063V14.1305L53.4944 13.7615V27.933Z" />

@@ -1,19 +1,25 @@
-import FormCard from '@rio-monorepo/ui/components/Shared/FormCard';
-import { twJoin } from 'tailwind-merge';
-import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
-import { CustomConnectButton } from '@rio-monorepo/ui/components/Nav/CustomConnectButton';
 import { useEffect, useMemo, useState } from 'react';
-import { OperatorCard } from '@/components/Operators/OperatorCard';
-import { IconPackageX } from '@rio-monorepo/ui/components/Icons/IconPackageX';
-import { asType, isEqualAddress } from '@rio-monorepo/ui/lib/utilities';
+import { useReadContracts } from 'wagmi';
+import { twJoin } from 'tailwind-merge';
 import {
-  OperatorDelegator,
+  type OperatorDelegator,
   useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
-import { OperatorDetails, type LRTDetails } from '@rio-monorepo/ui/lib/typings';
-import { Address, ContractFunctionConfig, zeroAddress } from 'viem';
-import { useContractReads } from 'wagmi';
+import {
+  type AbiStateMutability,
+  type Address,
+  type ContractFunctionArgs,
+  type ContractFunctionParameters,
+  zeroAddress
+} from 'viem';
 import { RioLRTOperatorRegistryABI } from '@rio-monorepo/ui/abi/RioLRTOperatorRegistryABI';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { CustomConnectButton } from '@rio-monorepo/ui/components/Nav/CustomConnectButton';
+import { IconPackageX } from '@rio-monorepo/ui/components/Icons/IconPackageX';
+import { OperatorCard } from '@/components/Operators/OperatorCard';
+import FormCard from '@rio-monorepo/ui/components/Shared/FormCard';
+import { OperatorDetails, type LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import { asType, isEqualAddress } from '@rio-monorepo/ui/lib/utilities';
 
 export function OperatorDetails({
   restakingToken,
@@ -70,28 +76,32 @@ function OperatorDetailsWithLRTWrapper({
     [lrt, operatorRegistryAddress]
   );
 
-  const { data: onchainDetailsRaw } = useContractReads({
-    contracts: operatorDelegators?.map(
-      (operatorDelegator) =>
-        ({
-          address: operatorRegistryAddress ?? zeroAddress,
-          abi: RioLRTOperatorRegistryABI,
-          functionName: 'getOperatorDetails',
-          args: [operatorDelegator.delegatorId]
-        }) as ContractFunctionConfig<
-          typeof RioLRTOperatorRegistryABI,
-          'getOperatorDetails'
-        >
-    ),
-    enabled: !!operatorRegistryAddress && !!operatorDelegators?.length,
-    staleTime: 1000 * 60 * 5
+  const { data: onchainDetailsRaw } = useReadContracts({
+    contracts: operatorDelegators?.map((operatorDelegator) => ({
+      address: operatorRegistryAddress ?? zeroAddress,
+      abi: RioLRTOperatorRegistryABI,
+      functionName: 'getOperatorDetails',
+      args: [operatorDelegator.delegatorId]
+    })) as ContractFunctionParameters<
+      typeof RioLRTOperatorRegistryABI,
+      AbiStateMutability,
+      'getOperatorDetails',
+      ContractFunctionArgs<
+        typeof RioLRTOperatorRegistryABI,
+        AbiStateMutability,
+        'getOperatorDetails'
+      >
+    >[],
+    query: {
+      enabled: !!operatorRegistryAddress && !!operatorDelegators?.length,
+      staleTime: 1000 * 60 * 5
+    }
   });
 
   const onchainDetails = useMemo(() => {
     if (!onchainDetailsRaw) return undefined;
     return onchainDetailsRaw.map((details) => {
-      if (details.error) return undefined;
-      return details.result;
+      return asType<OperatorDetails | undefined>(details.result);
     });
   }, [onchainDetailsRaw]);
 
@@ -185,8 +195,8 @@ function OperatorDetailsBase({
               className={twJoin(
                 'flex flex-col justify-center items-center',
                 'w-full min-h-[160px] p-4',
-                'text-center text-black',
-                'rounded-xl bg-black bg-opacity-5'
+                'text-center text-foreground',
+                'rounded-xl bg-foregroundA1'
               )}
             >
               {!address ? (

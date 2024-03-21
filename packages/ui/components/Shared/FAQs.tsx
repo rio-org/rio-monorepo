@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { twJoin } from 'tailwind-merge';
 import { IconOpenAccordion } from '../Icons/IconOpenAccordion';
@@ -13,21 +13,31 @@ const APPEAR_VARIANTS = {
 };
 
 const buttonHoverCN = twJoin(
-  'w-full flex justify-between rounded-xl',
-  'transition-colors duration-200',
-  'bg-transparent hover:bg-[#00000005] active:bg-[#00000008]'
+  'w-full flex justify-between rounded-t-[4px]',
+  'transition-colors duration-200 bg-transparent',
+  'hover:bg-foreground hover:bg-opacity-[0.019]',
+  'active:bg-foreground active:bg-opacity-[0.031]'
 );
 
-export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
+export const FAQS = ({ faqs, tab }: { faqs: FAQ[]; tab?: string }) => {
   const [faqsExpanded, setFaqsExpanded] = useState<boolean>(false);
   const [expandedQuestions, setExpandedQuestions] = useState<boolean[]>(
     faqs.map(() => false)
   );
 
+  const filteredFaqs = useMemo(
+    () => (tab ? faqs.filter((faq) => faq.tab === tab?.toLowerCase()) : faqs),
+    [faqs, tab]
+  );
+
+  useEffect(() => {
+    setFaqsExpanded(false);
+  }, [filteredFaqs]);
+
   useEffect(() => {
     if (faqsExpanded) return;
-    setExpandedQuestions(faqs.map(() => false));
-  }, [faqsExpanded]);
+    setExpandedQuestions(filteredFaqs.map(() => false));
+  }, [faqsExpanded, filteredFaqs]);
 
   const toggleFaqs = useCallback(() => {
     setFaqsExpanded((prev) => !prev);
@@ -45,7 +55,7 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
   );
 
   return (
-    <motion.div className="space-y-4 w-full px-4">
+    <motion.div className="space-y-4 w-full">
       <button
         onClick={toggleFaqs}
         className={twJoin(
@@ -63,16 +73,13 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
             {...APPEAR_VARIANTS}
             className="w-full space-y-4 overflow-hidden"
           >
-            {faqs.map((faq, i) => (
-              <div
-                key={i}
-                className="w-full rounded-xl bg-[var(--color-element-wrapper-bg)]"
-              >
+            {filteredFaqs.map((faq, i) => (
+              <div key={i} className="w-full rounded-[4px] bg-foregroundA1">
                 <button
                   onClick={curriedExpandQuestion(i)}
                   className={twJoin('py-2.5 px-4 items-start', buttonHoverCN)}
                 >
-                  <h3 className="text-[14px] font-medium leading-tight py-1.5 max-w-[calc(100%-2rem)]">
+                  <h3 className="text-base text-foreground/90 text-left font-medium leading-tight py-1.5 max-w-[calc(100%-2rem)]">
                     {faq.q}
                   </h3>
                   <FaqsExpandIcon
@@ -84,7 +91,7 @@ export const FAQS = ({ faqs }: { faqs: FAQ[] }) => {
                   {expandedQuestions[i] && (
                     <motion.div
                       {...APPEAR_VARIANTS}
-                      className="w-full text-sm overflow-hidden px-4"
+                      className="w-full text-sm overflow-hidden px-2 text-foreground/90"
                     >
                       {' '}
                       <Markdown children={faq.a} />
@@ -112,7 +119,7 @@ function FaqsExpandIcon({
       expanded={expanded}
       className={cn(
         twJoin(
-          '[&>path]:fill-black',
+          '[&>path]:fill-foreground',
           'w-6 min-w-6 h-6',
           'opacity-50 group-hover:opacity-80 group-active:opacity-100'
         ),

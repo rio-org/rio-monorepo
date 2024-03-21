@@ -43,7 +43,8 @@ export function EditOperatorFieldDialog({
 
   const {
     status: { isTxPending, isUserSigning, txError },
-    contractWrite: { write, data, reset }
+    prepareContractWrite: { data: simulatedData },
+    contractWrite: { writeContract, data: hash, reset }
   } = useCompleteContractWrite({
     address: operatorRegistryAddress ?? zeroAddress,
     abi: RioLRTOperatorRegistryABI,
@@ -52,11 +53,13 @@ export function EditOperatorFieldDialog({
       operatorDelegator.delegatorId,
       (inputValue as Address) || zeroAddress
     ],
-    enabled:
-      !!debouncedFxnName &&
-      !!inputValue &&
-      /0x[a-fA-F0-9]{40}/.test(inputValue) &&
-      inputValue !== zeroAddress
+    query: {
+      enabled:
+        !!debouncedFxnName &&
+        !!inputValue &&
+        /0x[a-fA-F0-9]{40}/.test(inputValue) &&
+        inputValue !== zeroAddress
+    }
   });
   const canCloseWindow = !isTxPending && !isUserSigning;
 
@@ -75,7 +78,7 @@ export function EditOperatorFieldDialog({
 
   return (
     <Dialog
-      className="bg-[var(--color-element-wrapper-bg)] rounded-[16px] pt-0 pb-1 px-1"
+      className="bg-foregroundA1 rounded-[16px] pt-0 pb-1 px-1"
       size="sm"
       open={isOpen}
       handler={handleCloseWindow}
@@ -83,7 +86,7 @@ export function EditOperatorFieldDialog({
       <DialogHeader className="px-4 py-3 text-base font-medium">
         Update {fieldName}
       </DialogHeader>
-      <DialogBody className="bg-white rounded-t-[14px] w-full px-4 pt-6 pb-4">
+      <DialogBody className="bg-card rounded-t-[14px] w-full px-4 pt-6 pb-4">
         <div className="w-full">
           <h5 className="flex text-xs font-medium leading-4 mb-1 opacity-75 space-x-0.5">
             <span>{fieldName}</span>
@@ -96,28 +99,37 @@ export function EditOperatorFieldDialog({
               className={twJoin(
                 'w-full max-w-full h-[41px]',
                 'text-[11px] font-mono font-semibold',
-                'p-3 bg-gray-200 rounded-lg',
+                'p-3 bg-input rounded-lg',
                 'border border-transparent',
-                'focus:border-gray-400 focus:outline-0'
+                'focus:border-border focus:outline-0'
               )}
             />
           </div>
         </div>
       </DialogBody>
-      <DialogFooter className="bg-white rounded-b-[14px] w-full pt-0 px-3 pb-3">
+      <DialogFooter className="bg-card rounded-b-[14px] w-full pt-0 px-3 pb-3">
         <p className="text-center w-full text-xs opacity-75">
           Note: Changing this field requires submitting a transaction
         </p>
         <TransactionButton
           transactionType={RioTransactionType.UPDATE_OPERATOR_VALUE}
-          hash={data?.hash}
+          toasts={{
+            sent: `Updating ${fieldName}`,
+            error: `Failed to update ${fieldName}`,
+            success: `Operator ${fieldName} updated`
+          }}
+          hash={hash}
           refetch={handleCloseWindow}
-          disabled={isTxPending || isUserSigning}
+          disabled={isTxPending || isUserSigning || !simulatedData?.request}
           isSigning={isUserSigning}
           error={txError}
           reset={reset}
           clearErrors={reset}
-          write={write}
+          write={
+            !simulatedData?.request
+              ? undefined
+              : () => writeContract(simulatedData.request)
+          }
         >
           Submit
         </TransactionButton>

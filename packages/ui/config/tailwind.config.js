@@ -3,6 +3,24 @@ const withMT = require('@material-tailwind/react/utils/withMT');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { blackA, blueA, whiteA } = require('@radix-ui/colors');
 
+const alphaLevels = [...Array(11).keys()].map((i) => `A${i + 1}`);
+const computeSecondaryAlphaLevels = (field, color) => {
+  return Object.fromEntries(
+    alphaLevels.map((a) => [
+      `${field}${a}`,
+      `hsl(var(--${color}) / var(--${a.toLowerCase()}))`
+    ])
+  );
+};
+const computeAlphaLevels = (color) => {
+  return Object.fromEntries(
+    alphaLevels.map((a) => [
+      `${color}${a}`,
+      `hsl(var(--${color}) / var(--${a.toLowerCase()}))`
+    ])
+  );
+};
+
 /** @type {import('tailwindcss').Config} */
 module.exports = withMT({
   content: [
@@ -20,20 +38,29 @@ module.exports = withMT({
         ...blackA,
         ...blueA,
         ...whiteA,
-        appBackground: 'var(--color-app-bg)',
-        border: 'hsl(var(--border))',
+        appBackground: 'hsl(var(--app-background))',
+        border: 'hsl(var(--border) / <alpha-value>)',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
+        background: 'hsl(var(--background) / <alpha-value>)',
+        foreground: 'hsl(var(--foreground) / <alpha-value>)',
+        ...computeAlphaLevels('foreground'),
+        rio: {
+          blue: 'hsl(var(--color-rio-blue) / <alpha-value>)'
         },
+        primary: {
+          DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
+          foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
+          foregroundA1: 'hsl(var(--primary-foreground) / var(--a1))',
+          ...computeSecondaryAlphaLevels('foreground', 'primary-foreground')
+        },
+        ...computeAlphaLevels('primary'),
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
+          foreground: 'hsl(var(--secondary-foreground))',
+          ...computeSecondaryAlphaLevels('foreground', 'secondary-foreground')
         },
+        ...computeAlphaLevels('secondary'),
         destructive: {
           DEFAULT: 'hsl(var(--destructive) / <alpha-value>)',
           foreground: 'hsl(var(--destructive-foreground) / <alpha-value>)'
@@ -53,6 +80,11 @@ module.exports = withMT({
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning-background))',
+          foreground: 'hsl(var(--warning-foreground))',
+          border: 'hsl(var(--warning-border))'
         }
       },
       keyframes: {
@@ -92,6 +124,10 @@ module.exports = withMT({
         'skeleton-shine':
           'skeleton-shine 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
         'header-wallet-size': 'header-wallet-size 3s ease-in-out infinite'
+      },
+      boxShadow: {
+        cardlight: '1px 2px 3px 0 rgba(0, 0, 0, 0.15)',
+        cardinactive: '1px 2px 2px 0 rgba(0, 0, 0, 0.1)'
       }
     }
   },

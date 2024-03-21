@@ -8,9 +8,9 @@ export default function Document() {
       <body
         className={twJoin(
           'relative w-full max-w-full',
-          'min-h-full max-h-full',
-          'overflow-hidden',
-          'bg-[var(--color-app-bg)]',
+          'min-h-full max-h-screen',
+          'overflow-auto',
+          'bg-appBackground',
           'font-sans'
         )}
       >

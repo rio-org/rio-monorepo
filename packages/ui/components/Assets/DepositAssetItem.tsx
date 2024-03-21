@@ -42,7 +42,7 @@ const DepositAssetItem = ({
       disabled={isError}
       className={cn(
         'flex flex-row gap-2 w-full py-2 px-4 rounded-xl bg-transparent transition-colors duration-200 items-center',
-        !isError && 'hover:bg-[var(--color-element-wrapper-bg)]',
+        !isError && 'hover:bg-foregroundA1',
         isError && 'opacity-40'
       )}
     >

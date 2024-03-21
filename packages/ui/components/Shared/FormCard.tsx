@@ -27,20 +27,20 @@ const Wrapper = ({
       className
     )}
   >
-    <div className="w-full lg:max-w-[588px]">
+    <div className="w-full md:max-w-[588px]">
       {title && (
-        <h1 className="text-2xl mb-2 font-medium hidden lg:block">{title}</h1>
+        <h1 className="text-2xl mb-2 font-medium hidden md:block">{title}</h1>
       )}
-      <div className="flex flex-col items-center justify-center w-full h-full bg-[var(--color-element-wrapper-bg)] rounded-[16px] p-1">
+      <div className="flex flex-col items-center justify-center w-full h-full bg-foregroundA1 rounded-[16px] p-1">
         <div
           className={twMerge(
-            'flex flex-col lg:flex-row justify-start lg:justify-between',
-            'w-full px-4 lg:px-5 lg-max:gap-2 lg-max:pt-3 lg-max:pb-3',
-            !!header && 'lg:gap-8 lg:pt-3 pb-3'
+            'flex flex-col md:flex-row justify-start md:justify-between',
+            'w-full px-4 gap-2 md:gap-0 md:px-5 pt-3 pb-3',
+            !!header && 'md:gap-8 md:pt-3 pb-3'
           )}
         >
           {title && (
-            <h1 className="text-2xl mb-0 font-medium lg:hidden">{title}</h1>
+            <h1 className="text-2xl mb-0 font-medium md:hidden">{title}</h1>
           )}
           {header && (
             <div className="flex gap-2 justify-start font-bold items-center w-full">
@@ -61,8 +61,8 @@ const Body = ({
 }: Pick<FormCardContainerProps, 'children' | 'noPadding' | 'className'>) => (
   <motion.div
     className={cn(
-      'bg-white rounded-[14px] w-full flex flex-col gap-4',
-      noPadding ? '' : ' p-4 lg:p-6',
+      'bg-card rounded-[14px] w-full flex flex-col gap-4',
+      noPadding ? '' : ' p-4 md:p-6',
       className
     )}
   >
@@ -98,11 +98,11 @@ const Tabs = ({ items, baseUrl }: TabsProps) => {
   ).slug;
 
   return (
-    <div className="flex w-full text-center content-center text-gray-600 gap-4">
+    <div className="flex w-full text-center content-center text-foregroundA5 gap-4">
       {items.map(({ label, slug }) => {
         const className = cn(
           'font-medium',
-          activeTab === slug && 'text-black font-bold'
+          activeTab === slug && 'text-foregraound font-bold'
         );
 
         if (slug === activeTab) {
@@ -120,7 +120,7 @@ const Tabs = ({ items, baseUrl }: TabsProps) => {
             scroll={false}
             passHref
             aria-disabled={slug === activeTab}
-            className={cn(className, 'hover:text-black')}
+            className={cn(className, 'hover:text-foreground')}
           >
             {label}
           </Link>

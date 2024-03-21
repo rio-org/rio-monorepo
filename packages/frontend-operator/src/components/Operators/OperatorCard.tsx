@@ -2,8 +2,7 @@ import { type OperatorDelegator } from '@rionetwork/sdk-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Skeleton from 'react-loading-skeleton';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { type Address } from 'wagmi';
-import { zeroAddress } from 'viem';
+import { type Address, zeroAddress } from 'viem';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 
@@ -332,7 +331,7 @@ function OperatorValidatorDetail({
   value?: string | number | React.ReactNode;
 }) {
   return (
-    <MonospaceBox className="w-full lg:w-[calc(50%-0.25rem)] h-[42px] text-xs">
+    <MonospaceBox className="w-full md:w-[calc(50%-0.25rem)] h-[42px] text-xs">
       <div className="flex items-center gap-2">
         {icon}
         <span className="opacity-75 font-[500] text-[11px] space-x-0.5">

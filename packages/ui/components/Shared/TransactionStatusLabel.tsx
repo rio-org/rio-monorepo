@@ -9,10 +9,10 @@ import {
 } from '@rionetwork/sdk-react';
 import IconExternal from '../Icons/IconExternal';
 import { IconClock } from '../Icons/IconClock';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 import { cn, linkToTxOnBlockExplorer } from '../../lib/utilities';
 import { TransactionStatus } from '../../lib/typings';
 import { SECONDS } from '../../lib/constants';
-import { CHAIN_ID } from '../../config';
 
 dayjs.extend(relativeTime, {
   thresholds: [
@@ -59,6 +59,7 @@ const TransactionStatusLabel = ({
   nextRebalanceTimestamp,
   isLink = true
 }: Props) => {
+  const { chain } = useAccountIfMounted();
   const now = Date.now();
   const requestTimestamp = Number(+transaction.timestamp);
   const lastTimeToBeAvailable = requestTimestamp + SECONDS.DAYS * 8;
@@ -76,11 +77,11 @@ const TransactionStatusLabel = ({
     return 'Pending';
   }, [transaction.claimTx, transaction.epochStatus]);
 
-  const extendedClassName = useMemo(() => {
+  const colorClassName = useMemo(() => {
     switch (status) {
       case 'Claimed':
         return cn(
-          'bg-[var(--color-blue-bg)] text-[var(--color-blue)] cursor-default',
+          'bg-[var(--color-blue-bg)] text-rio-blue cursor-default',
           isLink && 'hover:bg-[var(--color-blue-bg-hover)] cursor-pointer'
         );
       case 'Available':
@@ -91,7 +92,7 @@ const TransactionStatusLabel = ({
       case 'Pending':
       default:
         return cn(
-          'bg-[var(--color-yellow-bg)] text-[var(--color-yellow)] cursor-default',
+          'bg-warning text-warning-foreground border border-warning-border cursor-default',
           isLink && 'hover:bg-[var(--color-yellow-bg-hover)] cursor-pointer'
         );
     }
@@ -100,28 +101,34 @@ const TransactionStatusLabel = ({
   const content = (
     <>
       {status === 'Pending' && (
-        <div className="flex flex-row gap-1 items-center">
+        <div className="rounded-l-[3px] flex items-center bg-warning-border py-1 px-1.5">
           <IconClock />
-          {`${isBeforeNextRebalance ? '1-' : ''}${timeLeft.fromNow(true)}`}
         </div>
       )}
-      <span>{status}</span>
-      {isLink && <IconExternal transactionStatus={status} />}
+      <div className="px-2 py-1 whitespace-nowrap flex items-center w-fit gap-1">
+        {status === 'Pending' && (
+          <span className="leading-0">
+            {`${isBeforeNextRebalance ? '1-' : ''}${timeLeft.fromNow(true)}`}
+          </span>
+        )}
+        <span>{status}</span>
+        {isLink && <IconExternal transactionStatus={status} />}
+      </div>
     </>
   );
 
   const className = cn(
-    `px-2 py-1 whitespace-nowrap text-xs font-semibold flex items-center rounded-full w-fit gap-2 h-fit transition-colors duration-200`,
-    extendedClassName
+    'flex w-fit rounded-[4px] text-xs font-bold shrink grow-0 transition-colors duration-200 leading-0',
+    colorClassName
   );
 
   return (
-    <div className="w-full">
+    <>
       {isLink ? (
         <a
           href={linkToTxOnBlockExplorer(
             (transaction.claimTx || transaction.tx) as Hash,
-            CHAIN_ID
+            chain?.id
           )}
           target="_blank"
           rel="noreferrer"
@@ -132,7 +139,7 @@ const TransactionStatusLabel = ({
       ) : (
         <div className={className}>{content}</div>
       )}
-    </div>
+    </>
   );
 };
 

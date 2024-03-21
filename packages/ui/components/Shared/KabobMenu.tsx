@@ -50,7 +50,9 @@ export function KabobMenu({
       </MenuHandler>
       <MenuList
         className={cn(
-          'bg-[var(--color-element-wrapper-bg)] border-0 text-black !-translate-y-8 !translate-x-1',
+          'relative bg-background border-0 text-foreground',
+          '!-translate-y-8 !translate-x-1',
+          'before:bg-foregroundA2 before:absolute before:inset-0 before:-z-[1]',
           menuListClassName
         )}
       >
@@ -87,7 +89,7 @@ export function KabobMenu({
               exit={!animate ? undefined : { height: 0, opacity: 0 }}
               transition={!animate ? undefined : { duration: 0.1, delay: 0.05 }}
               className={cn(
-                'bg-white rounded-lg overflow-hidden py-1 px-1 gap-0.5',
+                'bg-background rounded-lg overflow-hidden py-1 px-1 gap-0.5',
                 menuContentClassName
               )}
             >
@@ -107,7 +109,7 @@ export function KabobMenuItem({
   return (
     <MenuItem
       className={cn(
-        'flex items-center gap-1.5 px-2 py-2 hover:bg-gray-200',
+        'flex items-center gap-1.5 px-2 py-2 hover:bg-foregroundA1',
         className
       )}
       {...props}

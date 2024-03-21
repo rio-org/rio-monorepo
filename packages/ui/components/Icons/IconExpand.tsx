@@ -1,14 +1,21 @@
 import React from 'react';
 import classes from './icons.module.scss';
-import cx from 'classnames';
+import { cn } from '../../lib/utilities';
 
 type Props = {
   isExpanded: boolean;
+  className?: string;
 };
 
-const IconExpand = ({ isExpanded }: Props) => {
+const IconExpand = ({ isExpanded, className }: Props) => {
   return (
-    <div className={cx(classes.iconExpand, isExpanded && classes.active)}></div>
+    <div
+      className={cn(
+        classes.iconExpand,
+        isExpanded && classes.active,
+        className
+      )}
+    ></div>
   );
 };
 

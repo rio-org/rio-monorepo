@@ -27,18 +27,21 @@ export function PendingManagerInvitation({
 
   const {
     status: { isTxComplete, isTxPending, isUserSigning },
-    contractWrite: { write, reset }
+    prepareContractWrite: { data: simulatedData },
+    contractWrite: { writeContract, reset }
   } = useCompleteContractWrite({
     address: operatorRegistryAddress ?? zeroAddress,
     abi: RioLRTOperatorRegistryABI,
     functionName: 'confirmOperatorManager',
     args: [operatorDelegator.delegatorId],
-    enabled:
-      !!address &&
-      !!operatorRegistryAddress &&
-      pendingManager &&
-      pendingManager !== zeroAddress &&
-      isEqualAddress(address, pendingManager)
+    query: {
+      enabled:
+        !!address &&
+        !!operatorRegistryAddress &&
+        pendingManager &&
+        pendingManager !== zeroAddress &&
+        isEqualAddress(address, pendingManager)
+    }
   });
 
   useEffect(() => {
@@ -64,16 +67,25 @@ export function PendingManagerInvitation({
           exit={{ height: 0, marginBottom: 0, opacity: 0 }}
           className="w-full flex justify-between gap-8 px-3 py-2 overflow-hidden bg-[#EDCD5E] rounded-md"
         >
-          <div className="flex gap-2 items-center text-[14px] font-medium text-black">
-            <IconWarning className="[&>path]:stroke-black" />
+          <div className="flex gap-2 items-center text-[14px] font-medium text-foreground">
+            <IconWarning className="[&>path]:stroke-foreground" />
             <span className="leading-snug">
               Invitation to manage an operator
             </span>
           </div>
           <button
-            disabled={isTxPending || !write || isUserSigning}
-            className="relative py-1.5 px-2.5 text-xs font-medium rounded-lg bg-black text-white"
-            onClick={write}
+            disabled={
+              isTxPending ||
+              !writeContract ||
+              !simulatedData?.request ||
+              isUserSigning
+            }
+            className="relative py-1.5 px-2.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground"
+            onClick={
+              !simulatedData?.request
+                ? undefined
+                : () => writeContract(simulatedData.request)
+            }
           >
             {(isTxPending || isUserSigning) && (
               <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">

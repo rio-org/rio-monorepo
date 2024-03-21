@@ -25,8 +25,8 @@ export const InfoTooltip = ({
   children
 }: InfoTooltipProps) => (
   <HybridTooltip>
-    <HybridTooltipTrigger className={triggerClassName}>
-      <IconInfo className={iconClassName} />
+    <HybridTooltipTrigger className={cn('rounded-full', triggerClassName)}>
+      <IconInfo className={cn('rounded-full', iconClassName)} />
     </HybridTooltipTrigger>
     <HybridTooltipContent
       side={side}

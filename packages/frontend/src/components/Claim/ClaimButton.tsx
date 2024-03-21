@@ -1,10 +1,12 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useNetwork, useSwitchNetwork } from 'wagmi';
 import { Spinner } from '@material-tailwind/react';
+import { useSwitchChain } from 'wagmi';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useTransactionButton } from '@rio-monorepo/ui/hooks/useTransactionButton';
 import { type TransactionButtonProps } from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import { cn, displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
+import { Button } from '@rio-monorepo/ui/components/shadcn/button';
+import { twJoin } from 'tailwind-merge';
 
 export type ClaimButtonProps = Pick<TransactionButtonProps, 'isSigning'> & {
   claimAmount?: string;
@@ -13,6 +15,8 @@ export type ClaimButtonProps = Pick<TransactionButtonProps, 'isSigning'> & {
   className?: string;
 };
 
+const MotionBtn = motion(Button);
+
 const ClaimButton = ({
   isSigning,
   claimAmount,
@@ -20,28 +24,38 @@ const ClaimButton = ({
   useTransactionButtonReturn,
   className
 }: ClaimButtonProps) => {
-  const { chain } = useNetwork();
-  const { address } = useAccountIfMounted();
-  const { isLoading: isSwitchNetworkLoading } = useSwitchNetwork();
-  const wrongNetwork = chain?.unsupported;
+  const { address, chain } = useAccountIfMounted();
+  const { chains, isPending: isSwitchNetworkLoading } = useSwitchChain();
+  const wrongNetwork = !!address && !chains.find((c) => c.id === chain?.id);
   const formattedAmount = displayEthAmount(claimAmount ?? '0');
 
   const { handleClick, isDisabled, isTxLoading, prevTx } =
     useTransactionButtonReturn;
 
+  const hasClaim = !!claimAmount && claimAmount !== '0';
+
   return (
-    <motion.button
+    <MotionBtn
       disabled={isDisabled || !address}
+      // disabled={true}
       onClick={handleClick}
       transition={{ duration: 0.2 }}
       className={cn(
-        'flex items-center px-3 h-9 text-[14px] font-bold rounded-lg',
-        'bg-white text-[#301FC4] disabled:text-white',
-        claimAmount &&
-          claimAmount !== '0' &&
-          (isSigning || isSwitchNetworkLoading || isTxLoading || prevTx?.hash)
-          ? 'disabled:opacity-70 disabled:bg-transparent '
-          : 'disabled:opacity-10 disabled:bg-black',
+        'flex items-center px-3 h-9 text-[14px] font-bold rounded-[4px]',
+        hasClaim
+          ? twJoin(
+              'bg-background text-rio-blue dark:bg-background/50 dark:text-foreground',
+              'hover:bg-background/80 dark:hover:bg-background/70'
+            )
+          : 'disabled:opacity-20',
+        hasClaim &&
+          (isSigning ||
+            isSwitchNetworkLoading ||
+            isTxLoading ||
+            prevTx?.hash) &&
+          twJoin(
+            'disabled:opacity-70 disabled:bg-transparent disabled:text-background'
+          ),
         className
       )}
     >
@@ -73,7 +87,7 @@ const ClaimButton = ({
           return `Claim ${formattedAmount} ${claimAssetSymbol}`;
         })()}
       </span>
-    </motion.button>
+    </MotionBtn>
   );
 };
 

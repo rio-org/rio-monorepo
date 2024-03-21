@@ -1,0 +1,102 @@
+# Yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      SHA:
+        required: true
+        type: string
+      DATADOG_API_KEY:
+        required: false
+        type: string
+        default: ''
+      RUN_LINT_AND_FORMAT:
+        required: false
+        type: boolean
+        default: false
+      RUN_TYPECHECK:
+        required: false
+        type: boolean
+        default: false
+      RUN_TESTS:
+        required: false
+        type: boolean
+        default: false
+      RUN_DATADOG_UPLOAD:
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: 18
+  PNPM_VERSION: 8
+
+jobs:
+  build:
+    name: Install + Compile
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache turbo build setup
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ inputs.SHA }}
+          restore-keys: ${{ runner.os }}-turbo-
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup NodeJS environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm run build:ci
+
+      - if: ${{ inputs.RUN_LINT_AND_FORMAT }}
+        name: Lint & format packages
+        run: pnpm lint-format
+
+      - if: ${{ inputs.RUN_TYPECHECK }}
+        name: Typecheck packages
+        run: pnpm typecheck
+
+      - if: ${{ inputs.RUN_TESTS }}
+        name: Test packages
+        run: pnpm test --filter='!subgraph'
+
+      - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
+        name: Install datadog-ci
+        run: pnpm install --global @datadog/datadog-ci
+
+      - if: ${{ inputs.RUN_DATADOG_UPLOAD }}
+        name: Upload sourcemap for Restake App
+        run: |
+          datadog-ci sourcemaps upload \
+            --minified-path-prefix=/_next/static \
+            --release-version=$(git rev-parse --short HEAD) \
+            --service=$SERVICE \
+           ./packages/frontend/.next/static
+        env:
+          SERVICE: rio_network_app_-_production
+          DATADOG_SITE: datadoghq.com
+          DATADOG_API_HOST: api.us5.datadoghq.com
+          DATADOG_API_KEY: ${{ inputs.DATADOG_API_KEY }}
+          GIT_HASH: ${{ steps.get_git_short_hash.outputs.GIT_HASH }}

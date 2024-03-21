@@ -1,14 +1,14 @@
 import {
-  ApolloClient,
-  ApolloError,
-  NormalizedCacheObject
+  type ApolloClient,
+  type ApolloError,
+  type NormalizedCacheObject
 } from '@apollo/client';
 import { getLiquidRestakingTokenList } from './graphqlQueries';
-import { CHAIN_ID_NUMBER, LRTDetails, LRTSubgraphResponse } from './typings';
-import subgraphClient from './subgraphClient';
+import { type LRTDetails, type LRTSubgraphResponse } from './typings';
 import { parseSubgraphLRTList } from './utilities';
+import subgraphClient from './subgraphClient';
 
-export const fetchLiquidRestakingTokens = async (chainId: CHAIN_ID_NUMBER) => {
+export const fetchLiquidRestakingTokens = async (chainId: number) => {
   const client = subgraphClient(chainId);
   const getData = async (client: ApolloClient<NormalizedCacheObject>) => {
     const { data } = await client.query<{

@@ -26,7 +26,7 @@ const Stats = ({ lrt }: Props) => {
         denominator: '',
         infoTooltipContent: (
           <p>
-            The share of EigenLayer points that have been earned by this
+            The number of EigenLayer points that have been earned by this
             {" address's"} deposits.
           </p>
         )
@@ -56,7 +56,7 @@ const Stats = ({ lrt }: Props) => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.1 }}
-            className="flex items-center justify-between mb-5 text-2xl cursor-pointer lg:cursor-default font-medium"
+            className="flex items-center justify-between mb-5 text-2xl cursor-pointer md:cursor-default font-medium"
             onClick={() => {
               setIsExpanded(!isExpanded);
             }}
@@ -74,7 +74,7 @@ const Stats = ({ lrt }: Props) => {
           exit={{ height: 0 }}
           transition={{ type: 'spring', bounce: 0, duration: 0.4, delay: 0.1 }}
         >
-          <div className="flex flex-col lg:flex-row gap-2 mb-6">
+          <div className="flex flex-col md:flex-row gap-2 mb-6">
             {stats.map((stat, index) => (
               <Stat
                 key={index}
