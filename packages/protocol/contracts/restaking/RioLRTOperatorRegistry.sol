@@ -29,7 +29,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     using LibMap for *;
 
     /// @dev The validator details storage position.
-    bytes32 internal constant VALIDATOR_DETAILS_POSITION = keccak256('RIO.OPERATOR_REGISTRY.VALIDATOR_DETAILS');
 
     /// @notice The operator delegator beacon contract.
     address public immutable operatorDelegatorBeacon;
@@ -170,7 +169,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         s.setSecurityDaemon(newSecurityDaemon);
     }
 
-    /// @notice Sets the proof uploader to a new account (`newSecurityDaemon`).
+    /// @notice Sets the proof uploader to a new account (`newProofUploader`).
     /// @param newProofUploader The new proof uploader address.
     function setProofUploader(address newProofUploader) external onlyOwner {
         s.setProofUploader(newProofUploader);
@@ -274,7 +273,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             operator.validatorDetails.confirmed = validators.confirmed = validators.total;
         }
 
-        operator.validatorDetails.total = VALIDATOR_DETAILS_POSITION.saveValidatorDetails(
+        operator.validatorDetails.total = OperatorRegistryV1Admin.VALIDATOR_DETAILS_POSITION.saveValidatorDetails(
             operatorId, validators.total, validatorCount, publicKeys, signatures
         );
         operator.validatorDetails.nextConfirmationTimestamp = uint40(block.timestamp + s.validatorKeyReviewPeriod);
@@ -297,7 +296,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         if (validatorCount == 0) revert INVALID_VALIDATOR_COUNT();
         if (fromIndex < validators.confirmed || fromIndex + validatorCount > validators.total) revert INVALID_INDEX();
 
-        operator.validatorDetails.total = VALIDATOR_DETAILS_POSITION.removeValidatorDetails(
+        operator.validatorDetails.total = OperatorRegistryV1Admin.VALIDATOR_DETAILS_POSITION.removeValidatorDetails(
             operatorId, fromIndex, validatorCount, validators.total
         );
         emit OperatorPendingValidatorDetailsRemoved(operatorId, validatorCount);
@@ -314,7 +313,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         if (fromIndex < validators.exited || fromIndex + validatorCount > validators.deposited) revert INVALID_INDEX();
 
         bytes memory exitedPubKeyBatch = ValidatorDetails.allocateMemoryForPubKeys(validatorCount);
-        VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
+        OperatorRegistryV1Admin.VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
             operatorId, fromIndex, validatorCount, exitedPubKeyBatch, new bytes(0), 0
         );
 
@@ -329,7 +328,9 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         }
 
         // Swap the position of the validators starting from the `fromIndex` with the validators that were next in line to be exited.
-        VALIDATOR_DETAILS_POSITION.swapValidatorDetails(operatorId, fromIndex, validators.exited, validatorCount);
+        OperatorRegistryV1Admin.VALIDATOR_DETAILS_POSITION.swapValidatorDetails(
+            operatorId, fromIndex, validators.exited, validatorCount
+        );
         operator.validatorDetails.exited += uint40(validatorCount);
 
         emit OperatorOutOfOrderValidatorExitsReported(operatorId, validatorCount);
@@ -443,7 +444,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
 
                 // Load the allocated validator details from storage and update the deposited validator count.
                 (pubKeyBatch, signatureBatch) = ValidatorDetails.allocateMemory(newDepositAllocation);
-                VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
+                OperatorRegistryV1Admin.VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
                     operatorId, validators.deposited, newDepositAllocation, pubKeyBatch, signatureBatch, 0
                 );
                 operator.validatorDetails.deposited += uint40(newDepositAllocation);
@@ -563,7 +564,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             // to withdraw from are chosen by the software run by the operator.
             uint256 newDepositDeallocation = FixedPointMathLib.min(activeDeposits, remainingDeposits);
             pubKeyBatch = ValidatorDetails.allocateMemoryForPubKeys(newDepositDeallocation);
-            VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
+            OperatorRegistryV1Admin.VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
                 operatorId, validators.exited, newDepositDeallocation, pubKeyBatch, new bytes(0), 0
             );
 

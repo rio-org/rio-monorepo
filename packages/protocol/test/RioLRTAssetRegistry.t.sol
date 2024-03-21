@@ -130,4 +130,50 @@ contract RioLRTAssetRegistryTest is RioDeployer {
         reLST.assetRegistry.removeAsset(RETH_ADDRESS);
         assertEq(reLST.assetRegistry.getSupportedAssets().length, 0);
     }
+
+    function test_setDepositCapNonOwnerReverts() public {
+        vm.prank(address(42));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
+        reETH.assetRegistry.setAssetDepositCap(ETH_ADDRESS, 0);
+    }
+
+    function test_setDepositCapUnsupportedAssetReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAssetRegistry.ASSET_NOT_SUPPORTED.selector, address(1)));
+        reETH.assetRegistry.setAssetDepositCap(address(1), 0);
+    }
+
+    function test_setDepositCap() public {
+        reETH.assetRegistry.setAssetDepositCap(ETH_ADDRESS, 1.123e18);
+        assertEq(reETH.assetRegistry.getAssetDepositCap(ETH_ADDRESS), 1.123e18);
+    }
+
+    function test_setPriceFeedNonOwnerReverts() public {
+        vm.prank(address(42));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
+        reETH.assetRegistry.setAssetPriceFeed(ETH_ADDRESS, address(1));
+    }
+
+    function test_setPriceFeedUnsupportedAssetReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAssetRegistry.ASSET_NOT_SUPPORTED.selector, address(1)));
+        reETH.assetRegistry.setAssetPriceFeed(address(1), address(2));
+    }
+
+    function test_setPriceFeedWithInvalidAddressReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAssetRegistry.INVALID_PRICE_FEED.selector));
+        reLST.assetRegistry.setAssetPriceFeed(CBETH_ADDRESS, address(0));
+    }
+
+    function test_setPriceFeedWithInvalidDecimalsReverts() public {
+        MockPriceFeed feed = new MockPriceFeed(1e18);
+        feed.setDecimals(8);
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAssetRegistry.INVALID_PRICE_FEED_DECIMALS.selector));
+        reETH.assetRegistry.setAssetPriceFeed(ETH_ADDRESS, address(feed));
+    }
+
+    function test_setPriceFeed() public {
+        MockPriceFeed feed = new MockPriceFeed(1e18);
+        reETH.assetRegistry.setAssetPriceFeed(ETH_ADDRESS, address(feed));
+        assertEq(reETH.assetRegistry.getAssetPriceFeed(ETH_ADDRESS), address(feed));
+    }
 }
