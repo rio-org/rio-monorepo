@@ -332,6 +332,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         uint8 decimals = config.asset == ETH_ADDRESS ? 18 : IERC20Metadata(config.asset).decimals();
         if (config.asset == ETH_ADDRESS) {
             if (config.priceFeed != address(0)) revert INVALID_PRICE_FEED();
+            if (priceFeedDecimals != 18) revert INVALID_PRICE_FEED_DECIMALS();
             if (config.strategy != BEACON_CHAIN_STRATEGY) revert INVALID_STRATEGY();
         } else {
             if (decimals > 18) revert INVALID_ASSET_DECIMALS();
