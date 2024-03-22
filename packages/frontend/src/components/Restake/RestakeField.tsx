@@ -21,7 +21,7 @@ import {
 import { Button } from '@rio-monorepo/ui/components/shadcn/button';
 import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 
-type Props = {
+export type RestakeFieldProps = {
   tab: string;
   activeToken?: AssetDetails;
   amount: string;
@@ -34,7 +34,7 @@ type Props = {
   setWithdrawalAmount: (amount: string) => void;
 };
 
-const RestakeField = ({
+export const RestakeField = ({
   tab,
   amount,
   activeToken,
@@ -45,7 +45,7 @@ const RestakeField = ({
   estimatedMaxGas,
   setRestakingAmount,
   setWithdrawalAmount
-}: Props) => {
+}: RestakeFieldProps) => {
   const isMounted = useIsMounted();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -196,7 +196,9 @@ const RestakeField = ({
         className={cn(
           'relative z-10 bg-input text-foreground p-4 rounded-[4px] border-border border transition-all',
           'hover:border-foregroundA1 focus:border-foregroundA2',
-          isFocused && 'border-foregroundA2 hover:border-foregroundA2'
+          isFocused && 'border-foregroundA2 hover:border-foregroundA2',
+          'md:[&:hover+div_.spinner-button]:opacity-100',
+          'md:[&:focus+div_.spinner-button]:scale-100'
         )}
         onClick={focusInput}
       >
@@ -219,6 +221,9 @@ const RestakeField = ({
                     'pr-[75px] md:pr-[95px]',
                     'md:[&:hover+div]:flex',
                     'md:[&:focus+div]:flex',
+                    'md:[&+div_.spinner-button]:opacity-0',
+                    'md:[&:hover+div_.spinner-button]:opacity-100',
+                    'md:[&:focus+div_.spinner-button]:opacity-100',
                     disabled && 'text-foregroundA7'
                   )}
                   id="input-amount"
@@ -312,8 +317,6 @@ const RestakeField = ({
   );
 };
 
-export default RestakeField;
-
 ////////////
 // Subcomponents
 ////////////
@@ -366,7 +369,7 @@ function AccountBalance({
               balance={formattedLrtBalance}
               symbol={lrtDetails?.symbol}
             />
-            <span className="opacity-50 ">|</span>
+            <span className="opacity-50">|</span>
             <span>
               {displayEthAmount(formattedTokenBalance)} {activeToken?.symbol}
             </span>
@@ -471,10 +474,12 @@ function InputSpinnerButton(props: {
     <button
       className={twJoin(
         'flex-1 flex items-center justify-center',
-        'aspect-square w-auto',
+        'aspect-square w-auto origin-center spinner-button',
         'bg-background rounded-[4px] border border-border',
         'hover:bg-foreground hover:bg-opacity-[0.03] hover:border-foregroundA1',
-        'active:bg-foregroundA1 active:border-foregroundA2 transition-colors'
+        'active:bg-foregroundA1 active:border-foregroundA2 transition-all',
+        'first-of-type:delay-0 last-of-type:delay-75',
+        'hover:opacity-100 hover:'
       )}
       {...props}
     />
@@ -489,7 +494,7 @@ function InputSpinner({
   setAmount: (amount: string) => void;
 }) {
   return (
-    <div className="hover:flex text-xs absolute z-[1] right-0 top-0 bottom-0 gap-1 hidden flex-col items-center justify-evenly">
+    <div className="flex text-xs absolute z-[1] right-0 top-0 bottom-0 gap-1 flex-col items-center justify-evenly">
       <InputSpinnerButton
         onClick={() =>
           setAmount(`${Math.round((+amount || 0) * 100 + 1) / 100}`)
@@ -497,6 +502,7 @@ function InputSpinner({
       >
         +
       </InputSpinnerButton>
+
       <InputSpinnerButton
         onClick={() =>
           setAmount(
