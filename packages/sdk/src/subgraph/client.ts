@@ -222,7 +222,6 @@ export class SubgraphClient {
           timestamp,
           blockNumber,
           tx,
-
           isClaimed,
           claimId: claim?.id ?? null,
           claimTx: claim?.tx ?? null,
