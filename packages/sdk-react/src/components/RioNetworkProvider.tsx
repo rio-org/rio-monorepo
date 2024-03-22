@@ -69,6 +69,7 @@ export const RioNetworkProvider: React.FC<RioNetworkProps> = ({
       (clients, [address, client]) => {
         client.attachPublicClient(publicClient);
         client.attachWalletClient(walletClient ?? undefined);
+        client.setSubgraphClientOptions({ subgraphUrl, graphApiKey });
 
         clients[address] = client;
         return clients;

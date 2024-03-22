@@ -17,8 +17,7 @@ export {
   Validator
 } from './types';
 export {
-  SUBGRAPH_URLS,
-  buildSubgraphUrls,
+  getSubgraphUrls,
   getSubgraphUrlForChainOrThrow,
   getDefaultConfig,
   toPaginated

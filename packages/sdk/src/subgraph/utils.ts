@@ -1,4 +1,3 @@
-import { ENV } from '../utils';
 import { OrderDirection } from './generated/graphql';
 import { QueryConfig } from './types';
 import { goerli, holesky } from 'viem/chains';
@@ -8,9 +7,7 @@ import { goerli, holesky } from 'viem/chains';
  * More Subgraph URLs are available if a Graph API key is provided.
  * @param graphApiKey The Graph API key to use for the Subgraph (optional).
  */
-export const buildSubgraphUrls = (
-  graphApiKey?: string
-): Record<number, string> =>
+export const getSubgraphUrls = (graphApiKey?: string): Record<number, string> =>
   Object.assign(
     {
       [goerli.id]:
@@ -20,10 +17,6 @@ export const buildSubgraphUrls = (
       [holesky.id]: `https://gateway-arbitrum.network.thegraph.com/api/${graphApiKey}/subgraphs/id/6tW7q8VAepsuJksDuLTzzgRHzegW2z1dmpcmtNE6G2A4`
     }
   );
-
-export const SUBGRAPH_URLS: Record<number, string> = buildSubgraphUrls(
-  ENV.THE_GRAPH_API_KEY
-);
 
 /**
  * Get the Subgraph URL for the provided chain ID.
@@ -35,7 +28,7 @@ export const getSubgraphUrlForChainOrThrow = (
   chainId: number,
   graphApiKey?: string
 ) => {
-  const subgraphUrls = buildSubgraphUrls(graphApiKey);
+  const subgraphUrls = getSubgraphUrls(graphApiKey);
   if (!subgraphUrls[chainId]) {
     throw new Error(
       `Unknown chain id (${chainId}). No Subgraph exists for this chain.`

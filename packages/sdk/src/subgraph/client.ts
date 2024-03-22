@@ -46,6 +46,8 @@ import BN from 'big.js';
 export class SubgraphClient {
   private readonly _gql: GraphQLClient;
 
+  private _chainId: number;
+  private _options?: SubgraphClientOptions;
   /**
    * The Rio Network issuer ID.
    */
@@ -68,6 +70,20 @@ export class SubgraphClient {
     this._gql = new GraphQLClient(
       options?.subgraphUrl ??
         getSubgraphUrlForChainOrThrow(chainId, options?.graphApiKey)
+    );
+    this._chainId = chainId;
+    this._options = options;
+  }
+
+  /**
+   * Update the client options.
+   * @param options Optional configuration with custom subgraph URL and/or The Graph API key
+   */
+  public updateClientOptions(options?: SubgraphClientOptions) {
+    this._options = options ?? this._options;
+    this._gql.setEndpoint(
+      this._options?.subgraphUrl ??
+        getSubgraphUrlForChainOrThrow(this._chainId, this._options?.graphApiKey)
     );
   }
 
