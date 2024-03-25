@@ -97,7 +97,13 @@ const getTransports = (chainId: number) => {
   _transports.push(http(getAlchemyRpcUrl(chainId)));
   _transports.push(http(getAnkrRpcUrl(chainId)));
   // public rpc
-  _transports.push(http());
+  _transports.push(
+    http(
+      chainId === goerli.id
+        ? 'https://goerli.blockpi.network/v1/rpc/public'
+        : undefined
+    )
+  );
   return _transports.filter(Boolean);
 };
 

@@ -13,18 +13,18 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "turbo run build",
-    "build:ci": "CI=true turbo run build --cache-dir=.turbo",
-    "build:clean": "turbo run clean:build",
-    "dev": "turbo run dev",
-    "lint-format": "turbo run --parallel lint format",
-    "lint-format:fix": "turbo run --parallel lint:fix format:fix",
+    "build": "turbo run --concurrency 11 build",
+    "build:ci": "CI=true turbo run --concurrency 11 build --cache-dir=.turbo",
+    "build:clean": "turbo run --concurrency 11 clean:build",
+    "dev": "turbo run --concurrency 11 dev",
+    "lint-format": "turbo run --concurrency 11 --parallel lint format",
+    "lint-format:fix": "turbo run --concurrency 11 --parallel lint:fix format:fix",
     "lint": "eslint . --ext .js,.ts",
     "lint:fix": "eslint . --ext .js,.ts --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "test": "turbo run --parallel test",
-    "typecheck": "turbo run --parallel typecheck",
+    "test": "turbo run --concurrency 11 --parallel test",
+    "typecheck": "turbo run --concurrency 11 --parallel typecheck",
     "prepare": "husky install"
   },
   "devDependencies": {
@@ -48,6 +48,7 @@
     "typescript": "^5.1.6"
   },
   "workspaces": [
+    "apps/*",
     "packages/*"
   ],
   "dependencies": {

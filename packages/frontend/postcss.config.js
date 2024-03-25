@@ -1,1 +1,1 @@
-module.exports = require('@rio-monorepo/ui/config/postcss.config');
+module.exports = require('@internal/config/ui/postcss.config');
