@@ -1,0 +1,13 @@
+{
+  "extends": "@internal/config/tsconfig/build.json",
+  "display": "API - Build",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./dist",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+}

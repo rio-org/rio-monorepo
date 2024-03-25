@@ -1,0 +1,12 @@
+{
+  "extends": "@internal/config/tsconfig/api.json",
+  "display": "API",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "test"],
+  "exclude": ["node_modules", "dist"]
+}
