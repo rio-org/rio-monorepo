@@ -4,7 +4,7 @@
   "private": true,
   "main": "src/index.ts",
   "scripts": {
-    "dev": "docker-compose up",
+    "dev": "docker-compose up -D",
     "migration:generate": "drizzle-kit generate:pg",
     "migration:run": "tsx ./src/migrate.ts",
     "lint": "eslint src --ext .ts",
