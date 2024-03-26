@@ -1,33 +1,37 @@
-import { uuid, numeric, index } from 'drizzle-orm/pg-core';
+import {
+  uuid,
+  timestamp,
+  index,
+  char,
+  varchar,
+  numeric,
+  integer,
+} from 'drizzle-orm/pg-core';
 
 import { schema } from './pg-schema';
-import { transaction } from './transaction';
-import { account } from './account';
-import { asset } from './asset';
+import { ZERO_ADDRESS } from '@/lib/constants';
 
 export const transfer = schema.table(
   'transfer',
   {
     id: uuid('id').defaultRandom().primaryKey(),
-    transactionId: uuid('transaction_id')
-      .references(() => transaction.id)
-      .notNull(),
-    fromId: uuid('from_id')
-      .references(() => account.id)
-      .notNull(),
-    toId: uuid('to_id')
-      .references(() => account.id)
-      .notNull(),
-    assetId: uuid('asset_id')
-      .references(() => asset.id)
-      .notNull(),
-    amount: numeric('amount', { precision: 78, scale: 0 }).notNull(),
+    chainId: integer('chain_id').notNull(),
+    txHash: char('transaction_hash', { length: 66 }).notNull(),
+    from: char('from', { length: 42 }).notNull().default(ZERO_ADDRESS),
+    to: char('to', { length: 42 }).notNull().default(ZERO_ADDRESS),
+    asset: varchar('asset', { length: 42 }).notNull(),
+    value: numeric('value', { precision: 78, scale: 0 }).default('0'),
+    timestamp: timestamp('timestamp', { withTimezone: true }).notNull(),
+    blockNumber: integer('block_number').notNull(),
   },
   (table) => ({
-    transactionIdx: index('transfer_transaction_idx').on(table.transactionId),
-    fromIdx: index('transfer_from_idx').on(table.fromId),
-    toIdx: index('transfer_to_idx').on(table.toId),
-    assetId: index('transfer_asset_idx').on(table.assetId),
+    chainIdx: index('transfer_network_idx').on(table.chainId),
+    txHashIdx: index('transfer_transaction_hash_idx').on(table.txHash),
+    fromIdx: index('transfer_from_idx').on(table.from),
+    toIdx: index('transfer_to_idx').on(table.to),
+    assetIdx: index('transfer_asset_idx').on(table.asset),
+    timestampIdx: index('transfer_timestamp_idx').on(table.timestamp),
+    blockNumberIdx: index('transfer_block_number_idx').on(table.blockNumber),
   }),
 );
 
