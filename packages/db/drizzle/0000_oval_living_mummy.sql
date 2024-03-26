@@ -1,11 +1,5 @@
 CREATE SCHEMA "rio_restaking";
 --> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "transaction_type" AS ENUM('DEPOSIT', 'WITHDRAW', 'TRANSFER');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "rio_restaking"."account" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"address" char(42) NOT NULL

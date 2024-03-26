@@ -3,8 +3,8 @@ import { uuid, index } from 'drizzle-orm/pg-core';
 import { schema } from './pg-schema';
 import { transaction } from './transaction';
 import { network } from './network';
-import { asset } from './asset';
 import { account } from './account';
+import { asset } from './asset';
 
 export const withdrawal = schema.table(
   'withdrawal',

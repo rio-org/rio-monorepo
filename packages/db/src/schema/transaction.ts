@@ -1,25 +1,8 @@
-import {
-  uuid,
-  varchar,
-  numeric,
-  pgEnum,
-  timestamp,
-  index,
-} from 'drizzle-orm/pg-core';
+import { uuid, timestamp, index, char } from 'drizzle-orm/pg-core';
 
 import { schema } from './pg-schema';
-import { TransactionType } from '../types';
-import {} from 'drizzle-orm/pg-core';
 import { network } from './network';
-import { asset } from './asset';
-import { char } from 'drizzle-orm/pg-core';
 import { account } from './account';
-
-export const transactionTypeEnum = pgEnum('transaction_type', [
-  TransactionType.DEPOSIT,
-  TransactionType.WITHDRAW,
-  TransactionType.TRANSFER,
-]);
 
 export const transaction = schema.table(
   'transaction',

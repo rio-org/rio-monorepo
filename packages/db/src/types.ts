@@ -4,7 +4,7 @@ export type DrizzleConnectionConfigTypes = {
   INDIVIDUAL: {
     user: ClientConfig['user'];
     database: ClientConfig['database'];
-    password: ClientConfig['password'];
+    password: string;
     port: ClientConfig['port'];
     host: ClientConfig['host'];
     connectionString?: never;
@@ -18,14 +18,3 @@ export type DrizzleConnectionConfigTypes = {
     host?: never;
   };
 };
-
-export enum TransactionType {
-  DEPOSIT = 'DEPOSIT',
-  WITHDRAW = 'WITHDRAW',
-  TRANSFER = 'TRANSFER',
-}
-
-export type TransactionTypeEnums = [
-  keyof typeof TransactionType,
-  ...(keyof typeof TransactionType)[],
-];

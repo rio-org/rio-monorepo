@@ -2,9 +2,9 @@ import { uuid, index } from 'drizzle-orm/pg-core';
 
 import { schema } from './pg-schema';
 import { transaction } from './transaction';
+import { account } from './account';
 import { network } from './network';
 import { asset } from './asset';
-import { account } from './account';
 
 export const deposit = schema.table(
   'deposit',

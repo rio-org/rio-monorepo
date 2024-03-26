@@ -1,5 +1,5 @@
 {
-  "id": "0155a6ca-58e4-4d3a-b103-5309480953f1",
+  "id": "926aade3-930b-47d2-8884-a435b330ec3d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -584,16 +584,7 @@
       "uniqueConstraints": {}
     }
   },
-  "enums": {
-    "transaction_type": {
-      "name": "transaction_type",
-      "values": {
-        "DEPOSIT": "DEPOSIT",
-        "WITHDRAW": "WITHDRAW",
-        "TRANSFER": "TRANSFER"
-      }
-    }
-  },
+  "enums": {},
   "schemas": {
     "rio_restaking": "rio_restaking"
   },

@@ -1,9 +1,9 @@
 import { uuid, numeric, index } from 'drizzle-orm/pg-core';
 
 import { schema } from './pg-schema';
-import { asset } from './asset';
-import { account } from './account';
 import { transaction } from './transaction';
+import { account } from './account';
+import { asset } from './asset';
 
 export const transfer = schema.table(
   'transfer',

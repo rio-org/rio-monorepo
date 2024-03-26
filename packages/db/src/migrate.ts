@@ -12,4 +12,7 @@ import { getDrizzleClient } from './db';
   });
   await migrate(db, { migrationsFolder: '../drizzle' });
   await client.end();
-})();
+})().catch((error) => {
+  console.error('[Error migrating database]', error);
+  process.exit(1);
+});
