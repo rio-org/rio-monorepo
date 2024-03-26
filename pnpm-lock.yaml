@@ -208,6 +208,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@internal/config':
+        specifier: workspace:*
+        version: link:../config
       dotenv:
         specifier: ^16.3.2
         version: 16.4.5
@@ -16455,13 +16458,13 @@ packages:
       glob: 7.2.3
       graceful-fs: 4.2.11
       jest-circus: 29.6.2
-      jest-environment-node: 29.7.0
-      jest-get-type: 29.6.3
+      jest-environment-node: 29.6.2
+      jest-get-type: 29.4.3
       jest-regex-util: 29.4.3
       jest-resolve: 29.6.2
       jest-runner: 29.6.2
       jest-util: 29.7.0
-      jest-validate: 29.7.0
+      jest-validate: 29.6.2
       micromatch: 4.0.5
       parse-json: 5.2.0
       pretty-format: 29.7.0

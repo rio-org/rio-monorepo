@@ -3,6 +3,7 @@
   "display": "DB",
   "compilerOptions": {
     "baseUrl": ".",
+    "outDir": "dist",
     "paths": {
       "@/*": ["./src/*"]
     }
