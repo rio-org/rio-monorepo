@@ -1,0 +1,605 @@
+{
+  "id": "0155a6ca-58e4-4d3a-b103-5309480953f1",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "account": {
+      "name": "account",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "address": {
+          "name": "address",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "account_address_idx": {
+          "name": "account_address_idx",
+          "columns": ["address"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "asset": {
+      "name": "asset",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "network_id": {
+          "name": "network_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "symbol": {
+          "name": "symbol",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "asset_network_idx": {
+          "name": "asset_network_idx",
+          "columns": ["network_id"],
+          "isUnique": false
+        },
+        "asset_symbol_idx": {
+          "name": "asset_symbol_idx",
+          "columns": ["symbol"],
+          "isUnique": false
+        },
+        "asset_address_idx": {
+          "name": "asset_address_idx",
+          "columns": ["address"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "asset_network_id_network_id_fk": {
+          "name": "asset_network_id_network_id_fk",
+          "tableFrom": "asset",
+          "tableTo": "network",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["network_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "deposit": {
+      "name": "deposit",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "network_id": {
+          "name": "network_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "restaking_token_id": {
+          "name": "restaking_token_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "underlying_asset_id": {
+          "name": "underlying_asset_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "deposit_network_idx": {
+          "name": "deposit_network_idx",
+          "columns": ["id"],
+          "isUnique": false
+        },
+        "deposit_account_idx": {
+          "name": "deposit_account_idx",
+          "columns": ["account_id"],
+          "isUnique": false
+        },
+        "deposit_restaking_token_idx": {
+          "name": "deposit_restaking_token_idx",
+          "columns": ["restaking_token_id"],
+          "isUnique": false
+        },
+        "deposit_underlying_asset_idx": {
+          "name": "deposit_underlying_asset_idx",
+          "columns": ["underlying_asset_id"],
+          "isUnique": false
+        },
+        "deposit_transaction_idx": {
+          "name": "deposit_transaction_idx",
+          "columns": ["transaction_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "deposit_network_id_network_id_fk": {
+          "name": "deposit_network_id_network_id_fk",
+          "tableFrom": "deposit",
+          "tableTo": "network",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["network_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "deposit_account_id_account_id_fk": {
+          "name": "deposit_account_id_account_id_fk",
+          "tableFrom": "deposit",
+          "tableTo": "account",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["account_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "deposit_restaking_token_id_asset_id_fk": {
+          "name": "deposit_restaking_token_id_asset_id_fk",
+          "tableFrom": "deposit",
+          "tableTo": "asset",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["restaking_token_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "deposit_underlying_asset_id_asset_id_fk": {
+          "name": "deposit_underlying_asset_id_asset_id_fk",
+          "tableFrom": "deposit",
+          "tableTo": "asset",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["underlying_asset_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "deposit_transaction_id_transaction_id_fk": {
+          "name": "deposit_transaction_id_transaction_id_fk",
+          "tableFrom": "deposit",
+          "tableTo": "transaction",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["transaction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "network": {
+      "name": "network",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "chain_id": {
+          "name": "chain_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "network_chain_id_idx": {
+          "name": "network_chain_id_idx",
+          "columns": ["chain_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "network_chain_id_unique": {
+          "name": "network_chain_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["chain_id"]
+        }
+      }
+    },
+    "transaction": {
+      "name": "transaction",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "network_id": {
+          "name": "network_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hash": {
+          "name": "hash",
+          "type": "char(66)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "transaction_network_idx": {
+          "name": "transaction_network_idx",
+          "columns": ["network_id"],
+          "isUnique": false
+        },
+        "transaction_hash_idx": {
+          "name": "transaction_hash_idx",
+          "columns": ["hash"],
+          "isUnique": false
+        },
+        "transaction_account_idx": {
+          "name": "transaction_account_idx",
+          "columns": ["account_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "transaction_network_id_network_id_fk": {
+          "name": "transaction_network_id_network_id_fk",
+          "tableFrom": "transaction",
+          "tableTo": "network",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["network_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transaction_account_id_account_id_fk": {
+          "name": "transaction_account_id_account_id_fk",
+          "tableFrom": "transaction",
+          "tableTo": "account",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["account_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "transaction_hash_unique": {
+          "name": "transaction_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": ["hash"]
+        }
+      }
+    },
+    "transfer": {
+      "name": "transfer",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "from_id": {
+          "name": "from_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "to_id": {
+          "name": "to_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "transfer_transaction_idx": {
+          "name": "transfer_transaction_idx",
+          "columns": ["transaction_id"],
+          "isUnique": false
+        },
+        "transfer_from_idx": {
+          "name": "transfer_from_idx",
+          "columns": ["from_id"],
+          "isUnique": false
+        },
+        "transfer_to_idx": {
+          "name": "transfer_to_idx",
+          "columns": ["to_id"],
+          "isUnique": false
+        },
+        "transfer_asset_idx": {
+          "name": "transfer_asset_idx",
+          "columns": ["asset_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "transfer_transaction_id_transaction_id_fk": {
+          "name": "transfer_transaction_id_transaction_id_fk",
+          "tableFrom": "transfer",
+          "tableTo": "transaction",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["transaction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transfer_from_id_account_id_fk": {
+          "name": "transfer_from_id_account_id_fk",
+          "tableFrom": "transfer",
+          "tableTo": "account",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["from_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transfer_to_id_account_id_fk": {
+          "name": "transfer_to_id_account_id_fk",
+          "tableFrom": "transfer",
+          "tableTo": "account",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["to_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "transfer_asset_id_asset_id_fk": {
+          "name": "transfer_asset_id_asset_id_fk",
+          "tableFrom": "transfer",
+          "tableTo": "asset",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["asset_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "withdrawal": {
+      "name": "withdrawal",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "network_id": {
+          "name": "network_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "restaking_token_id": {
+          "name": "restaking_token_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "underlying_asset_id": {
+          "name": "underlying_asset_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "withdrawal_network_idx": {
+          "name": "withdrawal_network_idx",
+          "columns": ["id"],
+          "isUnique": false
+        },
+        "withdrawal_account_idx": {
+          "name": "withdrawal_account_idx",
+          "columns": ["account_id"],
+          "isUnique": false
+        },
+        "withdrawal_restaking_token_idx": {
+          "name": "withdrawal_restaking_token_idx",
+          "columns": ["restaking_token_id"],
+          "isUnique": false
+        },
+        "withdrawal_underlying_asset_idx": {
+          "name": "withdrawal_underlying_asset_idx",
+          "columns": ["underlying_asset_id"],
+          "isUnique": false
+        },
+        "withdrarwral_transaction_idx": {
+          "name": "withdrarwral_transaction_idx",
+          "columns": ["transaction_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "withdrawal_network_id_network_id_fk": {
+          "name": "withdrawal_network_id_network_id_fk",
+          "tableFrom": "withdrawal",
+          "tableTo": "network",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["network_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "withdrawal_account_id_account_id_fk": {
+          "name": "withdrawal_account_id_account_id_fk",
+          "tableFrom": "withdrawal",
+          "tableTo": "account",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["account_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "withdrawal_restaking_token_id_asset_id_fk": {
+          "name": "withdrawal_restaking_token_id_asset_id_fk",
+          "tableFrom": "withdrawal",
+          "tableTo": "asset",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["restaking_token_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "withdrawal_underlying_asset_id_asset_id_fk": {
+          "name": "withdrawal_underlying_asset_id_asset_id_fk",
+          "tableFrom": "withdrawal",
+          "tableTo": "asset",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["underlying_asset_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "withdrawal_transaction_id_transaction_id_fk": {
+          "name": "withdrawal_transaction_id_transaction_id_fk",
+          "tableFrom": "withdrawal",
+          "tableTo": "transaction",
+          "schemaTo": "rio_restaking",
+          "columnsFrom": ["transaction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "transaction_type": {
+      "name": "transaction_type",
+      "values": {
+        "DEPOSIT": "DEPOSIT",
+        "WITHDRAW": "WITHDRAW",
+        "TRANSFER": "TRANSFER"
+      }
+    }
+  },
+  "schemas": {
+    "rio_restaking": "rio_restaking"
+  },
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

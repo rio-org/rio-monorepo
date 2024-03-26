@@ -1,0 +1,12 @@
+{
+  "extends": "@internal/config/tsconfig/api.json",
+  "display": "DB",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "./*.json"],
+  "exclude": ["node_modules"]
+}

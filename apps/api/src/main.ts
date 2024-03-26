@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app';
-import { ENV } from '@/config/env';
+import { ApiModule } from './api';
+import { ENV } from '@/config/shared-config.env';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(ENV.PORT);
+  const api = await NestFactory.create(ApiModule);
+  await api.listen(ENV.PORT);
 }
 bootstrap();

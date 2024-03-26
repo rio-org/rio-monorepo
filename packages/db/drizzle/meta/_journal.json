@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1711478593213,
+      "tag": "0000_tranquil_black_bolt",
+      "breakpoints": true
+    }
+  ]
+}

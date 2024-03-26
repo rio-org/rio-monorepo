@@ -1,0 +1,27 @@
+{
+  "name": "@internal/db",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "docker-compose up",
+    "migration:generate": "drizzle-kit generate:pg",
+    "migration:run": "tsx ./src/migrate.ts",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "pnpm lint --fix",
+    "format": "prettier --check src/**/*.ts",
+    "format:fix": "prettier --write src/**/*.ts",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.2",
+    "drizzle-orm": "^0.30.4",
+    "pg": "^8.11.3",
+    "postgres": "^3.4.4",
+    "tsx": "^4.7.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.4",
+    "drizzle-kit": "^0.20.14"
+  }
+}
