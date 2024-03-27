@@ -1,6 +1,6 @@
 {
   "name": "@rionetwork/sdk",
-  "version": "0.1.0-alpha.23",
+  "version": "0.1.0-alpha.24",
   "description": "Utilities that simplify interaction with the Rio Network protocol",
   "license": "GPL-3.0",
   "publishConfig": {
