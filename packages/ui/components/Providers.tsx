@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RioNetworkProvider } from '@rionetwork/sdk-react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from '@material-tailwind/react';
-import { mainnet, goerli, holesky } from 'wagmi/chains';
+import { goerli } from 'wagmi/chains';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Analytics } from '@vercel/analytics/react';
@@ -55,9 +55,9 @@ import {
   getAnkrRpcUrl,
   getInfuraRpcUrl
 } from '../lib/utilities';
-import { AppEnv, Theme } from '../lib/typings';
+import { Theme } from '../lib/typings';
 import { theme } from '../lib/theme';
-import { APP_ENV, CHAIN_ID, SUBGRAPH_API_KEY } from '../config';
+import { SUBGRAPH_API_KEY } from '../config';
 
 const WagmiProvider = dynamic(
   import('wagmi').then((mod) => mod.WagmiProvider),
@@ -66,14 +66,6 @@ const WagmiProvider = dynamic(
 
 // Create the cache client
 const queryClient = new QueryClient();
-
-// const chooseChain = (): [Chain, ...Chain[]] => {
-//   if (APP_ENV === AppEnv.PRODUCTION && CHAIN_ID === mainnet.id) {
-//     return [mainnet, holesky, goerli];
-//   } else {
-//     return [holesky, goerli]
-//   }
-// };
 
 const getTransports = (chainId: number) => {
   const _transports: Parameters<typeof fallback>[0] = [];

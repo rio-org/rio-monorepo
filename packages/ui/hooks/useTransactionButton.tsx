@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSwitchChain, useWaitForTransactionReceipt } from 'wagmi';
+import { holesky, mainnet } from 'viem/chains';
 import { type Hash } from 'viem';
 import { toast } from 'sonner';
 import { useWalletAndTermsStore } from '../contexts/WalletAndTermsStore';
 import { useAccountIfMounted } from './useAccountIfMounted';
+import { useSupportedChainId } from './useSupportedChainId';
+import { useRegionChecked } from './useRegionChecked';
 import {
   useAddTransaction,
   usePendingTransactions
@@ -15,9 +18,6 @@ import {
   type ContractError,
   type RioTransactionType
 } from '../lib/typings';
-import { useRegionChecked } from './useRegionChecked';
-import { mainnet } from 'viem/chains';
-import { useSupportedChainId } from './useSupportedChainId';
 
 export type UseTransactionButtonConfig = {
   transactionType: RioTransactionType;
@@ -125,7 +125,7 @@ export const useTransactionButton = ({
 
   const switchNetworkChainId =
     isInAllowedRegion === false
-      ? chains.find((c) => c.testnet)?.id!
+      ? chains.find((c) => c.testnet)?.id || holesky.id
       : supportedChainId;
 
   const handleClick = useCallback((): void => {

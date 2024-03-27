@@ -37,7 +37,8 @@ export function useGetLatestAssetPrice(
     'queryKey' | 'queryFn'
   >
 ): UseQueryResult<AssetDetails> {
-  const chainId = useSupportedChainId();
+  const supportedChainId = useSupportedChainId();
+  const chainId = _chainId ?? supportedChainId;
   return useQuery<AssetDetails, Error>({
     queryKey: ['useGetLatestAssetPrice', chainId, tokenAddress] as const,
     queryFn: () => fetcher({ tokenAddress, chainId }),

@@ -6,10 +6,8 @@ import {
   useMemo,
   useState
 } from 'react';
-import { useChainId, useConfig, useDisconnect } from 'wagmi';
+import { useDisconnect } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
-import { CHAIN_ID } from '../config';
-import { CHAIN_ID_NUMBER } from '../lib/typings';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccountIfMounted } from '../hooks/useAccountIfMounted';
 import { useAcceptedTerms } from '../hooks/useAcceptedTerms';

@@ -93,7 +93,6 @@ export const CustomConnectButton = () => {
             variants={mainNavConnectVariants}
           >
             {(() => {
-              const supportedChainId = useSupportedChainId();
               if (chainId === mainnet.id && isInAllowedRegion === false) {
                 return null;
               }
