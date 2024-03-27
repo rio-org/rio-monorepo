@@ -118,7 +118,7 @@ export const RestakingTokenExchangeRate = ({
     >
       <span className="leading-none whitespace-nowrap">
         {!exchangeRate ? (
-          <Skeleton className="inline-block" width={160} height={12} />
+          <Skeleton className="inline-block max-w-full" width={120} height={12} />
         ) : isRestakingTokenBase ? (
           <>
             {displayAmount(1 / exchangeRate.lrt, ...rateDecimals)}{' '}

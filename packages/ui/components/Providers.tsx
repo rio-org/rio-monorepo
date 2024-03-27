@@ -67,12 +67,12 @@ const WagmiProvider = dynamic(
 // Create the cache client
 const queryClient = new QueryClient();
 
-const chainlist = [goerli, holesky, mainnet] as [Chain, ...Chain[]];
+const chainlist = [holesky, mainnet] as [Chain, ...Chain[]];
 
 const chooseChain = (): [Chain, ...Chain[]] => {
   if (APP_ENV === AppEnv.PRODUCTION) {
     return [
-      chainlist.find((c) => c.id === CHAIN_ID) ?? goerli,
+      chainlist.find((c) => c.id === CHAIN_ID) ?? holesky,
       ...(CHAIN_ID === mainnet.id ? [holesky] : [])
     ];
   } else {
@@ -179,7 +179,7 @@ export function Providers({
             appInfo={appInfo}
             initialChain={chains[0]}
           >
-            <RioNetworkProvider>
+            <RioNetworkProvider subgraphApiKey={process.env.NEXT_PUBLIC_SUBGRAPH_API_KEY}>
               <RioTransactionStoreProvider>
                 <WalletAndTermsStoreProvider
                   requireGeofence={requireGeofence}
