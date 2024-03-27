@@ -142,8 +142,9 @@ export const linkToAddressOnBlockExplorer = (
   chainId: number = CHAIN_ID
 ) => {
   const chainName = getChainName(chainId);
-  const subdomain =
-    chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';
+  const subdomain = ['goerli', 'sepolia', 'holesky'].includes(chainName)
+    ? `${chainName}.`
+    : '';
   if (chainName === 'zora' || chainName === 'zora-goerli') {
     const subdomain = chainName === 'zora-goerli' ? 'testnet.' : '';
     return `https://${subdomain}explorer.zora.energy/address/${address}`;
@@ -156,8 +157,9 @@ export const linkToTxOnBlockExplorer = (
   chainId: number = CHAIN_ID
 ) => {
   const chainName = getChainName(chainId);
-  const subdomain =
-    chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';
+  const subdomain = ['goerli', 'sepolia', 'holesky'].includes(chainName)
+    ? `${chainName}.`
+    : '';
   if (chainName === 'zora' || chainName === 'zora-goerli') {
     const subdomain = chainName === 'zora-goerli' ? 'testnet.' : '';
     return `https://${subdomain}explorer.zora.energy/tx/${address}`;
