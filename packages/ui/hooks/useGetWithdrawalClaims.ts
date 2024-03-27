@@ -9,8 +9,7 @@ import {
   useSubgraph
 } from '@rionetwork/sdk-react';
 import { buildRioSdkRestakingKey } from '../lib/utilities';
-import { useAccountIfMounted } from './useAccountIfMounted';
-import { useConfig } from 'wagmi';
+import { useSupportedChainId } from './useSupportedChainId';
 
 function buildFetcherAndParser(
   subgraph: SubgraphClient,
@@ -30,10 +29,7 @@ export function useGetWithdrawalClaims(
   >
 ): UseQueryResult<WithdrawalClaim[], Error> {
   const subgraph = useSubgraph();
-
-  const { chain } = useAccountIfMounted();
-  const { chains } = useConfig();
-  const chainId = (chains.find((c) => c.id === chain?.id) || chains[0]).id;
+  const chainId = useSupportedChainId();
 
   return useQuery<WithdrawalClaim[], Error>({
     queryKey: buildRioSdkRestakingKey('getWithdrawalClaims', chainId, config),

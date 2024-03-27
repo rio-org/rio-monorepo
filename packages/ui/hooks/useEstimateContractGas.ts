@@ -15,6 +15,7 @@ import {
 import { useAccountIfMounted } from './useAccountIfMounted';
 import { asType } from '../lib/utilities';
 import { CHAIN_ID } from '../config';
+import { useSupportedChainId } from './useSupportedChainId';
 
 /////////////////
 // Module Types
@@ -60,8 +61,7 @@ export function useEstimateContractGas<
   >
 ): UseQueryResult<UseEstimateContractGasResult, Error> {
   const { address: accountAddress, chain } = useAccountIfMounted();
-  const networkChainId = chain?.id || CHAIN_ID;
-  const chainId = _chainId ?? networkChainId;
+  const chainId = useSupportedChainId();
   const client = usePublicClient({ chainId });
   const account = configAddress ?? accountAddress;
   return useQuery<UseEstimateContractGasResult, Error>({

@@ -20,9 +20,7 @@ import {
 export const APP_ENV = (process.env.NEXT_PUBLIC_APP_ENV ||
   AppEnv.DEVELOPMENT) as AppEnv;
 
-export const CHAIN_ID = APP_ENV === AppEnv.PRODUCTION
-  ? (1 as CHAIN_ID_NUMBER)
-  : (17000 as CHAIN_ID_NUMBER);
+export const CHAIN_ID = 17000 as CHAIN_ID_NUMBER;
 
 export const DATADOG_APPLICATION_ID =
   process.env.NEXT_PUBLIC_DATADOG_APPLICATION_ID ?? '';

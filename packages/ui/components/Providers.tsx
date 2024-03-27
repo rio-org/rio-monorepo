@@ -92,7 +92,9 @@ const getTransports = (chainId: number) => {
   _transports.push(http(getAlchemyRpcUrl(chainId)));
   _transports.push(http(getAnkrRpcUrl(chainId)));
   // public rpc
-  _transports.push(http());
+  if (chainId !== goerli.id) {
+    _transports.push(http());
+  }
   return _transports.filter(Boolean);
 };
 
