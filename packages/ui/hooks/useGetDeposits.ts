@@ -6,7 +6,6 @@ import {
   type UseQueryResult
 } from '@tanstack/react-query';
 import { useSupportedChainId } from './useSupportedChainId';
-import { useEffect } from 'react';
 
 function buildFetcherAndParser(
   subgraph: SubgraphClient,
@@ -24,9 +23,6 @@ export function useGetDeposits(
 ): UseQueryResult<Deposit[], Error> {
   const subgraph = useSubgraph();
   const chainId = useSupportedChainId();
-  useEffect(() => {
-    subgraph.getDeposits(config).then(d => console.log(d))
-  }, buildRioSdkRestakingKey('getDeposits', chainId, config));
 
   return useQuery<Deposit[], Error>({
     queryKey: buildRioSdkRestakingKey('getDeposits', chainId, config),
