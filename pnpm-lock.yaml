@@ -70,8 +70,8 @@ importers:
   packages/bot:
     dependencies:
       '@rionetwork/sdk':
-        specifier: 0.1.0-alpha.23
-        version: 0.1.0-alpha.23(graphql@16.8.1)(typescript@5.2.2)
+        specifier: 0.1.0-alpha.24
+        version: 0.1.0-alpha.24(graphql@16.8.1)(typescript@5.2.2)
       date-fns:
         specifier: ^3.3.1
         version: 3.3.1
@@ -116,8 +116,8 @@ importers:
         specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.24
-        version: 0.1.0-alpha.24(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7)
+        specifier: 0.1.0-alpha.25
+        version: 0.1.0-alpha.25(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7)
       '@tailwindcss/container-queries':
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@3.3.5)
@@ -255,8 +255,8 @@ importers:
         specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.24
-        version: 0.1.0-alpha.24(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7)
+        specifier: 0.1.0-alpha.25
+        version: 0.1.0-alpha.25(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7)
       '@tailwindcss/container-queries':
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@3.3.5)
@@ -392,7 +392,7 @@ importers:
     dependencies:
       '@rionetwork/sdk':
         specifier: 0.1.0-alpha.24
-        version: link:../sdk
+        version: 0.1.0-alpha.24(graphql@16.8.1)(typescript@5.1.6)
     devDependencies:
       '@types/react':
         specifier: ^18.2.37
@@ -471,8 +471,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.2(@types/react@18.2.37)(react-dom@18.2.0)(react@18.2.0)(viem@2.7.13)(wagmi@2.5.7)
       '@rionetwork/sdk-react':
-        specifier: 0.1.0-alpha.24
-        version: 0.1.0-alpha.24(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7)
+        specifier: 0.1.0-alpha.25
+        version: 0.1.0-alpha.25(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7)
       '@tailwindcss/container-queries':
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@3.3.5)
@@ -6747,14 +6747,14 @@ packages:
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
     dev: false
 
-  /@rionetwork/sdk-react@0.1.0-alpha.24(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7):
-    resolution: {integrity: sha512-fcS6Mb9hTuS0bk/5noxa4FIVcu28lU3ytjOYJnIXmR9XyPOGMO8L82kFAaati0QiOJ6VbTpoQWK3j/ct6wBFxQ==}
+  /@rionetwork/sdk-react@0.1.0-alpha.25(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7):
+    resolution: {integrity: sha512-WGiqQmYisJejfZuZJzsoS/SgsxlV2L4aw1xv9W2bij6wP48XohlYR/6B4oVfI/IUeh7kBBKLtzOo5OvjdBl4YQ==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     peerDependencies:
       react: '>=16.13.1'
-      wagmi: '>=1.2'
+      wagmi: '>=2.5'
     dependencies:
-      '@rionetwork/sdk': 0.1.0-alpha.23(graphql@16.8.1)(typescript@5.2.2)
+      '@rionetwork/sdk': 0.1.0-alpha.24(graphql@16.8.1)(typescript@5.2.2)
       react: 18.2.0
       wagmi: 2.5.7(@tanstack/react-query@5.28.6)(@types/react@18.2.37)(react-dom@18.2.0)(react-native@0.73.6)(react@18.2.0)(typescript@5.2.2)(viem@2.7.13)
     transitivePeerDependencies:
@@ -6766,8 +6766,27 @@ packages:
       - zod
     dev: false
 
-  /@rionetwork/sdk@0.1.0-alpha.23(graphql@16.8.1)(typescript@5.2.2):
-    resolution: {integrity: sha512-9BdZt/53lshnJbriA6h5ZXPMQFhsLWyvE90KUktf6XThXiibEdVRPRZTA3YxxyxGAtTUb9bin2+PV7H8iBtLpw==}
+  /@rionetwork/sdk@0.1.0-alpha.24(graphql@16.8.1)(typescript@5.1.6):
+    resolution: {integrity: sha512-JRsl7sE20j6mPFTNckMtL4aDFXvrDPq58UgcTQBmOIrl9xvfVJsb22N0ZYsflWib1T3NwLsS0+XioHnQtXcTgQ==}
+    engines: {node: '>=16', pnpm: '>=7.5.1'}
+    dependencies:
+      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
+      abitype: 0.10.3(typescript@5.1.6)
+      big.js: 6.2.1
+      cacheables: 1.2.2
+      graphql-request: 6.1.0(graphql@16.8.1)
+      viem: 2.7.13(typescript@5.1.6)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - graphql
+      - typescript
+      - utf-8-validate
+      - zod
+    dev: false
+
+  /@rionetwork/sdk@0.1.0-alpha.24(graphql@16.8.1)(typescript@5.2.2):
+    resolution: {integrity: sha512-JRsl7sE20j6mPFTNckMtL4aDFXvrDPq58UgcTQBmOIrl9xvfVJsb22N0ZYsflWib1T3NwLsS0+XioHnQtXcTgQ==}
     engines: {node: '>=16', pnpm: '>=7.5.1'}
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
@@ -6775,7 +6794,7 @@ packages:
       big.js: 6.2.1
       cacheables: 1.2.2
       graphql-request: 6.1.0(graphql@16.8.1)
-      viem: 1.19.9(typescript@5.2.2)
+      viem: 2.7.13(typescript@5.2.2)
     transitivePeerDependencies:
       - bufferutil
       - encoding
