@@ -245,32 +245,37 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
-                {!!mainnetChains.length && !!testnetChains.length && (
-                  <>
-                    <DropdownMenuLabel className="text-[10px] font-bold opacity-30">
-                      Mainnet
-                    </DropdownMenuLabel>
-                  </>
-                )}
-                {mainnetChains?.map((c) => (
-                  <DropdownMenuItem
-                    key={`mainnet-${c.id}`}
-                    disabled={c.id === chain?.id}
-                    onSelect={() => switchChain?.({ chainId: c.id })}
-                    className="flex items-center justify-between gap-3"
-                  >
-                    <span>{c.name}</span>
-                    {c.id === chain?.id && <Current />}
-                  </DropdownMenuItem>
-                ))}
-                {!!mainnetChains.length && !!testnetChains.length && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="text-[10px] font-bold opacity-30">
-                      Testnet
-                    </DropdownMenuLabel>
-                  </>
-                )}
+                {!!mainnetChains.length &&
+                  !!testnetChains.length &&
+                  !showUnsupportedRegion && (
+                    <>
+                      <DropdownMenuLabel className="text-[10px] font-bold opacity-30">
+                        Mainnet
+                      </DropdownMenuLabel>
+                    </>
+                  )}
+                {!showUnsupportedRegion &&
+                  mainnetChains?.map((c) => (
+                    <DropdownMenuItem
+                      key={`mainnet-${c.id}`}
+                      disabled={c.id === chain?.id}
+                      onSelect={() => switchChain?.({ chainId: c.id })}
+                      className="flex items-center justify-between gap-3"
+                    >
+                      <span>{c.name}</span>
+                      {c.id === chain?.id && <Current />}
+                    </DropdownMenuItem>
+                  ))}
+                {!showUnsupportedRegion &&
+                  !!mainnetChains.length &&
+                  !!testnetChains.length && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel className="text-[10px] font-bold opacity-30">
+                        Testnet
+                      </DropdownMenuLabel>
+                    </>
+                  )}
                 {testnetChains?.map((c) => (
                   <DropdownMenuItem
                     key={`testnet-${c.id}`}
@@ -287,21 +292,22 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
           </DropdownMenuSub>
         )}
 
-        {(chainUnsupported ||
-          (showUnsupportedRegion && !!testnetChains[0])) && (
-          <DropdownMenuItem
-            onSelect={() =>
-              switchChain?.({
-                chainId: showUnsupportedRegion
-                  ? testnetChains[0].id
-                  : mainnetChains[0].id || chains[0].id
-              })
-            }
-          >
-            <SplitIcon className="mr-2 h-3 w-3" />
-            Change Network
-          </DropdownMenuItem>
-        )}
+        {chains.length < 2 &&
+          (chainUnsupported ||
+            (showUnsupportedRegion && !!testnetChains[0])) && (
+            <DropdownMenuItem
+              onSelect={() =>
+                switchChain?.({
+                  chainId: showUnsupportedRegion
+                    ? testnetChains[0].id
+                    : mainnetChains[0]?.id || chains[0].id
+                })
+              }
+            >
+              <SplitIcon className="mr-2 h-3 w-3" />
+              Change Network
+            </DropdownMenuItem>
+          )}
 
         <DropdownMenuItem onSelect={() => disconnect?.()}>
           <CircleSlashIcon className="mr-2 h-3 w-3" />

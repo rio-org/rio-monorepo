@@ -10,7 +10,6 @@ import { cn, getChainName } from '../../lib/utilities';
 import { ViewTransactionLink } from './ViewTransactionLink';
 import { IconWarning } from '../Icons/IconWarning';
 import { IconX } from '../Icons/IconX';
-import { CHAIN_ID } from '../../config';
 import { useEffect } from 'react';
 import { Button } from '../shadcn/button';
 import { useRegionChecked } from '../../hooks/useRegionChecked';
@@ -49,6 +48,7 @@ const TransactionButton = ({
     isDisabled,
     isTxSuccess,
     isTxLoading,
+    switchNetworkChainId,
     prevTx
   } = useTransactionButton({
     transactionType: type,
@@ -139,7 +139,7 @@ const TransactionButton = ({
             return (
               <span>
                 {wrongNetwork
-                  ? `Switch to ${getChainName(CHAIN_ID)}`
+                  ? `Switch to ${getChainName(switchNetworkChainId)}`
                   : children || 'Submit'}
               </span>
             );

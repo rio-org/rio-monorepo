@@ -22,7 +22,7 @@ import { useIsMounted } from '../../hooks/useIsMounted';
 import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
 import { useWalletAndTermsStore } from '../../contexts/WalletAndTermsStore';
 import { useRegionChecked } from '../../hooks/useRegionChecked';
-import { CHAIN_ID } from '../../config';
+import { useSupportedChainId } from '../../hooks/useSupportedChainId';
 
 export const CustomConnectButton = () => {
   const isMounted = useIsMounted();
@@ -43,7 +43,8 @@ export const CustomConnectButton = () => {
         authenticationStatus,
         openChainModal
       }: ConnectButtonProps) => {
-        const chainId = (chain?.id || CHAIN_ID) as CHAIN_ID_NUMBER;
+        const supportedChainId = useSupportedChainId();
+        const chainId = (chain?.id || supportedChainId) as CHAIN_ID_NUMBER;
 
         const [isLoading, setIsLoading] = useState(false);
         const [isDisconnected, setIsDisconnected] = useState(false);

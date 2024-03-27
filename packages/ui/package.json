@@ -3,6 +3,12 @@
   "main": "index.ts",
   "types": "index.ts",
   "private": true,
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "format:fix": "prettier --write . --ignore-path ../../.gitignore"
+  },
   "dependencies": {
     "@apollo/client": "^3.8.7",
     "@datadog/browser-rum": "^5.8.0",

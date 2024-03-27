@@ -5,7 +5,6 @@
 
 @layer base {
   :root {
-
     --app-background: 0 0% 93.9%;
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -47,7 +46,7 @@
 
     --color-rio-blue: 246 73% 45%;
     --color-app-bg: #efefef;
-    --color-blue: #301FC4;
+    --color-blue: #301fc4;
     --color-light-blue: #4d4dff;
     --color-blue-bg: rgba(0, 0, 225, 0.1);
     --color-blue-bg-hover: rgba(0, 0, 225, 0.25);
@@ -66,7 +65,9 @@
     --color-green-bg: rgba(68, 148, 100, 0.1);
     --color-green-bg-hover: rgba(68, 148, 100, 0.25);
 
-    --font-sans: 'NB International Pro', SFRounded, ui-rounded, 'SF Pro Rounded', -apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+    --font-sans: 'NB International Pro', SFRounded, ui-rounded, 'SF Pro Rounded',
+      -apple-system, 'system-ui', 'Segoe UI', Roboto, Helvetica, Arial,
+      sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
     --font-mono: 'NB International Pro Mono', 'Menlo', monospace;
   }
 
@@ -104,7 +105,9 @@
 
   body {
     @apply font-sans m-0;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
     font-synthesis-weight: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -119,8 +122,7 @@
   html,
   body,
   #__next,
-  #__next>div {
+  #__next > div {
     @apply h-full text-foreground;
   }
 }
-
