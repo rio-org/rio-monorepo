@@ -1,6 +1,6 @@
 {
   "name": "@rionetwork/sdk-react",
-  "version": "0.1.0-alpha.25",
+  "version": "0.1.0-alpha.26",
   "description": "Utilities that simplify interaction with the Rio Network from React applications",
   "license": "GPL-3.0",
   "publishConfig": {
@@ -25,14 +25,14 @@
   },
   "peerDependencies": {
     "react": ">=16.13.1",
-    "wagmi": ">=1.2"
+    "wagmi": ">=2.5"
   },
   "dependencies": {
-    "@rionetwork/sdk": "0.1.0-alpha.23"
+    "@rionetwork/sdk": "0.1.0-alpha.24"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",
     "react": "^18.2.0",
-    "wagmi": "~1.4.5"
+    "wagmi": "~2.5.7"
   }
 }

@@ -2,7 +2,8 @@ import {
   PublicClient,
   WalletClient,
   WriteContractReturnType,
-  Address as ViemAddress
+  Address as ViemAddress,
+  SimulateContractParameters
 } from 'viem';
 import {
   Address,
@@ -209,6 +210,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTCoordinatorABI,
+      'deposit',
+      [ViemAddress, bigint],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { tokenIn, amount } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
@@ -217,7 +227,7 @@ export class LiquidRestakingTokenClient {
       functionName: 'deposit',
       args: [tokenIn as ViemAddress, BigInt(amount)],
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 
@@ -233,6 +243,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTCoordinatorABI,
+      'depositETH',
+      [],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { amount } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
@@ -241,7 +260,7 @@ export class LiquidRestakingTokenClient {
       functionName: 'depositETH',
       value: BigInt(amount),
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 
@@ -259,6 +278,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTCoordinatorABI,
+      'requestWithdrawal',
+      [ViemAddress, bigint],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { assetOut, amountIn } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
@@ -267,7 +295,7 @@ export class LiquidRestakingTokenClient {
       functionName: 'requestWithdrawal',
       args: [assetOut as ViemAddress, BigInt(amountIn)],
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 
@@ -285,6 +313,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTWithdrawalQueueABI,
+      'claimWithdrawalsForEpoch',
+      [{ readonly asset: ViemAddress; readonly epoch: bigint }],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { assetOut, epoch } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
@@ -298,7 +335,7 @@ export class LiquidRestakingTokenClient {
         }
       ],
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 
@@ -315,6 +352,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTWithdrawalQueueABI,
+      'claimWithdrawalsForManyEpochs',
+      [{ readonly asset: ViemAddress; readonly epoch: bigint }[]],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
       address: this._token.deployment.withdrawalQueue as ViemAddress,
@@ -327,7 +373,7 @@ export class LiquidRestakingTokenClient {
         }))
       ],
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 

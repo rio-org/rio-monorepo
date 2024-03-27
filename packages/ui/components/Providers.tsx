@@ -67,18 +67,13 @@ const WagmiProvider = dynamic(
 // Create the cache client
 const queryClient = new QueryClient();
 
-const chainlist = [goerli, holesky, mainnet] as [Chain, ...Chain[]];
-
-const chooseChain = (): [Chain, ...Chain[]] => {
-  if (APP_ENV === AppEnv.PRODUCTION) {
-    return [
-      chainlist.find((c) => c.id === CHAIN_ID) ?? goerli,
-      ...(CHAIN_ID === mainnet.id ? [holesky] : [])
-    ];
-  } else {
-    return chainlist;
-  }
-};
+// const chooseChain = (): [Chain, ...Chain[]] => {
+//   if (APP_ENV === AppEnv.PRODUCTION && CHAIN_ID === mainnet.id) {
+//     return [mainnet, holesky, goerli];
+//   } else {
+//     return [holesky, goerli]
+//   }
+// };
 
 const getTransports = (chainId: number) => {
   const _transports: Parameters<typeof fallback>[0] = [];
@@ -105,6 +100,7 @@ interface Props extends LayoutProps {
   requireGeofence?: boolean;
   requireTerms?: boolean;
   appTitle: string;
+  chains: [Chain, ...Chain[]];
 }
 
 const _appInfo = {
@@ -113,14 +109,15 @@ const _appInfo = {
 };
 
 const { wallets } = getDefaultWallets();
-const chains = chooseChain();
+// const chains = chooseChain();
 
 export function Providers({
   appTitle,
   nav,
   children,
   requireGeofence = false,
-  requireTerms = true
+  requireTerms = true,
+  chains
 }: Props) {
   const appInfo = useMemo(
     () => ({ appName: appTitle, ..._appInfo }),
@@ -179,7 +176,7 @@ export function Providers({
             appInfo={appInfo}
             initialChain={chains[0]}
           >
-            <RioNetworkProvider>
+            <RioNetworkProvider subgraphApiKey={process.env.NEXT_PUBLIC_SUBGRAPH_API_KEY}>
               <RioTransactionStoreProvider>
                 <WalletAndTermsStoreProvider
                   requireGeofence={requireGeofence}
