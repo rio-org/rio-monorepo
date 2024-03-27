@@ -8,6 +8,8 @@ import { goerli, holesky } from 'viem/chains';
  * @param _subgraphApiKey The Graph API key to use for the Subgraph (optional).
  */
 export const getSubgraphUrls = (
+  // Kept for future use.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _subgraphApiKey?: string
 ): Record<number, string> =>
   Object.assign(
