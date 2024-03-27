@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo } from 'react';
-import { useChainId, useWaitForTransactionReceipt } from 'wagmi';
+import { useWaitForTransactionReceipt } from 'wagmi';
 import { type Hash } from '@wagmi/core';
-import { CHAIN_ID } from '../config';
+import { toast } from 'sonner';
 import {
   QueryClient,
   useMutation,
@@ -9,16 +9,15 @@ import {
   useQueryClient
 } from '@tanstack/react-query';
 import {
-  CHAIN_ID_NUMBER,
   PendingTransaction,
   TransactionStore,
   RioTransactionType
 } from '../lib/typings';
-import { toast } from 'sonner';
+import { useSupportedChainId } from '../hooks/useSupportedChainId';
 import { TransactionToast } from '../components/Shared/TransactionToast';
 import { IconLightning } from '../components/Icons/IconLightning';
-import { IconSad } from '../components/Icons/IconSad';
 import { IconParty } from '../components/Icons/IconParty';
+import { IconSad } from '../components/Icons/IconSad';
 
 const STORE_VAR = 'transaction-store' as const;
 const QUERY_KEY = [STORE_VAR] as const;
@@ -47,7 +46,7 @@ export default function RioTransactionStoreProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const chainId = (useChainId() || CHAIN_ID) as CHAIN_ID_NUMBER;
+  const chainId = useSupportedChainId();
   const { data } = useLocalStorageTransactions();
   const { mutate: addTransaction } = useAddTransactionMutation();
   const { mutate: removeTransaction } = useRemoveTransactionMutation();
@@ -107,7 +106,7 @@ export function useRioTransactionStore() {
 }
 
 export function usePendingTransactions(type?: RioTransactionType) {
-  const chainId = useChainId() || CHAIN_ID;
+  const chainId = useSupportedChainId();
   const { data } = useRioTransactionStore();
   return useMemo(() => {
     const chainTxs = data.current[chainId] || ([] as PendingTransaction[]);
@@ -181,7 +180,7 @@ function useRemoveTransactionMutation() {
 
 function useAddTransactionMutation() {
   const queryClient = useQueryClient();
-  const chainId = useChainId() || CHAIN_ID;
+  const chainId = useSupportedChainId();
 
   return useMutation({
     mutationKey: QUERY_KEY,

@@ -20,28 +20,45 @@ import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
 import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
 import { type SubgraphClient } from '@rionetwork/sdk-react';
+import {
+  base,
+  baseGoerli,
+  foundry,
+  goerli,
+  holesky,
+  mainnet,
+  optimism,
+  optimismGoerli,
+  sepolia,
+  zora,
+  zoraSepolia
+} from 'viem/chains';
 
 export const getChainName = (chainId: number) => {
   switch (chainId) {
-    case 1:
+    case mainnet.id:
       return 'mainnet';
-    case 5:
+    case goerli.id:
       return 'goerli';
-    case 11155111:
+    case sepolia.id:
       return 'sepolia';
-    case 10:
+    case holesky.id:
+      return 'holesky';
+    case optimism.id:
       return 'optimism';
-    case 420:
+    case optimismGoerli.id:
       return 'optimism-goerli';
-    case 8453:
+    case base.id:
       return 'base';
-    case 84531:
+    case baseGoerli.id:
       return 'base-goerli';
-    case 7777777:
+    case zora.id:
       return 'zora';
     case 999:
       return 'zora-goerli';
-    case 31337:
+    case zoraSepolia.id:
+      return 'zora-sepolia';
+    case foundry.id:
       return 'foundry';
     default:
       return 'unknown';
@@ -124,8 +141,9 @@ export const linkToAddressOnBlockExplorer = (
   chainId: number = CHAIN_ID
 ) => {
   const chainName = getChainName(chainId);
-  const subdomain =
-    chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';
+  const subdomain = ['goerli', 'sepolia', 'holesky'].includes(chainName)
+    ? `${chainName}.`
+    : '';
   if (chainName === 'zora' || chainName === 'zora-goerli') {
     const subdomain = chainName === 'zora-goerli' ? 'testnet.' : '';
     return `https://${subdomain}explorer.zora.energy/address/${address}`;
@@ -138,8 +156,9 @@ export const linkToTxOnBlockExplorer = (
   chainId: number = CHAIN_ID
 ) => {
   const chainName = getChainName(chainId);
-  const subdomain =
-    chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';
+  const subdomain = ['goerli', 'sepolia', 'holesky'].includes(chainName)
+    ? `${chainName}.`
+    : '';
   if (chainName === 'zora' || chainName === 'zora-goerli') {
     const subdomain = chainName === 'zora-goerli' ? 'testnet.' : '';
     return `https://${subdomain}explorer.zora.energy/tx/${address}`;

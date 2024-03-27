@@ -1,11 +1,12 @@
 import { buildRioSdkRestakingKey } from '../lib/utilities';
-import { SubgraphClient, Deposit, useSubgraph } from '@rionetwork/sdk-react';
+import { SubgraphClient, Deposit } from '@rionetwork/sdk-react';
 import {
   useQuery,
   type UseQueryOptions,
   type UseQueryResult
 } from '@tanstack/react-query';
 import { useSupportedChainId } from './useSupportedChainId';
+import { SUBGRAPH_API_KEY } from '../config';
 
 function buildFetcherAndParser(
   subgraph: SubgraphClient,
@@ -21,9 +22,10 @@ export function useGetDeposits(
   config?: Parameters<SubgraphClient['getDeposits']>[0],
   queryConfig?: Omit<UseQueryOptions<Deposit[], Error>, 'queryKey' | 'queryFn'>
 ): UseQueryResult<Deposit[], Error> {
-  const subgraph = useSubgraph();
   const chainId = useSupportedChainId();
-
+  const subgraph = SubgraphClient.for(chainId, {
+    subgraphApiKey: SUBGRAPH_API_KEY
+  });
   return useQuery<Deposit[], Error>({
     queryKey: buildRioSdkRestakingKey('getDeposits', chainId, config),
     queryFn: buildFetcherAndParser(subgraph, config),

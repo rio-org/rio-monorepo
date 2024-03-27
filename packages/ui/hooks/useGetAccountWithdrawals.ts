@@ -1,3 +1,4 @@
+import { Address } from 'viem';
 import {
   type UseQueryResult,
   type UseQueryOptions,
@@ -6,14 +7,13 @@ import {
 import {
   ClaimWithdrawalParams,
   SubgraphClient,
-  WithdrawalRequest,
-  useSubgraph
+  WithdrawalRequest
 } from '@rionetwork/sdk-react';
 import { BaseAssetDetails, TokenSymbol } from '../lib/typings';
 import { buildRioSdkRestakingKey, isEqualAddress } from '../lib/utilities';
 import { useGetAssetsList } from './useGetAssetsList';
-import { Address } from 'viem';
 import { useSupportedChainId } from './useSupportedChainId';
+import { SUBGRAPH_API_KEY } from '../config';
 
 interface UseGetAccountWithdrawalsReturn {
   withdrawalRequests?: WithdrawalRequest[];
@@ -83,8 +83,10 @@ export function useGetAccountWithdrawals(
     'queryKey' | 'queryFn'
   >
 ) {
-  const subgraph = useSubgraph();
   const chainId = useSupportedChainId();
+  const subgraph = SubgraphClient.for(chainId, {
+    subgraphApiKey: SUBGRAPH_API_KEY
+  });
 
   const { data: assets } = useGetAssetsList();
   const { data, ...rest } = useQuery<UseGetAccountWithdrawalsReturn, Error>({
