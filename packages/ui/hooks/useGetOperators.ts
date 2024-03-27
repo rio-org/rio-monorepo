@@ -7,9 +7,9 @@ import {
 import {
   OperatorDelegator,
   SubgraphClient,
-  useSubgraph
 } from '@rionetwork/sdk-react';
 import { useSupportedChainId } from './useSupportedChainId';
+import { SUBGRAPH_API_KEY } from '../config';
 
 function buildFetcherAndParser(
   subgraph: SubgraphClient,
@@ -27,8 +27,8 @@ export function useGetOperators(
     Omit<UseQueryOptions<OperatorDelegator[], Error>, 'queryKey' | 'queryFn'>
   >
 ): UseQueryResult<OperatorDelegator[], Error> {
-  const subgraph = useSubgraph();
   const chainId = useSupportedChainId();
+  const subgraph = SubgraphClient.for(chainId, { subgraphApiKey: SUBGRAPH_API_KEY });
 
   return useQuery<OperatorDelegator[], Error>({
     queryKey: buildRioSdkRestakingKey('getOperatorDelegators', chainId, config),

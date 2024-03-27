@@ -49,6 +49,7 @@ const TransactionButton = ({
     isDisabled,
     isTxSuccess,
     isTxLoading,
+    switchNetworkChainId,
     prevTx
   } = useTransactionButton({
     transactionType: type,
@@ -139,7 +140,7 @@ const TransactionButton = ({
             return (
               <span>
                 {wrongNetwork
-                  ? `Switch to ${getChainName(CHAIN_ID)}`
+                  ? `Switch to ${getChainName(switchNetworkChainId)}`
                   : children || 'Submit'}
               </span>
             );

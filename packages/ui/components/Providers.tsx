@@ -57,7 +57,7 @@ import {
 } from '../lib/utilities';
 import { AppEnv, Theme } from '../lib/typings';
 import { theme } from '../lib/theme';
-import { APP_ENV, CHAIN_ID } from '../config';
+import { APP_ENV, CHAIN_ID, SUBGRAPH_API_KEY } from '../config';
 
 const WagmiProvider = dynamic(
   import('wagmi').then((mod) => mod.WagmiProvider),
@@ -178,7 +178,7 @@ export function Providers({
             appInfo={appInfo}
             initialChain={chains[0]}
           >
-            <RioNetworkProvider subgraphApiKey={process.env.NEXT_PUBLIC_SUBGRAPH_API_KEY}>
+            <RioNetworkProvider subgraphApiKey={SUBGRAPH_API_KEY}>
               <RioTransactionStoreProvider>
                 <WalletAndTermsStoreProvider
                   requireGeofence={requireGeofence}

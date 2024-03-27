@@ -14,7 +14,6 @@ import {
 } from '@tanstack/react-query';
 import { useAccountIfMounted } from './useAccountIfMounted';
 import { asType } from '../lib/utilities';
-import { CHAIN_ID } from '../config';
 import { useSupportedChainId } from './useSupportedChainId';
 
 /////////////////

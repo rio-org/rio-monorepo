@@ -30,7 +30,6 @@ export function useGetAssetsList(
     'queryKey' | 'queryFn'
   >
 ): UseQueryResult<BaseAssetDetails[], Error> {
-
   const chainId = useSupportedChainId();
   return useQuery<BaseAssetDetails[], Error>({
     queryKey: ['useGetAssetsList', chainId] as const,

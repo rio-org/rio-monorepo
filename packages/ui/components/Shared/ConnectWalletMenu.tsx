@@ -294,7 +294,7 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
               switchChain?.({
                 chainId: showUnsupportedRegion
                   ? testnetChains[0].id
-                  : mainnetChains[0].id || chains[0].id
+                  : mainnetChains[0]?.id || chains[0].id
               })
             }
           >
