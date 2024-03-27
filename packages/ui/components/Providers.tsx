@@ -67,13 +67,13 @@ const WagmiProvider = dynamic(
 // Create the cache client
 const queryClient = new QueryClient();
 
-const chooseChain = (): [Chain, ...Chain[]] => {
-  if (APP_ENV === AppEnv.PRODUCTION && CHAIN_ID === mainnet.id) {
-    return [mainnet, holesky, goerli];
-  } else {
-    return [holesky, goerli]
-  }
-};
+// const chooseChain = (): [Chain, ...Chain[]] => {
+//   if (APP_ENV === AppEnv.PRODUCTION && CHAIN_ID === mainnet.id) {
+//     return [mainnet, holesky, goerli];
+//   } else {
+//     return [holesky, goerli]
+//   }
+// };
 
 const getTransports = (chainId: number) => {
   const _transports: Parameters<typeof fallback>[0] = [];
@@ -100,6 +100,7 @@ interface Props extends LayoutProps {
   requireGeofence?: boolean;
   requireTerms?: boolean;
   appTitle: string;
+  chains: [Chain, ...Chain[]];
 }
 
 const _appInfo = {
@@ -108,14 +109,15 @@ const _appInfo = {
 };
 
 const { wallets } = getDefaultWallets();
-const chains = chooseChain();
+// const chains = chooseChain();
 
 export function Providers({
   appTitle,
   nav,
   children,
   requireGeofence = false,
-  requireTerms = true
+  requireTerms = true,
+  chains
 }: Props) {
   const appInfo = useMemo(
     () => ({ appName: appTitle, ..._appInfo }),

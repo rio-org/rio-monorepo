@@ -13,6 +13,8 @@ import { BaseAssetDetails, TokenSymbol } from '../lib/typings';
 import { buildRioSdkRestakingKey, isEqualAddress } from '../lib/utilities';
 import { useGetAssetsList } from './useGetAssetsList';
 import { Address } from 'viem';
+import { useAccountIfMounted } from './useAccountIfMounted';
+import { useConfig } from 'wagmi';
 
 interface UseGetAccountWithdrawalsReturn {
   withdrawalRequests?: WithdrawalRequest[];
@@ -83,9 +85,14 @@ export function useGetAccountWithdrawals(
   >
 ) {
   const subgraph = useSubgraph();
+
+  const { chain } = useAccountIfMounted();
+  const { chains } = useConfig();
+  const chainId = (chains.find((c) => c.id === chain?.id) || chains[0]).id;
+
   const { data: assets } = useGetAssetsList();
   const { data, ...rest } = useQuery<UseGetAccountWithdrawalsReturn, Error>({
-    queryKey: buildRioSdkRestakingKey('getWithdrawalRequests', config),
+    queryKey: buildRioSdkRestakingKey('getWithdrawalRequests', chainId, config),
     queryFn: buildFetcherAndParser(subgraph, assets, config),
     staleTime: 30 * 1000,
     placeholderData: {

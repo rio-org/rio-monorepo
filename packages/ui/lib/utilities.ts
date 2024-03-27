@@ -325,9 +325,11 @@ type SubgraphClienSimilarConfigs =
 
 export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(
   name: string,
+  chainId: number | undefined,
   config: T
 ): [
   name: string,
+  chainId: number | undefined,
   orderBy?: string,
   orderDirection?: string,
   page?: number,
@@ -335,6 +337,7 @@ export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(
   where?: string
 ] => [
   name,
+  chainId,
   config?.orderBy as string | undefined,
   config?.orderDirection as string | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
