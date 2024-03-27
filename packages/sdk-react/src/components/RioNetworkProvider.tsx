@@ -17,7 +17,7 @@ export interface RioNetwork {
 export type RioNetworkProps = {
   children: React.ReactNode;
   subgraphUrl?: string;
-  graphApiKey?: string;
+  subgraphApiKey?: string;
 };
 
 export const RioNetworkContext = createContext<RioNetwork | undefined>(
@@ -27,13 +27,13 @@ export const RioNetworkContext = createContext<RioNetwork | undefined>(
 export const RioNetworkProvider: React.FC<RioNetworkProps> = ({
   children,
   subgraphUrl,
-  graphApiKey
+  subgraphApiKey
 }: RioNetworkProps) => {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
 
   const [subgraphClient, setSubgraphClient] = useState<SubgraphClient>(
-    new SubgraphClient(publicClient.chain.id, { subgraphUrl, graphApiKey })
+    new SubgraphClient(publicClient.chain.id, { subgraphUrl, subgraphApiKey })
   );
   const [restakingTokenClients, setRestakingTokenClients] = useState<
     Record<Address, LiquidRestakingTokenClient>
@@ -46,7 +46,7 @@ export const RioNetworkProvider: React.FC<RioNetworkProps> = ({
         address,
         publicClient,
         walletClient ?? undefined,
-        { subgraphUrl, graphApiKey }
+        { subgraphUrl, subgraphApiKey }
       );
       setRestakingTokenClients((clients) => ({
         ...clients,
@@ -69,7 +69,7 @@ export const RioNetworkProvider: React.FC<RioNetworkProps> = ({
       (clients, [address, client]) => {
         client.attachPublicClient(publicClient);
         client.attachWalletClient(walletClient ?? undefined);
-        client.setSubgraphClientOptions({ subgraphUrl, graphApiKey });
+        client.setSubgraphClientOptions({ subgraphUrl, subgraphApiKey });
 
         clients[address] = client;
         return clients;
@@ -78,10 +78,10 @@ export const RioNetworkProvider: React.FC<RioNetworkProps> = ({
     );
 
     setSubgraphClient(
-      new SubgraphClient(publicClient.chain.id, { subgraphUrl, graphApiKey })
+      new SubgraphClient(publicClient.chain.id, { subgraphUrl, subgraphApiKey })
     );
     setRestakingTokenClients(updatedClients);
-  }, [publicClient, walletClient, subgraphUrl, graphApiKey]);
+  }, [publicClient, walletClient, subgraphUrl, subgraphApiKey]);
 
   const context: RioNetwork = {
     subgraphClient,

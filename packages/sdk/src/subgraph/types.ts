@@ -11,7 +11,7 @@ export interface QueryConfig<OB, W> {
 
 export interface SubgraphClientOptions {
   subgraphUrl?: string;
-  graphApiKey?: string;
+  subgraphApiKey?: string;
 }
 
 //#region Entity Types

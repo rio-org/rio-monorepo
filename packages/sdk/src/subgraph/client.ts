@@ -69,7 +69,7 @@ export class SubgraphClient {
   constructor(chainId: number, options?: SubgraphClientOptions) {
     this._gql = new GraphQLClient(
       options?.subgraphUrl ??
-        getSubgraphUrlForChainOrThrow(chainId, options?.graphApiKey)
+        getSubgraphUrlForChainOrThrow(chainId, options?.subgraphApiKey)
     );
     this._chainId = chainId;
     this._options = options;
@@ -83,7 +83,10 @@ export class SubgraphClient {
     this._options = options ?? this._options;
     this._gql.setEndpoint(
       this._options?.subgraphUrl ??
-        getSubgraphUrlForChainOrThrow(this._chainId, this._options?.graphApiKey)
+        getSubgraphUrlForChainOrThrow(
+          this._chainId,
+          this._options?.subgraphApiKey
+        )
     );
   }
 
