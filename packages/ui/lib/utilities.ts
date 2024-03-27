@@ -20,10 +20,22 @@ import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
 import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
 import { type SubgraphClient } from '@rionetwork/sdk-react';
-import { base, baseGoerli, foundry, goerli, holesky, mainnet, optimism, optimismGoerli, sepolia, zora, zoraSepolia } from 'viem/chains';
+import {
+  base,
+  baseGoerli,
+  foundry,
+  goerli,
+  holesky,
+  mainnet,
+  optimism,
+  optimismGoerli,
+  sepolia,
+  zora,
+  zoraSepolia
+} from 'viem/chains';
 
 export const getChainName = (chainId: number) => {
-  [mainnet, sepolia, goerli, optimism, ]
+  [mainnet, sepolia, goerli, optimism];
   switch (chainId) {
     case mainnet.id:
       return 'mainnet';
@@ -32,7 +44,7 @@ export const getChainName = (chainId: number) => {
     case sepolia.id:
       return 'sepolia';
     case holesky.id:
-      return 'holesky'
+      return 'holesky';
     case optimism.id:
       return 'optimism';
     case optimismGoerli.id:
@@ -46,7 +58,7 @@ export const getChainName = (chainId: number) => {
     case 999:
       return 'zora-goerli';
     case zoraSepolia.id:
-      return
+      return;
     case foundry.id:
       return 'foundry';
     default:
