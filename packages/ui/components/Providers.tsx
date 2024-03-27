@@ -67,16 +67,11 @@ const WagmiProvider = dynamic(
 // Create the cache client
 const queryClient = new QueryClient();
 
-const chainlist = [holesky, mainnet] as [Chain, ...Chain[]];
-
 const chooseChain = (): [Chain, ...Chain[]] => {
-  if (APP_ENV === AppEnv.PRODUCTION) {
-    return [
-      chainlist.find((c) => c.id === CHAIN_ID) ?? holesky,
-      ...(CHAIN_ID === mainnet.id ? [holesky] : [])
-    ];
+  if (APP_ENV === AppEnv.PRODUCTION && CHAIN_ID === mainnet.id) {
+    return [mainnet, holesky, goerli];
   } else {
-    return chainlist;
+    return [holesky, goerli]
   }
 };
 
