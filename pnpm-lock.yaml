@@ -72,6 +72,9 @@ importers:
       '@internal/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@internal/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@nestjs/common':
         specifier: ^10.0.0
         version: 10.3.5(reflect-metadata@0.2.1)(rxjs@7.8.1)

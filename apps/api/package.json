@@ -22,6 +22,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@internal/db": "workspace:*",
     "@internal/config": "workspace:*",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.1",
