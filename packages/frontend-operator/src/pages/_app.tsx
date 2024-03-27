@@ -18,14 +18,13 @@ import {
 } from '../../config';
 
 export default function OperatorApp({ Component, pageProps }: AppProps) {
-
   const chains: [Chain, ...Chain[]] = useMemo(() => {
     if (APP_ENV === AppEnv.PRODUCTION && CHAIN_ID === mainnet.id) {
       return [mainnet, holesky, goerli];
     } else {
-      return [holesky, goerli]
+      return [holesky, goerli];
     }
-  } ,[]);
+  }, []);
 
   return (
     <>

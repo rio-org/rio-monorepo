@@ -25,9 +25,9 @@ export default function RestakingApp({ Component, pageProps }: AppProps) {
     if (APP_ENV === AppEnv.PRODUCTION && CHAIN_ID === mainnet.id) {
       return [mainnet, holesky, goerli];
     } else {
-      return [goerli]
+      return [goerli];
     }
-  } ,[]);
+  }, []);
 
   return (
     <>
