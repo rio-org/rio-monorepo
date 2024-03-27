@@ -38,6 +38,7 @@ export function PendingManagerInvitation({
       enabled:
         !!address &&
         !!operatorRegistryAddress &&
+        !!isOpen &&
         pendingManager &&
         pendingManager !== zeroAddress &&
         isEqualAddress(address, pendingManager)

@@ -9,8 +9,7 @@ import {
   SubgraphClient,
   useSubgraph
 } from '@rionetwork/sdk-react';
-import { useAccountIfMounted } from './useAccountIfMounted';
-import { useConfig } from 'wagmi';
+import { useSupportedChainId } from './useSupportedChainId';
 
 function buildFetcherAndParser(
   subgraph: SubgraphClient,
@@ -29,9 +28,7 @@ export function useGetOperators(
   >
 ): UseQueryResult<OperatorDelegator[], Error> {
   const subgraph = useSubgraph();
-  const { chain } = useAccountIfMounted();
-  const { chains } = useConfig();
-  const chainId = (chains.find((c) => c.id === chain?.id) || chains[0]).id;
+  const chainId = useSupportedChainId();
 
   return useQuery<OperatorDelegator[], Error>({
     queryKey: buildRioSdkRestakingKey('getOperatorDelegators', chainId, config),

@@ -7,9 +7,9 @@ import { Address } from 'viem';
 import { getLatestAssetUSDPrice } from '../lib/graphqlQueries';
 import { AssetDetails, AssetSubgraphResponse } from '../lib/typings';
 import subgraphClient from '../lib/subgraphClient';
-import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
+import { NATIVE_ETH_ADDRESS } from '../config';
 import { parseSubgraphAsset } from '../lib/utilities';
-import { useAccountIfMounted } from './useAccountIfMounted';
+import { useSupportedChainId } from './useSupportedChainId';
 
 const fetcher = async ({
   chainId,
@@ -37,8 +37,7 @@ export function useGetLatestAssetPrice(
     'queryKey' | 'queryFn'
   >
 ): UseQueryResult<AssetDetails> {
-  const { chain } = useAccountIfMounted();
-  const chainId = _chainId ?? chain?.id ?? CHAIN_ID;
+  const chainId = useSupportedChainId();
   return useQuery<AssetDetails, Error>({
     queryKey: ['useGetLatestAssetPrice', chainId, tokenAddress] as const,
     queryFn: () => fetcher({ tokenAddress, chainId }),

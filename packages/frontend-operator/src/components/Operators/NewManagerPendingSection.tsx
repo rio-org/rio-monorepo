@@ -31,7 +31,7 @@ export function NewManagerPendingSection({
     prepareContractWrite: { data: simulatedData },
     contractWrite: { writeContract, reset }
   } = useCompleteContractWrite({
-    address: operatorRegistryAddress ?? zeroAddress,
+    address: isOpen ? operatorRegistryAddress ?? zeroAddress : undefined,
     abi: RioLRTOperatorRegistryABI,
     functionName: 'setOperatorPendingManager',
     args: [operatorDelegator.delegatorId, address || zeroAddress],

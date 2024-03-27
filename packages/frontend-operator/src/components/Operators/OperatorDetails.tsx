@@ -20,6 +20,7 @@ import { OperatorCard } from '@/components/Operators/OperatorCard';
 import FormCard from '@rio-monorepo/ui/components/Shared/FormCard';
 import { OperatorDetails, type LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import { asType, isEqualAddress } from '@rio-monorepo/ui/lib/utilities';
+import { useSupportedChainId } from '@rio-monorepo/ui/hooks/useSupportedChainId';
 
 export function OperatorDetails({
   restakingToken,
@@ -61,6 +62,8 @@ function OperatorDetailsWithLRTWrapper({
     Address | undefined
   >(lrt?.token?.deployment?.operatorRegistry as Address | undefined);
 
+  const chainId = useSupportedChainId();
+
   useEffect(
     function setRegistryAddressBecauseLRTDoesNotTriggerRerender() {
       if (operatorRegistryAddress || !lrt) return;
@@ -81,6 +84,7 @@ function OperatorDetailsWithLRTWrapper({
       address: operatorRegistryAddress ?? zeroAddress,
       abi: RioLRTOperatorRegistryABI,
       functionName: 'getOperatorDetails',
+      chainId,
       args: [operatorDelegator.delegatorId]
     })) as ContractFunctionParameters<
       typeof RioLRTOperatorRegistryABI,

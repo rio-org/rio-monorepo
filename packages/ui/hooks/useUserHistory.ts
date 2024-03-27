@@ -52,7 +52,7 @@ export const useTransactionHistory = (config?: {
       },
       {} as Record<Address, BaseAssetDetails>
     );
-  }, [lrtList?.length]);
+  }, [lrtList?.map(lrt => lrt.address)]);
 
   const assetLookup = useMemo(() => {
     if (!assetList?.length) return null;
@@ -63,7 +63,7 @@ export const useTransactionHistory = (config?: {
       },
       {} as Record<Address, BaseAssetDetails>
     );
-  }, [assetList?.length]);
+  }, [assetList?.map(asset => asset.address)]);
 
   const txHistory = useMemo(() => {
     if (
@@ -185,9 +185,8 @@ function buildParseTx(
         valueUSD: Number(tx.valueUSD),
         amountChange: Number(isClaim ? _ctx.amountClaimed : _dwtx.amountIn),
         amountChangeSymbol: isRequest
-          ? lrtLookup[tx.restakingToken as Address].symbol
-          : assetLookup[asType<Address>(isClaim ? _ctx.assetOut : _dtx.assetIn)]
-              .symbol,
+          ? lrtLookup[tx.restakingToken as Address]?.symbol
+          : assetLookup[asType<Address>(isClaim ? _ctx.assetOut : _dtx.assetIn)]?.symbol,
         restakingToken: lrtLookup[tx.restakingToken as Address],
         restakingTokenPriceUSD: Number(tx.restakingTokenPriceUSD),
         tx: tx.tx,
