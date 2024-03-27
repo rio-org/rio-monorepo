@@ -2,7 +2,8 @@ import {
   PublicClient,
   WalletClient,
   WriteContractReturnType,
-  Address as ViemAddress
+  Address as ViemAddress,
+  SimulateContractParameters
 } from 'viem';
 import {
   Address,
@@ -17,6 +18,7 @@ import {
 import {
   LiquidRestakingToken,
   SubgraphClient,
+  SubgraphClientOptions,
   UnderlyingAsset
 } from '../subgraph';
 import {
@@ -33,6 +35,7 @@ export class LiquidRestakingTokenClient {
 
   private _public: PublicClient;
   private _wallet: WalletClient | undefined;
+  private _subgraphClientOptions: SubgraphClientOptions | undefined;
   private _token: LiquidRestakingToken;
   private _underlyingAssets = new Map<string, UnderlyingAsset>();
 
@@ -57,16 +60,19 @@ export class LiquidRestakingTokenClient {
    * @param address The address of the restaking token issued by Rio.
    * @param publicClient The public client used to read data.
    * @param walletClient The optional wallet client used to write data.
+   * @param subgraphClientOptions Optional subgraph configuration with custom subgraph URL and/or The Graph API key
    */
   public static async create(
     address: Address,
     publicClient: PublicClient,
-    walletClient?: WalletClient
+    walletClient?: WalletClient,
+    subgraphClientOptions?: SubgraphClientOptions
   ) {
     const client = new LiquidRestakingTokenClient(
       address,
       publicClient,
-      walletClient
+      walletClient,
+      subgraphClientOptions
     );
     await client.populate();
 
@@ -94,18 +100,34 @@ export class LiquidRestakingTokenClient {
   }
 
   /**
+   * Set the subgraph client options.
+   * @param subgraphClientOptions The subgraph client options.
+   */
+  public setSubgraphClientOptions(
+    subgraphClientOptions?: SubgraphClientOptions
+  ) {
+    this._subgraphClientOptions = subgraphClientOptions;
+
+    if (this._public.chain?.id) {
+      this._subgraph.updateClientOptions(this._subgraphClientOptions);
+    }
+
+    return this;
+  }
+
+  /**
    * Create a new instance of the `LiquidRestakingTokenClient` class without populating
    * the underlying asset information. It will be populated lazily.
    * @param address The address of the restaking token issued by Rio.
    * @param publicClient The public client used to read data.
    * @param walletClient The optional wallet client used to write data.
-   * @param subgraphUrl An optional subgraph URL to use instead of the default.
+   * @param subgraphClientOptions Optional subgraph configuration with custom subgraph URL and/or The Graph API key
    */
   constructor(
     address: Address,
     publicClient: PublicClient,
     walletClient?: WalletClient,
-    subgraphUrl?: string
+    subgraphClientOptions?: SubgraphClientOptions
   ) {
     this._address = address;
 
@@ -114,10 +136,14 @@ export class LiquidRestakingTokenClient {
         'Chain ID is not available in the public client provided to `LiquidRestakingToken`.'
       );
     }
-    this._subgraph = new SubgraphClient(publicClient.chain.id, subgraphUrl);
+    this._subgraph = new SubgraphClient(
+      publicClient.chain.id,
+      subgraphClientOptions
+    );
 
     this._public = publicClient;
     this._wallet = walletClient;
+    this._subgraphClientOptions = subgraphClientOptions;
   }
 
   /**
@@ -184,6 +210,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTCoordinatorABI,
+      'deposit',
+      [ViemAddress, bigint],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { tokenIn, amount } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
@@ -192,7 +227,7 @@ export class LiquidRestakingTokenClient {
       functionName: 'deposit',
       args: [tokenIn as ViemAddress, BigInt(amount)],
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 
@@ -208,6 +243,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTCoordinatorABI,
+      'depositETH',
+      [],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { amount } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
@@ -216,7 +260,7 @@ export class LiquidRestakingTokenClient {
       functionName: 'depositETH',
       value: BigInt(amount),
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 
@@ -234,6 +278,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTCoordinatorABI,
+      'requestWithdrawal',
+      [ViemAddress, bigint],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { assetOut, amountIn } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
@@ -242,7 +295,7 @@ export class LiquidRestakingTokenClient {
       functionName: 'requestWithdrawal',
       args: [assetOut as ViemAddress, BigInt(amountIn)],
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 
@@ -260,6 +313,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTWithdrawalQueueABI,
+      'claimWithdrawalsForEpoch',
+      [{ readonly asset: ViemAddress; readonly epoch: bigint }],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { assetOut, epoch } = params;
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
@@ -273,7 +335,7 @@ export class LiquidRestakingTokenClient {
         }
       ],
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 
@@ -290,6 +352,15 @@ export class LiquidRestakingTokenClient {
     if (!this._wallet) throw new Error('Wallet client is not available.');
     if (!this._token) await this.populate();
 
+    type SimulateContractParams = SimulateContractParameters<
+      typeof RioLRTWithdrawalQueueABI,
+      'claimWithdrawalsForManyEpochs',
+      [{ readonly asset: ViemAddress; readonly epoch: bigint }[]],
+      undefined,
+      undefined,
+      ViemAddress
+    >;
+
     const { request } = await this._public.simulateContract({
       account: this._wallet.account,
       address: this._token.deployment.withdrawalQueue as ViemAddress,
@@ -302,7 +373,7 @@ export class LiquidRestakingTokenClient {
         }))
       ],
       ...overrides
-    });
+    } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
 

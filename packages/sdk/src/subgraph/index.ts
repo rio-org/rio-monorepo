@@ -1,6 +1,7 @@
 export * as SubgraphTypes from './generated/graphql';
 export { SubgraphClient } from './client';
 export {
+  SubgraphClientOptions,
   QueryConfig,
   Issuer,
   UnderlyingAsset,
@@ -16,7 +17,7 @@ export {
   Validator
 } from './types';
 export {
-  SUBGRAPH_URLS,
+  getSubgraphUrls,
   getSubgraphUrlForChainOrThrow,
   getDefaultConfig,
   toPaginated

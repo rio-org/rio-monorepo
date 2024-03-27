@@ -21,6 +21,7 @@ export type BytesType = `0x${string}`;
 export type CHAIN_ID_NUMBER =
   | 1
   | 5
+  | 17000
   | 11155111
   | 10
   | 420

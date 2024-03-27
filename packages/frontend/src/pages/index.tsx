@@ -30,7 +30,7 @@ import {
   RestakeFormTab
 } from '@rio-monorepo/ui/lib/typings';
 import { WithdrawalRequestHistory } from '@/components/History/WithdrawalRequestHistory';
-import { RestakeForm } from '@/components/Restake/RestakeForm';
+import { RestakeForm } from '@/components/Lazy/RestakeForm.lazy';
 import { ClaimSection } from '@/components/Claim/ClaimSection';
 import { APP_NAV_ITEMS } from 'config';
 

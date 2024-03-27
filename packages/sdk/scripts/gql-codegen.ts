@@ -1,6 +1,6 @@
 export default {
   schema:
-    'https://api.thegraph.com/subgraphs/name/rio-org/rio-network-goerli-v2',
+    'https://api.goldsky.com/api/public/project_clsc2dwnz018t01ubfw0idj8d/subgraphs/rio-network-holesky/prod/gn',
   documents: ['./src/subgraph/queries.ts'],
   generates: {
     ['./src/subgraph/generated/']: {

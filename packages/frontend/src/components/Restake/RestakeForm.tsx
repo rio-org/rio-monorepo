@@ -29,19 +29,18 @@ import {
 } from '@rio-monorepo/ui/lib/utilities';
 import { useRestakeForm } from '../../hooks/useRestakeForm';
 import { useWithdrawForm } from '../../hooks/useWithdrawForm';
-import RestakeField from './RestakeField';
+import { RestakeField } from '../Lazy/RestakeField.lazy';
 import { MOBILE_MQ } from '@rio-monorepo/ui/lib/constants';
 
-export function RestakeForm({
-  lrtDetails,
-  ...props
-}: {
+export interface RestakeFormProps {
   lrtDetails?: LRTDetails;
   tab?: RestakeFormTab;
   onChangeTab?: (tab: RestakeFormTab) => void;
   onWithdrawSuccess?: () => void;
   networkStats: { tvl: string | null; apy: string | null };
-}) {
+}
+
+export function RestakeForm({ lrtDetails, ...props }: RestakeFormProps) {
   if (lrtDetails) {
     return <RestakeFormWithLRTWrapper lrtDetails={lrtDetails} {...props} />;
   }
@@ -49,13 +48,9 @@ export function RestakeForm({
   return <RestakeFormBase restakingTokenClient={null} {...props} />;
 }
 
-function RestakeFormWithLRTWrapper(props: {
-  lrtDetails: LRTDetails;
-  onWithdrawSuccess?: () => void;
-  onChangeTab?: (tab: RestakeFormTab) => void;
-  tab?: RestakeFormTab;
-  networkStats: { tvl: string | null; apy: string | null };
-}) {
+function RestakeFormWithLRTWrapper(
+  props: Omit<RestakeFormProps, 'lrtDetails'> & { lrtDetails: LRTDetails }
+) {
   const restakingTokenClient = useLiquidRestakingToken(
     props.lrtDetails.address
   );
@@ -71,13 +66,8 @@ function RestakeFormBase({
   onWithdrawSuccess,
   tab: tabProp,
   onChangeTab
-}: {
+}: RestakeFormProps & {
   restakingTokenClient: LiquidRestakingTokenClient | null;
-  tab?: RestakeFormTab;
-  onChangeTab?: (tab: RestakeFormTab) => void;
-  lrtDetails?: LRTDetails;
-  onWithdrawSuccess?: () => void;
-  networkStats: { tvl: string | null; apy: string | null };
 }) {
   const { address } = useAccountIfMounted();
   const [restakeInputAmount, setRestakeInputAmount] = useState<string>('');
@@ -140,7 +130,7 @@ function RestakeFormBase({
         {tab === RestakeFormTab.RESTAKE ? (
           <>
             {typeof restakeForm.minAmountOut !== 'bigint' ? (
-              <Skeleton width={40} />
+              <Skeleton width={120} />
             ) : (
               displayEthAmount(
                 formatUnits(
@@ -153,7 +143,7 @@ function RestakeFormBase({
         ) : (
           <>
             {!activeToken ? (
-              <Skeleton width={40} />
+              <Skeleton width={120} />
             ) : (
               <>
                 {withdrawForm.amount
@@ -245,81 +235,7 @@ function RestakeFormBase({
           />
           <AnimatePresence>
             {!isRestakeTab && (
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  zoom: 0.8,
-                  flexGrow: 0,
-                  flexShrink: 1,
-                  flexBasis: 0,
-                  ...(isMobile
-                    ? {
-                        maxHeight: 0,
-                        height: 0,
-                        marginTop: 0,
-                        marginBottom: 0
-                      }
-                    : {
-                        width: 0,
-                        marginLeft: 0,
-                        marginRight: 0
-                      })
-                }}
-                animate={{
-                  opacity: 1,
-                  zoom: 1,
-                  flexGrow: 1,
-                  flexShrink: 0,
-                  flexBasis: 'calc(33% - 32px)',
-                  ...(isMobile
-                    ? {
-                        maxHeight: 200,
-                        height: 'auto',
-                        marginTop: '0.5rem',
-                        marginBottom: '0.5rem'
-                      }
-                    : {
-                        width: '100%',
-                        marginLeft: '0.5rem',
-                        marginRight: '0.5rem'
-                      })
-                }}
-                transition={{ duration: 0.2 }}
-                exit={{
-                  opacity: 0,
-                  zoom: 0.8,
-                  flexGrow: 0,
-                  flexShrink: 1,
-                  flexBasis: 0,
-                  ...(isMobile
-                    ? {
-                        maxHeight: 0,
-                        height: 0,
-                        marginTop: 0,
-                        marginBottom: 0
-                      }
-                    : {
-                        width: 0,
-                        marginLeft: 0,
-                        marginRight: 0
-                      })
-                }}
-                className="relative origin-[50% 50%] w-full md:w-[unset]"
-                style={
-                  isMobile
-                    ? {
-                        maxHeight: 200,
-                        height: 'auto',
-                        marginTop: '0.5rem',
-                        marginBottom: '0.5rem'
-                      }
-                    : {
-                        width: '100%',
-                        marginLeft: '0.5rem',
-                        marginRight: '0.5rem'
-                      }
-                }
-              >
+              <AppearingDetailBox isMobile={isMobile}>
                 <DetailBox
                   title={
                     <div className="flex items-center gap-1">
@@ -339,7 +255,7 @@ function RestakeFormBase({
                 >
                   <span className="leading-none">1-8 days</span>
                 </DetailBox>
-              </motion.div>
+              </AppearingDetailBox>
             )}
           </AnimatePresence>
           <DetailBox
@@ -428,7 +344,7 @@ function RestakeFormBase({
                 toasts: {
                   sent: `Withdrawal request sent`,
                   success: `Sucessfully requested to unstake ${withdrawInputAmount} ${lrtDetails?.symbol}`,
-                  error: `An error occurred  requesting withdrawal`
+                  error: `An error occurred requesting withdrawal`
                 },
                 hash: withdrawWrite.txHash,
                 refetch: withdrawForm.refetch,
@@ -463,5 +379,50 @@ function RestakeFormBase({
         )}
       </TabCard>
     </>
+  );
+}
+
+function detailBoxStyle(isMobile: boolean, hidden?: boolean) {
+  return {
+    opacity: hidden ? 0 : 1,
+    zoom: hidden ? 0.8 : 1,
+    flexGrow: hidden ? 0 : 1,
+    flexShrink: hidden ? 1 : 0,
+    flexBasis: hidden ? 0 : 'calc(33% - 32px)',
+    ...(isMobile
+      ? {
+          maxHeight: hidden ? 0 : 200,
+          height: hidden ? 0 : 'auto',
+          marginTop: hidden ? 0 : '0.5rem',
+          marginBottom: hidden ? 0 : '0.5rem'
+        }
+      : {
+          width: hidden ? 0 : '100%',
+          marginLeft: hidden ? 0 : '0.5rem',
+          marginRight: hidden ? 0 : '0.5rem'
+        })
+  };
+}
+
+function AppearingDetailBox({
+  children,
+  isMobile
+}: {
+  isMobile: boolean;
+  children: React.ReactNode;
+}) {
+  const hidden = useMemo(() => detailBoxStyle(isMobile, true), [isMobile]);
+  const visible = useMemo(() => detailBoxStyle(isMobile), [isMobile]);
+  return (
+    <motion.div
+      initial={hidden}
+      animate={visible}
+      exit={hidden}
+      transition={{ duration: 0.2 }}
+      className="relative origin-[50% 50%] w-full md:w-[unset]"
+      style={visible}
+    >
+      {children}
+    </motion.div>
   );
 }

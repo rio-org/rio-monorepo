@@ -37,7 +37,8 @@ import {
   WithdrawalEpochStatus,
   WithdrawalClaim,
   OperatorDelegator,
-  Validator
+  Validator,
+  SubgraphClientOptions
 } from './types';
 import { GraphQLClient } from 'graphql-request';
 import BN from 'big.js';
@@ -45,6 +46,8 @@ import BN from 'big.js';
 export class SubgraphClient {
   private readonly _gql: GraphQLClient;
 
+  private _chainId: number;
+  private _options?: SubgraphClientOptions;
   /**
    * The Rio Network issuer ID.
    */
@@ -53,19 +56,37 @@ export class SubgraphClient {
   /**
    * Returns a `SubgraphClient` instance for the provided chain ID
    * @param chainId The chain ID
-   * @param subgraphUrl An optional custom subgraph URL
+   * @param options Optional configuration with custom subgraph URL and/or The Graph API key
    */
-  public static for(chainId: number, subgraphUrl?: string) {
-    return new SubgraphClient(chainId, subgraphUrl);
+  public static for(chainId: number, options?: SubgraphClientOptions) {
+    return new SubgraphClient(chainId, options);
   }
 
   /**
    * @param chainId The chain ID
-   * @param subgraphUrl An optional custom subgraph URL
+   * @param options Optional configuration with custom subgraph URL and/or The Graph API key
    */
-  constructor(chainId: number, subgraphUrl?: string) {
+  constructor(chainId: number, options?: SubgraphClientOptions) {
     this._gql = new GraphQLClient(
-      subgraphUrl ?? getSubgraphUrlForChainOrThrow(chainId)
+      options?.subgraphUrl ??
+        getSubgraphUrlForChainOrThrow(chainId, options?.subgraphApiKey)
+    );
+    this._chainId = chainId;
+    this._options = options;
+  }
+
+  /**
+   * Update the client options.
+   * @param options Optional configuration with custom subgraph URL and/or The Graph API key
+   */
+  public updateClientOptions(options?: SubgraphClientOptions) {
+    this._options = options ?? this._options;
+    this._gql.setEndpoint(
+      this._options?.subgraphUrl ??
+        getSubgraphUrlForChainOrThrow(
+          this._chainId,
+          this._options?.subgraphApiKey
+        )
     );
   }
 
@@ -220,7 +241,6 @@ export class SubgraphClient {
           timestamp,
           blockNumber,
           tx,
-  
           isClaimed,
           claimId: claim?.id ?? null,
           claimTx: claim?.tx ?? null,
