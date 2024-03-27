@@ -26,7 +26,6 @@ import {
   RioLRTCoordinatorABI,
   RioLRTWithdrawalQueueABI
 } from '../abi';
-import { stripMaxFeesFromOverrides } from './utils';
 import { Cacheables } from 'cacheables';
 
 export class LiquidRestakingTokenClient {
@@ -295,7 +294,7 @@ export class LiquidRestakingTokenClient {
       abi: RioLRTCoordinatorABI,
       functionName: 'requestWithdrawal',
       args: [assetOut as ViemAddress, BigInt(amountIn)],
-      ...stripMaxFeesFromOverrides(overrides)
+      ...overrides
     } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
@@ -335,7 +334,7 @@ export class LiquidRestakingTokenClient {
           epoch: BigInt(epoch)
         }
       ],
-      ...stripMaxFeesFromOverrides(overrides)
+      ...overrides
     } as SimulateContractParams);
     return this._wallet.writeContract(request);
   }
