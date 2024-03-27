@@ -4,7 +4,7 @@ import {
   SubgraphClient
 } from '@rionetwork/sdk';
 import React, { createContext, useEffect, useState } from 'react';
-import { usePublicClient, useWalletClient } from 'wagmi';
+import { useAccount, useConfig, usePublicClient, useWalletClient } from 'wagmi';
 
 export interface RioNetwork {
   subgraphClient: SubgraphClient;
@@ -29,7 +29,11 @@ export const RioNetworkProvider: React.FC<RioNetworkProps> = ({
   subgraphUrl,
   subgraphApiKey
 }: RioNetworkProps) => {
-  const publicClient = usePublicClient();
+  const { chain } = useAccount();
+  const { chains } = useConfig();
+  const chainId = (chains.find((c) => c.id === chain?.id) || chains[0]).id;
+
+  const publicClient = usePublicClient({ chainId })!;
   const { data: walletClient } = useWalletClient();
 
   const [subgraphClient, setSubgraphClient] = useState<SubgraphClient>(
