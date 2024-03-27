@@ -35,7 +35,6 @@ import {
 } from 'viem/chains';
 
 export const getChainName = (chainId: number) => {
-  [mainnet, sepolia, goerli, optimism];
   switch (chainId) {
     case mainnet.id:
       return 'mainnet';
@@ -58,7 +57,7 @@ export const getChainName = (chainId: number) => {
     case 999:
       return 'zora-goerli';
     case zoraSepolia.id:
-      return;
+      return 'zora-sepolia';
     case foundry.id:
       return 'foundry';
     default:
