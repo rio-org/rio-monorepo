@@ -78,7 +78,6 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     }
   );
 
-  console.log({rawRequests})
 
   const [withdrawalRequests, requestsLength] = useMemo(() => {
     const requests = rawRequests?.filter((r) => !r.isReadyToClaim);
