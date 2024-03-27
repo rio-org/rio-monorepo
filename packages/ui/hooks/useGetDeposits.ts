@@ -5,8 +5,7 @@ import {
   type UseQueryOptions,
   type UseQueryResult
 } from '@tanstack/react-query';
-import { useConfig } from 'wagmi';
-import { useAccountIfMounted } from './useAccountIfMounted';
+import { useSupportedChainId } from './useSupportedChainId';
 
 function buildFetcherAndParser(
   subgraph: SubgraphClient,
@@ -23,9 +22,7 @@ export function useGetDeposits(
   queryConfig?: Omit<UseQueryOptions<Deposit[], Error>, 'queryKey' | 'queryFn'>
 ): UseQueryResult<Deposit[], Error> {
   const subgraph = useSubgraph();
-  const { chain } = useAccountIfMounted();
-  const { chains } = useConfig();
-  const chainId = (chains.find((c) => c.id === chain?.id) || chains[0]).id;
+  const chainId = useSupportedChainId();
 
   return useQuery<Deposit[], Error>({
     queryKey: buildRioSdkRestakingKey('getDeposits', chainId, config),

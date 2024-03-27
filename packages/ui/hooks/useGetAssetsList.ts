@@ -6,10 +6,9 @@ import {
   type UseQueryOptions,
   useQuery
 } from '@tanstack/react-query';
-import { useAccountIfMounted } from './useAccountIfMounted';
+import { useSupportedChainId } from './useSupportedChainId';
 import subgraphClient from '../lib/subgraphClient';
 import { CHAIN_ID } from '../config';
-import { useConfig } from 'wagmi';
 
 const buildQueryFn = (chainId: number = CHAIN_ID) => {
   return async () => {
@@ -31,9 +30,8 @@ export function useGetAssetsList(
     'queryKey' | 'queryFn'
   >
 ): UseQueryResult<BaseAssetDetails[], Error> {
-  const { chain } = useAccountIfMounted();
-  const { chains } = useConfig();
-  const chainId = (chains.find((c) => c.id === chain?.id) || chains[0]).id;
+
+  const chainId = useSupportedChainId();
   return useQuery<BaseAssetDetails[], Error>({
     queryKey: ['useGetAssetsList', chainId] as const,
     queryFn: buildQueryFn(chainId),

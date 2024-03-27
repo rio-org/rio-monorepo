@@ -8,7 +8,7 @@ import { getLiquidRestakingTokenList } from '../lib/graphqlQueries';
 import { parseSubgraphLRTList } from '../lib/utilities';
 import subgraphClient from '../lib/subgraphClient';
 import { CHAIN_ID } from '../config';
-import { useAccountIfMounted } from './useAccountIfMounted';
+import { useSupportedChainId } from './useSupportedChainId';
 
 const buildQueryFn = (chainId: number = CHAIN_ID) => {
   return async () => {
@@ -25,8 +25,7 @@ export function useGetLiquidRestakingTokens(
     'queryKey' | 'queryFn'
   >
 ): UseBaseQueryResult<LRTDetails[], Error> {
-  const { chain } = useAccountIfMounted();
-  const chainId = chain?.id || CHAIN_ID;
+  const chainId = useSupportedChainId();
   return useQuery<LRTDetails[], Error>({
     queryKey: ['useGetLiquidRestakingTokens', chainId] as const,
     queryFn: buildQueryFn(chainId),
