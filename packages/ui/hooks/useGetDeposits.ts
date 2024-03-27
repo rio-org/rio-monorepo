@@ -23,7 +23,9 @@ export function useGetDeposits(
   queryConfig?: Omit<UseQueryOptions<Deposit[], Error>, 'queryKey' | 'queryFn'>
 ): UseQueryResult<Deposit[], Error> {
   const chainId = useSupportedChainId();
-  const subgraph = SubgraphClient.for(chainId, { subgraphApiKey: SUBGRAPH_API_KEY });
+  const subgraph = SubgraphClient.for(chainId, {
+    subgraphApiKey: SUBGRAPH_API_KEY
+  });
   return useQuery<Deposit[], Error>({
     queryKey: buildRioSdkRestakingKey('getDeposits', chainId, config),
     queryFn: buildFetcherAndParser(subgraph, config),

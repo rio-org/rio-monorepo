@@ -27,7 +27,8 @@ export const DATADOG_APPLICATION_ID =
 export const DATADOG_CLIENT_TOKEN =
   process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN ?? '';
 
-export const SUBGRAPH_API_KEY = process.env.NEXT_PUBLIC_SUBGRAPH_API_KEY ?? 'apikey';
+export const SUBGRAPH_API_KEY =
+  process.env.NEXT_PUBLIC_SUBGRAPH_API_KEY ?? 'apikey';
 
 // We internally use this instead of the zero address when referencing native ETH
 export const NATIVE_ETH_ADDRESS = getAddress(

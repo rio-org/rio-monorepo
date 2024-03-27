@@ -43,7 +43,7 @@ export const CustomConnectButton = () => {
         authenticationStatus,
         openChainModal
       }: ConnectButtonProps) => {
-        const supportedChainId = useSupportedChainId()
+        const supportedChainId = useSupportedChainId();
         const chainId = (chain?.id || supportedChainId) as CHAIN_ID_NUMBER;
 
         const [isLoading, setIsLoading] = useState(false);
@@ -93,7 +93,7 @@ export const CustomConnectButton = () => {
             variants={mainNavConnectVariants}
           >
             {(() => {
-              const supportedChainId = useSupportedChainId()
+              const supportedChainId = useSupportedChainId();
               if (chainId === mainnet.id && isInAllowedRegion === false) {
                 return null;
               }

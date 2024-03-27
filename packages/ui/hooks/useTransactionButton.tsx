@@ -124,9 +124,9 @@ export const useTransactionButton = ({
   }, [clearErrors]);
 
   const switchNetworkChainId =
-      isInAllowedRegion === false
-        ? chains.find((c) => c.testnet)?.id!
-        : supportedChainId
+    isInAllowedRegion === false
+      ? chains.find((c) => c.testnet)?.id!
+      : supportedChainId;
 
   const handleClick = useCallback((): void => {
     if (isDisabled) return;

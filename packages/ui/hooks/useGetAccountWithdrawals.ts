@@ -7,7 +7,7 @@ import {
 import {
   ClaimWithdrawalParams,
   SubgraphClient,
-  WithdrawalRequest,
+  WithdrawalRequest
 } from '@rionetwork/sdk-react';
 import { BaseAssetDetails, TokenSymbol } from '../lib/typings';
 import { buildRioSdkRestakingKey, isEqualAddress } from '../lib/utilities';
@@ -84,7 +84,9 @@ export function useGetAccountWithdrawals(
   >
 ) {
   const chainId = useSupportedChainId();
-  const subgraph = SubgraphClient.for(chainId, { subgraphApiKey: SUBGRAPH_API_KEY });
+  const subgraph = SubgraphClient.for(chainId, {
+    subgraphApiKey: SUBGRAPH_API_KEY
+  });
 
   const { data: assets } = useGetAssetsList();
   const { data, ...rest } = useQuery<UseGetAccountWithdrawalsReturn, Error>({

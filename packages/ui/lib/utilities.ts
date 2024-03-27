@@ -20,31 +20,49 @@ import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
 import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
 import { type SubgraphClient } from '@rionetwork/sdk-react';
+import {
+  base,
+  baseGoerli,
+  foundry,
+  goerli,
+  holesky,
+  mainnet,
+  optimism,
+  optimismGoerli,
+  sepolia,
+  zora,
+  zoraSepolia
+} from 'viem/chains';
 
 export const getChainName = (chainId: number) => {
+  [mainnet, sepolia, goerli, optimism];
   switch (chainId) {
-    case 1:
-      return 'mainnet';
-    case 5:
-      return 'goerli';
-    case 11155111:
-      return 'sepolia';
-    case 10:
-      return 'optimism';
-    case 420:
-      return 'optimism-goerli';
-    case 8453:
-      return 'base';
-    case 84531:
-      return 'base-goerli';
-    case 7777777:
-      return 'zora';
+    case mainnet.id:
+      return mainnet.name;
+    case goerli.id:
+      return goerli.name;
+    case sepolia.id:
+      return sepolia.name;
+    case holesky.id:
+      return holesky.name;
+    case optimism.id:
+      return optimism.name;
+    case optimismGoerli.id:
+      return optimismGoerli.name;
+    case base.id:
+      return base.name;
+    case baseGoerli.id:
+      return baseGoerli.name;
+    case zora.id:
+      return zora.name;
     case 999:
-      return 'zora-goerli';
-    case 31337:
-      return 'foundry';
+      return 'Zora Goerli';
+    case zoraSepolia.id:
+      return zoraSepolia.name;
+    case foundry.id:
+      return foundry.name;
     default:
-      return 'unknown';
+      return 'Unknown';
   }
 };
 
