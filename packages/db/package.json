@@ -2,10 +2,15 @@
   "name": "@internal/db",
   "version": "0.0.0",
   "private": true,
-  "main": "index.ts",
-  "types": "index.ts",
+  "main": "dist/src/index.ts",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
   "scripts": {
-    "dev": "docker-compose up -d",
+    "build": "tsc -p tsconfig.json",
+    "clean:build": "rimraf ./dist",
+    "dev": "docker-compose up -d && tsc -p tsconfig.json --watch",
     "migration:generate": "drizzle-kit generate:pg",
     "migration:run": "tsx ./src/migrate.ts",
     "lint": "eslint src --ext .ts",

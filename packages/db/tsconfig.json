@@ -4,10 +4,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "dist",
+    "rootDir": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "./*.json", "drizzle"],
-  "exclude": ["node_modules"]
+  "include": ["**/*.ts", "**/*.json"],
+  "exclude": ["node_modules", "dist", "data", ".turbo"]
 }

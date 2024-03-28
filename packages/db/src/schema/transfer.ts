@@ -6,6 +6,9 @@ import {
   varchar,
   numeric,
   integer,
+  PgTableWithColumns,
+  PgColumn,
+  PgColumnBuilder,
 } from 'drizzle-orm/pg-core';
 
 import { schema } from './pg-schema';

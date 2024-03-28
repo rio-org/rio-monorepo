@@ -8,6 +8,11 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+  "include": ["src", "node_modules/@internal/db/dist"],
+  "exclude": [
+    "node_modules(?!/@internal/db/dist\b)(?:/.*)?",
+    "test",
+    "dist",
+    "**/*spec.ts"
+  ]
 }

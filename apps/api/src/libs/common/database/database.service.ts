@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SharedConfigAdapter } from '@/shared-config/shared-config.adapter';
+import { SharedConfigAdapter } from '@/libs/config/shared-config/shared-config.adapter';
 import { db, type DrizzleConnectionConfigTypes } from '@internal/db';
 
 @Injectable()
