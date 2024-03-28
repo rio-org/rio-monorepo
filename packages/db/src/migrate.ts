@@ -16,9 +16,11 @@ import { ENV } from './config';
   });
   const client = postgres(connectionString);
   const db = drizzle(client, { schema });
-  await migrate(db, { migrationsFolder: '../drizzle' });
+  console.log('[Migrating database]');
+  await migrate(db, { migrationsFolder: './drizzle' });
+  console.log('[Database migrated]');
   await client.end();
 })().catch((error) => {
-  console.error('[Error migrating database]', error);
+  console.error('[Error migrating database]\n', error);
   process.exit(1);
 });

@@ -9,7 +9,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { schema } from './pg-schema';
-import { ZERO_ADDRESS } from '@/lib/constants';
+import { ZERO_ADDRESS } from '../lib/constants';
 
 export const transfer = schema.table(
   'transfer',

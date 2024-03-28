@@ -1,5 +1,5 @@
 import { ConfigurableModuleBuilder } from '@nestjs/common';
-import { SharedConfigAdapter } from '@/config/shared-config.adapter';
+import { SharedConfigAdapter } from '@/shared-config/shared-config.adapter';
 
 export const {
   ConfigurableModuleClass,

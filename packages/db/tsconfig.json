@@ -8,6 +8,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "./*.json"],
+  "include": ["src", "./*.json", "drizzle"],
   "exclude": ["node_modules"]
 }
