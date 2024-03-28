@@ -15,7 +15,7 @@
     "format": "prettier --check  \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:fix": "prettier --write  \"src/**/*.ts\" \"test/**/*.ts\"",
     "test": "jest",
-    "typecheck": "tsc",
+    "typecheck": "tsc -p tsconfig.json",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
