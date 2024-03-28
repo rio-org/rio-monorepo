@@ -6,10 +6,8 @@ import {
   useMemo,
   useState
 } from 'react';
-import { useChainId, useDisconnect } from 'wagmi';
+import { useDisconnect } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
-import { CHAIN_ID } from '../config';
-import { CHAIN_ID_NUMBER } from '../lib/typings';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccountIfMounted } from '../hooks/useAccountIfMounted';
 import { useAcceptedTerms } from '../hooks/useAcceptedTerms';
@@ -17,6 +15,7 @@ import { useRegionChecked } from '../hooks/useRegionChecked';
 import { GeofenceModal } from '../components/Shared/GeofenceModal';
 import { AcceptTermsModal } from '../components/Shared/AcceptTermsModal';
 import { asType } from '../lib/utilities';
+import { useSupportedChainId } from '../hooks/useSupportedChainId';
 
 type BadGlobalThis =
   | undefined
@@ -56,9 +55,8 @@ export default function WalletAndTermsStoreProvider({
       ? asType<BadGlobalThis>(globalThis)
       : undefined;
 
-  const { address, chain } = useAccountIfMounted();
-  const defaultChainId = useChainId() || CHAIN_ID;
-  const chainId = (chain?.id || defaultChainId) as CHAIN_ID_NUMBER;
+  const { address } = useAccountIfMounted();
+  const chainId = useSupportedChainId();
   const { disconnect } = useDisconnect();
   const { openConnectModal, connectModalOpen } = useConnectModal();
   const [walletModalOpen, setWalletModalOpen] = useState(false);

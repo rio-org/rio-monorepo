@@ -20,16 +20,15 @@ import {
 export const APP_ENV = (process.env.NEXT_PUBLIC_APP_ENV ||
   AppEnv.DEVELOPMENT) as AppEnv;
 
-export const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID
-  ? (parseInt(process.env.NEXT_PUBLIC_CHAIN_ID) as CHAIN_ID_NUMBER)
-  : APP_ENV === AppEnv.PRODUCTION
-  ? (1 as CHAIN_ID_NUMBER)
-  : (5 as CHAIN_ID_NUMBER);
+export const CHAIN_ID = 17000 as CHAIN_ID_NUMBER;
 
 export const DATADOG_APPLICATION_ID =
   process.env.NEXT_PUBLIC_DATADOG_APPLICATION_ID ?? '';
 export const DATADOG_CLIENT_TOKEN =
   process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN ?? '';
+
+export const SUBGRAPH_API_KEY =
+  process.env.NEXT_PUBLIC_SUBGRAPH_API_KEY ?? 'apikey';
 
 // We internally use this instead of the zero address when referencing native ETH
 export const NATIVE_ETH_ADDRESS = getAddress(

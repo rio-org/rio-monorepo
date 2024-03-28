@@ -130,7 +130,7 @@ function RestakeFormBase({
         {tab === RestakeFormTab.RESTAKE ? (
           <>
             {typeof restakeForm.minAmountOut !== 'bigint' ? (
-              <Skeleton width={40} />
+              <Skeleton width={120} />
             ) : (
               displayEthAmount(
                 formatUnits(
@@ -143,7 +143,7 @@ function RestakeFormBase({
         ) : (
           <>
             {!activeToken ? (
-              <Skeleton width={40} />
+              <Skeleton width={120} />
             ) : (
               <>
                 {withdrawForm.amount

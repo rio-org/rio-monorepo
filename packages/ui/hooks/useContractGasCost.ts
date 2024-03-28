@@ -2,13 +2,12 @@ import { type UseQueryOptions } from '@tanstack/react-query';
 import { type Abi, type ContractFunctionName } from 'viem';
 import { useEstimateFeesPerGas } from 'wagmi';
 import { useCallback, useMemo } from 'react';
-import { useAccountIfMounted } from './useAccountIfMounted';
+import { useSupportedChainId } from './useSupportedChainId';
 import {
   useEstimateContractGas,
   UseEstimateContractGasParameters,
   UseEstimateContractGasResult
 } from './useEstimateContractGas';
-import { CHAIN_ID } from '../config';
 
 export type UseContractGasCostParameters<
   TAbi extends Abi,
@@ -32,7 +31,7 @@ export function useContractGasCost<
     'enabled' | 'queryKey' | 'queryFn'
   >
 ) {
-  const networkChainId = useAccountIfMounted().chain?.id || CHAIN_ID;
+  const networkChainId = useSupportedChainId();
   const chainId = parameters.chainId ?? networkChainId;
   const { data: estimatedGas, ...estimatedGasEtc } = useEstimateContractGas(
     parameters,

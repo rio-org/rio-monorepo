@@ -14,7 +14,7 @@ import {
 } from '@tanstack/react-query';
 import { useAccountIfMounted } from './useAccountIfMounted';
 import { asType } from '../lib/utilities';
-import { CHAIN_ID } from '../config';
+import { useSupportedChainId } from './useSupportedChainId';
 
 /////////////////
 // Module Types
@@ -59,9 +59,9 @@ export function useEstimateContractGas<
     'enabled' | 'queryKey' | 'queryFn'
   >
 ): UseQueryResult<UseEstimateContractGasResult, Error> {
-  const { address: accountAddress, chain } = useAccountIfMounted();
-  const networkChainId = chain?.id || CHAIN_ID;
-  const chainId = _chainId ?? networkChainId;
+  const { address: accountAddress } = useAccountIfMounted();
+  const defaultChainId = useSupportedChainId();
+  const chainId = _chainId ?? defaultChainId;
   const client = usePublicClient({ chainId });
   const account = configAddress ?? accountAddress;
   return useQuery<UseEstimateContractGasResult, Error>({

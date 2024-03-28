@@ -46,7 +46,7 @@ export function EditOperatorFieldDialog({
     prepareContractWrite: { data: simulatedData },
     contractWrite: { writeContract, data: hash, reset }
   } = useCompleteContractWrite({
-    address: operatorRegistryAddress ?? zeroAddress,
+    address: isOpen ? operatorRegistryAddress ?? zeroAddress : undefined,
     abi: RioLRTOperatorRegistryABI,
     functionName: debouncedFxnName,
     args: [
@@ -55,6 +55,7 @@ export function EditOperatorFieldDialog({
     ],
     query: {
       enabled:
+        !!isOpen &&
         !!debouncedFxnName &&
         !!inputValue &&
         /0x[a-fA-F0-9]{40}/.test(inputValue) &&

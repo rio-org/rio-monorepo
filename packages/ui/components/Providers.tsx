@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RioNetworkProvider } from '@rionetwork/sdk-react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ThemeProvider } from '@material-tailwind/react';
-import { mainnet, goerli, holesky } from 'wagmi/chains';
+import { goerli } from 'wagmi/chains';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Analytics } from '@vercel/analytics/react';
@@ -55,9 +55,9 @@ import {
   getAnkrRpcUrl,
   getInfuraRpcUrl
 } from '../lib/utilities';
-import { AppEnv, Theme } from '../lib/typings';
+import { Theme } from '../lib/typings';
 import { theme } from '../lib/theme';
-import { APP_ENV, CHAIN_ID } from '../config';
+import { SUBGRAPH_API_KEY } from '../config';
 
 const WagmiProvider = dynamic(
   import('wagmi').then((mod) => mod.WagmiProvider),
@@ -66,19 +66,6 @@ const WagmiProvider = dynamic(
 
 // Create the cache client
 const queryClient = new QueryClient();
-
-const chainlist = [goerli, holesky, mainnet] as [Chain, ...Chain[]];
-
-const chooseChain = (): [Chain, ...Chain[]] => {
-  if (APP_ENV === AppEnv.PRODUCTION) {
-    return [
-      chainlist.find((c) => c.id === CHAIN_ID) ?? goerli,
-      ...(CHAIN_ID === mainnet.id ? [holesky] : [])
-    ];
-  } else {
-    return chainlist;
-  }
-};
 
 const getTransports = (chainId: number) => {
   const _transports: Parameters<typeof fallback>[0] = [];
@@ -111,6 +98,7 @@ interface Props extends LayoutProps {
   requireGeofence?: boolean;
   requireTerms?: boolean;
   appTitle: string;
+  chains: [Chain, ...Chain[]];
 }
 
 const _appInfo = {
@@ -119,14 +107,14 @@ const _appInfo = {
 };
 
 const { wallets } = getDefaultWallets();
-const chains = chooseChain();
 
 export function Providers({
   appTitle,
   nav,
   children,
   requireGeofence = false,
-  requireTerms = true
+  requireTerms = true,
+  chains
 }: Props) {
   const appInfo = useMemo(
     () => ({ appName: appTitle, ..._appInfo }),
@@ -185,7 +173,7 @@ export function Providers({
             appInfo={appInfo}
             initialChain={chains[0]}
           >
-            <RioNetworkProvider>
+            <RioNetworkProvider subgraphApiKey={SUBGRAPH_API_KEY}>
               <RioTransactionStoreProvider>
                 <WalletAndTermsStoreProvider
                   requireGeofence={requireGeofence}

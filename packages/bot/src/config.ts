@@ -1,4 +1,4 @@
-import { Chain, goerli, mainnet } from 'viem/chains';
+import { Chain, goerli, holesky, mainnet } from 'viem/chains';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -9,5 +9,6 @@ export const PRIVATE_KEY = (process.env.PRIVATE_KEY as `0x${string}`) || (() => 
 
 export const SUPPORTED_CHAIN: Record<number, Chain> = {
   1: mainnet,
-  5: goerli
+  5: goerli,
+  17000: holesky
 };
