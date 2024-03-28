@@ -1,28 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+import * as fs from 'fs';
 import type { ISharedConfigEnvironment } from './shared-config.types';
-import { SharedConfigAdapter } from './shared-config.adapter';
-import { ConfigService } from '@nestjs/config';
+import { CONFIG_OPTIONS } from './shared-config.constants';
+import { ConfigOptions, EnvConfig } from './interfaces';
 
 @Injectable()
-export class SharedConfigService implements SharedConfigAdapter {
+export class SharedConfigService {
+  private readonly envConfig: EnvConfig;
   private readonly env: ISharedConfigEnvironment;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(@Inject(CONFIG_OPTIONS) options: ConfigOptions) {
+    const filePath = `${process.env.NODE_ENV || 'development'}.env`;
+    const envFile = path.resolve(
+      __dirname,
+      '../../../../',
+      options.folder,
+      filePath,
+    );
+    this.envConfig = dotenv.parse(fs.readFileSync(envFile));
     this.env = {
-      PORT: parseInt(`${this.configService.get<string>('PORT') ?? 4000}`),
-      DB_HOST: this.configService.get<string>('DB_HOST') || 'localhost',
-      DB_PORT: parseInt(`${this.configService.get<string>('DB_PORT') ?? 5432}`),
-      DB_USER: this.configService.get<string>('DB_USER') || 'postgres',
-      DB_PASSWORD: this.configService.get<string>('DB_PASSWORD') || 'postgres',
-      DB_NAME: this.configService.get<string>('DB_NAME') || 'rio-restaking',
+      PORT: parseInt(`${this.envConfig.PORT || 4000}`),
+      DB_HOST: this.envConfig.DB_HOST || 'localhost',
+      DB_PORT: parseInt(`${this.envConfig.DB_PORT || 5432}`),
+      DB_USER: this.envConfig.DB_USER || 'postgres',
+      DB_PASSWORD: this.envConfig.DB_PASSWORD || 'postgres',
+      DB_NAME: this.envConfig.DB_NAME || 'rio-restaking',
     };
+
+    console.log(this.env);
   }
 
   getEnv() {
     return this.env;
   }
 
-  getEnvVar<T extends keyof ISharedConfigEnvironment>(
+  get<T extends keyof ISharedConfigEnvironment>(
     key: T,
   ): ISharedConfigEnvironment[T] {
     return this.env[key];

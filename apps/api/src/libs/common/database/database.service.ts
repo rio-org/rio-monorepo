@@ -1,19 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { SharedConfigAdapter } from '@/libs/config/shared-config/shared-config.adapter';
 import { db, type DrizzleConnectionConfigTypes } from '@internal/db';
+import { SharedConfigService } from '@/libs/config/shared-config/shared-config.service';
 
 @Injectable()
 export class DatabaseService {
   private readonly _config: DrizzleConnectionConfigTypes['INDIVIDUAL'];
   private readonly _pooledConnection: ReturnType<typeof db.getDrizzlePool>;
 
-  constructor(private readonly sharedConfigService: SharedConfigAdapter) {
+  constructor(private readonly sharedConfigService: SharedConfigService) {
+    console.log(sharedConfigService);
     this._config = {
-      user: this.sharedConfigService.getEnvVar('DB_USER'),
-      password: this.sharedConfigService.getEnvVar('DB_PASSWORD'),
-      host: this.sharedConfigService.getEnvVar('DB_HOST'),
-      port: this.sharedConfigService.getEnvVar('DB_PORT'),
-      database: this.sharedConfigService.getEnvVar('DB_NAME'),
+      user: this.sharedConfigService.get('DB_USER'),
+      password: this.sharedConfigService.get('DB_PASSWORD'),
+      host: this.sharedConfigService.get('DB_HOST'),
+      port: this.sharedConfigService.get('DB_PORT'),
+      database: this.sharedConfigService.get('DB_NAME'),
     };
     this._pooledConnection = db.getDrizzlePool(this._config);
   }

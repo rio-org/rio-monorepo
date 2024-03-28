@@ -1,11 +1,24 @@
-import { DynamicModule, Module, ModuleMetadata } from '@nestjs/common';
-
+import { DynamicModule, Module } from '@nestjs/common';
 import { SharedConfigService } from './shared-config.service';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CONFIG_OPTIONS } from './shared-config.constants';
 
-@Module({
-  imports: [ConfigModule.forRoot({ envFilePath: '.env' })],
-  providers: [ConfigService, SharedConfigService],
-  exports: [ConfigService, SharedConfigService],
-})
-export class SharedConfigModule {}
+export interface ConfigModuleOptions {
+  folder: string;
+}
+
+@Module({})
+export class SharedConfigModule {
+  static register(options: ConfigModuleOptions): DynamicModule {
+    return {
+      module: SharedConfigModule,
+      providers: [
+        {
+          provide: CONFIG_OPTIONS,
+          useValue: options,
+        },
+        SharedConfigService,
+      ],
+      exports: [SharedConfigService],
+    };
+  }
+}
