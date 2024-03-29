@@ -35,8 +35,8 @@ export function handleWithdrawalQueued(event: WithdrawalQueued): void {
   request.amountIn = amountInUnits;
   request.restakingToken = queue.restakingToken;
   request.restakingTokenPriceUSD = restakingToken.exchangeRateUSD;
-  request.userBalanceBefore = user.balance;
-  request.userBalanceAfter = request.userBalanceBefore.minus(amountInUnits);
+  request.userBalanceAfter = user.balance;
+  request.userBalanceBefore = request.userBalanceAfter.plus(amountInUnits);
   request.timestamp = event.block.timestamp;
   request.blockNumber = event.block.number;
   request.tx = event.transaction.hash;
@@ -46,9 +46,6 @@ export function handleWithdrawalQueued(event: WithdrawalQueued): void {
   if (restakingToken.exchangeRateUSD) {
     request.valueUSD = restakingToken.exchangeRateUSD!.times(amountInUnits);
   }
-
-  user.balance = request.userBalanceAfter;
-  user.save();
 
   userWithdrawalSummary.requestCount = userWithdrawalSummary.requestCount + 1;
   userWithdrawalSummary.save();
