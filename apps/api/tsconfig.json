@@ -3,6 +3,7 @@
   "display": "API",
   "compilerOptions": {
     "baseUrl": ".",
+    "outDir": "dist",
     "paths": {
       "@/*": ["./src/*"]
     }

@@ -8,7 +8,6 @@
     "module": "CommonJS",
     "target": "ES2021",
     "removeComments": true,
-    "noEmit": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,

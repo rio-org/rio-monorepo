@@ -1,7 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { SharedConfigAdapter } from '@/libs/config/shared-config/shared-config.adapter';
-import { db, type DrizzleConnectionConfigTypes } from '@internal/db';
 import { SharedConfigService } from '@/libs/config/shared-config/shared-config.service';
+import {
+  type DrizzleConnectionConfigTypes,
+  schema,
+  db,
+  asc,
+  desc,
+  gt,
+  gte,
+  eq,
+  not,
+  lt,
+  lte,
+} from '@internal/db';
 
 @Injectable()
 export class DatabaseService {
@@ -9,7 +20,6 @@ export class DatabaseService {
   private readonly _pooledConnection: ReturnType<typeof db.getDrizzlePool>;
 
   constructor(private readonly sharedConfigService: SharedConfigService) {
-    console.log(sharedConfigService);
     this._config = {
       user: this.sharedConfigService.get('DB_USER'),
       password: this.sharedConfigService.get('DB_PASSWORD'),
@@ -26,5 +36,27 @@ export class DatabaseService {
 
   public getConnection(): ReturnType<typeof db.getDrizzleClient> {
     return db.getDrizzleClient(this._config);
+  }
+
+  public getSchema() {
+    return schema;
+  }
+
+  public getOrderOperators() {
+    return {
+      ASC: asc,
+      DESC: desc,
+    };
+  }
+
+  public getComparisonOperators() {
+    return {
+      GT: gt,
+      GTE: gte,
+      EQ: eq,
+      NOT: not,
+      LT: lt,
+      LTE: lte,
+    };
   }
 }

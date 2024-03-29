@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { DatabaseService } from './database.service';
 import { SharedConfigModule } from '@/libs/config/shared-config/shared-config.module';
-import { SharedConfigService } from '@/libs/config/shared-config/shared-config.service';
 
+@Global()
 @Module({
   imports: [SharedConfigModule.register({ folder: '.' })],
   providers: [DatabaseService],
