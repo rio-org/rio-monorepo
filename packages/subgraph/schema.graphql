@@ -294,3 +294,21 @@ type Validator @entity {
   keyUploadTimestamp: BigInt!
   keyUploadTx: Bytes!
 }
+
+# A restaking token transfer between users
+type TokenTransfer @entity(immutable: true) {
+  id: ID!
+  receiver: User!
+  sender: User!
+  amount: BigDecimal!
+  restakingToken: LiquidRestakingToken!
+  restakingTokenPriceUSD: BigDecimal
+  senderBalanceBefore: BigDecimal!
+  senderBalanceAfter: BigDecimal!
+  receiverBalanceBefore: BigDecimal!
+  receiverBalanceAfter: BigDecimal!
+  valueUSD: BigDecimal
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  tx: Bytes!
+}
