@@ -5,10 +5,11 @@
     "baseUrl": ".",
     "outDir": "dist",
     "rootDir": ".",
+    "sourceRoot": "./src",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.json"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist", "data", ".turbo"]
 }

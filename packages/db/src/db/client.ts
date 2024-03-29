@@ -1,5 +1,5 @@
-import { type NodePgDatabase, drizzle } from 'drizzle-orm/node-postgres';
-import { Client } from 'pg';
+import { PostgresJsDatabase, drizzle } from 'drizzle-orm/postgres-js';
+import postgres, { Sql } from 'postgres';
 
 import { getConnectionString } from '../lib/utils';
 import * as schema from '../schema';
@@ -8,8 +8,8 @@ export const getDrizzleClient = <
   T extends Parameters<typeof getConnectionString>[0],
 >(
   config: T,
-): { client: Client; db: NodePgDatabase<typeof schema> } => {
-  const client = new Client({ connectionString: getConnectionString(config) });
+): { client: Sql; db: PostgresJsDatabase<typeof schema> } => {
+  const client = postgres(getConnectionString(config));
   const db = drizzle(client, { schema });
   return { client, db };
 };

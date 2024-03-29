@@ -1,4 +1,12 @@
 import { DrizzleConnectionConfigTypes } from '../types';
+import { asc, desc } from 'drizzle-orm';
+
+export const getOrderOperators = () => {
+  return {
+    desc,
+    asc,
+  };
+};
 
 export const getConnectionString = <
   T extends
