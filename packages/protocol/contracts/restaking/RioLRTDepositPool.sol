@@ -10,7 +10,6 @@ import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
-import {Array} from 'contracts/utils/Array.sol';
 import {
     BEACON_CHAIN_STRATEGY,
     ETH_DEPOSIT_SOFT_CAP,
@@ -21,16 +20,9 @@ import {
 contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using FixedPointMathLib for uint256;
     using Asset for *;
-    using Array for *;
-
-    /// @notice The primary delegation contract for EigenLayer.
-    IDelegationManager public immutable delegationManager;
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    /// @param delegationManager_ The primary delegation contract for EigenLayer.
-    constructor(address issuer_, address delegationManager_) RioLRTCore(issuer_) {
-        delegationManager = IDelegationManager(delegationManager_);
-    }
+    constructor(address issuer_) RioLRTCore(issuer_) {}
 
     /// @notice Initializes the deposit pool contract.
     /// @param initialOwner The initial owner of the contract.
@@ -131,19 +123,16 @@ contract RioLRTDepositPool is IRioLRTDepositPool, OwnableUpgradeable, UUPSUpgrad
             revert INVALID_WITHDRAWAL_ORIGIN();
         }
 
-        // If ETH, decrease the amount of ETH queued for withdrawal. Otherwise, decrease the
-        // amount of shares held for the asset.
+        // If not ETH, decrease the amount of shares held for the asset.
         address strategy = queuedWithdrawal.strategies[0];
-        if (strategy == BEACON_CHAIN_STRATEGY) {
-            operatorDelegator_.decreaseETHQueuedForOperatorExitOrScrape(queuedWithdrawal.shares[0]);
-        } else {
+        if (strategy != BEACON_CHAIN_STRATEGY) {
             assetRegistry().decreaseSharesHeldForAsset(asset, queuedWithdrawal.shares[0]);
         }
 
         // Complete the withdrawal. This function verifies that the passed `asset` is correct.
-        delegationManager.completeQueuedWithdrawal(queuedWithdrawal, asset.toArray(), middlewareTimesIndex, true);
+        bytes32 root = operatorDelegator_.completeQueuedWithdrawal(queuedWithdrawal, asset, middlewareTimesIndex);
 
-        emit OperatorAssetWithdrawalCompleted(operatorId, asset, keccak256(abi.encode(queuedWithdrawal)));
+        emit OperatorAssetWithdrawalCompleted(operatorId, asset, root);
     }
 
     /// @dev Receives ETH for deposit into EigenLayer.

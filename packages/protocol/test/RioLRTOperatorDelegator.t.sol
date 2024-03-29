@@ -74,7 +74,7 @@ contract RioLRTOperatorDelegatorTest is RioDeployer {
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
             delegatedTo: address(1),
-            withdrawer: address(reETH.withdrawalQueue),
+            withdrawer: operatorDelegator,
             nonce: 0,
             startBlock: 1,
             strategies: BEACON_CHAIN_STRATEGY.toArray(),
@@ -106,7 +106,7 @@ contract RioLRTOperatorDelegatorTest is RioDeployer {
             IDelegationManager.Withdrawal({
                 staker: operatorDelegator,
                 delegatedTo: address(1),
-                withdrawer: address(reETH.depositPool),
+                withdrawer: operatorDelegator,
                 nonce: 1,
                 startBlock: 1,
                 strategies: BEACON_CHAIN_STRATEGY.toArray(),

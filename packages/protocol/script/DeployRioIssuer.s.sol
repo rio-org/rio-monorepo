@@ -35,8 +35,8 @@ contract DeployRioIssuer is ScriptBase {
                     )
                 ),
                 address(new RioLRTAVSRegistry(issuerAddress)),
-                address(new RioLRTDepositPool(issuerAddress, delegationManager)),
-                address(new RioLRTWithdrawalQueue(issuerAddress, delegationManager)),
+                address(new RioLRTDepositPool(issuerAddress)),
+                address(new RioLRTWithdrawalQueue(issuerAddress)),
                 address(new RioLRTRewardDistributor(issuerAddress))
             )
         );
