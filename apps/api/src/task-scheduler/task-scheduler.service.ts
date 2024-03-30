@@ -14,7 +14,7 @@ import {
   LiquidRestakingToken,
 } from '@rionetwork/sdk';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { DrizzleEntity, desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { schema } from '@internal/db';
@@ -241,7 +241,7 @@ export class TaskSchedulerService {
         ? Promise.resolve([])
         : this.subgraph.getDeposits({
             ...config,
-            page: depositsPage,
+            page: depositsPage++,
             orderBy: Deposit_OrderBy.BlockNumber,
           });
       const withdrawalsPromise: Promise<WithdrawalRequest[]> =
@@ -249,7 +249,7 @@ export class TaskSchedulerService {
           ? Promise.resolve([])
           : this.subgraph.getWithdrawalRequests({
               ...config,
-              page: withdrawalsPage,
+              page: withdrawalsPage++,
               orderBy: WithdrawalRequest_OrderBy.BlockNumber,
             });
 
@@ -257,7 +257,7 @@ export class TaskSchedulerService {
         ? Promise.resolve([])
         : this.subgraph.getTokenTransfers({
             ...config,
-            page: transfersPage,
+            page: transfersPage++,
             orderBy: TokenTransfer_OrderBy.BlockNumber,
           });
 
