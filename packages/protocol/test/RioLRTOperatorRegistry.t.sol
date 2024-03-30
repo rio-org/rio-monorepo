@@ -326,9 +326,16 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         uint256 OOO_EXIT_STARTING_INDEX = 150;
         uint256 OOO_EXIT_COUNT = 88;
 
-        uint8 operatorId = addOperatorDelegator(
-            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, UPLOADED_KEY_COUNT
-        );
+        // forgefmt: disable-next-item
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 0);
+        reETH.operatorRegistry.setOperatorValidatorCap(operatorId, UPLOADED_KEY_COUNT);
+
+        // Populate the keys and signatures with random bytes.
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getRandomValidatorKeys(UPLOADED_KEY_COUNT);
+        reETH.operatorRegistry.addValidatorDetails(operatorId, UPLOADED_KEY_COUNT, publicKeys, signatures);
+
+        // Fast forward to allow validator keys time to confirm.
+        skip(reETH.operatorRegistry.validatorKeyReviewPeriod());
 
         IRioLRTOperatorRegistry.OperatorPublicDetails memory details =
             reETH.operatorRegistry.getOperatorDetails(operatorId);
@@ -346,7 +353,6 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Ensure the expected public keys are swapped.
         uint256 j = OOO_EXIT_STARTING_INDEX;
-        (bytes memory expectedPublicKeys,) = TestUtils.getValidatorKeys(UPLOADED_KEY_COUNT);
         for (uint256 i = 0; i < OOO_EXIT_COUNT; i++) {
             uint256 key1Start = j * ValidatorDetails.PUBKEY_LENGTH;
             uint256 key1End = (j + 1) * ValidatorDetails.PUBKEY_LENGTH;
@@ -357,8 +363,8 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             vm.expectEmit(true, false, false, true, address(reETH.operatorRegistry));
             emit ValidatorDetails.ValidatorDetailsSwapped(
                 operatorId,
-                bytes(LibString.slice(string(expectedPublicKeys), key1Start, key1End)),
-                bytes(LibString.slice(string(expectedPublicKeys), key2Start, key2End))
+                bytes(LibString.slice(string(publicKeys), key1Start, key1End)),
+                bytes(LibString.slice(string(publicKeys), key2Start, key2End))
             );
 
             j++;
