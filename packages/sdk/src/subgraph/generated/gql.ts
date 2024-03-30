@@ -19,6 +19,8 @@ const documents = {
     types.LiquidRestakingTokenFieldsFragmentDoc,
   '\n  fragment DepositFields on Deposit {\n    id\n    sender\n    assetIn {\n      id\n    }\n    amountIn\n    amountOut\n    restakingToken {\n      id\n    }\n    restakingTokenPriceUSD\n    userBalanceAfter\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n':
     types.DepositFieldsFragmentDoc,
+  '\n  fragment TokenTransferFields on TokenTransfer {\n    id\n    receiver {\n      id\n    }\n    sender {\n      id\n    }\n    restakingToken {\n      id\n    }\n    amount\n    restakingTokenPriceUSD\n    senderBalanceBefore\n    senderBalanceAfter\n    receiverBalanceBefore\n    receiverBalanceAfter\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n':
+    types.TokenTransferFieldsFragmentDoc,
   '\n  fragment WithdrawalRequestFields on WithdrawalRequest {\n    id\n    sender\n    epoch {\n      epoch\n      status\n      sharesOwed\n      assetsReceived\n    }\n    assetOut {\n      id\n    }\n    sharesOwed\n    amountIn\n    restakingToken {\n      id\n    }\n    restakingTokenPriceUSD\n    userBalanceAfter\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n\n    isClaimed\n    claim {\n      id\n      tx\n    }\n  }\n':
     types.WithdrawalRequestFieldsFragmentDoc,
   '\n  fragment WithdrawalClaimFields on WithdrawalClaim {\n    id\n    sender\n    epoch {\n      epoch\n    }\n    assetOut {\n      id\n    }\n    amountOut\n    restakingToken {\n      id\n    }\n    restakingTokenPriceUSD\n    requests {\n      id\n    }\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n':
@@ -35,6 +37,8 @@ const documents = {
     types.ManyLiquidRestakingTokensDocument,
   '\n  query manyDeposits(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Deposit_orderBy\n    $orderDirection: OrderDirection\n    $where: Deposit_filter\n  ) {\n    deposits(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...DepositFields\n    }\n  }\n':
     types.ManyDepositsDocument,
+  '\n  query manyTokenTransfers(\n    $first: Int!\n    $skip: Int!\n    $orderBy: TokenTransfer_orderBy\n    $orderDirection: OrderDirection\n    $where: TokenTransfer_filter\n  ) {\n    tokenTransfers(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...TokenTransferFields\n    }\n  }\n':
+    types.ManyTokenTransfersDocument,
   '\n  query manyWithdrawalRequests(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalRequest_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalRequest_filter\n  ) {\n    withdrawalRequests(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalRequestFields\n    }\n  }\n':
     types.ManyWithdrawalRequestsDocument,
   '\n  query manyWithdrawalClaims(\n    $first: Int!\n    $skip: Int!\n    $orderBy: WithdrawalClaim_orderBy\n    $orderDirection: OrderDirection\n    $where: WithdrawalClaim_filter\n  ) {\n    withdrawalClaims(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...WithdrawalClaimFields\n    }\n  }\n':
@@ -77,6 +81,12 @@ export function graphql(
 export function graphql(
   source: '\n  fragment DepositFields on Deposit {\n    id\n    sender\n    assetIn {\n      id\n    }\n    amountIn\n    amountOut\n    restakingToken {\n      id\n    }\n    restakingTokenPriceUSD\n    userBalanceAfter\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n'
 ): (typeof documents)['\n  fragment DepositFields on Deposit {\n    id\n    sender\n    assetIn {\n      id\n    }\n    amountIn\n    amountOut\n    restakingToken {\n      id\n    }\n    restakingTokenPriceUSD\n    userBalanceAfter\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n'];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  fragment TokenTransferFields on TokenTransfer {\n    id\n    receiver {\n      id\n    }\n    sender {\n      id\n    }\n    restakingToken {\n      id\n    }\n    amount\n    restakingTokenPriceUSD\n    senderBalanceBefore\n    senderBalanceAfter\n    receiverBalanceBefore\n    receiverBalanceAfter\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n'
+): (typeof documents)['\n  fragment TokenTransferFields on TokenTransfer {\n    id\n    receiver {\n      id\n    }\n    sender {\n      id\n    }\n    restakingToken {\n      id\n    }\n    amount\n    restakingTokenPriceUSD\n    senderBalanceBefore\n    senderBalanceAfter\n    receiverBalanceBefore\n    receiverBalanceAfter\n    valueUSD\n    timestamp\n    blockNumber\n    tx\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -125,6 +135,12 @@ export function graphql(
 export function graphql(
   source: '\n  query manyDeposits(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Deposit_orderBy\n    $orderDirection: OrderDirection\n    $where: Deposit_filter\n  ) {\n    deposits(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...DepositFields\n    }\n  }\n'
 ): (typeof documents)['\n  query manyDeposits(\n    $first: Int!\n    $skip: Int!\n    $orderBy: Deposit_orderBy\n    $orderDirection: OrderDirection\n    $where: Deposit_filter\n  ) {\n    deposits(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...DepositFields\n    }\n  }\n'];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  query manyTokenTransfers(\n    $first: Int!\n    $skip: Int!\n    $orderBy: TokenTransfer_orderBy\n    $orderDirection: OrderDirection\n    $where: TokenTransfer_filter\n  ) {\n    tokenTransfers(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...TokenTransferFields\n    }\n  }\n'
+): (typeof documents)['\n  query manyTokenTransfers(\n    $first: Int!\n    $skip: Int!\n    $orderBy: TokenTransfer_orderBy\n    $orderDirection: OrderDirection\n    $where: TokenTransfer_filter\n  ) {\n    tokenTransfers(\n      first: $first\n      skip: $skip\n      orderBy: $orderBy\n      orderDirection: $orderDirection\n      where: $where\n    ) {\n      ...TokenTransferFields\n    }\n  }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -8,6 +8,7 @@ export {
   ContractDeployment,
   LiquidRestakingToken,
   Deposit,
+  TokenTransfer,
   WithdrawalEpochStatus,
   WithdrawalRequest,
   WithdrawalClaim,
