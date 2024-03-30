@@ -126,7 +126,7 @@ library ValidatorDetails {
 
         // forgefmt: disable-next-item
         // Ensure no overlap in indexes
-        if ((startIndex1 < startIndex2 && startIndex1 + keysCount >= startIndex2) || (startIndex2 < startIndex1 && startIndex2 + keysCount >= startIndex1)) {
+        if ((startIndex1 < startIndex2 && startIndex1 + keysCount > startIndex2) || (startIndex2 < startIndex1 && startIndex2 + keysCount > startIndex1)) {
             revert INDEXES_OVERLAP();
         }
 

@@ -320,14 +320,12 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
     }
 
     function test_reportOutOfOrderValidatorExits() public {
-        uint40 UPLOADED_KEY_COUNT = 1_000;
-
-        uint256 DEPOSIT_COUNT = 300;
+        uint40 DEPOSIT_COUNT = 300;
         uint256 OOO_EXIT_STARTING_INDEX = 150;
         uint256 OOO_EXIT_COUNT = 88;
 
         uint8 operatorId = addOperatorDelegator(
-            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, UPLOADED_KEY_COUNT
+            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, DEPOSIT_COUNT
         );
 
         IRioLRTOperatorRegistry.OperatorPublicDetails memory details =
@@ -346,7 +344,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Ensure the expected public keys are swapped.
         uint256 j = OOO_EXIT_STARTING_INDEX;
-        (bytes memory expectedPublicKeys,) = TestUtils.getValidatorKeys(UPLOADED_KEY_COUNT);
+        (bytes memory expectedPublicKeys,) = TestUtils.getValidatorKeys(DEPOSIT_COUNT);
         for (uint256 i = 0; i < OOO_EXIT_COUNT; i++) {
             uint256 key1Start = j * ValidatorDetails.PUBKEY_LENGTH;
             uint256 key1End = (j + 1) * ValidatorDetails.PUBKEY_LENGTH;
@@ -366,6 +364,117 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Report the out of order exits of `OOO_EXIT_COUNT` validators starting at index `OOO_EXIT_STARTING_INDEX`.
         reETH.operatorRegistry.reportOutOfOrderValidatorExits(operatorId, OOO_EXIT_STARTING_INDEX, OOO_EXIT_COUNT);
+
+        details = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(details.validatorDetails.exited, OOO_EXIT_COUNT);
+    }
+
+    function test_reportOutOfOrderValidatorExitsDoesNotSwapIfNextInLineToBeExited() public {
+        uint40 DEPOSIT_COUNT = 20;
+        uint256 OOO_EXIT_STARTING_INDEX = 0;
+        uint256 OOO_EXIT_COUNT = 10;
+
+        uint8 operatorId = addOperatorDelegator(
+            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, DEPOSIT_COUNT
+        );
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory details =
+            reETH.operatorRegistry.getOperatorDetails(operatorId);
+
+        // Allocate `DEPOSIT_COUNT` deposits
+        vm.prank(address(reETH.depositPool));
+        reETH.operatorRegistry.allocateETHDeposits(DEPOSIT_COUNT);
+
+        // Mark operators as withdrawn.
+        vm.mockCall(
+            address(IRioLRTOperatorDelegator(details.delegator).eigenPod()),
+            abi.encodeWithSelector(IEigenPod.validatorStatus.selector),
+            abi.encode(IEigenPod.VALIDATOR_STATUS.WITHDRAWN)
+        );
+
+        vm.expectEmit(true, false, false, true, address(reETH.operatorRegistry));
+        emit IRioLRTOperatorRegistry.OperatorOutOfOrderValidatorExitsReported(operatorId, OOO_EXIT_COUNT);
+
+        vm.recordLogs();
+
+        // Report the out of order exits of `OOO_EXIT_COUNT` validators starting at index `OOO_EXIT_STARTING_INDEX`.
+        reETH.operatorRegistry.reportOutOfOrderValidatorExits(operatorId, OOO_EXIT_STARTING_INDEX, OOO_EXIT_COUNT);
+
+        // No swapping events should have been emitted.
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        assertEq(logs.length, 1);
+
+        details = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(details.validatorDetails.exited, OOO_EXIT_COUNT);
+    }
+
+    function test_reportOutOfOrderValidatorExitsWhenTwoCallsRequiredToAvoidOverlappingIndexes() public {
+        uint40 DEPOSIT_COUNT = 300;
+        uint256 OOO_EXIT_STARTING_INDEX = 50;
+        uint256 OOO_EXIT_COUNT = 150;
+
+        uint8 operatorId = addOperatorDelegator(
+            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, DEPOSIT_COUNT
+        );
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory details =
+            reETH.operatorRegistry.getOperatorDetails(operatorId);
+
+        // Allocate `DEPOSIT_COUNT` deposits
+        vm.prank(address(reETH.depositPool));
+        reETH.operatorRegistry.allocateETHDeposits(DEPOSIT_COUNT);
+
+        // Mark operators as withdrawn.
+        vm.mockCall(
+            address(IRioLRTOperatorDelegator(details.delegator).eigenPod()),
+            abi.encodeWithSelector(IEigenPod.validatorStatus.selector),
+            abi.encode(IEigenPod.VALIDATOR_STATUS.WITHDRAWN)
+        );
+
+        uint256 FIRST_CALL_STARTING_INDEX = 100;
+        uint256 FIRST_CALL_EXIT_COUNT = 50;
+
+        // Ensure the last 50 public keys are swapped to fill the gap between the remaining.
+        uint256 j = FIRST_CALL_STARTING_INDEX;
+        (bytes memory expectedPublicKeys,) = TestUtils.getValidatorKeys(DEPOSIT_COUNT);
+        for (uint256 i = 0; i < FIRST_CALL_EXIT_COUNT; i++) {
+            uint256 key1Start = j * ValidatorDetails.PUBKEY_LENGTH;
+            uint256 key1End = (j + 1) * ValidatorDetails.PUBKEY_LENGTH;
+
+            uint256 key2Start = i * ValidatorDetails.PUBKEY_LENGTH;
+            uint256 key2End = (i + 1) * ValidatorDetails.PUBKEY_LENGTH;
+
+            vm.expectEmit(true, false, false, true, address(reETH.operatorRegistry));
+            emit ValidatorDetails.ValidatorDetailsSwapped(
+                operatorId,
+                bytes(LibString.slice(string(expectedPublicKeys), key1Start, key1End)),
+                bytes(LibString.slice(string(expectedPublicKeys), key2Start, key2End))
+            );
+
+            j++;
+        }
+
+        // Report the out of order exits of `FIRST_CALL_EXIT_COUNT` validators starting at index `FIRST_CALL_STARTING_INDEX`.
+        reETH.operatorRegistry.reportOutOfOrderValidatorExits(
+            operatorId, FIRST_CALL_STARTING_INDEX, FIRST_CALL_EXIT_COUNT
+        );
+
+        // Report the remaining exits now that there is no longer a gap.
+        uint256 SECOND_CALL_EXIT_COUNT = OOO_EXIT_COUNT - FIRST_CALL_EXIT_COUNT;
+
+        vm.expectEmit(true, false, false, true, address(reETH.operatorRegistry));
+        emit IRioLRTOperatorRegistry.OperatorOutOfOrderValidatorExitsReported(operatorId, SECOND_CALL_EXIT_COUNT);
+
+        vm.recordLogs();
+
+        // Report the out of order exits of `SECOND_CALL_EXIT_COUNT` validators starting at index `OOO_EXIT_STARTING_INDEX`.
+        reETH.operatorRegistry.reportOutOfOrderValidatorExits(
+            operatorId, OOO_EXIT_STARTING_INDEX, SECOND_CALL_EXIT_COUNT
+        );
+
+        // No swapping events should have been emitted.
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        assertEq(logs.length, 1);
 
         details = reETH.operatorRegistry.getOperatorDetails(operatorId);
         assertEq(details.validatorDetails.exited, OOO_EXIT_COUNT);

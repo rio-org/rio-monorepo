@@ -328,8 +328,11 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             }
         }
 
-        // Swap the position of the validators starting from the `fromIndex` with the validators that were next in line to be exited.
-        VALIDATOR_DETAILS_POSITION.swapValidatorDetails(operatorId, fromIndex, validators.exited, validatorCount);
+        // If the exited validators were not next in line to be exited, swap the position of the validators starting
+        // at the `fromIndex` with the validators that were next in line to be exited.
+        if (fromIndex > validators.exited) {
+            VALIDATOR_DETAILS_POSITION.swapValidatorDetails(operatorId, fromIndex, validators.exited, validatorCount);
+        }
         operator.validatorDetails.exited += uint40(validatorCount);
 
         emit OperatorOutOfOrderValidatorExitsReported(operatorId, validatorCount);
