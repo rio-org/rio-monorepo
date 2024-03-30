@@ -381,7 +381,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         }
         sharesAllocated = sharesToAllocate - remainingShares;
 
-        heap.store(s.activeOperatorsByStrategyShareUtilization[strategy]);
+        heap.store(s.activeOperatorsByStrategyShareUtilization[strategy], OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         // Shrink the array length to the number of allocations made.
         if (allocationIndex < s.activeOperatorCount) {
@@ -470,7 +470,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         for (uint256 i = 0; i < skippedOperatorCount; ++i) {
             heap.insert(skippedOperators[i]);
         }
-        heap.store(s.activeOperatorsByETHDepositUtilization);
+        heap.store(s.activeOperatorsByETHDepositUtilization, OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         // Shrink the array length to the number of allocations made.
         if (allocationIndex < s.activeOperatorCount) {
@@ -525,7 +525,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         }
         sharesDeallocated = sharesToDeallocate - remainingShares;
 
-        heap.store(s.activeOperatorsByStrategyShareUtilization[strategy]);
+        heap.store(s.activeOperatorsByStrategyShareUtilization[strategy], OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         // Shrink the array length to the number of deallocations made.
         if (deallocationIndex < s.activeOperatorCount) {
@@ -583,7 +583,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         }
         depositsDeallocated = depositsToDeallocate - remainingDeposits;
 
-        heap.store(s.activeOperatorsByETHDepositUtilization);
+        heap.store(s.activeOperatorsByETHDepositUtilization, OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         // Shrink the array length to the number of deallocations made.
         if (deallocationIndex < s.activeOperatorCount) {
