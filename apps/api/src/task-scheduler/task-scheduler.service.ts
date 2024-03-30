@@ -269,16 +269,15 @@ export class TaskSchedulerService {
       const tokenTransfers = await tokenTransfersPromise;
 
       this.logger.log(
-        `  [${liquidRestakingToken.symbol}] Fetched batch!`,
         [
-          deposits.length ? `    Deposits       : ${deposits.length}` : null,
-          withdrawals.length
-            ? `    Withdrawals    : ${withdrawals.length}`
-            : null,
-          tokenTransfers.length
-            ? `    TokenTransfers : ${tokenTransfers.length}`
-            : null,
-        ].filter(Boolean),
+          `  [${liquidRestakingToken.symbol}] Fetched batch!`,
+          !deposits.length || `    Deposits       : ${deposits.length}`,
+          !withdrawals.length || `    Withdrawals    : ${withdrawals.length}`,
+          !tokenTransfers.length ||
+            `    TokenTransfers : ${tokenTransfers.length}`,
+        ]
+          .filter(Boolean)
+          .join('\n'),
       );
 
       transfers.push(
