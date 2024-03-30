@@ -120,4 +120,12 @@ contract RioLRTOperatorDelegatorTest is RioDeployer {
         assertEq(delegatorContract.getETHQueuedForWithdrawal(), ethQueuedBefore - SCRAPE_AMOUNT);
         assertEq(address(reETH.depositPool).balance, depositPoolBalanceBefore + SCRAPE_AMOUNT);
     }
+
+    function test_forwardingETHToRewardDistributorSucceeds() public {
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorId).delegator;
+
+        (bool success,) = operatorDelegator.call{value: 1 ether}('');
+        assertTrue(success);
+    }
 }
