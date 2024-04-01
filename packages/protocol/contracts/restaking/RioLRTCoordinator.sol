@@ -74,6 +74,9 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     /// @notice Deposits ERC20 tokens and mints restaking token(s) to the caller.
     /// @param asset The asset being deposited.
     /// @param amountIn The amount of the asset being deposited.
+    /// @dev Reentrancy protection is omitted as tokens with transfer hooks are not supported. 
+    /// Future inclusion of such tokens could risk reentrancy attacks. Developers should remain vigilant
+    /// and consider safeguards if this assumption changes.
     function deposit(address asset, uint256 amountIn) external checkDeposit(asset, amountIn) returns (uint256 amountOut) {
         // Convert deposited asset amount to restaking tokens.
         amountOut = convertFromAssetToRestakingTokens(asset, amountIn);
