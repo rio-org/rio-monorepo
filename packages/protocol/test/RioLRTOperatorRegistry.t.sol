@@ -371,6 +371,78 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         assertEq(details.validatorDetails.exited, OOO_EXIT_COUNT);
     }
 
+    function test_removeValidatorDetailsDepositedKeysReverts() public {
+        uint8 operatorId =
+            addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 10);
+
+        vm.prank(address(reETH.depositPool));
+        reETH.operatorRegistry.allocateETHDeposits(10);
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.INVALID_INDEX.selector));
+        reETH.operatorRegistry.removeValidatorDetails(operatorId, 1, 1);
+    }
+
+    function test_removeValidatorDetailsRemovesPendingKeys() public {
+        uint8 operatorId =
+            addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 0);
+
+        // Add validator keys, but do not allow enough time for them to confirm.
+        uint40 validatorCount = 10;
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(validatorCount);
+        reETH.operatorRegistry.addValidatorDetails(operatorId, validatorCount, publicKeys, signatures);
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory operator;
+
+        operator = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(operator.validatorDetails.confirmed, 0);
+        assertEq(operator.validatorDetails.total, 10);
+
+        // Remove 5 validators starting at index 5.
+        reETH.operatorRegistry.removeValidatorDetails(operatorId, 5, 5);
+
+        operator = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(operator.validatorDetails.confirmed, 0);
+        assertEq(operator.validatorDetails.total, 5); // Total has been decreased by 5.
+    }
+
+    function test_removeValidatorDetailsRemovesConfirmedKeys() public {
+        uint8 operatorId =
+            addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 0);
+
+        // Add 10 validator keys and allow enough time for them to confirm.
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(10);
+        reETH.operatorRegistry.addValidatorDetails(operatorId, 10, publicKeys, signatures);
+
+        // Fast forward to allow validator keys time to confirm.
+        skip(reETH.operatorRegistry.validatorKeyReviewPeriod());
+
+        // Add 10 more validator keys and leave them pending in order to confirm the first 10.
+        reETH.operatorRegistry.addValidatorDetails(operatorId, 10, publicKeys, signatures);
+
+        // Fast forward, but not enough for new keys to confirm.
+        skip(reETH.operatorRegistry.validatorKeyReviewPeriod() / 2);
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory operator;
+
+        operator = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(operator.validatorDetails.confirmed, 10);
+        assertEq(operator.validatorDetails.total, 20);
+
+        uint40 nextConfirmationTimestampBeforeRemoval = operator.validatorDetails.nextConfirmationTimestamp;
+
+        // Remove 10 validators starting at index 3.
+        uint40 fromIndex = 3;
+        uint40 validatorsToRemove = 10;
+        reETH.operatorRegistry.removeValidatorDetails(operatorId, fromIndex, validatorsToRemove);
+
+        operator = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(operator.validatorDetails.confirmed, fromIndex); // Confirmed has been decreased to the `fromIndex`.
+        assertEq(operator.validatorDetails.total, 20 - validatorsToRemove); // Total has been decreased by `validatorsToRemove`.
+
+        // Ensure the next confirmation timestamp has increased following removal of confirmed keys.
+        assertGt(operator.validatorDetails.nextConfirmationTimestamp, nextConfirmationTimestampBeforeRemoval);
+    }
+
     function test_allocateStrategySharesInvalidCallerReverts() public {
         vm.expectRevert(abi.encodeWithSelector(RioLRTCore.ONLY_DEPOSIT_POOL.selector));
         reLST.operatorRegistry.allocateStrategyShares(CBETH_STRATEGY, 1);

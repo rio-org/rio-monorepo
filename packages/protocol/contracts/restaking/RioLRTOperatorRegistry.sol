@@ -283,7 +283,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     }
 
     // forgefmt: disable-next-item
-    /// @notice Removes pending validator details (public keys and signatures) from storage for the provided operator.
+    /// @notice Removes pending or confirmed validator details (public keys and signatures) from storage
+    /// for the provided operator.
     /// @param operatorId The operator's ID.
     /// @param fromIndex The index of the first validator to remove.
     /// @param validatorCount The number of validator to remove.
@@ -295,12 +296,19 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         OperatorValidatorDetails memory validators = operator.validatorDetails;
 
         if (validatorCount == 0) revert INVALID_VALIDATOR_COUNT();
-        if (fromIndex < validators.confirmed || fromIndex + validatorCount > validators.total) revert INVALID_INDEX();
+        if (fromIndex < validators.deposited || fromIndex + validatorCount > validators.total) revert INVALID_INDEX();
 
         operator.validatorDetails.total = VALIDATOR_DETAILS_POSITION.removeValidatorDetails(
             operatorId, fromIndex, validatorCount, validators.total
         );
-        emit OperatorPendingValidatorDetailsRemoved(operatorId, validatorCount);
+
+        // If removing confirmed keys, we must reduce the confirmed key count to the `fromIndex` and update the
+        // next confirmation timestamp as we may be moving pending keys into the place of confirmed keys.
+        if (fromIndex < validators.confirmed) {
+            operator.validatorDetails.confirmed = uint40(fromIndex);
+            operator.validatorDetails.nextConfirmationTimestamp = uint40(block.timestamp + s.validatorKeyReviewPeriod);
+        }
+        emit OperatorValidatorDetailsRemoved(operatorId, validatorCount);
     }
 
     /// @notice Reports validator exits that occur prior to instruction by the protocol.

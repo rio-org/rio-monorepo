@@ -274,10 +274,10 @@ interface IRioLRTOperatorRegistry {
     /// @param validatorCount The number of validator details that were added.
     event OperatorPendingValidatorDetailsAdded(uint8 indexed operatorId, uint256 validatorCount);
 
-    /// @notice Emitted when an operator removes pending validator details (public keys and signatures).
+    /// @notice Emitted when an operator removes pending or confirmed validator details (public keys and signatures).
     /// @param operatorId The operator's ID.
-    /// @param validatorCount The number of pending validator details that were removed.
-    event OperatorPendingValidatorDetailsRemoved(uint8 indexed operatorId, uint256 validatorCount);
+    /// @param validatorCount The number of validator details that were removed.
+    event OperatorValidatorDetailsRemoved(uint8 indexed operatorId, uint256 validatorCount);
 
     /// @notice Emitted when out of order validator exits are reported.
     /// @param operatorId The operator's ID.
