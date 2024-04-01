@@ -4,7 +4,7 @@
   "display": "API",
   "compilerOptions": {
     "lib": ["ES2021"],
-    "moduleResolution": "Node",
+    "moduleResolution": "Node10",
     "module": "CommonJS",
     "target": "ES2021",
     "removeComments": true,

@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { SharedConfigService } from '@/libs/config/shared-config/shared-config.service';
+import { Global, Injectable } from '@nestjs/common';
 import {
   type DrizzleConnectionConfigTypes,
+  getDrizzlePool,
+  getDrizzleClient,
   schema,
-  db,
   asc,
   desc,
   gt,
@@ -13,29 +13,31 @@ import {
   lt,
   lte,
 } from '@internal/db';
+import { ConfigService } from '@nestjs/config';
 
+@Global()
 @Injectable()
 export class DatabaseService {
   private readonly _config: DrizzleConnectionConfigTypes['INDIVIDUAL'];
-  private readonly _pooledConnection: ReturnType<typeof db.getDrizzlePool>;
+  private readonly _pooledConnection: ReturnType<typeof getDrizzlePool>;
 
-  constructor(private readonly sharedConfigService: SharedConfigService) {
+  constructor(private readonly configService: ConfigService) {
     this._config = {
-      user: this.sharedConfigService.get('DB_USER'),
-      password: this.sharedConfigService.get('DB_PASSWORD'),
-      host: this.sharedConfigService.get('DB_HOST'),
-      port: this.sharedConfigService.get('DB_PORT'),
-      database: this.sharedConfigService.get('DB_NAME'),
+      user: this.configService.get('DB_USER'),
+      password: this.configService.get('DB_PASSWORD') ?? '',
+      host: this.configService.get('DB_HOST'),
+      port: this.configService.get('DB_PORT'),
+      database: this.configService.get('DB_NAME'),
     };
-    this._pooledConnection = db.getDrizzlePool(this._config);
+    this._pooledConnection = getDrizzlePool(this._config);
   }
 
   public getPoolConnection(): typeof this._pooledConnection {
     return this._pooledConnection;
   }
 
-  public getConnection(): ReturnType<typeof db.getDrizzleClient> {
-    return db.getDrizzleClient(this._config);
+  public getConnection(): ReturnType<typeof getDrizzleClient> {
+    return getDrizzleClient(this._config);
   }
 
   public getSchema() {

@@ -14,10 +14,7 @@ import {
   LiquidRestakingToken,
 } from '@rionetwork/sdk';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { desc } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import { schema } from '@internal/db';
+import { getDrizzleClient, schema, desc } from '@internal/db';
 import {
   Deposit_OrderBy,
   OrderDirection,
@@ -108,7 +105,32 @@ export class TaskSchedulerService {
       to: transfer.receiver,
       value: parseEther(transfer.amount).toString(),
       asset: symbol,
-      timestamp: new Date(+transfer.timestamp),
+      timestamp: new Date(+transfer.timestamp * 1000),
+    };
+  }
+
+  static buildBatchQueryConfigs(blockNumber: number, batchSize: number) {
+    const common = {
+      where: {
+        blockNumber_gt: blockNumber,
+        blockNumber_lte: blockNumber + batchSize,
+      },
+      perPage: 100,
+      orderDirection: OrderDirection.Asc,
+    };
+    return {
+      deposits: {
+        ...common,
+        orderBy: Deposit_OrderBy.BlockNumber,
+      },
+      withdrawals: {
+        ...common,
+        orderBy: WithdrawalRequest_OrderBy.BlockNumber,
+      },
+      transfers: {
+        ...common,
+        orderBy: TokenTransfer_OrderBy.BlockNumber,
+      },
     };
   }
 
@@ -123,64 +145,81 @@ export class TaskSchedulerService {
   }
 
   @Cron(CronExpression.EVERY_5_MINUTES)
-  async updateTransfers() {
-    const { client, db } = this.getConnection();
+  async sync() {
+    const { db, client } = this.getConnection();
+    const liquidRestakingTokens =
+      await this.subgraph.getLiquidRestakingTokens();
+
     try {
-      this.logger.log('Fetching transfer events...');
-
-      const liquidRestakingTokensPromise =
-        this.subgraph.getLiquidRestakingTokens();
-
-      const { currentBlockNumber, batchSize, ...batchInfo } =
-        await this.getBatchInfo(db);
-      if (!batchSize) return;
-
-      let { blockNumber } = batchInfo;
-      const liquidRestakingTokens = await liquidRestakingTokensPromise;
-
-      while (blockNumber < currentBlockNumber) {
-        const transfers: (typeof schema.transfer.$inferInsert)[] = [];
-        this.logger.log(
-          `  [Processing Blocks] ${blockNumber}->${blockNumber + batchSize}`,
-        );
-
-        for await (const liquidRestakingToken of liquidRestakingTokens) {
-          const _batchTransfers = await this.getTransferBatch(
-            batchSize,
-            blockNumber,
-            liquidRestakingToken,
-          );
-          transfers.push(..._batchTransfers);
-          this.logger.log(
-            `  [${liquidRestakingToken.symbol}] Inserting ${transfers.length} transfers`,
-          );
-        }
-
-        if (transfers.length) {
-          await db.insert(schema.transfer).values(transfers).returning();
-        }
-
-        blockNumber += batchSize;
-      }
-
-      this.logger.log('Finished fetching transfer events');
-
-      client.end();
+      await Promise.all([
+        this.updateExchangeRates(db, liquidRestakingTokens),
+        this.updateTransfers(db, liquidRestakingTokens),
+      ]);
     } catch (error) {
-      this.logger.log('error', (error as Error).toString());
-      client.end();
+      this.logger.error(
+        `[TaskScheduler::Sync Error] ${(error as Error).toString()}`,
+      );
+    } finally {
+      await client.end();
     }
   }
 
   private getConnection() {
     const { user, password, host, port, database } = this.dbConfig;
-    const client = postgres(
-      `postgres://${user}:${password}@${host}:${port}/${database}`,
-    );
-    return { client, db: drizzle(client, { schema }) };
+    return getDrizzleClient({
+      connectionString: `postgres://${user}:${password}@${host}:${port}/${database}`,
+    });
   }
 
-  private async getBatchInfo(db: ReturnType<typeof drizzle<typeof schema>>) {
+  private async updateExchangeRates(
+    db: ReturnType<typeof this.getConnection>['db'],
+    liquidRestakingTokens: LiquidRestakingToken[],
+  ) {
+    for await (const liquidRestakingToken of liquidRestakingTokens) {
+      liquidRestakingToken.totalSupply;
+    }
+  }
+
+  private async updateTransfers(
+    db: ReturnType<typeof this.getConnection>['db'],
+    liquidRestakingTokens: LiquidRestakingToken[],
+  ) {
+    const { currentBlockNumber, batchSize, ...batchInfo } =
+      await this.getBatchInfo(db);
+
+    if (!batchSize) return;
+
+    let { blockNumber } = batchInfo;
+
+    while (blockNumber < currentBlockNumber) {
+      const transfers: (typeof schema.transfer.$inferInsert)[] = [];
+      this.logger.log(
+        `[Transfers::Fetching Blocks] ${blockNumber}->${
+          blockNumber + batchSize
+        }`,
+      );
+
+      for await (const liquidRestakingToken of liquidRestakingTokens) {
+        const _batchTransfers = await this.getTransferBatch(
+          batchSize,
+          blockNumber,
+          liquidRestakingToken,
+        );
+        transfers.push(..._batchTransfers);
+        this.logger.log(
+          `[Transfers::${liquidRestakingToken.symbol}] Inserting ${transfers.length} transfers`,
+        );
+      }
+
+      if (transfers.length) {
+        await db.insert(schema.transfer).values(transfers).returning();
+      }
+
+      blockNumber += batchSize;
+    }
+  }
+
+  private async getBatchInfo(db: ReturnType<typeof getDrizzleClient>['db']) {
     const currentBlockNumberPromise = this.publicClient.getBlockNumber();
     const latestTransferPromise = db.query.transfer.findFirst({
       orderBy: [desc(schema.transfer.blockNumber)],
@@ -197,12 +236,11 @@ export class TaskSchedulerService {
         orderDirection: OrderDirection.Asc,
       });
       if (!firstDeposits.length) {
-        this.logger.log('No deposits found. Exiting...');
+        this.logger.log('[Transfers::Done] No deposits found. Exiting...');
         return { blockNumber, batchSize: 0, currentBlockNumber };
       }
       blockNumber = +firstDeposits[0].blockNumber - 1;
     }
-    this.logger.log(`Resuming at block: ${blockNumber}`);
 
     const batchSize = Math.min(
       blockDifference,
@@ -219,6 +257,8 @@ export class TaskSchedulerService {
   ) {
     const transfers: (typeof schema.transfer.$inferInsert)[] = [];
 
+    const symbol = liquidRestakingToken.symbol;
+    const chainId = this.chainId;
     let depositsPage = 1;
     let withdrawalsPage = 1;
     let transfersPage = 1;
@@ -226,58 +266,40 @@ export class TaskSchedulerService {
     let withdrawalsFinished = false;
     let transfersFinished = false;
 
-    const config = {
-      where: {
-        blockNumber_gt: blockNumber,
-        blockNumber_lte: blockNumber + batchSize,
-        restakingToken: liquidRestakingToken.address,
-      },
-      perPage: 100,
-      orderDirection: OrderDirection.Asc,
-    };
-
     while (!depositsFinished || !withdrawalsFinished || !transfersFinished) {
-      const depositsPromise: Promise<Deposit[]> = depositsFinished
-        ? Promise.resolve([])
-        : this.subgraph.getDeposits({
-            ...config,
-            page: depositsPage++,
-            orderBy: Deposit_OrderBy.BlockNumber,
-          });
-      const withdrawalsPromise: Promise<WithdrawalRequest[]> =
+      const configs = TaskSchedulerService.buildBatchQueryConfigs(
+        blockNumber,
+        batchSize,
+      );
+
+      const [deposits, withdrawals, tokenTransfers]: [
+        Deposit[],
+        WithdrawalRequest[],
+        TokenTransfer[],
+      ] = await Promise.all([
+        depositsFinished
+          ? Promise.resolve([])
+          : this.subgraph.getDeposits({
+              ...configs.deposits,
+              page: depositsPage++,
+            }),
         withdrawalsFinished
           ? Promise.resolve([])
           : this.subgraph.getWithdrawalRequests({
-              ...config,
+              ...configs.withdrawals,
               page: withdrawalsPage++,
-              orderBy: WithdrawalRequest_OrderBy.BlockNumber,
-            });
-
-      const tokenTransfersPromise: Promise<TokenTransfer[]> = transfersFinished
-        ? Promise.resolve([])
-        : this.subgraph.getTokenTransfers({
-            ...config,
-            page: transfersPage++,
-            orderBy: TokenTransfer_OrderBy.BlockNumber,
-          });
-
-      const symbol = liquidRestakingToken.symbol;
-      const chainId = this.chainId;
-
-      const deposits = await depositsPromise;
-      const withdrawals = await withdrawalsPromise;
-      const tokenTransfers = await tokenTransfersPromise;
+            }),
+        transfersFinished
+          ? Promise.resolve([])
+          : this.subgraph.getTokenTransfers({
+              ...configs.transfers,
+              page: transfersPage++,
+            }),
+      ]);
 
       this.logger.log(
-        [
-          `  [${liquidRestakingToken.symbol}] Fetched batch!`,
-          !deposits.length || `    Deposits       : ${deposits.length}`,
-          !withdrawals.length || `    Withdrawals    : ${withdrawals.length}`,
-          !tokenTransfers.length ||
-            `    TokenTransfers : ${tokenTransfers.length}`,
-        ]
-          .filter(Boolean)
-          .join('\n'),
+        `[Transfers::${liquidRestakingToken.symbol}] ` +
+          `Deposits: ${deposits.length}, Withdrawals: ${withdrawals.length}, TokenTransfers : ${tokenTransfers.length}`,
       );
 
       transfers.push(
@@ -292,13 +314,9 @@ export class TaskSchedulerService {
         ),
       );
 
-      depositsFinished = !depositsFinished ? deposits.length < 100 : true;
-      withdrawalsFinished = !withdrawalsFinished
-        ? withdrawals.length < 100
-        : true;
-      transfersFinished = !transfersFinished
-        ? tokenTransfers.length < 100
-        : true;
+      depositsFinished ||= deposits.length < configs.deposits.perPage;
+      withdrawalsFinished ||= withdrawals.length < configs.withdrawals.perPage;
+      transfersFinished ||= tokenTransfers.length < configs.transfers.perPage;
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
