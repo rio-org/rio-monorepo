@@ -59,7 +59,7 @@ library ValidatorDetails {
     /// @param keysCount Keys count to load.
     /// @param pubkeys Keys buffer to read from.
     /// @param signatures Signatures buffer to read from.
-    /// @return totalKeysCount New total keys count.
+    /// @return totalKeysCount New total keys count (last modified index).
     function saveValidatorDetails(
         bytes32 position,
         uint8 operatorId,
@@ -200,7 +200,7 @@ library ValidatorDetails {
     /// @param position The storage slot.
     /// @param operatorId The Operator ID.
     /// @param startIndex The start index.
-    /// @param keysCount Keys count to load.
+    /// @param keysCount Key count to remove.
     /// @param totalKeysCount Current total keys count for operator.
     /// @return totalKeysCount New total keys count.
     function removeValidatorDetails(bytes32 position, uint8 operatorId, uint256 startIndex, uint256 keysCount, uint256 totalKeysCount) internal returns (uint40) {
