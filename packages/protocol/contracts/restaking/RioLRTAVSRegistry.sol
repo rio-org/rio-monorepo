@@ -42,13 +42,13 @@ contract RioLRTAVSRegistry is IRioLRTAVSRegistry, OwnableUpgradeable, UUPSUpgrad
 
     /// @notice Whether the provived `slashingContract` is active.
     /// @param slashingContract The slashing contract address.
-    function isActiveSlashingContract(address slashingContract) external view returns (bool) {
+    function isActiveSlashingContract(address slashingContract) public view returns (bool) {
         return _isActiveSlashingContract[slashingContract];
     }
 
     /// @notice Whether the provived `registryContract` is active.
     /// @param registryContract The registry contract address.
-    function isActiveRegistryContract(address registryContract) external view returns (bool) {
+    function isActiveRegistryContract(address registryContract) public view returns (bool) {
         return _isActiveRegistryContract[registryContract];
     }
 
@@ -61,6 +61,9 @@ contract RioLRTAVSRegistry is IRioLRTAVSRegistry, OwnableUpgradeable, UUPSUpgrad
         if (bytes(name).length == 0) revert INVALID_NAME();
         if (slashingContract != address(0) && slashingContract.code.length == 0) revert INVALID_SLASHING_CONTRACT();
         if (registryContract.code.length == 0) revert INVALID_REGISTRY_CONTRACT();
+
+        if (slashingContract != address(0) && isActiveSlashingContract(slashingContract)) revert SLASHING_CONTRACT_ALREADY_ACTIVE();
+        if (isActiveRegistryContract(registryContract)) revert REGISTRY_CONTRACT_ALREADY_ACTIVE();
 
         avsId = ++avsCount;
         activeAVSCount += 1;
@@ -86,6 +89,11 @@ contract RioLRTAVSRegistry is IRioLRTAVSRegistry, OwnableUpgradeable, UUPSUpgrad
         AVS memory avs = _avs[avsId];
         if (avs.registryContract == address(0)) revert AVS_NOT_REGISTERED();
         if (avs.active) revert AVS_ALREADY_ACTIVE();
+
+        if (avs.slashingContract != address(0) && isActiveSlashingContract(avs.slashingContract)) {
+            revert SLASHING_CONTRACT_ALREADY_ACTIVE();
+        }
+        if (isActiveRegistryContract(avs.registryContract)) revert REGISTRY_CONTRACT_ALREADY_ACTIVE();
 
         activeAVSCount += 1;
 
