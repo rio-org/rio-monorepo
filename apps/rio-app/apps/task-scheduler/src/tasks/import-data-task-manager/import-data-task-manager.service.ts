@@ -1,13 +1,11 @@
 import bigDecimal from 'js-big-decimal';
-import { goerli, holesky, mainnet } from 'viem/chains';
+import { holesky } from 'viem/chains';
 import { Inject, Injectable } from '@nestjs/common';
 import {
   Chain,
   createPublicClient,
   http as viemHttp,
   parseEther,
-  PublicClient,
-  Transport,
   zeroAddress,
 } from 'viem';
 import {
@@ -57,8 +55,6 @@ export class ImportDataTaskManagerService {
       subgraphUrl: subgraph.url,
       subgraphApiKey: subgraph.apiKey,
     });
-    // this.syncExchangeRates();
-    // this.syncTransfers();
   }
 
   static parseDeposit(chainId: number, symbol: string, deposit: Deposit) {

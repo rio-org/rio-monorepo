@@ -33,7 +33,6 @@ export class RedisCacheService extends CacheService implements BufferCache {
       return this._cacheService.store.ttl(cacheKey);
     } catch (e) {
       this._logger.error(
-        // @ts-ignore
         `Could not get cache ttl: (${e.message})`,
         undefined,
         cacheKey,
@@ -56,7 +55,6 @@ export class RedisCacheService extends CacheService implements BufferCache {
       return buffer ? Buffer.from(buffer) : null;
     } catch (e) {
       this._logger.error(
-        // @ts-ignore
         `Could not get buffer: (${e.message})`,
         undefined,
         cacheKey,

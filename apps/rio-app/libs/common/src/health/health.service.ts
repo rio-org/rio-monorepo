@@ -54,7 +54,6 @@ export class HealthService {
       this.reportResults(results.details);
       return results;
     } catch (e) {
-      // @ts-ignore
       this.reportResults(e.response?.details || {});
       if (failOnError) {
         throw e;
@@ -70,7 +69,6 @@ export class HealthService {
   private reportResults(details: HealthIndicatorResult) {
     for (const [check, result] of Object.entries(details)) {
       console.log({ check }, result);
-      // this._gauge.set({ check }, result.status === 'up' ? 1 : 0);
     }
   }
 

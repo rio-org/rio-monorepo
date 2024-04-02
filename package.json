@@ -21,8 +21,6 @@
     "lint-format:fix": "turbo run --concurrency 15 --parallel lint:fix format:fix",
     "lint": "eslint . --ext .js,.ts",
     "lint:fix": "eslint . --ext .js,.ts --fix",
-    "format": "prettier --check .",
-    "format:fix": "prettier --write .",
     "test": "turbo run --concurrency 15 --parallel test",
     "typecheck": "turbo run --concurrency 15 --parallel typecheck",
     "prepare": "husky install"

@@ -27,7 +27,6 @@ export class LoggerService extends ConsoleLogger {
     ];
     const logLevel = logLevels.slice(-1)[0];
 
-    // @ts-ignore
     super(_opts?.context, {
       timestamp: _opts?.isTimestampEnabled,
       logLevels,

@@ -32,20 +32,15 @@ export default abstract class CacheService implements CommonCache {
     try {
       if (cacheData) {
         if (cacheInterval) {
-          // @ts-ignore
-          await this._cacheService.set<T>(cacheKey, cacheData, {
-            ttl: cacheInterval,
-          });
+          await this._cacheService.set(cacheKey, cacheData, cacheInterval);
         } else {
-          // @ts-ignore
-          await this._cacheService.set<T>(cacheKey, cacheData);
+          await this._cacheService.set(cacheKey, cacheData);
         }
       } else {
         await this._cacheService.del(cacheKey);
       }
     } catch (e) {
       this._logger.error(
-        // @ts-ignore
         `Could not set cache: (${e.message})`,
         undefined,
         cacheKey,
