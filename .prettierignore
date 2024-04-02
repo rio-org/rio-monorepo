@@ -10,3 +10,4 @@ dist
 /packages/sdk
 /packages/sdk-react
 /packages/subgraph
+/packages/db/data

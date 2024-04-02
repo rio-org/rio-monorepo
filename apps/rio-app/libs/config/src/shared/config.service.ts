@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  CHAIN_ID,
-  CronTaskName,
-  DeepDotKey,
-  FormatService,
-} from '@rio-app/common';
+import { CHAIN_ID, DeepDotKey, FormatService } from '@rio-app/common';
 import {
   DatabaseConfig,
   ExtendsShared,
@@ -15,7 +10,6 @@ import {
   SubgraphDatasource,
 } from './config.types';
 import { LoggerModuleOptions } from '@rio-app/common';
-import { CronTask } from '@rio-app/config/task-scheduler';
 
 /**
  * Convenience service used to access shared configuration values

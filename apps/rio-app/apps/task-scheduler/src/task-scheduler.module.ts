@@ -1,7 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { RedisModule } from '@svtslv/nestjs-ioredis';
+// import { RedisModule } from '@svtslv/nestjs-ioredis';
 import { ScheduleModule } from '@nestjs/schedule';
-import { RedisCacheService, TaskSchedulerModuleOptions } from '@rio-app/common';
+import { TaskSchedulerModuleOptions } from '@rio-app/common';
 import { LoggerModule, LoggerService, HealthModule } from '@rio-app/common';
 import {
   TaskSchedulerConfigModule,
@@ -10,9 +10,9 @@ import {
 import { ImportDataTaskManagerModule } from './tasks';
 import { TaskSchedulerController } from './task-scheduler.controller';
 import { TaskSchedulerService } from './task-scheduler.service';
-import { TaskSchedulerProviders } from './task-scheduler.providers';
-import { CacheModule, CacheStore } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-store';
+// import { TaskSchedulerProviders } from './task-scheduler.providers';
+// import { CacheModule, CacheStore } from '@nestjs/cache-manager';
+// import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
   imports: [TaskSchedulerConfigModule],

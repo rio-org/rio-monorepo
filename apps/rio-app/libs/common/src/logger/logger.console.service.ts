@@ -1,23 +1,15 @@
-import {
-  ConsoleLogger,
-  Global,
-  Inject,
-  Injectable,
-  LogLevel,
-  Optional,
-  Scope,
-} from '@nestjs/common';
+import { ConsoleLogger, Global, Injectable, Scope } from '@nestjs/common';
 
 @Global()
 @Injectable({ scope: Scope.TRANSIENT })
 export class ConsoleLoggerService extends ConsoleLogger {
   /**
    * Write a 'log' level log to stdout
-   * @param originalMessage Message to write
+   * @param message Message to write
    * @param context Optional context name
    * @param context Optional trace id to write
    */
-  log(message: string, context?: string, traceId?: string): void {
+  log(message: string, context?: string): void {
     super.log(message, context || this.context);
   }
 

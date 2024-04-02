@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import { LogLevel } from '@nestjs/common';
 import { SharedConfig } from './config.types';
 import { CHAIN_ID } from '@rio-app/common';
