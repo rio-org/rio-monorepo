@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="443f2e45-db66-4a04-a3aa-9df5315f2c38" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;bryangreen&quot;
+  }
+}</component>
+  <component name="GitHubPullRequestState">{
+  &quot;prStates&quot;: []
+}</component>
+  <component name="GitLabMergeRequestsSettings">{}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/rio-org/rio-monorepo.git&quot;,
+    &quot;accountId&quot;: &quot;7e798fd9-771c-4497-a3cb-9fa27e0c6eba&quot;
+  }
+}</component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2amYtTnr2zpF2n6VzFbxF78jfsR" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "#128 on feat/init-api",
+    "last_opened_file_path": "/home/bryang/Documents/rio/repos/rio-monorepo/apps/api/src/libs/common/utils/boilerplate",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "pnpm",
+    "ts.external.directory.path": "/home/bryang/.local/share/JetBrains/Toolbox/apps/webstorm-2/plugins/javascript-impl/jsLanguageServicesImpl/external",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/apps/api/src/libs/common/utils/boilerplate" />
+      <recent name="$PROJECT_DIR$/apps/api/src/libs/common/health" />
+      <recent name="$PROJECT_DIR$/apps/trib" />
+      <recent name="$PROJECT_DIR$/apps/api/src/libs/common/types" />
+      <recent name="$PROJECT_DIR$/apps/api/src/libs/common/utils" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/packages" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-WS-241.14494.25" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="443f2e45-db66-4a04-a3aa-9df5315f2c38" name="Changes" comment="" />
+      <created>1704925435854</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1704925435854</updated>
+      <workItem from="1704925436923" duration="1412000" />
+      <workItem from="1705670085532" duration="3028000" />
+      <workItem from="1706222507774" duration="1381000" />
+      <workItem from="1707407164026" duration="712000" />
+      <workItem from="1709940015637" duration="12939000" />
+      <workItem from="1711403177290" duration="9158000" />
+      <workItem from="1712012894229" duration="9303000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.controller.spec.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/index.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.controller.spec.js" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.service.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.module.js" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.controller.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/index.js" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.controller.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.service.js" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.controller.spec.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.module.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.controller.js" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.service.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/index.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/api/api.module.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/libs/common/database/database.module.js" />
+        <option value="$PROJECT_DIR$/apps/api/src/libs/common/database/database.service.js" />
+        <option value="$PROJECT_DIR$/apps/api/src/libs/common/database/database.module.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/libs/common/database/database.service.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/src/libs/common/database/database.service.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/libs/common/database/database.module.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/test/api.e2e-spec.js" />
+        <option value="$PROJECT_DIR$/apps/api/test/api.e2e-spec.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/test/api.e2e-spec.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/main.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/src/main.js" />
+        <option value="$PROJECT_DIR$/apps/api/src/main.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/task-scheduler/task-scheduler.module.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/src/task-scheduler/task-scheduler.service.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/task-scheduler/task-scheduler.module.js.map" />
+        <option value="$PROJECT_DIR$/apps/api/src/task-scheduler/task-scheduler.service.d.ts" />
+        <option value="$PROJECT_DIR$/apps/api/src/task-scheduler/task-scheduler.service.js" />
+        <option value="$PROJECT_DIR$/apps/api/src/task-scheduler/task-scheduler.module.js" />
+      </list>
+    </option>
+  </component>
+</project>
