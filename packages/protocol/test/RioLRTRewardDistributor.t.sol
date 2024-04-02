@@ -16,6 +16,23 @@ contract RioLRTRewardDistributorTest is RioDeployer {
         (reLST,) = issueRestakedLST();
     }
 
+    function test_setTreasuryAndOperatorETHValidatorRewardShareBPSNonOwnerReverts() public {
+        vm.prank(address(42));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
+        reETH.rewardDistributor.setTreasuryAndOperatorETHValidatorRewardShareBPS(0, 0);
+    }
+
+    function test_setTreasuryAndOperatorETHValidatorRewardShareBPSAboveMaxReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTRewardDistributor.ETH_VALIDATOR_SHARE_BPS_TOO_HIGH.selector));
+        reETH.rewardDistributor.setTreasuryAndOperatorETHValidatorRewardShareBPS(9_999, 2);
+    }
+
+    function test_setTreasuryAndOperatorETHValidatorRewardShareBPS() public {
+        reETH.rewardDistributor.setTreasuryAndOperatorETHValidatorRewardShareBPS(50, 50);
+        assertEq(reETH.rewardDistributor.treasuryETHValidatorRewardShareBPS(), 50);
+        assertEq(reETH.rewardDistributor.operatorETHValidatorRewardShareBPS(), 50);
+    }
+
     function test_setTreasuryETHValidatorRewardShareBPSNonOwnerReverts() public {
         vm.prank(address(42));
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
