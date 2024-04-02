@@ -22,7 +22,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     uint24 public rebalanceDelay;
 
     /// @notice Tracks the timestamp from which each asset is eligible for rebalancing, inclusive of the defined timestamp.
-    mapping(address asset => uint256 timestamp) public assetNextRebalanceAfter;
+    mapping(address asset => uint40 timestamp) public assetNextRebalanceAfter;
 
     /// @notice Require that the asset is supported, the deposit amount is non-zero, and the
     /// deposit cap has not been reached.
