@@ -130,4 +130,24 @@ contract RioLRTAssetRegistryTest is RioDeployer {
         reLST.assetRegistry.removeAsset(RETH_ADDRESS);
         assertEq(reLST.assetRegistry.getSupportedAssets().length, 0);
     }
+
+    function test_forceRemoveAssetNonOwnerReverts() public {
+        vm.prank(address(42));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
+        reETH.assetRegistry.forceRemoveAsset(address(1));
+    }
+
+    function test_forceRemoveUnsupportedAssetReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAssetRegistry.ASSET_NOT_SUPPORTED.selector, address(1)));
+        reETH.assetRegistry.forceRemoveAsset(address(1));
+    }
+
+    function test_forceRemoveAssetWithBalanceSucceeds() public {
+        assertGt(rETH.balanceOf(address(reLST.depositPool)), 0);
+
+        uint256 countBefore = reLST.assetRegistry.getSupportedAssets().length;
+
+        reLST.assetRegistry.forceRemoveAsset(RETH_ADDRESS);
+        assertEq(countBefore - reLST.assetRegistry.getSupportedAssets().length, 1);
+    }
 }
