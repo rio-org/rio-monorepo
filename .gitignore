@@ -13,6 +13,9 @@ dist
 # Turborepo
 .turbo
 
+#Jetbrains
+.idea
+
 # Jest
 coverage
 .coverage
