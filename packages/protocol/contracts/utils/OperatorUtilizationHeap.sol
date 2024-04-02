@@ -346,6 +346,7 @@ library OperatorUtilizationHeap {
     }
 
     /// @dev Returns whether the node at `m` is a grandchild of the node at `i`.
+    /// Only valid if `m` is already known to be either a child or grandchild of `i`.
     /// @param i The index of the node in the heap.
     /// @param m The index of the child or grandchild of the node at index `i`.
     function _isGrandchild(uint8 i, uint8 m) internal pure returns (bool) {
