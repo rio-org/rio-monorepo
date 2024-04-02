@@ -1,11 +1,14 @@
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import bigDecimal from 'js-big-decimal';
+import { mainnet, goerli, holesky } from 'viem/chains';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   createPublicClient,
   http as viemHttp,
   zeroAddress,
   parseEther,
 } from 'viem';
-import { mainnet, goerli, holesky } from 'viem/chains';
-import { Injectable, Logger } from '@nestjs/common';
 import {
   Deposit,
   SubgraphClient,
@@ -14,7 +17,7 @@ import {
   LiquidRestakingToken,
 } from '@rionetwork/sdk';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { getDrizzleClient, schema, desc } from '@internal/db';
+import { schema, desc, sql } from '@internal/db';
 import {
   Deposit_OrderBy,
   OrderDirection,
@@ -144,21 +147,33 @@ export class TaskSchedulerService {
     });
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
-  async sync() {
+  @Cron('5 0-23/1 * * *')
+  async syncExchangeRates() {
     const { db, client } = this.getConnection();
     const liquidRestakingTokens =
       await this.subgraph.getLiquidRestakingTokens();
 
     try {
-      await Promise.all([
-        this.updateExchangeRates(db, liquidRestakingTokens),
-        this.updateTransfers(db, liquidRestakingTokens),
-      ]);
+      this.logger.log(`[Rates::Starting] Updating exchange rates`);
+      await this.updateExchangeRates(db, liquidRestakingTokens);
     } catch (error) {
-      this.logger.error(
-        `[TaskScheduler::Sync Error] ${(error as Error).toString()}`,
-      );
+      this.logger.error(`[Rates::Error] ${(error as Error).toString()}`);
+    } finally {
+      await client.end();
+    }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async syncTransfers() {
+    const { db, client } = this.getConnection();
+    const liquidRestakingTokens =
+      await this.subgraph.getLiquidRestakingTokens();
+
+    try {
+      this.logger.log(`[Transfers::Starting] Updating transfers`);
+      await this.updateTransfers(db, liquidRestakingTokens);
+    } catch (error) {
+      this.logger.error(`[Transfers::Error] ${(error as Error).toString()}`);
     } finally {
       await client.end();
     }
@@ -166,17 +181,171 @@ export class TaskSchedulerService {
 
   private getConnection() {
     const { user, password, host, port, database } = this.dbConfig;
-    return getDrizzleClient({
-      connectionString: `postgres://${user}:${password}@${host}:${port}/${database}`,
-    });
+    const client = postgres(
+      `postgres://${user}:${password}@${host}:${port}/${database}`,
+    );
+    const db = drizzle(client, { schema });
+    return { client, db };
   }
 
   private async updateExchangeRates(
     db: ReturnType<typeof this.getConnection>['db'],
     liquidRestakingTokens: LiquidRestakingToken[],
   ) {
+    const currentBlockNumberPromise = this.publicClient.getBlockNumber();
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const oneHourAgo = currentTimestamp - 3600;
+
     for await (const liquidRestakingToken of liquidRestakingTokens) {
-      liquidRestakingToken.totalSupply;
+      // Calculate current values for timestamp and block number
+      this.logger.log(
+        `[Rates::${liquidRestakingToken.symbol}] Retrieving most recent entry...`,
+      );
+
+      // Get the last balance sheet entry
+      const lastEntry = await db.query.balanceSheet.findFirst({
+        // eslint-disable-next-line
+        // @ts-ignore
+        where: (balances, { eq }) =>
+          // eslint-disable-next-line
+          // @ts-ignore
+          eq(balances.restakingToken, liquidRestakingToken.symbol),
+        orderBy: [desc(schema.balanceSheet.timestamp)],
+      });
+
+      // If there is no last entry, insert a dummy entry for 1 wei at the beginning of time
+      if (!lastEntry) {
+        this.logger.log(
+          `[Rates::${liquidRestakingToken.symbol}] No previous entry. Inserting 1:1 value as seed`,
+        );
+        await db.insert(schema.balanceSheet).values({
+          chainId: this.chainId,
+          asset: 'ETH',
+          asset_balance: '1',
+          restakingToken: liquidRestakingToken.symbol,
+          restakingToken_supply: '1',
+          blockNumber: 0,
+          timestamp: new Date(0),
+        });
+      } else {
+        let lastTimestamp = Math.floor(lastEntry.timestamp.valueOf() / 1000);
+
+        // Insert balance sheet entries for each hour between the last entry and one hour ago
+        // We don't do this if the only entry is the seed entry at the beginning of time
+        while (lastTimestamp && lastTimestamp <= oneHourAgo) {
+          const _timestamp = new Date(lastTimestamp * 1000);
+          const _timestampStr = _timestamp.toISOString();
+          this.logger.log(
+            `[Rates::${liquidRestakingToken.symbol}] Calculating historic rate for ${_timestampStr}...`,
+          );
+
+          // Get the total supply of the restaking token by counting all deposits and withdrawals
+          // up to this timestamp
+          const restakingTokenBalanceArrPromise: { supply: number }[] =
+            await db.execute(sql`
+              WITH deposited AS (
+                SELECT 1 AS idx,
+                       SUM(${schema.transfer.value})/1e18 AS value
+                  FROM ${schema.transfer}
+                 WHERE ${schema.transfer.from} = '0x0000000000000000000000000000000000000000'
+                   AND ${schema.transfer.timestamp} <= ${_timestampStr}
+              ), withdrawn AS (
+                SELECT 1 AS idx,
+                       SUM(${schema.transfer.value})/1e18 AS value
+                  FROM ${schema.transfer}
+                 WHERE ${schema.transfer.to} = '0x0000000000000000000000000000000000000000'
+                   AND ${schema.transfer.timestamp} <= ${_timestampStr}
+              )
+
+              SELECT deposited.value - withdrawn.value AS supply
+                FROM withdrawn
+                JOIN deposited ON deposited.idx=withdrawn.idx;
+            `);
+
+          // Get the closest deposit to the last timestamp.
+          // We can't rely on the database here because it doesn't hold ETH transfers
+          const closestDeposits = await this.subgraph.getDeposits({
+            perPage: 1,
+            where: {
+              timestamp_lte: lastTimestamp,
+              restakingToken: liquidRestakingToken.address,
+            },
+            orderBy: Deposit_OrderBy.Timestamp,
+            orderDirection: OrderDirection.Desc,
+          });
+
+          // If there are no deposits, we can't do anything for this entry,
+          // so continue to the next hour
+          const closestDeposit = closestDeposits[0];
+          if (!closestDeposit) {
+            this.logger.log(
+              `[Rates::${liquidRestakingToken.symbol}] No deposits found for ${_timestampStr}. Skipping.`,
+            );
+            lastTimestamp += 3600;
+            continue;
+          }
+
+          // Get the required values and format them for use
+          const amountIn = new bigDecimal(closestDeposit.amountIn);
+          const amountOut = new bigDecimal(closestDeposit.amountOut);
+          const exchangeRate = amountIn.divide(amountOut, 18);
+
+          // Get the most recent token supply.
+          const restakingTokenSupply = (
+            await restakingTokenBalanceArrPromise
+          )[0]?.supply;
+          const liquidRestakingTokenBalance = restakingTokenSupply
+            ? new bigDecimal(restakingTokenSupply)
+            : amountOut;
+
+          this.logger.log(
+            `[Rates::${liquidRestakingToken.symbol}] Inserting exchange rate for ${_timestampStr}...`,
+          );
+          // Insert the new balance sheet entry
+          await db.insert(schema.balanceSheet).values({
+            chainId: this.chainId,
+            asset: 'ETH',
+            asset_balance: parseEther(
+              liquidRestakingTokenBalance.divide(exchangeRate, 18).getValue(),
+            ).toString(),
+            restakingToken: liquidRestakingToken.symbol,
+            restakingToken_supply: parseEther(
+              liquidRestakingTokenBalance.getValue(),
+            ).toString(),
+            blockNumber: +closestDeposit.blockNumber,
+            timestamp: new Date(+closestDeposit.timestamp * 1000),
+          });
+
+          // Increment the last timestamp by an hour
+          lastTimestamp += 3600;
+
+          // Wait for 2 seconds to avoid rate limiting
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
+
+      this.logger.log(
+        `[Rates::${
+          liquidRestakingToken.symbol
+        }] Inserting current rate for ${new Date(
+          currentTimestamp * 1000,
+        ).toISOString()}...`,
+      );
+
+      // Insert the current balance sheet entry
+      await db.insert(schema.balanceSheet).values({
+        chainId: this.chainId,
+        asset: 'ETH',
+        asset_balance: parseEther(
+          liquidRestakingToken.totalValueETH || '1',
+        ).toString(),
+        restakingToken: liquidRestakingToken.symbol,
+        restakingToken_supply: parseEther(
+          liquidRestakingToken.totalSupply || '1',
+        ).toString(),
+        blockNumber: Number(await currentBlockNumberPromise),
+        timestamp: new Date(currentTimestamp * 1000),
+      });
     }
   }
 
@@ -219,7 +388,7 @@ export class TaskSchedulerService {
     }
   }
 
-  private async getBatchInfo(db: ReturnType<typeof getDrizzleClient>['db']) {
+  private async getBatchInfo(db: ReturnType<typeof this.getConnection>['db']) {
     const currentBlockNumberPromise = this.publicClient.getBlockNumber();
     const latestTransferPromise = db.query.transfer.findFirst({
       orderBy: [desc(schema.transfer.blockNumber)],
