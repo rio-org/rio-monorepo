@@ -17,7 +17,10 @@
     "lint:fix": "pnpm lint --fix",
     "format": "prettier --check src/**/*.ts",
     "format:fix": "prettier --write src/**/*.ts",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "start:external-services": "docker-compose -f docker-compose.yml up -d",
+    "start:external-services:f": "docker-compose -f docker-compose.yml up",
+    "stop:external-services": "docker-compose -f docker-compose.yml down"
   },
   "dependencies": {
     "@internal/config": "workspace:*",

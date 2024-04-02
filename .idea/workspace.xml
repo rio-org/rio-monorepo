@@ -4,11 +4,141 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="443f2e45-db66-4a04-a3aa-9df5315f2c38" name="Changes" comment="" />
+    <list default="true" id="443f2e45-db66-4a04-a3aa-9df5315f2c38" name="Changes" comment="Adding health, renaming some services, work on API">
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/src/api-rio.controller.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/src/api-rio.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/src/api-rio.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/src/main.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/tsconfig.app.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/main.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/task-scheduler.controller.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/task-scheduler.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/task-scheduler.providers.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/task-scheduler.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/tasks/import-data-task-manager/import-data-task-manager.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/tasks/import-data-task-manager/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/tasks/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/tsconfig.app.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/boilerplate/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/caching/cache.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/caching/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/caching/redis.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/caching/redis.utils-spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/caching/redis.utils.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/config/common.config.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/config/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/exceptions/exception.filter.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/exceptions/global-exception.handlers.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/exceptions/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/logger/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/logger/logger.console.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/logger/logger.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/logger/logger.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/logger/logger.types.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/types/cache.types.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/types/chain.types.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/types/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/types/shared.types.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/types/task-scheduler.types.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/interceptors/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/interceptors/logging.interceptor.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/services/cache-key.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/services/date.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/services/format.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/services/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/services/numeric.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/services/validation.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/services/worker.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils/utils.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/test/health.e2e-spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/test/logger.e2e-spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/test/utils.e2e-spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/tsconfig.lib.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/api-rio/api-rio.config.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/api-rio/config.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/api-rio/config.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/api-rio/config.types.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/api-rio/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/shared/config.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/shared/config.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/shared/config.types.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/shared/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/shared/shared.config.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/task-scheduler/config.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/task-scheduler/config.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/task-scheduler/config.types.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/task-scheduler/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/task-scheduler/task-scheduler.config.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/src/utils.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/libs/config/tsconfig.lib.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/nest-cli.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/tsconfig.build.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/rio-app/webpack.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/.env.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/.eslintignore" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/.eslintignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/.eslintrc.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/.eslintrc.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/.lintstagedrc.js" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/.lintstagedrc.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/.prettierignore" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/.prettierignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/.prettierrc" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/.prettierrc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/nest-cli.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/app.controller.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/app.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/app.service.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/constants.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/database/database.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/database/database.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/database/database.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/database/database.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/database/database.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/database/database.types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/database/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/database/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/health/health.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/health/health.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/health/health.indicator-dns.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/health/health.indicator-dns.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/health/health.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/health/health.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/health/health.providers.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/health/health.providers.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/health/health.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/health/health.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/health/health.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/health/health.types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/health/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/health/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/index.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/utils/boilerplate/boilerplate.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/types/utils.types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/utils/boilerplate/dynamic-module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/src/boilerplate/dynamic-module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/utils/boilerplate/index.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/libs/common/utils/index.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/main.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/rewards/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/src/rewards/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/rewards/rewards.controller.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/src/rewards/rewards.controller.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/rewards/rewards.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/src/rewards/rewards.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/rewards/rewards.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/src/rewards/rewards.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/rewards/rewards.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/apps/api-rio/src/rewards/rewards.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/task-scheduler/task-scheduler.module.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/task-scheduler/task-scheduler.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/tasks/import-data-task-manager/import-data-task-manager.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/test/api.e2e-spec.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/test/jest-e2e.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/libs/common/test/jest-e2e.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/tsconfig.build.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/rio-app/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/db/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/packages/db/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Pull.Settings">
+    <option name="OPTIONS">
+      <set>
+        <option value="REBASE" />
+      </set>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -29,6 +159,13 @@
   &quot;prStates&quot;: []
 }</component>
   <component name="GitLabMergeRequestsSettings">{}</component>
+  <component name="GithubProjectSettings">
+    <option name="branchProtectionPatterns">
+      <list>
+        <option value="main" />
+      </list>
+    </option>
+  </component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/rio-org/rio-monorepo.git&quot;,
@@ -42,7 +179,7 @@
   &quot;associatedIndex&quot;: 4
 }</component>
   <component name="ProjectId" id="2amYtTnr2zpF2n6VzFbxF78jfsR" />
-  <component name="ProjectLevelVcsManager">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
@@ -55,26 +192,30 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "#128 on feat/init-api",
-    "last_opened_file_path": "/home/bryang/Documents/rio/repos/rio-monorepo/apps/api/src/libs/common/utils/boilerplate",
+    "last_opened_file_path": "/home/bryang/Documents/rio/repos/rio-monorepo/apps/rio-app/libs/common/test",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "pnpm",
-    "ts.external.directory.path": "/home/bryang/.local/share/JetBrains/Toolbox/apps/webstorm-2/plugins/javascript-impl/jsLanguageServicesImpl/external",
+    "ts.external.directory.path": "/home/bryang/Documents/rio/repos/rio-monorepo/node_modules/typescript/lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/apps/api/src/libs/common/utils/boilerplate" />
-      <recent name="$PROJECT_DIR$/apps/api/src/libs/common/health" />
-      <recent name="$PROJECT_DIR$/apps/trib" />
-      <recent name="$PROJECT_DIR$/apps/api/src/libs/common/types" />
-      <recent name="$PROJECT_DIR$/apps/api/src/libs/common/utils" />
+      <recent name="$PROJECT_DIR$/apps/rio-app/libs/common/test" />
+      <recent name="$PROJECT_DIR$/apps/rio-app" />
+      <recent name="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils" />
+      <recent name="$PROJECT_DIR$/apps/rio-app/apps/task-scheduler/src/tasks/import-data-task-manager" />
+      <recent name="$PROJECT_DIR$/packages/nestjs-utils/src/logger" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/packages" />
+      <recent name="$PROJECT_DIR$/apps/rio-app/libs/common/src/health" />
+      <recent name="$PROJECT_DIR$/apps/rio-app/libs/common" />
+      <recent name="$PROJECT_DIR$/apps/rio-app/libs/common/src/database" />
+      <recent name="$PROJECT_DIR$/apps/rio-app/libs/common/src" />
+      <recent name="$PROJECT_DIR$/apps/rio-app/libs/common/src/utils" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -98,8 +239,18 @@
       <workItem from="1707407164026" duration="712000" />
       <workItem from="1709940015637" duration="12939000" />
       <workItem from="1711403177290" duration="9158000" />
-      <workItem from="1712012894229" duration="9303000" />
+      <workItem from="1712012894229" duration="32515000" />
+      <workItem from="1712078788339" duration="13195000" />
     </task>
+    <task id="LOCAL-00001" summary="Adding health, renaming some services, work on API">
+      <option name="closed" value="true" />
+      <created>1712048826554</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1712048826554</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -141,5 +292,20 @@
         <option value="$PROJECT_DIR$/apps/api/src/task-scheduler/task-scheduler.module.js" />
       </list>
     </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Adding health, renaming some services, work on API" />
+    <option name="LAST_COMMIT_MESSAGE" value="Adding health, renaming some services, work on API" />
   </component>
 </project>

@@ -1,0 +1,31 @@
+{
+  "display": "API",
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2022",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@rio-app/common": ["libs/common/src"],
+      "@rio-app/common/*": ["libs/common/src/*"],
+      "@rio-app/config": ["libs/config/src"],
+      "@rio-app/config/*": ["libs/config/src/*"]
+    },
+    "typeRoots": ["libs/common/src/types/declarations", "node_modules/@types"]
+  },
+  "include": ["apps/**/*.ts", "libs/**/*.ts", "test", "**/*.json"],
+  "exclude": ["node_modules", "dist"]
+}
