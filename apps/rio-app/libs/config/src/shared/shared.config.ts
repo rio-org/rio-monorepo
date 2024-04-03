@@ -14,7 +14,7 @@ export const getSharedConfig = (): SharedConfig => ({
   },
 
   redisCache: {
-    ttl: parseInt(process.env.REDIS_CACHE_TTL as string) || 60,
+    ttl: parseInt(process.env.REDIS_CACHE_TTL as string) || 10_000,
   },
 
   database: {
