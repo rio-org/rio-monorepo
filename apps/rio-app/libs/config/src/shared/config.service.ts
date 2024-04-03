@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CHAIN_ID, DeepDotKey, FormatService } from '@rio-app/common';
 import {
+  CHAIN_ID,
   DatabaseConfig,
+  DeepDotKey,
+  FormatService,
+} from '@rio-app/common';
+import {
   ExtendsShared,
   HttpPortConfig,
   RedisCacheConfig,
