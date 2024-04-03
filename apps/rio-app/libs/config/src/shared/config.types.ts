@@ -1,4 +1,4 @@
-import { CHAIN_ID, LoggerModuleOptions } from '@rio-app/common';
+import { CHAIN_ID, DatabaseConfig, LoggerModuleOptions } from '@rio-app/common';
 
 /**
  * Redis configuration values
@@ -23,19 +23,6 @@ export interface SubgraphDatasource {
  */
 export interface RedisCacheConfig {
   ttl: number;
-}
-
-/**
- * Database configuration values
- */
-export interface DatabaseConfig {
-  type: 'postgres';
-  healthCheckTimeout?: number;
-  host: string;
-  port: number;
-  username: string;
-  password: string;
-  databaseName: string;
 }
 
 /**

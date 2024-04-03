@@ -1,5 +1,3 @@
-import { DatabaseConfig } from '@rio-app/config';
-
 export interface DatabaseSource {
   host: string;
   port: number;
@@ -15,4 +13,17 @@ export enum DatabaseProvider {
 
 export interface DatabaseModuleOptions {
   database: DatabaseConfig;
+}
+
+/**
+ * Database configuration values
+ */
+export interface DatabaseConfig {
+  type: 'postgres';
+  healthCheckTimeout?: number;
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  databaseName: string;
 }

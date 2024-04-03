@@ -12,8 +12,7 @@ import {
   lt,
   lte,
 } from '@internal/db';
-import { DatabaseConfig } from '@rio-app/config';
-import { DatabaseProvider } from './database.types';
+import { DatabaseConfig, DatabaseProvider } from './database.types';
 
 @Global()
 @Injectable()
