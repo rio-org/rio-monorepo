@@ -1,6 +1,10 @@
-export type RewardsQueryResponse = {
+export type RewardsResponse = {
+  eth_rewards_in_period: string;
+  yearly_rewards_percent: string;
+};
+
+export type RewardsForAddressQueryResponse = RewardsResponse & {
   yearly_eth_rewards: string;
-  rewards_apy_percent: string;
   starting_rate: string;
   final_rate: string;
   starting_token_balance: string;

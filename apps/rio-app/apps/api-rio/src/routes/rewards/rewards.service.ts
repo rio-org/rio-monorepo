@@ -1,7 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { getDrizzlePool, schema, sql } from '@internal/db';
 import { zeroAddress } from 'viem';
-import { RewardsQueryResponse } from '@rio-app/common/types/rewards.types';
+import {
+  RewardsResponse,
+  RewardsForAddressQueryResponse,
+} from '@rio-app/common/types/rewards.types';
 import { DatabaseService, LoggerService } from '@rio-app/common';
 
 @Injectable()
@@ -36,7 +39,7 @@ export class RewardsService {
   async getAddressRewardRate(
     token: string,
     address: string,
-  ): Promise<RewardsQueryResponse> {
+  ): Promise<RewardsResponse> {
     const { transfer, balanceSheet } = schema;
     const { asset, to, from, value, chainId, timestamp } = schema.transfer;
     const { db } = this.drizzlePool;
@@ -56,7 +59,7 @@ export class RewardsService {
     }
 
     try {
-      const results = await db.execute<RewardsQueryResponse>(
+      const results = await db.execute<RewardsForAddressQueryResponse>(
         sql`
           -- Filter the user's transfers and calculate their
           -- running LRT balance at the time of each transfer
@@ -136,6 +139,7 @@ export class RewardsService {
           )
           -- no
           SELECT
+            TRUNC(COALESCE(eth_rewards_on_starting_balance + eth_rewards_on_change, 0), 18) as eth_rewards_in_period,
             TRUNC(COALESCE(extrapolation * (eth_rewards_on_starting_balance + eth_rewards_on_change), 0), 18) as yearly_eth_rewards,
             TRUNC(COALESCE(100 * extrapolation * (change_eth_value_starting_balance_ratio + change_eth_value_reward_ratio), 0), 18) as yearly_rewards_percent,
             TRUNC(COALESCE(starting_rate, 1), 18) as starting_rate,
@@ -149,7 +153,10 @@ export class RewardsService {
         `,
       );
 
-      return results[0];
+      return {
+        eth_rewards_in_period: results[0]?.eth_rewards_in_period || '0',
+        yearly_rewards_percent: results[0]?.yearly_rewards_percent || '0',
+      };
     } catch (e) {
       this._logger.error(`[Error] Address: ${address}, Token: ${token}`, e);
       throw new HttpException(

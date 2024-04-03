@@ -1,6 +1,6 @@
 import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
-import { RewardsQueryResponse } from '@rio-app/common/types/rewards.types';
+import { RewardsResponse } from '@rio-app/common/types/rewards.types';
 import { RewardsService } from './rewards.service';
 import {
   AddressRewardRateDto,
@@ -33,7 +33,7 @@ export class RewardsController {
   @UseInterceptors(CacheInterceptor)
   getAddressRewardRate(
     @Param() params: AddressRewardRateDto,
-  ): Promise<RewardsQueryResponse> {
+  ): Promise<RewardsResponse> {
     const { token, address } = params;
     return this.rewardsService.getAddressRewardRate(token, address);
   }
