@@ -1,8 +1,11 @@
 import { DynamicModule, Module } from '@nestjs/common';
 // import { RedisModule } from '@svtslv/nestjs-ioredis';
 import { ScheduleModule } from '@nestjs/schedule';
-import { TaskSchedulerModuleOptions } from '@rio-app/common';
-import { LoggerModule, HealthModule } from '@rio-app/common';
+import {
+  TaskSchedulerModuleOptions,
+  LoggerModule,
+  HealthModule,
+} from '@rio-app/common';
 // import { LoggerService } from '@rio-app/common';
 import {
   TaskSchedulerConfigModule,
@@ -30,7 +33,6 @@ export class TaskSchedulerModule {
       module: TaskSchedulerModule,
       imports: [
         HealthModule.forRootAsync({
-          imports: [],
           useFactory: ({ database, redis }) => {
             return {
               database,
@@ -40,7 +42,6 @@ export class TaskSchedulerModule {
           inject: [TaskSchedulerConfigService],
         }),
         LoggerModule.forRootAsync({
-          imports: [],
           useFactory: ({ logger }: TaskSchedulerConfigService) => logger,
           inject: [TaskSchedulerConfigService],
         }),
