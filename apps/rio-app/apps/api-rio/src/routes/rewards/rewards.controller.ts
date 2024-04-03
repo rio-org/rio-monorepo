@@ -30,7 +30,7 @@ export class RewardsController {
   @Get('/:token/address/:address')
   @CacheTTL(1) // TODO increase this amount of cache time on prod
   @UseInterceptors(CacheInterceptor)
-  getAddressRewardRate(@Param() params: AddressRewardRateDto): string {
+  getAddressRewardRate(@Param() params: AddressRewardRateDto): Promise<string> {
     const { token, address } = params;
     return this.rewardsService.getAddressRewardRate(token, address);
   }
