@@ -5,6 +5,7 @@ import {
   varchar,
   numeric,
   integer,
+  decimal,
 } from 'drizzle-orm/pg-core';
 
 import { schema } from './pg-schema';
@@ -24,6 +25,8 @@ export const balanceSheet = schema.table(
       precision: 78,
       scale: 0,
     }).default('0'),
+    exchangeRate: decimal('exchange_rate'),
+    ratePerSecond: decimal('delta_rate_per_second'),
     timestamp: timestamp('timestamp', { withTimezone: true }).notNull(),
     blockNumber: integer('block_number').notNull(),
   },
