@@ -3,7 +3,12 @@ import { ApiRioController } from './api-rio.controller';
 import { ApiRioService } from './api-rio.service';
 import { RewardsModule } from './rewards';
 import { ApiRioConfigModule, ApiRioConfigService } from '@rio-app/config';
-import { LoggerModule, LoggerService, HealthModule } from '@rio-app/common';
+import {
+  LoggerModule,
+  LoggerService,
+  HealthModule,
+  DatabaseModule,
+} from '@rio-app/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 
@@ -33,6 +38,7 @@ import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
     }),
 
     RewardsModule,
+    DatabaseModule,
   ],
   controllers: [ApiRioController],
   providers: [ApiRioService],

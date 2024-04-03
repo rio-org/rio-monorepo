@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { DatabaseService } from '@rio-app/common';
 
 @Injectable()
 export class RewardsService {
+  constructor(private readonly databaseService: DatabaseService) {
+    console.log(this.databaseService);
+  }
   /**
    * Returns the current time in millis
    */

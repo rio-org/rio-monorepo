@@ -29,6 +29,7 @@ export class TaskSchedulerModule {
       module: TaskSchedulerModule,
       imports: [
         HealthModule.forRootAsync({
+          imports: [],
           useFactory: ({ database, redis }) => {
             return {
               database,
@@ -38,9 +39,9 @@ export class TaskSchedulerModule {
           inject: [TaskSchedulerConfigService],
         }),
         LoggerModule.forRootAsync({
+          imports: [],
           useFactory: ({ logger }: TaskSchedulerConfigService) => logger,
           inject: [TaskSchedulerConfigService],
-          exports: [LoggerService],
         }),
         // RedisModule.forRootAsync({
         //   useFactory: ({ redis }: TaskSchedulerConfigService) => ({
