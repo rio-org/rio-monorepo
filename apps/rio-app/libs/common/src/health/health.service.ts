@@ -68,7 +68,7 @@ export class HealthService {
    */
   private reportResults(details: HealthIndicatorResult) {
     for (const [check, result] of Object.entries(details)) {
-      console.log({ check }, result);
+      this._logger.log(JSON.stringify({ check, result }));
     }
   }
 
