@@ -55,12 +55,12 @@ async function bootstrap() {
   logger.log(`Swagger docs setup at: ${docsLocation}`, 'Main');
   // }
 
-  // app.useGlobalPipes(
-  //   new ValidationPipe({
-  //     transform: true,
-  //     // validateCustomDecorators: true,
-  //   }),
-  // );
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      validateCustomDecorators: true,
+    }),
+  );
 
   // Listen for requests
   await app.listen(httpPorts.apiRio);
