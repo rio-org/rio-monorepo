@@ -8,6 +8,7 @@ import {
   LoggerService,
   HealthModule,
   DatabaseModule,
+  DatabaseService,
 } from '@rio-app/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
@@ -41,6 +42,7 @@ import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
         database,
       }),
       inject: [ApiRioConfigService],
+      exports: [DatabaseService],
     }),
     RewardsModule,
     DatabaseModule,

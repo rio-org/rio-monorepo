@@ -11,6 +11,7 @@ import {
   not,
   lt,
   lte,
+  DrizzleConnectionConfigTypes,
 } from '@internal/db';
 import { DatabaseConfig } from '@rio-app/config';
 import { DatabaseProvider } from './database.types';
