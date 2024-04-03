@@ -1,6 +1,7 @@
 import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
-import { RewardsService } from './rewards.service';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+import { RewardsQueryResponse } from '@rio-app/common/types/rewards.types';
+import { RewardsService } from './rewards.service';
 import {
   AddressRewardRateDto,
   ProtocolRewardRateDto,
@@ -30,7 +31,9 @@ export class RewardsController {
   @Get('/:token/address/:address')
   @CacheTTL(1) // TODO increase this amount of cache time on prod
   @UseInterceptors(CacheInterceptor)
-  getAddressRewardRate(@Param() params: AddressRewardRateDto): Promise<string> {
+  getAddressRewardRate(
+    @Param() params: AddressRewardRateDto,
+  ): Promise<RewardsQueryResponse> {
     const { token, address } = params;
     return this.rewardsService.getAddressRewardRate(token, address);
   }
