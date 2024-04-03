@@ -16,7 +16,7 @@ export class RewardsController {
   @Get('/:token/protocol')
   @CacheTTL(1) // TODO increase this amount of cache time on prod
   @UseInterceptors(CacheInterceptor)
-  getProtocolRewardRate(@Param('token') token: string): string {
+  getProtocolRewardRate(@Param('token') token: string): Promise<string> {
     return this.rewardsService.getProtocolRewardRate(token);
   }
 
