@@ -206,9 +206,12 @@ contract RioLRTDepositPoolTest is RioDeployer {
         // Allocate ETH.
         reETH.coordinator.depositETH{value: AMOUNT}();
 
+        // Get the latest POS deposit root and guardian signature.
+        (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+
         // Push funds into EigenLayer.
         vm.prank(EOA, EOA);
-        reETH.coordinator.rebalance(ETH_ADDRESS);
+        reETH.coordinator.rebalanceETH(root, signature);
 
         // Verify validator withdrawal credentials.
         uint40[] memory validatorIndices =
@@ -254,7 +257,7 @@ contract RioLRTDepositPoolTest is RioDeployer {
 
         // Push funds into EigenLayer.
         vm.prank(EOA, EOA);
-        reLST.coordinator.rebalance(CBETH_ADDRESS);
+        reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
 
         // Queue the cbETH exit.
         IRioLRTOperatorRegistry.StrategyShareCap[] memory strategyShareCaps =

@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
+import {EIP712} from '@solady/utils/EIP712.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {SignatureCheckerLib} from '@solady/utils/SignatureCheckerLib.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
+import {IETHPOSDeposit} from 'contracts/interfaces/ethereum/IETHPOSDeposit.sol';
 import {ETH_ADDRESS, MAX_REBALANCE_DELAY} from 'contracts/utils/Constants.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {OperatorOperations} from 'contracts/utils/OperatorOperations.sol';
@@ -14,12 +17,21 @@ import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
-contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
+contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgradeable, EIP712, RioLRTCore {
     using SafeERC20 for *;
     using Asset for *;
 
+    /// @notice EIP-712 typehash for `DepositRoot` message
+    bytes32 public constant DEPOSIT_ROOT_TYPEHASH = keccak256('DepositRoot(bytes32 root)');
+
+    /// @notice The Ethereum POS deposit contract address.
+    IETHPOSDeposit public immutable ethPOS;
+
     /// @notice The required delay between rebalances.
     uint24 public rebalanceDelay;
+
+    /// @notice The guardian signer address.
+    address public guardianSigner;
 
     /// @notice Tracks the timestamp from which each asset is eligible for rebalancing, inclusive of the defined timestamp.
     mapping(address asset => uint256 timestamp) public assetNextRebalanceAfter;
@@ -52,7 +64,10 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     }
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    constructor(address issuer_) RioLRTCore(issuer_) {}
+    /// @param ethPOS_ The Ethereum POS deposit contract address.
+    constructor(address issuer_, address ethPOS_) RioLRTCore(issuer_) {
+        ethPOS = IETHPOSDeposit(ethPOS_);
+    }
 
     /// @dev Initializes the contract.
     /// @param initialOwner The owner of the contract.
@@ -115,45 +130,110 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         withdrawalQueue().queueWithdrawal(msg.sender, asset, sharesOwed, amountIn);
     }
 
-    /// @notice Rebalances the provided `asset` by processing outstanding withdrawals and
-    /// depositing remaining assets into EigenLayer.
-    /// @param asset The asset to rebalance.
-    function rebalance(address asset) external checkRebalanceDelayMet(asset) {
-        if (!assetRegistry().isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+    // forgefmt: disable-next-item
+    /// @notice Rebalances ETH by processing outstanding withdrawals and depositing remaining
+    /// ETH into EigenLayer.
+    /// @param root The deposit merkle root.
+    /// @param signature The guardian signature.
+    /// @dev This function requires a guardian signature prior to depositing ETH into EigenLayer. If the
+    /// guardian doesn't provide a signature within 24 hours, then the rebalance will be allowed without
+    /// a signature, but only for withdrawals. In the future, this may be extended to allow a rebalance
+    /// without a guardian signature without waiting 24 hours if withdrawals outnumber deposits.
+    function rebalanceETH(bytes32 root, bytes calldata signature) external checkRebalanceDelayMet(ETH_ADDRESS) {
+        if (!assetRegistry().isSupportedAsset(ETH_ADDRESS)) revert ASSET_NOT_SUPPORTED(ETH_ADDRESS);
         if (msg.sender != tx.origin) revert CALLER_MUST_BE_EOA();
 
-        // Process any outstanding withdrawals using funds from the deposit pool and EigenLayer.
-        uint256 sharesOwed = withdrawalQueue().getSharesOwedInCurrentEpoch(asset);
-        if (sharesOwed > 0) {
-            _processUserWithdrawalsForCurrentEpoch(asset, sharesOwed);
+        // If the guardian signature is verified, check if the deposit root is stale. Otherwise, check
+        // the condition for a withdrawal-only rebalance.
+        bool isGuardianSignatureVerified = _verifyGuardianSignature(root, signature);
+        if (isGuardianSignatureVerified) {
+            if (root != ethPOS.get_deposit_root()) {
+                revert STALE_DEPOSIT_ROOT();
+            }
+        } else {
+            bool isWithdrawalOnlyRebalanceAllowed = block.timestamp - assetNextRebalanceAfter[ETH_ADDRESS] >= 24 hours;
+            if (!isWithdrawalOnlyRebalanceAllowed) {
+                revert INVALID_GUARDIAN_SIGNATURE();
+            }
         }
 
-        // Deposit remaining assets into EigenLayer.
-        (uint256 sharesReceived, bool isDepositCapped) = depositPool().depositBalanceIntoEigenLayer(asset);
-        if (sharesOwed == 0 && sharesReceived == 0) {
+        // Process any outstanding withdrawals using funds from the deposit pool and EigenLayer.
+        uint256 sharesOwed = withdrawalQueue().getSharesOwedInCurrentEpoch(ETH_ADDRESS);
+        if (sharesOwed > 0) {
+            _processUserWithdrawalsForCurrentEpoch(ETH_ADDRESS, sharesOwed);
+        }
+
+        // If the guardian signature is not verified, no rebalance should be attempted and the rebalance
+        // should be considered complete, increasing the rebalance timestamp by the specified delay.
+        if (!isGuardianSignatureVerified) {
+            if (sharesOwed == 0) {
+                revert NO_REBALANCE_NEEDED();
+            }
+            assetNextRebalanceAfter[ETH_ADDRESS] = uint40(block.timestamp) + rebalanceDelay;
+
+            emit PartiallyRebalanced(ETH_ADDRESS);
+            return;
+        }
+
+        // Deposit remaining ETH into EigenLayer if the guardian signature has been verified.
+        (uint256 ethDeposited, bool isDepositCapped) = depositPool().depositBalanceIntoEigenLayer(ETH_ADDRESS);
+        if (sharesOwed == 0 && ethDeposited == 0) {
             revert NO_REBALANCE_NEEDED();
         }
-        if (sharesReceived > 0) {
-            if (asset == ETH_ADDRESS) {
-                assetRegistry().increaseUnverifiedValidatorETHBalance(sharesReceived);
-            } else {
-                assetRegistry().increaseSharesHeldForAsset(asset, sharesReceived);
-            }
+        if (ethDeposited > 0) {
+            assetRegistry().increaseUnverifiedValidatorETHBalance(ethDeposited);
         }
 
         // When the deposit is not capped, the rebalance is considered complete, and the asset rebalance
         // timestamp is increased by the specified delay. If capped, the asset may be rebalanced again
         // immediately as there are more assets to deposit.
         if (!isDepositCapped) {
-            assetNextRebalanceAfter[asset] = uint40(block.timestamp) + rebalanceDelay;
+            assetNextRebalanceAfter[ETH_ADDRESS] = uint40(block.timestamp) + rebalanceDelay;
         }
-        emit Rebalanced(asset);
+        emit Rebalanced(ETH_ADDRESS);
+    }
+
+    /// @notice Rebalances the provided ERC20 `token` by processing outstanding withdrawals and
+    /// depositing remaining tokens into EigenLayer.
+    /// @param token The token to rebalance.
+    function rebalanceERC20(address token) external checkRebalanceDelayMet(token) {
+        if (!assetRegistry().isSupportedAsset(token)) revert ASSET_NOT_SUPPORTED(token);
+        if (token == ETH_ADDRESS) revert INVALID_TOKEN_ADDRESS();
+        if (msg.sender != tx.origin) revert CALLER_MUST_BE_EOA();
+
+        // Process any outstanding withdrawals using funds from the deposit pool and EigenLayer.
+        uint256 sharesOwed = withdrawalQueue().getSharesOwedInCurrentEpoch(token);
+        if (sharesOwed > 0) {
+            _processUserWithdrawalsForCurrentEpoch(token, sharesOwed);
+        }
+
+        // Deposit remaining tokens into EigenLayer.
+        (uint256 sharesReceived,) = depositPool().depositBalanceIntoEigenLayer(token);
+        if (sharesOwed == 0 && sharesReceived == 0) {
+            revert NO_REBALANCE_NEEDED();
+        }
+        if (sharesReceived > 0) {
+            assetRegistry().increaseSharesHeldForAsset(token, sharesReceived);
+        }
+
+        // ERC20 deposits are not currently capped, so the rebalance is considered complete.
+        assetNextRebalanceAfter[token] = uint40(block.timestamp) + rebalanceDelay;
+
+        emit Rebalanced(token);
     }
 
     /// @notice Sets the rebalance delay.
     /// @param newRebalanceDelay The new rebalance delay, in seconds.
     function setRebalanceDelay(uint24 newRebalanceDelay) external onlyOwner {
         _setRebalanceDelay(newRebalanceDelay);
+    }
+
+    /// @notice Set the guardian signer address.
+    /// @param newGuardianSigner The address of the new guardian signer.
+    /// @dev Only callable by the owner.
+    function setGuardianSigner(address newGuardianSigner) external onlyOwner {
+        guardianSigner = newGuardianSigner;
+        emit GuardianSignerSet(newGuardianSigner);
     }
 
     /// @notice Converts the unit of account value to its equivalent in restaking tokens.
@@ -205,6 +285,12 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
     function convertToSharesFromRestakingTokens(address asset, uint256 amount) public view returns (uint256 shares) {
         uint256 assetAmount = convertToAssetFromRestakingTokens(asset, amount);
         return assetRegistry().convertToSharesFromAsset(asset, assetAmount);
+    }
+
+    /// @notice EIP-712 helper.
+    /// @param structHash The hash of the struct.
+    function hashTypedData(bytes32 structHash) external view returns (bytes32) {
+        return _hashTypedData(structHash);
     }
 
     /// @notice Deposits ETH and mints restaking token(s) to the caller.
@@ -264,6 +350,19 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
             sharesRemaining
         );
         withdrawalQueue_.queueCurrentEpochSettlement(asset, assetsSent, sharesSent, aggregateRoot);
+    }
+
+    /// @dev Returns the domain name and version for EIP-712 guardian signatures.
+    function _domainNameAndVersion() internal pure override returns (string memory, string memory) {
+        return ('Rio Network', '1');
+    }
+
+    /// @dev Verify EIP-712 `DepositDataRoot` signature.
+    /// @param root The deposit data merkle root to verify.
+    /// @param signature The guardian signature to verify.
+    function _verifyGuardianSignature(bytes32 root, bytes calldata signature) internal view returns (bool) {
+        bytes32 digest = _hashTypedData(keccak256(abi.encode(DEPOSIT_ROOT_TYPEHASH, root)));
+        return SignatureCheckerLib.isValidSignatureNowCalldata(guardianSigner, digest, signature);
     }
 
     /// @dev Checks if the provided asset is supported.

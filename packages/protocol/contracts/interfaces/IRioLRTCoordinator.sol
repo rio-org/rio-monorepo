@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
+import {IETHPOSDeposit} from 'contracts/interfaces/ethereum/IETHPOSDeposit.sol';
+
 interface IRioLRTCoordinator {
     /// @notice Thrown when attempting an action on an unsupported asset.
     /// @param asset The address of the asset.
@@ -21,6 +23,15 @@ interface IRioLRTCoordinator {
     /// @notice Thrown when the `msg.sender` is a contract.
     error CALLER_MUST_BE_EOA();
 
+    /// @notice Thrown when the ETH pseudo-address is passed to the ERC20 rebalance function.
+    error INVALID_TOKEN_ADDRESS();
+
+    /// @notice Thrown when the guardian signer is invalid.
+    error INVALID_GUARDIAN_SIGNATURE();
+
+    /// @notice Thrown when the guardian deposit root is stale.
+    error STALE_DEPOSIT_ROOT();
+
     /// @notice Thrown when attempting rebalance before the rebalance delay has elapsed.
     error REBALANCE_DELAY_NOT_MET();
 
@@ -37,18 +48,34 @@ interface IRioLRTCoordinator {
     /// @param amountOut The amount of restaking tokens minted.
     event Deposited(address indexed user, address indexed asset, uint256 amountIn, uint256 amountOut);
 
-    /// @notice Emitted when an asset is rebalanced.
+    /// @notice Emitted when both withdrawals and deposits succeed during a rebalance, or
+    /// when withdrawals succeed and a deposit was not needed.
     /// @param asset The address of the asset.
     event Rebalanced(address indexed asset);
+
+    /// @notice Emitted when withdrawals succeed, but deposits fail or were unable to be attempted
+    /// during an asset rebalance.
+    /// @param asset The address of the asset.
+    event PartiallyRebalanced(address indexed asset);
 
     /// @notice Emitted when the rebalance delay is set.
     /// @param newRebalanceDelay The new rebalance delay.
     event RebalanceDelaySet(uint24 newRebalanceDelay);
 
+    /// @notice Emitted when the guardian signer is set.
+    /// @param newGuardianSigner The address of the new guardian signer.
+    event GuardianSignerSet(address newGuardianSigner);
+
     /// @dev Initializes the contract.
     /// @param initialOwner The owner of the contract.
     /// @param token The address of the liquid restaking token.
     function initialize(address initialOwner, address token) external;
+
+    /// @notice Returns the EIP-712 typehash for `DepositRoot` message.
+    function DEPOSIT_ROOT_TYPEHASH() external view returns (bytes32);
+
+    /// @notice The Ethereum POS deposit contract address.
+    function ethPOS() external view returns (IETHPOSDeposit);
 
     /// @notice Returns the total value of all underlying assets in the unit of account.
     function getTVL() external view returns (uint256);
@@ -79,6 +106,10 @@ interface IRioLRTCoordinator {
     /// @param amount The amount of restaking tokens to convert.
     function convertToSharesFromRestakingTokens(address asset, uint256 amount) external view returns (uint256);
 
+    /// @notice EIP-712 helper.
+    /// @param structHash The hash of the struct.
+    function hashTypedData(bytes32 structHash) external view returns (bytes32);
+
     /// @notice Deposits ERC20 tokens and mints restaking token(s) to the caller.
     /// @param asset The asset being deposited.
     /// @param amountIn The amount of the asset being deposited.
@@ -92,8 +123,18 @@ interface IRioLRTCoordinator {
     /// @param amountIn The amount of restaking tokens being redeemed.
     function requestWithdrawal(address asset, uint256 amountIn) external returns (uint256);
 
-    /// @notice Rebalances the provided `asset` by processing outstanding withdrawals and
-    /// depositing remaining assets into EigenLayer.
-    /// @param asset The asset to rebalance.
-    function rebalance(address asset) external;
+    /// @notice Rebalances ETH by processing outstanding withdrawals and depositing remaining
+    /// ETH into EigenLayer.
+    /// @param root The deposit merkle root.
+    /// @param signature The guardian signature.
+    /// @dev This function requires a guardian signature prior to depositing ETH into EigenLayer. If the
+    /// guardian doesn't provide a signature within 24 hours, then the rebalance will be allowed without
+    /// a signature, but only for withdrawals. In the future, this may be extended to allow a rebalance
+    /// without a guardian signature without waiting 24 hours if withdrawals outnumber deposits.
+    function rebalanceETH(bytes32 root, bytes calldata signature) external;
+
+    /// @notice Rebalances the provided ERC20 `token` by processing outstanding withdrawals and
+    /// depositing remaining tokens into EigenLayer.
+    /// @param token The token to rebalance.
+    function rebalanceERC20(address token) external;
 }

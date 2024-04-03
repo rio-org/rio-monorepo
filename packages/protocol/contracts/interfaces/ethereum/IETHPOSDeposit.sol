@@ -1,9 +1,6 @@
-// SPDX-License-Identifier: CC0-1.0
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.23;
 
-/// @notice This is the Ethereum 2.0 deposit contract interface.
-/// @dev This interface is designed to be compatible with the Vyper version.
-/// For more information see the Phase 0 specification under https://github.com/ethereum/eth2.0-specs
 interface IETHPOSDeposit {
     /// @notice A processed deposit event.
     event DepositEvent(bytes pubkey, bytes withdrawal_credentials, bytes amount, bytes signature, bytes index);
