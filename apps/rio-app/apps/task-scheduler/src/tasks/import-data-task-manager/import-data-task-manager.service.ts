@@ -17,7 +17,7 @@ import {
   TokenTransfer,
   WithdrawalRequest,
 } from '@rionetwork/sdk';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { desc, schema, sql } from '@internal/db';
 import {
   Deposit_OrderBy,
@@ -148,7 +148,9 @@ export class ImportDataTaskManagerService {
     }
   }
 
-  @Cron('0 0-23/1 * * *')
+  // @Cron('0 0-23/1 * * *')
+  //@Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_MINUTE)
   async syncTransfers() {
     const { db, client } = this._db;
     const liquidRestakingTokens =

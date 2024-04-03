@@ -8,6 +8,7 @@ import {
 import { Logger as WinstonLogger } from 'winston';
 import * as winston from 'winston';
 import { GeneralLoggerOptions, LoggerProvider } from './logger.types';
+const { combine, timestamp, printf, colorize, align } = winston.format;
 
 @Global()
 @Injectable({ scope: Scope.TRANSIENT })
@@ -38,19 +39,18 @@ export class LoggerService extends ConsoleLogger {
         new winston.transports.Console({
           // Translate Nest "log" level to Winston "info" equivalent
           level: logLevel === 'log' ? 'info' : logLevel, // The "max" level of message allowed logged to Console
-          format: winston.format.combine(
+          format: combine(
             // Add a timestamp to the console logs
-            winston.format.timestamp(),
+            timestamp({ format: 'YYYY-MM-DD hh:mm:ss A' }),
             // Add colors to you logs
-            winston.format.colorize(),
+            colorize({ all: true }),
             // What the details you need as logs
-            winston.format.printf(
-              ({ timestamp, level, message, context, trace }) => {
-                return `${timestamp} [${context}] ${level}: ${message}${
-                  trace ? `\n${trace}` : ''
-                }`;
-              },
-            ),
+            align(),
+            printf(({ timestamp, level, message, context, trace }) => {
+              return `${timestamp} ${level}\t [${context}] ${message}${
+                trace ? `\n${trace}` : ''
+              }`;
+            }),
           ),
         }),
       ],

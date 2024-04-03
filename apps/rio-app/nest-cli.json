@@ -7,7 +7,7 @@
     "webpack": true,
     "tsConfigPath": "apps/api-rio/tsconfig.app.json",
     "watchAssets": true,
-    "assets": ["**/*.yaml"]
+    "assets": ["**/*.yaml", "**/*.ts", "**/*.env"]
   },
   "projects": {
     "api-rio": {
