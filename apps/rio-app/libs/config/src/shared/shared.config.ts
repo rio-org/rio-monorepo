@@ -7,7 +7,7 @@ export const sharedConfigPath = 'shared.env';
 export const getSharedConfig = (): SharedConfig => ({
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT as string, 10) || 6399,
+    port: parseInt(process.env.REDIS_PORT as string, 10) || 6379,
     db: parseInt(process.env.REDIS_DB as string, 10) || 0,
     password: process.env.REDIS_PASSWORD || undefined,
     tls: process.env.REDIS_TLS == 'true' ? true : false,
