@@ -1,6 +1,6 @@
 import BigDecimal from 'js-big-decimal';
 import { holesky } from 'viem/chains';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   Chain,
   createPublicClient,
@@ -25,12 +25,7 @@ import {
   TokenTransfer_OrderBy,
   WithdrawalRequest_OrderBy,
 } from '@rionetwork/sdk/dist/subgraph/generated/graphql';
-import {
-  CHAIN_ID,
-  DatabaseService,
-  LoggerService,
-  UtilsProvider,
-} from '@rio-app/common';
+import { CHAIN_ID, DatabaseService, LoggerService } from '@rio-app/common';
 import { TaskSchedulerConfigService } from '@rio-app/config';
 import { RioLRTAssetRegistryABI } from '@rio-app/common/abis';
 
