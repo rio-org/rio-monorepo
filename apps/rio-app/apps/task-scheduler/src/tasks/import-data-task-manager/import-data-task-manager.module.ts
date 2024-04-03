@@ -2,7 +2,6 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { CronTaskName, TaskSchedulerModuleOptions } from '@rio-app/common';
 import { TaskSchedulerConfigModule } from '@rio-app/config';
 import { ImportDataTaskManagerService } from './import-data-task-manager.service';
-import { TaskSchedulerProviders } from '../../task-scheduler.providers';
 
 @Module({})
 export class ImportDataTaskManagerModule {
@@ -24,10 +23,7 @@ export class ImportDataTaskManagerModule {
     return {
       module: ImportDataTaskManagerModule,
       imports: [TaskSchedulerConfigModule],
-      providers: [
-        ImportDataTaskManagerService,
-        TaskSchedulerProviders.createDatabaseConnection(),
-      ],
+      providers: [ImportDataTaskManagerService],
       exports: [ImportDataTaskManagerService],
     };
   }

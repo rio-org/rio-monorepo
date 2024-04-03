@@ -26,6 +26,7 @@ export class DatabaseService {
       database: this.databaseConfiguration.databaseName,
     };
   }
+
   constructor(
     @Inject(DatabaseProvider.DATABASE_CONFIGURATION)
     private readonly databaseConfiguration: DatabaseConfig,

@@ -25,7 +25,12 @@ import {
   TokenTransfer_OrderBy,
   WithdrawalRequest_OrderBy,
 } from '@rionetwork/sdk/dist/subgraph/generated/graphql';
-import { CHAIN_ID, LoggerService, UtilsProvider } from '@rio-app/common';
+import {
+  CHAIN_ID,
+  DatabaseService,
+  LoggerService,
+  UtilsProvider,
+} from '@rio-app/common';
 import { TaskSchedulerConfigService } from '@rio-app/config';
 import { RioLRTAssetRegistryABI } from '@rio-app/common/abis';
 
@@ -36,14 +41,23 @@ export class ImportDataTaskManagerService {
   private readonly rpcUrl: string;
   private readonly publicClient;
   private readonly chainId: CHAIN_ID;
+  private readonly db: ReturnType<
+    typeof this.databaseService.getConnection
+  >['db'];
+  private readonly client: ReturnType<
+    typeof this.databaseService.getConnection
+  >['client'];
 
   constructor(
     private logger: LoggerService,
     private configService: TaskSchedulerConfigService,
-    @Inject(UtilsProvider.DATABASE_CONNECTION)
-    private readonly _db,
+    private readonly databaseService: DatabaseService,
   ) {
     this.logger.setContext(this.constructor.name);
+
+    const { db, client } = this.databaseService.getConnection();
+    this.db = db;
+    this.client = client;
 
     this.chainId = CHAIN_ID.HOLESKY;
     const subgraph = this.configService.getSubgraphDatasource(CHAIN_ID.HOLESKY);
@@ -132,42 +146,35 @@ export class ImportDataTaskManagerService {
     };
   }
 
-  @Cron('5 0-23/1 * * *')
+  @Cron('48 0-23/1 * * *')
   async syncExchangeRates() {
-    const { db, client } = this._db;
     const liquidRestakingTokens =
       await this.subgraph.getLiquidRestakingTokens();
 
     try {
       this.logger.log(`[Rates::Starting] Updating exchange rates`);
-      await this.updateExchangeRates(db, liquidRestakingTokens);
+      await this.updateExchangeRates(liquidRestakingTokens);
     } catch (error) {
       this.logger.error(`[Rates::Error] ${(error as Error).toString()}`);
-    } finally {
-      await client.end();
     }
   }
 
   // @Cron('0 0-23/1 * * *')
   //@Cron(CronExpression.EVERY_HOUR)
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async syncTransfers() {
-    const { db, client } = this._db;
     const liquidRestakingTokens =
       await this.subgraph.getLiquidRestakingTokens();
 
     try {
       this.logger.log(`[Transfers::Starting] Updating transfers`);
-      await this.updateTransfers(db, liquidRestakingTokens);
+      await this.updateTransfers(liquidRestakingTokens);
     } catch (error) {
       this.logger.error(`[Transfers::Error] ${(error as Error).toString()}`);
-    } finally {
-      await client.end();
     }
   }
 
   private async updateExchangeRates(
-    db: ReturnType<typeof this._db.db>,
     liquidRestakingTokens: LiquidRestakingToken[],
   ) {
     const currentBlockNumberPromise = this.publicClient.getBlockNumber();
@@ -194,7 +201,7 @@ export class ImportDataTaskManagerService {
       );
 
       // Get the last balance sheet entry
-      let lastEntry = await db.query.balanceSheet.findFirst({
+      let lastEntry = await this.db.query.balanceSheet.findFirst({
         // eslint-disable-next-line
         // @ts-ignore
         where: (balances, { eq }) =>
@@ -210,7 +217,7 @@ export class ImportDataTaskManagerService {
           `[Rates::${liquidRestakingToken.symbol}] No previous entry. Inserting 1:1 value as seed`,
         );
         lastEntry = (
-          await db
+          await this.db
             .insert(schema.balanceSheet)
             .values({
               chainId: this.chainId,
@@ -249,8 +256,8 @@ export class ImportDataTaskManagerService {
 
         // Get the total supply of the restaking token by counting all deposits and withdrawals
         // up to this timestamp
-        const restakingTokenBalanceArrPromise: { supply: number }[] =
-          await db.execute(sql`
+        const restakingTokenBalanceArrPromise: { supply: number }[] = await this
+          .db.execute(sql`
               WITH deposited AS (
                 SELECT 1 AS idx,
                        SUM(${schema.transfer.value})/1e18 AS value
@@ -315,7 +322,6 @@ export class ImportDataTaskManagerService {
           .divide(new BigDecimal('1'), 18);
 
         lastEntry = await this.insertBalance({
-          db,
           restakingTokenSupply,
           chainId: this.chainId,
           symbol: liquidRestakingToken.symbol,
@@ -351,7 +357,6 @@ export class ImportDataTaskManagerService {
       );
 
       await this.insertBalance({
-        db,
         restakingTokenSupply,
         assetBalance,
         chainId: this.chainId,
@@ -364,12 +369,9 @@ export class ImportDataTaskManagerService {
     }
   }
 
-  private async updateTransfers(
-    db: ReturnType<typeof this._db.db>,
-    liquidRestakingTokens: LiquidRestakingToken[],
-  ) {
+  private async updateTransfers(liquidRestakingTokens: LiquidRestakingToken[]) {
     const { currentBlockNumber, batchSize, ...batchInfo } =
-      await this.getBatchInfo(db);
+      await this.getBatchInfo();
 
     if (!batchSize) return;
 
@@ -396,16 +398,16 @@ export class ImportDataTaskManagerService {
       }
 
       if (transfers.length) {
-        await db.insert(schema.transfer).values(transfers).returning();
+        await this.db.insert(schema.transfer).values(transfers).returning();
       }
 
       blockNumber += batchSize;
     }
   }
 
-  private async getBatchInfo(db: ReturnType<typeof this._db.db>) {
+  private async getBatchInfo() {
     const currentBlockNumberPromise = this.publicClient.getBlockNumber();
-    const latestTransferPromise = db.query.transfer.findFirst({
+    const latestTransferPromise = this.db.query.transfer.findFirst({
       orderBy: [desc(schema.transfer.blockNumber)],
     });
 
@@ -509,7 +511,6 @@ export class ImportDataTaskManagerService {
   }
 
   private async insertBalance({
-    db,
     chainId,
     restakingTokenSupply,
     assetBalance,
@@ -519,7 +520,6 @@ export class ImportDataTaskManagerService {
     lastExchangeRate,
     lastTimestamp,
   }: {
-    db: ReturnType<typeof this._db.db>;
     chainId: number;
     restakingTokenSupply: BigDecimal;
     assetBalance: BigDecimal;
@@ -539,7 +539,7 @@ export class ImportDataTaskManagerService {
 
     // Insert the new balance sheet entry
     return (
-      await db
+      await this.db
         .insert(schema.balanceSheet)
         .values({
           chainId,

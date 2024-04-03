@@ -5,6 +5,8 @@ import {
   TaskSchedulerModuleOptions,
   LoggerModule,
   HealthModule,
+  DatabaseModule,
+  DatabaseService,
 } from '@rio-app/common';
 // import { LoggerService } from '@rio-app/common';
 import {
@@ -44,6 +46,14 @@ export class TaskSchedulerModule {
         LoggerModule.forRootAsync({
           useFactory: ({ logger }: TaskSchedulerConfigService) => logger,
           inject: [TaskSchedulerConfigService],
+        }),
+
+        DatabaseModule.forRootAsync({
+          useFactory: ({ database }: TaskSchedulerConfigService) => ({
+            database,
+          }),
+          inject: [TaskSchedulerConfigService],
+          exports: [DatabaseService],
         }),
         // RedisModule.forRootAsync({
         //   useFactory: ({ redis }: TaskSchedulerConfigService) => ({
