@@ -45,7 +45,6 @@ import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
       exports: [DatabaseService],
     }),
     RewardsModule,
-    DatabaseModule,
   ],
   controllers: [ApiRioController],
   providers: [ApiRioService],
