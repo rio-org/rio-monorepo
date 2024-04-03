@@ -4,6 +4,11 @@ import { ApiRioService } from './api-rio.service';
 import { RewardsModule } from './rewards';
 import { ApiRioConfigModule, ApiRioConfigService } from '@rio-app/config';
 import { LoggerModule, LoggerService, HealthModule } from '@rio-app/common';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
+import { CacheStore } from '@nestjs/common/cache';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 
 @Module({
   imports: [
@@ -21,6 +26,24 @@ import { LoggerModule, LoggerService, HealthModule } from '@rio-app/common';
       useFactory: ({ logger }: ApiRioConfigService) => logger,
       inject: [ApiRioConfigService],
       exports: [LoggerService],
+    }),
+    ThrottlerModule.forRootAsync({
+      useFactory: ({ redis, throttlers }: ApiRioConfigService) => ({
+        throttlers,
+        storage: new ThrottlerStorageRedisService(redis.url),
+      }),
+      inject: [ApiRioConfigService],
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ApiRioConfigModule],
+      useFactory: async ({ redis, redisCache }: ApiRioConfigService) => ({
+        ttl: redisCache.ttl,
+        store: (await redisStore({
+          url: redis.url,
+        })) as unknown as CacheStore,
+      }),
+      inject: [ApiRioConfigService],
     }),
 
     RewardsModule,
