@@ -5,11 +5,16 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "build:api-rio": "nest build api-rio",
+    "build:task-scheduler": "nest build task-scheduler",
     "clean:build": "rimraf ./dist",
     "dev": "nest start --watch",
     "start": "nest start",
+    "start:api-rio": "nest start api-rio",
+    "start:task-scheduler": "nest start task-scheduler",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod:api-rio": "node dist/apps/api-rio/main",
+    "start:prod:task-scheduler": "node dist/apps/task-scheduler/main",
     "lint": "eslint apps/**/*.ts libs/**/*.ts --ext .ts",
     "lint:fix": "pnpm lint --fix",
     "format": "prettier --check  \"apps/**/*.ts\" \"libs/**/*.ts\"",
@@ -19,7 +24,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "start:external-services": "docker-compose -f docker-compose.yml up -d",
+    "start:external-services:f": "docker-compose -f docker-compose.yml up",
+    "stop:external-services": "docker-compose -f docker-compose.yml down"
   },
   "dependencies": {
     "@apollo/client": "^3.8.7",
