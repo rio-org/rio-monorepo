@@ -1,10 +1,9 @@
-import { LoggerService } from '@rio-app/common';
 import { Inject, Injectable } from '@nestjs/common';
 import { RedisCacheUtils } from '.';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import CacheService from './cache.service';
-import { BufferCache } from '../';
+import { BufferCache, LoggerService } from '../';
 
 @Injectable()
 export class RedisCacheService extends CacheService implements BufferCache {

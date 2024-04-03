@@ -1,4 +1,4 @@
-import { DatabaseSource } from '@rio-app/common';
+import { DatabaseSource } from '../';
 
 /**
  * Database configuration values

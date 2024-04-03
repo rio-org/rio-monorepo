@@ -1,4 +1,3 @@
-import { LoggerService } from '@rio-app/common';
 import {
   CallHandler,
   ExecutionContext,
@@ -7,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoggerService } from '../../';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
