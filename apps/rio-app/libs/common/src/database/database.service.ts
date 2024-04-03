@@ -1,6 +1,5 @@
 import { Global, Injectable } from '@nestjs/common';
 import {
-  type DrizzleConnectionConfigTypes,
   getDrizzlePool,
   getDrizzleClient,
   schema,

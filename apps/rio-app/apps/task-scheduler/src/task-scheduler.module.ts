@@ -2,7 +2,8 @@ import { DynamicModule, Module } from '@nestjs/common';
 // import { RedisModule } from '@svtslv/nestjs-ioredis';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskSchedulerModuleOptions } from '@rio-app/common';
-import { LoggerModule, LoggerService, HealthModule } from '@rio-app/common';
+import { LoggerModule, HealthModule } from '@rio-app/common';
+// import { LoggerService } from '@rio-app/common';
 import {
   TaskSchedulerConfigModule,
   TaskSchedulerConfigService,
