@@ -1,6 +1,6 @@
 import { getDrizzlePool, sql } from '@internal/db';
 import { Injectable } from '@nestjs/common';
-import { DatabaseConnection, DatabaseService } from '@rio-app/common';
+import { DatabaseService } from '@rio-app/common';
 
 @Injectable()
 export class RewardsService {
