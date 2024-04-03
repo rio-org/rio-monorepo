@@ -1,6 +1,10 @@
 import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
 import { RewardsService } from './rewards.service';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+import {
+  AddressRewardRateDto,
+  ProtocolRewardRateDto,
+} from '../../dtos/rewards';
 
 @Controller('rewards')
 export class RewardsController {
@@ -16,17 +20,16 @@ export class RewardsController {
   @Get('/:token/protocol')
   @CacheTTL(1) // TODO increase this amount of cache time on prod
   @UseInterceptors(CacheInterceptor)
-  getProtocolRewardRate(@Param('token') token: string): string {
+  getProtocolRewardRate(@Param() params: ProtocolRewardRateDto): string {
+    const { token } = params;
     return this.rewardsService.getProtocolRewardRate(token);
   }
 
   @Get('/:token/address/:address')
   @CacheTTL(1) // TODO increase this amount of cache time on prod
   @UseInterceptors(CacheInterceptor)
-  getAddressRewardRate(
-    @Param('token') token: string,
-    @Param('address') address: string,
-  ): string {
+  getAddressRewardRate(@Param() params: AddressRewardRateDto): string {
+    const { token, address } = params;
     return this.rewardsService.getAddressRewardRate(token, address);
   }
 }
