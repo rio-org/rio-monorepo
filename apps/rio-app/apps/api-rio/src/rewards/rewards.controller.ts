@@ -6,11 +6,17 @@ import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 export class RewardsController {
   constructor(private rewardsService: RewardsService) {}
 
-  @Get('/')
+  @Get('/time')
   @CacheTTL(5) // seconds
   @UseInterceptors(CacheInterceptor)
-  getHello(): string {
-    const val = this.rewardsService.getHello();
-    return val;
+  getTime(): string {
+    return this.rewardsService.getTime();
+  }
+
+  @Get('/protocol')
+  @CacheTTL(1) // TODO increase this amount of cache time on prod
+  @UseInterceptors(CacheInterceptor)
+  getProtocolRewardRate(): string {
+    return this.rewardsService.getProtocolRewardRate();
   }
 }
