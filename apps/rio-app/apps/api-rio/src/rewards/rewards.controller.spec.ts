@@ -15,8 +15,8 @@ describe('ApiController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      // expect(appController.getTime()).toBe('Hello World!');
+    it('should return a truthy value', () => {
+      expect(appController.getTime()).toBeTruthy();
     });
   });
 });

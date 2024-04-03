@@ -11,8 +11,9 @@ export class RewardsService {
 
   /**
    *
+   * @param token The token to pull the reward rate for
    */
-  getProtocolRewardRate(): string {
-    return 'lots';
+  getProtocolRewardRate(token: string): string {
+    return `${token} lots`;
   }
 }

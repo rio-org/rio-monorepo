@@ -1,4 +1,4 @@
-import { Controller, Get, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
 import { RewardsService } from './rewards.service';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
@@ -13,10 +13,10 @@ export class RewardsController {
     return this.rewardsService.getTime();
   }
 
-  @Get('/protocol')
+  @Get('/:token/protocol')
   @CacheTTL(1) // TODO increase this amount of cache time on prod
   @UseInterceptors(CacheInterceptor)
-  getProtocolRewardRate(): string {
-    return this.rewardsService.getProtocolRewardRate();
+  getProtocolRewardRate(@Param('token') token: string): string {
+    return this.rewardsService.getProtocolRewardRate(token);
   }
 }
