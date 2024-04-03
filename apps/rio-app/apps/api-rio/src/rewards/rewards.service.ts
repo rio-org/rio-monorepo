@@ -10,10 +10,18 @@ export class RewardsService {
   }
 
   /**
-   *
+   * Calculates the total protocol rewards for a given token
    * @param token The token to pull the reward rate for
    */
   getProtocolRewardRate(token: string): string {
     return `${token} lots`;
+  }
+
+  /**
+   * Calculates the rewards for a given token and address
+   * @param token The token to pull the reward rate for
+   */
+  getAddressRewardRate(token: string, address: string): string {
+    return `${token} ${address} lots`;
   }
 }

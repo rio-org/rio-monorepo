@@ -45,8 +45,6 @@ export class SharedConfigService<T> {
     const schema = tls ? 'rediss://' : 'redis://';
     const prefix = password ? `${schema}:${password}@` : schema;
 
-    console.log(`${prefix}${host}:${port}/${db}`);
-
     return {
       host,
       port,

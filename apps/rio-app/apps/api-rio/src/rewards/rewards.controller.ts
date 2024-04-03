@@ -19,4 +19,14 @@ export class RewardsController {
   getProtocolRewardRate(@Param('token') token: string): string {
     return this.rewardsService.getProtocolRewardRate(token);
   }
+
+  @Get('/:token/address/:address')
+  @CacheTTL(1) // TODO increase this amount of cache time on prod
+  @UseInterceptors(CacheInterceptor)
+  getAddressRewardRate(
+    @Param('token') token: string,
+    @Param('address') address: string,
+  ): string {
+    return this.rewardsService.getAddressRewardRate(token, address);
+  }
 }
