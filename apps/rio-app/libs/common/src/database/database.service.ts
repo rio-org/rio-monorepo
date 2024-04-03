@@ -1,4 +1,4 @@
-import { Global, Injectable } from '@nestjs/common';
+import { Global, Inject, Injectable } from '@nestjs/common';
 import {
   getDrizzlePool,
   getDrizzleClient,
@@ -12,29 +12,27 @@ import {
   lt,
   lte,
 } from '@internal/db';
-import { DatabaseConfig, SharedConfigService } from '@rio-app/config';
+import { DatabaseConfig } from '@rio-app/config';
+import { DatabaseProvider } from './database.types';
 
 @Global()
 @Injectable()
 export class DatabaseService {
-  static deriveConfigFromService(
-    sharedConfigService: SharedConfigService<DatabaseConfig>,
-  ) {
-    return {
-      user: sharedConfigService.database.username,
-      password: sharedConfigService.database.password,
-      host: sharedConfigService.database.host,
-      port: sharedConfigService.database.port,
-      database: sharedConfigService.database.databaseName,
-    };
-  }
+  private readonly _config: DrizzleConnectionConfigTypes['INDIVIDUAL'];
+  private readonly _pooledConnection: ReturnType<typeof getDrizzlePool>;
 
   constructor(
-    private readonly sharedConfigService: SharedConfigService<DatabaseConfig>,
-  ) {}
-
-  private get _config() {
-    return DatabaseService.deriveConfigFromService(this.sharedConfigService);
+    @Inject(DatabaseProvider.DATABASE_CONFIGURATION)
+    private readonly databaseConfiguration: DatabaseConfig,
+  ) {
+    this._config = {
+      user: databaseConfiguration.username,
+      password: databaseConfiguration.password ?? '',
+      host: databaseConfiguration.host,
+      port: databaseConfiguration.port,
+      database: databaseConfiguration.databaseName,
+    };
+    this._pooledConnection = getDrizzlePool(this._config);
   }
 
   public getPoolConnection(): ReturnType<typeof getDrizzlePool> {

@@ -36,7 +36,12 @@ import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
       }),
       inject: [ApiRioConfigService],
     }),
-
+    DatabaseModule.forRootAsync({
+      useFactory: ({ database }: ApiRioConfigService) => ({
+        database,
+      }),
+      inject: [ApiRioConfigService],
+    }),
     RewardsModule,
     DatabaseModule,
   ],
