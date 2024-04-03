@@ -11,7 +11,6 @@ import {
   not,
   lt,
   lte,
-  DrizzleConnectionConfigTypes,
 } from '@internal/db';
 import { DatabaseConfig } from '@rio-app/config';
 import { DatabaseProvider } from './database.types';
@@ -19,22 +18,19 @@ import { DatabaseProvider } from './database.types';
 @Global()
 @Injectable()
 export class DatabaseService {
-  private readonly _config: DrizzleConnectionConfigTypes['INDIVIDUAL'];
-  private readonly _pooledConnection: ReturnType<typeof getDrizzlePool>;
-
+  private get _config() {
+    return {
+      user: this.databaseConfiguration.username,
+      password: this.databaseConfiguration.password ?? '',
+      host: this.databaseConfiguration.host,
+      port: this.databaseConfiguration.port,
+      database: this.databaseConfiguration.databaseName,
+    };
+  }
   constructor(
     @Inject(DatabaseProvider.DATABASE_CONFIGURATION)
     private readonly databaseConfiguration: DatabaseConfig,
-  ) {
-    this._config = {
-      user: databaseConfiguration.username,
-      password: databaseConfiguration.password ?? '',
-      host: databaseConfiguration.host,
-      port: databaseConfiguration.port,
-      database: databaseConfiguration.databaseName,
-    };
-    this._pooledConnection = getDrizzlePool(this._config);
-  }
+  ) {}
 
   public getPoolConnection(): ReturnType<typeof getDrizzlePool> {
     return getDrizzlePool(this._config);
