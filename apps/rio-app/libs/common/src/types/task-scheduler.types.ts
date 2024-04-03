@@ -1,4 +1,12 @@
-import { CronTask } from '@rio-app/config';
+import { CHAIN_ID } from './chain.types';
+
+/**
+ * The configuration for single cron task
+ */
+export interface CronTask {
+  task: CronTaskName;
+  chainId?: CHAIN_ID;
+}
 
 /**
  * Options that are passed into all cron task modules
@@ -17,6 +25,7 @@ export enum TaskSchedulerProvider {
 export enum CronTaskName {
   IMPORT_DATA = 'import_data',
 }
+
 /**
  * Any cron task default values
  */

@@ -1,6 +1,5 @@
-import { LoggerService } from '@rio-app/common';
-import { CommonCache } from '../';
 import { Cache } from 'cache-manager';
+import { CommonCache, LoggerService } from '../';
 
 export default abstract class CacheService implements CommonCache {
   constructor(

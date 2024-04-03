@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ShutdownSignal } from '@nestjs/common';
+import { ShutdownSignal, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import { ApiRioConfigService } from '@rio-app/config';
@@ -54,6 +54,13 @@ async function bootstrap() {
   SwaggerModule.setup(docsLocation, app, document);
   logger.log(`Swagger docs setup at: ${docsLocation}`, 'Main');
   // }
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      validateCustomDecorators: true,
+    }),
+  );
 
   // Listen for requests
   await app.listen(httpPorts.apiRio);

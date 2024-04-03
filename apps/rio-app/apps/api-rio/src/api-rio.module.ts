@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ApiRioController } from './api-rio.controller';
 import { ApiRioService } from './api-rio.service';
-import { RewardsModule } from './rewards';
+import { RewardsModule } from './routes/rewards';
 import { ApiRioConfigModule, ApiRioConfigService } from '@rio-app/config';
 import {
   LoggerModule,
