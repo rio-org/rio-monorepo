@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import configuration from './api-rio.config';
 import { ApiRioConfigService } from './config.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { SharedConfigModule } from '../shared';
+import { SharedConfigModule } from '../shared/config.module';
 
 /**
  * Import and provide configuration related classes

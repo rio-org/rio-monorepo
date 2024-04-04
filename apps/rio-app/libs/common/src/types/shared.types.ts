@@ -11,4 +11,5 @@ export interface DatabaseConnection {
  */
 export enum UtilsProvider {
   DATABASE_CONNECTION = 'DATABASE_CONNECTION',
+  SUBGRAPH_CONNECTION = 'SUBGRAPH_CONNECTION',
 }

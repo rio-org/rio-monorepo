@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ShutdownSignal } from '@nestjs/common';
 import { LoggerService } from '@rio-app/common';
 import { TaskSchedulerModule } from './task-scheduler.module';
-import { TaskSchedulerConfigService } from '@rio-app/config';
+import { TaskSchedulerConfigService } from '@rio-app/common';
 import { configure } from '@rio-app/common';
 import { attachGlobalExceptionHandlers } from '@rio-app/common';
 

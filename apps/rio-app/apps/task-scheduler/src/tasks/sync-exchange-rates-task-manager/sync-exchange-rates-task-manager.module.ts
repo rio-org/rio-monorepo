@@ -1,12 +1,12 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { CronTaskName, TaskSchedulerModuleOptions } from '@rio-app/common';
-import { TaskSchedulerConfigModule } from '@rio-app/config';
-import { ImportDataTaskManagerService } from './import-data-task-manager.service';
+import { TaskSchedulerConfigModule } from '@rio-app/common';
+import { SyncExchangeRatesTaskManagerService } from './sync-exchange-rates-task-manager.service';
 
 @Module({})
-export class ImportDataTaskManagerModule {
+export class SyncExchangeRatesTaskManagerModule {
   public static get task(): CronTaskName {
-    return CronTaskName.IMPORT_DATA;
+    return CronTaskName.SYNC_EXCHANGE_RATES;
   }
 
   /**
@@ -16,15 +16,15 @@ export class ImportDataTaskManagerModule {
   public static register(options: TaskSchedulerModuleOptions): DynamicModule {
     if (options?.tasks?.filter(({ task }) => task === this.task).length === 0) {
       return {
-        module: ImportDataTaskManagerModule,
+        module: SyncExchangeRatesTaskManagerModule,
       };
     }
 
     return {
-      module: ImportDataTaskManagerModule,
+      module: SyncExchangeRatesTaskManagerModule,
       imports: [TaskSchedulerConfigModule],
-      providers: [ImportDataTaskManagerService],
-      exports: [ImportDataTaskManagerService],
+      providers: [SyncExchangeRatesTaskManagerService],
+      exports: [SyncExchangeRatesTaskManagerService],
     };
   }
 }

@@ -1,8 +1,8 @@
 import {
+  IsAlphanumeric,
+  IsEthereumAddress,
   IsNotEmpty,
   IsString,
-  IsEthereumAddress,
-  IsAlphanumeric,
 } from 'class-validator';
 import { ProtocolRewardRateDto } from './protocol-reward-rate.dto';
 

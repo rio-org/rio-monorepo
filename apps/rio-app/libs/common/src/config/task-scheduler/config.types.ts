@@ -1,4 +1,4 @@
-import { CronTask } from '@rio-app/common';
+import { CronTask } from '../../';
 
 /**
  * TaskScheduler service configuration values

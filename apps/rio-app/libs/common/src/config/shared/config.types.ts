@@ -1,4 +1,4 @@
-import { CHAIN_ID, DatabaseConfig, LoggerModuleOptions } from '@rio-app/common';
+import { CHAIN_ID, DatabaseConfig, LoggerModuleOptions } from '../../';
 
 /**
  * Redis configuration values

@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  CHAIN_ID,
-  DatabaseConfig,
-  DeepDotKey,
-  FormatService,
-} from '@rio-app/common';
+import { CHAIN_ID, DatabaseConfig, DeepDotKey } from '../../';
+import { FormatService } from '../../utils';
 import {
   ExtendsShared,
   HttpPortConfig,
@@ -13,7 +9,7 @@ import {
   RedisConfig,
   SubgraphDatasource,
 } from './config.types';
-import { LoggerModuleOptions } from '@rio-app/common';
+import { LoggerModuleOptions } from '../../logger';
 
 /**
  * Convenience service used to access shared configuration values

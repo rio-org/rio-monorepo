@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { RewardsController } from './rewards.controller';
-import { RewardsService } from './rewards.service';
+import { CacheStore } from '@nestjs/common/cache';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
-import { ApiRioConfigModule, ApiRioConfigService } from '@rio-app/config';
 import { redisStore } from 'cache-manager-redis-store';
-import { CacheStore } from '@nestjs/common/cache';
+import { RewardsController } from './rewards.controller';
+import { RewardsService } from './rewards.service';
+import { ApiRioConfigModule, ApiRioConfigService } from '@rio-app/common';
 
 @Module({
   controllers: [RewardsController],
