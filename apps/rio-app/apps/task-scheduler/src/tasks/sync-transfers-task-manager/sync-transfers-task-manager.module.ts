@@ -2,7 +2,6 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { CronTaskName, TaskSchedulerModuleOptions } from '@rio-app/common';
 import { TaskSchedulerConfigModule } from '@rio-app/common';
 import { SyncTransfersTaskManagerService } from './sync-transfers-task-manager.service';
-import { TaskSchedulerProviders } from '../../task-scheduler.providers';
 
 @Module({})
 export class SyncTransfersTaskManagerModule {

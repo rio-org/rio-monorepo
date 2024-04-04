@@ -4,9 +4,9 @@ import { TaskSchedulerConfigService } from '@rio-app/common';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import * as postgres from 'postgres';
 import { schema } from '@internal/db';
-import { holesky } from 'viem/chains';
-import { createPublicClient } from 'viem';
-import { http as viemHttp } from 'viem/_types/clients/transports/http';
+// import { holesky } from 'viem/chains';
+// import { createPublicClient } from 'viem';
+// import { http as viemHttp } from 'viem/_types/clients/transports/http';
 import { SubgraphClient } from '@rionetwork/sdk';
 
 export class TaskSchedulerProviders {

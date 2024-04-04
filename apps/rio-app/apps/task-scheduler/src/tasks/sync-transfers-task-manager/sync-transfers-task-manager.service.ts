@@ -1,8 +1,6 @@
-import BigDecimal from 'js-big-decimal';
 import { holesky } from 'viem/chains';
 import { Injectable } from '@nestjs/common';
 import {
-  Address,
   Chain,
   createPublicClient,
   parseEther,
@@ -11,14 +9,13 @@ import {
 } from 'viem';
 import {
   Deposit,
-  ERC20ABI,
   LiquidRestakingToken,
   SubgraphClient,
   TokenTransfer,
   WithdrawalRequest,
 } from '@rionetwork/sdk';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { desc, schema, sql } from '@internal/db';
+import { desc, schema } from '@internal/db';
 import {
   Deposit_OrderBy,
   OrderDirection,
