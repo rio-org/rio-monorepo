@@ -8,11 +8,11 @@ import { ENV } from './config';
 
 (async function main() {
   const connectionString = getConnectionString({
-    host: ENV.DB_HOST,
-    port: ENV.DB_PORT,
-    user: ENV.DB_USER,
-    password: ENV.DB_PASSWORD,
-    database: ENV.DB_NAME,
+    host: ENV.DATABASE_HOST,
+    port: ENV.DATABASE_PORT,
+    user: ENV.DATABASE_USERNAME,
+    password: ENV.DATABASE_PASSWORD,
+    database: ENV.DATABASE_NAME,
   });
   const client = postgres(connectionString);
   const db = drizzle(client, { schema });
