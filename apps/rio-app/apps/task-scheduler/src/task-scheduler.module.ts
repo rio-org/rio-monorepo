@@ -8,6 +8,7 @@ import {
   TaskSchedulerConfigModule,
   TaskSchedulerConfigService,
   TaskSchedulerModuleOptions,
+  UtilsModule,
 } from '@rio-app/common';
 import {
   SyncExchangeRatesTaskManagerModule,
@@ -30,6 +31,7 @@ export class TaskSchedulerModule {
     return {
       module: TaskSchedulerModule,
       imports: [
+        UtilsModule,
         HealthModule.forRootAsync({
           useFactory: ({ database, redis }) => {
             return {

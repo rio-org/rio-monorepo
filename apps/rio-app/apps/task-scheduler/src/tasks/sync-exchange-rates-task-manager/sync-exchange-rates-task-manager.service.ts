@@ -1,13 +1,6 @@
 import BigDecimal from 'js-big-decimal';
-import { holesky } from 'viem/chains';
-import { Injectable } from '@nestjs/common';
-import {
-  Address,
-  Chain,
-  createPublicClient,
-  parseEther,
-  http as viemHttp,
-} from 'viem';
+import { Inject, Injectable } from '@nestjs/common';
+import { Address, parseEther } from 'viem';
 import {
   ERC20ABI,
   LiquidRestakingToken,
@@ -20,20 +13,18 @@ import {
   OrderDirection,
 } from '@rionetwork/sdk/dist/subgraph/generated/graphql';
 import {
-  CHAIN_ID,
   DatabaseService,
   LoggerService,
   TaskSchedulerConfigService,
   RioLRTAssetRegistryABI,
+  TaskSchedulerProvider,
+  CronTask,
+  ChainService,
+  CHAIN_ID,
 } from '@rio-app/common';
 
 @Injectable()
 export class SyncExchangeRatesTaskManagerService {
-  private readonly subgraph: SubgraphClient;
-  private readonly chain: Chain;
-  private readonly rpcUrl: string;
-  private readonly publicClient;
-  private readonly chainId: CHAIN_ID;
   private readonly db: ReturnType<
     typeof this.databaseService.getConnection
   >['db'];
@@ -42,8 +33,11 @@ export class SyncExchangeRatesTaskManagerService {
   >['client'];
 
   constructor(
+    @Inject(TaskSchedulerProvider.CRON_TASK)
+    private task: CronTask,
     private logger: LoggerService,
-    private configService: TaskSchedulerConfigService,
+    private chain: ChainService,
+    private config: TaskSchedulerConfigService,
     private readonly databaseService: DatabaseService,
   ) {
     this.logger.setContext(this.constructor.name);
@@ -51,55 +45,62 @@ export class SyncExchangeRatesTaskManagerService {
     const { db, client } = this.databaseService.getConnection();
     this.db = db;
     this.client = client;
-
-    this.chainId = CHAIN_ID.HOLESKY;
-    const subgraph = this.configService.getSubgraphDatasource(CHAIN_ID.HOLESKY);
-
-    this.chain = holesky;
-    this.rpcUrl = this.chain.rpcUrls.default.http[0];
-    this.publicClient = createPublicClient({
-      chain: this.chain,
-      transport: viemHttp(this.rpcUrl),
-    });
-    this.subgraph = new SubgraphClient(subgraph.chainId, {
-      subgraphUrl: subgraph.url,
-      subgraphApiKey: subgraph.apiKey,
-    });
   }
 
   @Cron('10 0-23/1 * * *')
+  /**
+   * Syncs the exchanges rates
+   */
   async syncExchangeRates() {
-    const liquidRestakingTokens =
-      await this.subgraph.getLiquidRestakingTokens();
+    if (this.task?.chainIds.length === 0) {
+      throw new Error(`No chain ids defined for ${this.task.task}`);
+    }
+    for (const chainId of this.task.chainIds) {
+      const subgraphDatasource = this.config.getSubgraphDatasource(chainId);
+      const subgraph = new SubgraphClient(subgraphDatasource.chainId, {
+        subgraphUrl: subgraphDatasource.url,
+        subgraphApiKey: subgraphDatasource.apiKey,
+      });
 
-    try {
-      this.logger.log(`[Rates::Starting] Updating exchange rates`);
-      await this.updateExchangeRates(liquidRestakingTokens);
-    } catch (error) {
-      this.logger.error(`[Rates::Error] ${(error as Error).toString()}`);
+      const liquidRestakingTokens = await subgraph.getLiquidRestakingTokens();
+
+      try {
+        this.logger.log(`[Rates::Starting] Updating exchange rates`);
+        await this.updateExchangeRates(
+          liquidRestakingTokens,
+          chainId,
+          subgraph,
+        );
+      } catch (error) {
+        this.logger.error(`[Rates::Error] ${(error as Error).toString()}`);
+      }
     }
   }
 
   /**
    * Updates exchange rates
-   * @param liquidRestakingTokens
-   * @private
+   * @param liquidRestakingTokens The LRTs
+   * @param chainId The chain id
+   * @param subgraph The subgraph client
    */
   private async updateExchangeRates(
     liquidRestakingTokens: LiquidRestakingToken[],
+    chainId: CHAIN_ID,
+    subgraph: SubgraphClient,
   ) {
-    const currentBlockNumberPromise = this.publicClient.getBlockNumber();
+    const client = this.chain.chainClient(chainId);
+    const currentBlockNumberPromise = client.getBlockNumber();
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const oneHourAgo = currentTimestamp - 3600;
 
     for await (const liquidRestakingToken of liquidRestakingTokens) {
       const protocolValues = Promise.all([
-        this.publicClient.readContract({
+        client.readContract({
           address: liquidRestakingToken.deployment.assetRegistry as Address,
           abi: RioLRTAssetRegistryABI,
           functionName: 'getTVL',
         }),
-        this.publicClient.readContract({
+        client.readContract({
           address: liquidRestakingToken.address as Address,
           abi: ERC20ABI,
           functionName: 'totalSupply',
@@ -131,7 +132,7 @@ export class SyncExchangeRatesTaskManagerService {
           await this.db
             .insert(schema.balanceSheet)
             .values({
-              chainId: this.chainId,
+              chainId,
               asset: 'ETH',
               asset_balance: '1',
               restakingToken: liquidRestakingToken.symbol,
@@ -190,7 +191,7 @@ export class SyncExchangeRatesTaskManagerService {
 
         // Get the closest deposit to the last timestamp.
         // We can't rely on the database here because it doesn't hold ETH transfers
-        const closestDeposits = await this.subgraph.getDeposits({
+        const closestDeposits = await subgraph.getDeposits({
           perPage: 1,
           where: {
             timestamp_lte: lastTimestamp,
@@ -234,7 +235,7 @@ export class SyncExchangeRatesTaskManagerService {
 
         lastEntry = await this.insertBalance({
           restakingTokenSupply,
-          chainId: this.chainId,
+          chainId,
           symbol: liquidRestakingToken.symbol,
           assetBalance,
           blockNumber: closestDeposit.blockNumber,
@@ -270,7 +271,7 @@ export class SyncExchangeRatesTaskManagerService {
       await this.insertBalance({
         restakingTokenSupply,
         assetBalance,
-        chainId: this.chainId,
+        chainId,
         symbol: liquidRestakingToken.symbol,
         blockNumber: Number(await currentBlockNumberPromise),
         blocktime: currentTimestamp,
@@ -282,14 +283,14 @@ export class SyncExchangeRatesTaskManagerService {
 
   /**
    * Inserts a given balance into the Balance Sheet
-   * @param chainId
-   * @param restakingTokenSupply
-   * @param assetBalance
-   * @param symbol
-   * @param blocktime
-   * @param blockNumber
-   * @param lastExchangeRate
-   * @param lastTimestamp
+   * @param chainId The chain id
+   * @param restakingTokenSupply The token supply
+   * @param assetBalance The asset balance
+   * @param symbol The symbol
+   * @param blocktime The block time
+   * @param blockNumber The block number
+   * @param lastExchangeRate The last exchange rate
+   * @param lastTimestamp The last timestamp
    * @private
    */
   private async insertBalance({

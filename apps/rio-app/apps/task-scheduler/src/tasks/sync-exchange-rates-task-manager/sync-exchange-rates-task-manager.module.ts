@@ -1,5 +1,9 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { CronTaskName, TaskSchedulerModuleOptions } from '@rio-app/common';
+import {
+  CronTaskName,
+  TaskSchedulerModuleOptions,
+  TaskSchedulerProvider,
+} from '@rio-app/common';
 import { TaskSchedulerConfigModule } from '@rio-app/common';
 import { SyncExchangeRatesTaskManagerService } from './sync-exchange-rates-task-manager.service';
 
@@ -14,7 +18,8 @@ export class SyncExchangeRatesTaskManagerModule {
    * @param options The cron task module options
    */
   public static register(options: TaskSchedulerModuleOptions): DynamicModule {
-    if (options?.tasks?.filter(({ task }) => task === this.task).length === 0) {
+    const task = options?.tasks?.filter(({ task }) => task === this.task);
+    if (task.length === 0) {
       return {
         module: SyncExchangeRatesTaskManagerModule,
       };
@@ -23,7 +28,10 @@ export class SyncExchangeRatesTaskManagerModule {
     return {
       module: SyncExchangeRatesTaskManagerModule,
       imports: [TaskSchedulerConfigModule],
-      providers: [SyncExchangeRatesTaskManagerService],
+      providers: [
+        SyncExchangeRatesTaskManagerService,
+        { provide: TaskSchedulerProvider.CRON_TASK, useValue: task[0] },
+      ],
       exports: [SyncExchangeRatesTaskManagerService],
     };
   }
