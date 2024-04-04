@@ -67,7 +67,7 @@ export class SyncExchangeRatesTaskManagerService {
     });
   }
 
-  @Cron('48 0-23/1 * * *')
+  @Cron('10 0-23/1 * * *')
   async syncExchangeRates() {
     const liquidRestakingTokens =
       await this.subgraph.getLiquidRestakingTokens();
