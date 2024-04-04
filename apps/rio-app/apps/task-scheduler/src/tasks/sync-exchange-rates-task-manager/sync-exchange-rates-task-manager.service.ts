@@ -6,7 +6,7 @@ import {
   LiquidRestakingToken,
   SubgraphClient,
 } from '@rionetwork/sdk';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { desc, schema, sql } from '@internal/db';
 import {
   Deposit_OrderBy,
