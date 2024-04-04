@@ -1,1 +1,1 @@
-module.exports = require('@rio-monorepo/ui/config/tailwind.config');
+module.exports = require('@internal/config/ui/tailwind.config');

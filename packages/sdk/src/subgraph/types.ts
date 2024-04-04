@@ -73,6 +73,23 @@ export interface Deposit {
   tx: string;
 }
 
+export interface TokenTransfer {
+  id: string;
+  receiver: Address;
+  sender: Address;
+  amount: string;
+  restakingToken: Address;
+  restakingTokenPriceUSD: string;
+  senderBalanceBefore: string;
+  senderBalanceAfter: string;
+  receiverBalanceBefore: string;
+  receiverBalanceAfter: string;
+  valueUSD: string;
+  timestamp: string;
+  blockNumber: string;
+  tx: string;
+}
+
 export enum WithdrawalEpochStatus {
   Active = 'ACTIVE',
   Queued = 'QUEUED',

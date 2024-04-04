@@ -83,6 +83,31 @@ export const DepositFields = graphql(`
   }
 `);
 
+export const TokenTransferFields = graphql(`
+  fragment TokenTransferFields on TokenTransfer {
+    id
+    receiver {
+      id
+    }
+    sender {
+      id
+    }
+    restakingToken {
+      id
+    }
+    amount
+    restakingTokenPriceUSD
+    senderBalanceBefore
+    senderBalanceAfter
+    receiverBalanceBefore
+    receiverBalanceAfter
+    valueUSD
+    timestamp
+    blockNumber
+    tx
+  }
+`);
+
 export const WithdrawalRequestFields = graphql(`
   fragment WithdrawalRequestFields on WithdrawalRequest {
     id
@@ -245,6 +270,26 @@ export const ManyDepositsQuery = graphql(`
       where: $where
     ) {
       ...DepositFields
+    }
+  }
+`);
+
+export const ManyTokenTransfersQuery = graphql(`
+  query manyTokenTransfers(
+    $first: Int!
+    $skip: Int!
+    $orderBy: TokenTransfer_orderBy
+    $orderDirection: OrderDirection
+    $where: TokenTransfer_filter
+  ) {
+    tokenTransfers(
+      first: $first
+      skip: $skip
+      orderBy: $orderBy
+      orderDirection: $orderDirection
+      where: $where
+    ) {
+      ...TokenTransferFields
     }
   }
 `);

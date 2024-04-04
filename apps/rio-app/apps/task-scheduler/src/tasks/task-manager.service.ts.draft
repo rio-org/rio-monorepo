@@ -1,0 +1,200 @@
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { SchedulerRegistry } from '@nestjs/schedule';
+import { CronJob } from 'cron';
+import {
+  CronTaskDefaults,
+  CronTaskName,
+  GetActionableMinersExcludeIdsDto,
+  SchedulerAction,
+  SchedulerRule,
+} from '@minder-app/common';
+import { Time, TimeUnit } from 'time-conversion-ts';
+import { isBoolean } from 'lodash';
+import { LoggerService, TaskSchedulerConfigService } from '@rio-app/common';
+
+@Injectable()
+export class TaskManagerService implements OnApplicationBootstrap {
+  // Task attributes
+  taskName: CronTaskName;
+  interval: number;
+  isEnabled: boolean;
+  cronExpression: string;
+
+  constructor(
+    protected readonly _schedulerRegistry: SchedulerRegistry,
+    protected readonly _logger: LoggerService,
+    protected readonly _configService?: TaskSchedulerConfigService,
+  ) {
+    this._logger.setContext(this.constructor.name);
+  }
+
+  /**
+   * Bootstrap task schedule settings
+   */
+  async onApplicationBootstrap(): Promise<void> {
+    // Get task schedule from DB
+    await this.refreshScheduleSettings();
+
+    if (this.interval && !this.cronExpression) {
+      setTimeout(() => this.callTask(), 10_000);
+    }
+  }
+
+  /**
+   * Calls the task to be executed and logs/tracks some stats
+   */
+  public async callTask(): Promise<void> {
+    return;
+  }
+
+  /**
+   * Executes task
+   */
+  public async executeTask(): Promise<void> {
+    return;
+  }
+
+  /**
+   * Gets the task schedule config from the database
+   */
+  public async getScheduleConfig(): Promise<SchedulerAction> {
+    return this._schedulerConfig
+      .createQueryBuilder('sa')
+      .select(['sa.isEnabled', 'sa.interval', 'sa.cronExpression'])
+      .where('sa.action = :action', { action: this.taskName })
+      .getOne();
+  }
+
+  /**
+   * Gets/Sets the task props used to determine the task schedule
+   */
+  public async setTaskSchedule(): Promise<void> {
+    const schedule = await this.getScheduleConfig();
+
+    if (schedule?.interval && schedule?.cronExpression) {
+      throw new Error(
+        'Interval and Cron Expression cannot be defined at the same time',
+      );
+    }
+
+    if (isBoolean(schedule?.isEnabled)) {
+      this.isEnabled = schedule?.isEnabled;
+    } else {
+      this.isEnabled =
+        this.isEnabled || CronTaskDefaults.ENABLED.toString() === 'true';
+    }
+
+    this.interval = schedule?.interval;
+    this.cronExpression = schedule?.cronExpression;
+  }
+
+  /**
+   * Checks the DB for schedule settings and applies changes (if any)
+   */
+  public async refreshScheduleSettings(): Promise<void> {
+    // Set momentos for schedule settings
+    const oldIsEnabled = this.isEnabled;
+    const oldInterval = this.interval;
+    const oldCronExpression = this.cronExpression;
+
+    // Grab schedule settings from DB
+    await this.setTaskSchedule();
+
+    if (this.isEnabled === oldIsEnabled) {
+      if (this.interval && this.interval === oldInterval) {
+        return;
+      }
+
+      if (this.cronExpression && this.cronExpression === oldCronExpression) {
+        return;
+      }
+    }
+
+    // Delete existing schedule settings
+    this.deleteTaskCron();
+    this.deleteTaskInterval();
+
+    // If isEnabled has changed from on to off, no need to set either schedule
+    if (!this.isEnabled && oldIsEnabled) {
+      this._logger.debug(`Disabled task (${this.taskName})`);
+      return;
+    } else if (this.isEnabled && !oldIsEnabled) {
+      this._logger.debug(`Enabled task (${this.taskName})`);
+    }
+
+    // If isEnabled, apply new schedule settings
+    if (this.isEnabled) {
+      if (this.interval && !this.cronExpression) {
+        this.setTaskInterval();
+      }
+
+      if (this.cronExpression && !this.interval) {
+        this.setTaskCron();
+      }
+    }
+  }
+
+  /**
+   * Delete the task interval
+   */
+  public deleteTaskInterval(): void {
+    if (this._schedulerRegistry.doesExist('interval', this.taskName)) {
+      this._logger.debug(
+        `Task interval (${this.taskName}) already exists. Deleting...`,
+      );
+
+      this._schedulerRegistry.deleteInterval(this.taskName);
+    }
+  }
+
+  /**
+   * Set the interval duration for the task
+   * @param units time units of the specified duration. Default is Seconds
+   * @param interval (optional) interval duration for the task
+   */
+  public setTaskInterval(
+    units: TimeUnit = TimeUnit.Seconds,
+    interval?: number,
+  ): void {
+    interval ??= this.interval;
+
+    this._logger.debug(
+      `Setting task (${this.taskName}) interval = ${interval} ${TimeUnit[units]}`,
+    );
+
+    this._schedulerRegistry.addInterval(
+      this.taskName,
+      setInterval(() => this.callTask(), Time.toMilliseconds(interval, units)),
+    );
+  }
+
+  /**
+   * Delete the task cron
+   */
+  public deleteTaskCron(): void {
+    if (this._schedulerRegistry.doesExist('cron', this.taskName)) {
+      this._logger.debug(
+        `Task cron (${this.taskName}) already exists. Deleting...`,
+      );
+
+      this._schedulerRegistry.deleteCronJob(this.taskName);
+    }
+  }
+
+  /**
+   * Set the cron expression for the task
+   */
+  public setTaskCron(): void {
+    this._logger.debug(
+      `Setting task (${this.taskName}) cron expression = ${this.cronExpression}`,
+    );
+
+    const job = new CronJob(this.cronExpression, () => {
+      this.callTask();
+    });
+
+    this._schedulerRegistry.addCronJob(this.taskName, job);
+
+    job.start();
+  }
+}

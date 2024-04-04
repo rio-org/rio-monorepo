@@ -1,13 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "@internal/config/tsconfig/next.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "jsx": "preserve",
-    "isolatedModules": true,
-    "declaration": false,
     "paths": {
       "@/*": ["./src/*"]
     }

@@ -12,6 +12,8 @@ export const ONE_BI = BigInt.fromString('1');
 
 export const STAT_UPDATE_MIN_TRADE = BigDecimal.fromString('0.0000000001');
 
+export const RATE_MINIMUM_UPDATE_SECONDS = BigInt.fromString('1800');
+
 export const USD_PRICE_FEED_DECIMALS: u8 = 8;
 
 export const PUBKEY_LENGTH: i32 = 96;

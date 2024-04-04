@@ -1,0 +1,121 @@
+{
+  "id": "fe6bb676-f3a3-4032-b30e-cc51bc7621c5",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "transfer": {
+      "name": "transfer",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "chain_id": {
+          "name": "chain_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_hash": {
+          "name": "transaction_hash",
+          "type": "char(66)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "from": {
+          "name": "from",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0x0000000000000000000000000000000000000000'"
+        },
+        "to": {
+          "name": "to",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0x0000000000000000000000000000000000000000'"
+        },
+        "asset": {
+          "name": "asset",
+          "type": "varchar(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "block_number": {
+          "name": "block_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "transfer_network_idx": {
+          "name": "transfer_network_idx",
+          "columns": ["chain_id"],
+          "isUnique": false
+        },
+        "transfer_transaction_hash_idx": {
+          "name": "transfer_transaction_hash_idx",
+          "columns": ["transaction_hash"],
+          "isUnique": false
+        },
+        "transfer_from_idx": {
+          "name": "transfer_from_idx",
+          "columns": ["from"],
+          "isUnique": false
+        },
+        "transfer_to_idx": {
+          "name": "transfer_to_idx",
+          "columns": ["to"],
+          "isUnique": false
+        },
+        "transfer_asset_idx": {
+          "name": "transfer_asset_idx",
+          "columns": ["asset"],
+          "isUnique": false
+        },
+        "transfer_timestamp_idx": {
+          "name": "transfer_timestamp_idx",
+          "columns": ["timestamp"],
+          "isUnique": false
+        },
+        "transfer_block_number_idx": {
+          "name": "transfer_block_number_idx",
+          "columns": ["block_number"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "rio_restaking": "rio_restaking"
+  },
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
