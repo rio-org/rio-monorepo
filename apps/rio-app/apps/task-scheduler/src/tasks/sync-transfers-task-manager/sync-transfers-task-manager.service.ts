@@ -142,8 +142,9 @@ export class SyncTransfersTaskManagerService {
   }
 
   // @Cron('0 0-23/1 * * *')
-  //@Cron(CronExpression.EVERY_HOUR)
-  @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron(CronExpression.EVERY_HOUR)
+  // @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   async syncTransfers() {
     const liquidRestakingTokens =
       await this.subgraph.getLiquidRestakingTokens();
