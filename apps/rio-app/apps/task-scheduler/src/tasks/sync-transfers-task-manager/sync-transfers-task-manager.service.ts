@@ -48,9 +48,7 @@ export class SyncTransfersTaskManagerService {
     this.client = client;
   }
 
-  // @Cron(CronExpression.EVERY_HOUR)
-  @Cron(CronExpression.EVERY_5_MINUTES)
-  // @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_HOUR)
   /**
    * Sync the transfers from the chains and tokens
    */

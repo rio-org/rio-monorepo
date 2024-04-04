@@ -47,8 +47,7 @@ export class SyncExchangeRatesTaskManagerService {
     this.client = client;
   }
 
-  @Cron('48 0-23/1 * * *')
-  // @Cron(CronExpression.EVERY_MINUTE)
+  @Cron('10 0-23/1 * * *')
   /**
    * Syncs the exchanges rates
    */
