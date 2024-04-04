@@ -1,5 +1,5 @@
 import { Address, BigDecimal, BigInt, Bytes, Entity, Value, dataSource, store } from '@graphprotocol/graph-ts';
-import { AVSRegistry, Asset, AssetRegistry, Coordinator, DepositPool, OperatorRegistry, PriceFeed, PriceSource, RewardDistributor, User, WithdrawalEpoch, WithdrawalQueue } from '../../generated/schema';
+import { AVSRegistry, Asset, AssetRegistry, Coordinator, DepositPool, HistoricalExchangeRate, OperatorRegistry, PriceFeed, PriceSource, RewardDistributor, User, WithdrawalEpoch, WithdrawalQueue } from '../../generated/schema';
 import { CHAINLINK_FEED_TYPE, ETH_ADDRESS, ETH_USD_CHAINLINK_FEEDS, PUBKEY_LENGTH, SupportingContractName, USD_PRICE_FEED_DECIMALS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD } from './constants';
 import { PriceFeed as PriceFeedContract } from '../../generated/RioLRTIssuer/PriceFeed';
 import { PriceSource as PriceSourceTemplate } from '../../generated/templates';
@@ -95,6 +95,22 @@ export function findOrCreateUser(address: string, save: boolean = false): User {
 
   if (save) user.save();
   return user;
+}
+
+/**
+ * Find or create a user by their address.
+ * @param restakingToken The address of the restaking token.
+ * @param timestamp The timestamp of the exchange rate
+ */
+export function findOrCreateHistoricalExchangeRate(restakingToken: string, timestamp: BigInt): HistoricalExchangeRate {
+  let exchangeRate: HistoricalExchangeRate | null = HistoricalExchangeRate.load(`${restakingToken}-${timestamp}`);
+  if (exchangeRate != null) return exchangeRate;
+
+  exchangeRate = new HistoricalExchangeRate(`${restakingToken}-${timestamp}`);
+  exchangeRate.restakingToken = restakingToken;
+  exchangeRate.timestamp = timestamp;
+
+  return exchangeRate;
 }
 
 /**
@@ -252,7 +268,7 @@ function findOrCreatePriceSource(address: Address, priceFeed: PriceFeed, save: b
  */
 export function getExchangeRateUSD(asset: Asset, exchangeRateETH: BigDecimal | null, price: BigDecimal | null): BigDecimal | null {
   if (asset.id == ETH_ADDRESS && exchangeRateETH && price) {
-    return exchangeRateETH.times(price); 
+    return exchangeRateETH.times(price);
   }
   return null;
 }

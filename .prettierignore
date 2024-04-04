@@ -5,4 +5,12 @@ node_modules
 dist
 
 # Packages
-/packages
+/packages/bot
+/packages/protocol
+/packages/sdk
+/packages/sdk-react
+/packages/subgraph
+
+# Docker container volumes
+/packages/db/data
+/.volumes

@@ -84,9 +84,13 @@ const getTransports = (chainId: number) => {
   _transports.push(http(getAlchemyRpcUrl(chainId)));
   _transports.push(http(getAnkrRpcUrl(chainId)));
   // public rpc
-  if (chainId !== goerli.id) {
-    _transports.push(http());
-  }
+  _transports.push(
+    http(
+      chainId === goerli.id
+        ? 'https://goerli.blockpi.network/v1/rpc/public'
+        : undefined
+    )
+  );
   return _transports.filter(Boolean);
 };
 
@@ -103,7 +107,6 @@ const _appInfo = {
 };
 
 const { wallets } = getDefaultWallets();
-// const chains = chooseChain();
 
 export function Providers({
   appTitle,

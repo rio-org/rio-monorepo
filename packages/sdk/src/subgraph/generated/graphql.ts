@@ -1796,6 +1796,8 @@ export type Query = {
   priceSources: Array<PriceSource>;
   rewardDistributor?: Maybe<RewardDistributor>;
   rewardDistributors: Array<RewardDistributor>;
+  tokenTransfer?: Maybe<TokenTransfer>;
+  tokenTransfers: Array<TokenTransfer>;
   underlyingAsset?: Maybe<UnderlyingAsset>;
   underlyingAssets: Array<UnderlyingAsset>;
   user?: Maybe<User>;
@@ -2054,6 +2056,22 @@ export type QueryRewardDistributorsArgs = {
   where?: InputMaybe<RewardDistributor_Filter>;
 };
 
+export type QueryTokenTransferArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryTokenTransfersArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<TokenTransfer_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<TokenTransfer_Filter>;
+};
+
 export type QueryUnderlyingAssetArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
@@ -2303,6 +2321,8 @@ export type Subscription = {
   priceSources: Array<PriceSource>;
   rewardDistributor?: Maybe<RewardDistributor>;
   rewardDistributors: Array<RewardDistributor>;
+  tokenTransfer?: Maybe<TokenTransfer>;
+  tokenTransfers: Array<TokenTransfer>;
   underlyingAsset?: Maybe<UnderlyingAsset>;
   underlyingAssets: Array<UnderlyingAsset>;
   user?: Maybe<User>;
@@ -2561,6 +2581,22 @@ export type SubscriptionRewardDistributorsArgs = {
   where?: InputMaybe<RewardDistributor_Filter>;
 };
 
+export type SubscriptionTokenTransferArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionTokenTransfersArgs = {
+  block?: InputMaybe<Block_Height>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<TokenTransfer_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  subgraphError?: _SubgraphErrorPolicy_;
+  where?: InputMaybe<TokenTransfer_Filter>;
+};
+
 export type SubscriptionUnderlyingAssetArgs = {
   block?: InputMaybe<Block_Height>;
   id: Scalars['ID']['input'];
@@ -2704,6 +2740,228 @@ export type SubscriptionWithdrawalRequestsArgs = {
   subgraphError?: _SubgraphErrorPolicy_;
   where?: InputMaybe<WithdrawalRequest_Filter>;
 };
+
+export type TokenTransfer = {
+  __typename?: 'TokenTransfer';
+  amount: Scalars['BigDecimal']['output'];
+  blockNumber: Scalars['BigInt']['output'];
+  id: Scalars['ID']['output'];
+  receiver: User;
+  receiverBalanceAfter: Scalars['BigDecimal']['output'];
+  receiverBalanceBefore: Scalars['BigDecimal']['output'];
+  restakingToken: LiquidRestakingToken;
+  restakingTokenPriceUSD?: Maybe<Scalars['BigDecimal']['output']>;
+  sender: User;
+  senderBalanceAfter: Scalars['BigDecimal']['output'];
+  senderBalanceBefore: Scalars['BigDecimal']['output'];
+  timestamp: Scalars['BigInt']['output'];
+  tx: Scalars['Bytes']['output'];
+  valueUSD?: Maybe<Scalars['BigDecimal']['output']>;
+};
+
+export type TokenTransfer_Filter = {
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  amount?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amount_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amount_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amount_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  amount_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amount_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amount_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amount_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  and?: InputMaybe<Array<InputMaybe<TokenTransfer_Filter>>>;
+  blockNumber?: InputMaybe<Scalars['BigInt']['input']>;
+  blockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  blockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  blockNumber_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  blockNumber_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  blockNumber_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  blockNumber_not?: InputMaybe<Scalars['BigInt']['input']>;
+  blockNumber_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  or?: InputMaybe<Array<InputMaybe<TokenTransfer_Filter>>>;
+  receiver?: InputMaybe<Scalars['String']['input']>;
+  receiverBalanceAfter?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceAfter_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceAfter_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceAfter_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  receiverBalanceAfter_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceAfter_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceAfter_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceAfter_not_in?: InputMaybe<
+    Array<Scalars['BigDecimal']['input']>
+  >;
+  receiverBalanceBefore?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceBefore_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceBefore_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceBefore_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  receiverBalanceBefore_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceBefore_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceBefore_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  receiverBalanceBefore_not_in?: InputMaybe<
+    Array<Scalars['BigDecimal']['input']>
+  >;
+  receiver_?: InputMaybe<User_Filter>;
+  receiver_contains?: InputMaybe<Scalars['String']['input']>;
+  receiver_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  receiver_ends_with?: InputMaybe<Scalars['String']['input']>;
+  receiver_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  receiver_gt?: InputMaybe<Scalars['String']['input']>;
+  receiver_gte?: InputMaybe<Scalars['String']['input']>;
+  receiver_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  receiver_lt?: InputMaybe<Scalars['String']['input']>;
+  receiver_lte?: InputMaybe<Scalars['String']['input']>;
+  receiver_not?: InputMaybe<Scalars['String']['input']>;
+  receiver_not_contains?: InputMaybe<Scalars['String']['input']>;
+  receiver_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  receiver_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  receiver_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  receiver_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  receiver_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  receiver_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  receiver_starts_with?: InputMaybe<Scalars['String']['input']>;
+  receiver_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken?: InputMaybe<Scalars['String']['input']>;
+  restakingTokenPriceUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  restakingTokenPriceUSD_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  restakingTokenPriceUSD_not_in?: InputMaybe<
+    Array<Scalars['BigDecimal']['input']>
+  >;
+  restakingToken_?: InputMaybe<LiquidRestakingToken_Filter>;
+  restakingToken_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_gte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_lt?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_lte?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  restakingToken_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_not_starts_with_nocase?: InputMaybe<
+    Scalars['String']['input']
+  >;
+  restakingToken_starts_with?: InputMaybe<Scalars['String']['input']>;
+  restakingToken_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  sender?: InputMaybe<Scalars['String']['input']>;
+  senderBalanceAfter?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceAfter_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceAfter_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceAfter_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  senderBalanceAfter_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceAfter_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceAfter_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceAfter_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  senderBalanceBefore?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceBefore_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceBefore_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceBefore_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  senderBalanceBefore_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceBefore_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceBefore_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  senderBalanceBefore_not_in?: InputMaybe<
+    Array<Scalars['BigDecimal']['input']>
+  >;
+  sender_?: InputMaybe<User_Filter>;
+  sender_contains?: InputMaybe<Scalars['String']['input']>;
+  sender_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  sender_ends_with?: InputMaybe<Scalars['String']['input']>;
+  sender_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  sender_gt?: InputMaybe<Scalars['String']['input']>;
+  sender_gte?: InputMaybe<Scalars['String']['input']>;
+  sender_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  sender_lt?: InputMaybe<Scalars['String']['input']>;
+  sender_lte?: InputMaybe<Scalars['String']['input']>;
+  sender_not?: InputMaybe<Scalars['String']['input']>;
+  sender_not_contains?: InputMaybe<Scalars['String']['input']>;
+  sender_not_contains_nocase?: InputMaybe<Scalars['String']['input']>;
+  sender_not_ends_with?: InputMaybe<Scalars['String']['input']>;
+  sender_not_ends_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  sender_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  sender_not_starts_with?: InputMaybe<Scalars['String']['input']>;
+  sender_not_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  sender_starts_with?: InputMaybe<Scalars['String']['input']>;
+  sender_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
+  timestamp?: InputMaybe<Scalars['BigInt']['input']>;
+  timestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  timestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  timestamp_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  timestamp_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  timestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  timestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
+  timestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  tx?: InputMaybe<Scalars['Bytes']['input']>;
+  tx_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  tx_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  tx_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  tx_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  tx_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  tx_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  tx_not?: InputMaybe<Scalars['Bytes']['input']>;
+  tx_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  tx_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  valueUSD?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  valueUSD_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  valueUSD_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+};
+
+export enum TokenTransfer_OrderBy {
+  Amount = 'amount',
+  BlockNumber = 'blockNumber',
+  Id = 'id',
+  Receiver = 'receiver',
+  ReceiverBalanceAfter = 'receiverBalanceAfter',
+  ReceiverBalanceBefore = 'receiverBalanceBefore',
+  ReceiverAddress = 'receiver__address',
+  ReceiverBalance = 'receiver__balance',
+  ReceiverId = 'receiver__id',
+  RestakingToken = 'restakingToken',
+  RestakingTokenPriceUsd = 'restakingTokenPriceUSD',
+  RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
+  RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
+  RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
+  RestakingTokenId = 'restakingToken__id',
+  RestakingTokenName = 'restakingToken__name',
+  RestakingTokenPercentApy = 'restakingToken__percentAPY',
+  RestakingTokenSymbol = 'restakingToken__symbol',
+  RestakingTokenTotalSupply = 'restakingToken__totalSupply',
+  RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
+  RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD',
+  Sender = 'sender',
+  SenderBalanceAfter = 'senderBalanceAfter',
+  SenderBalanceBefore = 'senderBalanceBefore',
+  SenderAddress = 'sender__address',
+  SenderBalance = 'sender__balance',
+  SenderId = 'sender__id',
+  Timestamp = 'timestamp',
+  Tx = 'tx',
+  ValueUsd = 'valueUSD'
+}
 
 export type UnderlyingAsset = {
   __typename?: 'UnderlyingAsset';
@@ -4216,6 +4474,24 @@ export type DepositFieldsFragment = {
   restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
 };
 
+export type TokenTransferFieldsFragment = {
+  __typename?: 'TokenTransfer';
+  id: string;
+  amount: any;
+  restakingTokenPriceUSD?: any | null;
+  senderBalanceBefore: any;
+  senderBalanceAfter: any;
+  receiverBalanceBefore: any;
+  receiverBalanceAfter: any;
+  valueUSD?: any | null;
+  timestamp: any;
+  blockNumber: any;
+  tx: any;
+  receiver: { __typename?: 'User'; id: string };
+  sender: { __typename?: 'User'; id: string };
+  restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
+};
+
 export type WithdrawalRequestFieldsFragment = {
   __typename?: 'WithdrawalRequest';
   id: string;
@@ -4425,6 +4701,35 @@ export type ManyDepositsQuery = {
     blockNumber: any;
     tx: any;
     assetIn: { __typename?: 'Asset'; id: string };
+    restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
+  }>;
+};
+
+export type ManyTokenTransfersQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  skip: Scalars['Int']['input'];
+  orderBy?: InputMaybe<TokenTransfer_OrderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<TokenTransfer_Filter>;
+}>;
+
+export type ManyTokenTransfersQuery = {
+  __typename?: 'Query';
+  tokenTransfers: Array<{
+    __typename?: 'TokenTransfer';
+    id: string;
+    amount: any;
+    restakingTokenPriceUSD?: any | null;
+    senderBalanceBefore: any;
+    senderBalanceAfter: any;
+    receiverBalanceBefore: any;
+    receiverBalanceAfter: any;
+    valueUSD?: any | null;
+    timestamp: any;
+    blockNumber: any;
+    tx: any;
+    receiver: { __typename?: 'User'; id: string };
+    sender: { __typename?: 'User'; id: string };
     restakingToken: { __typename?: 'LiquidRestakingToken'; id: string };
   }>;
 };
@@ -4770,6 +5075,80 @@ export const DepositFieldsFragmentDoc = {
     }
   ]
 } as unknown as DocumentNode<DepositFieldsFragment, unknown>;
+export const TokenTransferFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'TokenTransferFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'TokenTransfer' }
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'receiver' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'sender' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingToken' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'amount' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingTokenPriceUSD' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'senderBalanceBefore' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'senderBalanceAfter' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'receiverBalanceBefore' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'receiverBalanceAfter' }
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
+        ]
+      }
+    }
+  ]
+} as unknown as DocumentNode<TokenTransferFieldsFragment, unknown>;
 export const WithdrawalRequestFieldsFragmentDoc = {
   kind: 'Document',
   definitions: [
@@ -5720,6 +6099,202 @@ export const ManyDepositsDocument = {
     }
   ]
 } as unknown as DocumentNode<ManyDepositsQuery, ManyDepositsQueryVariables>;
+export const ManyTokenTransfersDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'manyTokenTransfers' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'first' }
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'skip' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderBy' }
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'TokenTransfer_orderBy' }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'orderDirection' }
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'OrderDirection' }
+          }
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'where' }
+          },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'TokenTransfer_filter' }
+          }
+        }
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'tokenTransfers' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'first' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'first' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'skip' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'skip' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderBy' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderBy' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'orderDirection' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'orderDirection' }
+                }
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'where' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'where' }
+                }
+              }
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'TokenTransferFields' }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'TokenTransferFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'TokenTransfer' }
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'receiver' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'sender' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingToken' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } }
+              ]
+            }
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'amount' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'restakingTokenPriceUSD' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'senderBalanceBefore' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'senderBalanceAfter' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'receiverBalanceBefore' }
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'receiverBalanceAfter' }
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'valueUSD' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'timestamp' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'blockNumber' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'tx' } }
+        ]
+      }
+    }
+  ]
+} as unknown as DocumentNode<
+  ManyTokenTransfersQuery,
+  ManyTokenTransfersQueryVariables
+>;
 export const ManyWithdrawalRequestsDocument = {
   kind: 'Document',
   definitions: [

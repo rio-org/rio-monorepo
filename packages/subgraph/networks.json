@@ -2,11 +2,21 @@
   "goerli": {
     "RioLRTIssuer": {
       "address": "0x74ff9755c22E97E1acB35f273784e21375a9f0c8",
-      "startBlock": 10452854     
+      "startBlock": 10452854
     },
     "DelegationManager": {
       "address": "0x1b7b8F6b258f95Cf9596EabB9aa18B62940Eb0a8",
       "startBlock": 10452854
+    }
+  },
+  "holesky": {
+    "RioLRTIssuer": {
+      "address": "0x95e7fef8e83e4e69f42c17a7b474913df5124270",
+      "startBlock": 1187678
+    },
+    "DelegationManager": {
+      "address": "0xA44151489861Fe9e3055d95adC98FbD462B948e7",
+      "startBlock": 1187678
     }
   }
 }

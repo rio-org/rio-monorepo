@@ -16,12 +16,15 @@ import {
   OperatorDelegator_OrderBy,
   OperatorDelegator_Filter,
   Validator_OrderBy,
-  Validator_Filter
+  Validator_Filter,
+  TokenTransfer_OrderBy,
+  TokenTransfer_Filter
 } from './generated/graphql';
 import {
   IssuerQuery,
   LiquidRestakingTokenQuery,
   ManyDepositsQuery,
+  ManyTokenTransfersQuery,
   ManyWithdrawalRequestsQuery,
   ManyWithdrawalClaimsQuery,
   ManyLiquidRestakingTokensQuery,
@@ -32,6 +35,7 @@ import {
   WithdrawalRequest,
   Issuer,
   Deposit,
+  TokenTransfer,
   LiquidRestakingToken,
   QueryConfig,
   WithdrawalEpochStatus,
@@ -180,6 +184,56 @@ export class SubgraphClient {
         restakingToken: restakingToken.id,
         restakingTokenPriceUSD: restakingTokenPriceUSD ?? null,
         userBalanceAfter,
+        timestamp,
+        blockNumber,
+        tx
+      })
+    );
+  }
+
+  /**
+   * Get information about one or more TokenTransfers.
+   * @param config Filtering, pagination, and ordering configuration.
+   */
+  public async getTokenTransfers(
+    config: Partial<
+      QueryConfig<TokenTransfer_OrderBy, TokenTransfer_Filter>
+    > = {}
+  ): Promise<TokenTransfer[]> {
+    const { tokenTransfers } = await this._gql.request(
+      ManyTokenTransfersQuery,
+      toPaginated(
+        this.merge(getDefaultConfig(TokenTransfer_OrderBy.Id), config)
+      )
+    );
+    return tokenTransfers.map(
+      ({
+        id,
+        sender,
+        receiver,
+        amount,
+        restakingToken,
+        restakingTokenPriceUSD,
+        senderBalanceBefore,
+        senderBalanceAfter,
+        receiverBalanceBefore,
+        receiverBalanceAfter,
+        valueUSD,
+        timestamp,
+        blockNumber,
+        tx
+      }) => ({
+        id,
+        sender: sender.id,
+        receiver: receiver.id,
+        amount,
+        restakingToken: restakingToken.id,
+        senderBalanceBefore,
+        senderBalanceAfter,
+        receiverBalanceBefore,
+        receiverBalanceAfter,
+        restakingTokenPriceUSD: restakingTokenPriceUSD ?? null,
+        valueUSD,
         timestamp,
         blockNumber,
         tx

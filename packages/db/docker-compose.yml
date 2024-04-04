@@ -1,0 +1,15 @@
+version: '1'
+
+services:
+  rio-db:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rio-restaking
+      POSTGRES_PORT: 5432
+    command: ['postgres', '-cshared_preload_libraries=pg_stat_statements']
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
