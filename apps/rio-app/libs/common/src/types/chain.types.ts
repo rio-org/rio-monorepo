@@ -1,25 +1,6 @@
-export type CHAIN_ID_NUMBER =
-  | 1
-  | 5
-  | 17000
-  | 11155111
-  | 10
-  | 420
-  | 8453
-  | 84531
-  | 7777777
-  | 999
-  | 31337;
-
-export const enum CHAIN_ID {
+export enum CHAIN_ID {
   ETHEREUM = 1,
+  MAINNET = 1,
   GOERLI = 5,
   HOLESKY = 17000,
-  OPTIMISM = 10,
-  OPTIMISM_GOERLI = 420,
-  BASE = 8453,
-  BASE_GOERLI = 84531,
-  ZORA = 7777777,
-  ZORA_GOERLI = 999,
-  FOUNDRY = 31337,
 }

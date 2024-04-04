@@ -1,9 +1,6 @@
 import { Provider } from '@nestjs/common';
 import { CHAIN_ID, UtilsProvider } from '@rio-app/common';
 import { TaskSchedulerConfigService } from '@rio-app/common';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import * as postgres from 'postgres';
-import { schema } from '@internal/db';
 // import { holesky } from 'viem/chains';
 // import { createPublicClient } from 'viem';
 // import { http as viemHttp } from 'viem/_types/clients/transports/http';
@@ -25,21 +22,6 @@ export class TaskSchedulerProviders {
   //     inject: [TaskSchedulerConfigService],
   //   };
   // }
-
-  public static createDatabaseConnection(): Provider {
-    return {
-      provide: UtilsProvider.DATABASE_CONNECTION,
-      useFactory: ({ database }: TaskSchedulerConfigService) => {
-        const { username, password, host, port, databaseName } = database;
-        const client = postgres(
-          `postgres://${username}:${password}@${host}:${port}/${databaseName}`,
-        );
-        const db = drizzle(client, { schema });
-        return { client, db };
-      },
-      inject: [TaskSchedulerConfigService],
-    };
-  }
 
   public static createSubgraphConnection(): Provider {
     return {

@@ -6,6 +6,9 @@ import {
   LoggerService,
   RewardsResponse,
   RewardsForAddressQueryResponse,
+  CHAIN_ID,
+  SUPPORTED_CHAIN_IDS,
+  SUPPORTED_CHAIN_NAMES,
 } from '@rio-app/common';
 
 @Injectable()
@@ -28,21 +31,33 @@ export class RewardsService {
    * Calculates the total protocol rewards for a given token
    * @param token The token to pull the reward rate for
    */
-  async getProtocolRewardRate(token: string): Promise<RewardsResponse> {
+  async getProtocolRewardRate(
+    token: string,
+    chain:
+      | (typeof SUPPORTED_CHAIN_IDS)[number]
+      | (typeof SUPPORTED_CHAIN_NAMES)[number],
+  ): Promise<RewardsResponse> {
     const { transfer, balanceSheet } = schema;
     const { db } = this.drizzlePool;
 
-    const eligibleTokens = await db
-      .selectDistinct({ asset: transfer.asset })
-      .from(transfer)
-      .then((r) => r.map((r) => r.asset));
-    const _token = eligibleTokens.find(
-      (t) => t.toLowerCase() === token.toLowerCase(),
-    );
+    const eligibleTokensAndChains = await db
+      .selectDistinct({ asset: transfer.asset, chainId: transfer.chainId })
+      .from(transfer);
 
-    if (!_token) {
-      throw new HttpException(`Token not supported`, HttpStatus.NO_CONTENT);
-    }
+    const _token = eligibleTokensAndChains.find(
+      ({ asset }) => asset.toLowerCase() === token.toLowerCase(),
+    )?.asset;
+
+    if (!_token)
+      throw new HttpException(`Token not supported`, HttpStatus.NOT_FOUND);
+
+    const _chainId = isNaN(Number(chain))
+      ? (CHAIN_ID[`${chain}`.toUpperCase()] as number)
+      : eligibleTokensAndChains.find(({ chainId }) => +chainId === +chain)
+          ?.chainId;
+
+    if (!_chainId)
+      throw new HttpException(`Chain not supported`, HttpStatus.NOT_FOUND);
 
     try {
       const results = await db.execute<RewardsForAddressQueryResponse>(
@@ -63,7 +78,7 @@ export class RewardsService {
               ), 0) as balance
             FROM ${transfer}
             WHERE
-              ${transfer.chainId} = 17000
+              ${transfer.chainId} = ${_chainId}
               AND ${transfer.asset} = ${_token}
               AND (${transfer.to} = ${zeroAddress} OR ${transfer.from} = ${zeroAddress})
           ),
@@ -74,7 +89,7 @@ export class RewardsService {
               ${balanceSheet}
             WHERE
               ${balanceSheet.timestamp} <= CURRENT_TIMESTAMP - INTERVAL '14 DAYS'
-              AND ${balanceSheet.chainId} = 17000
+              AND ${balanceSheet.chainId} = ${_chainId}
               AND ${balanceSheet.restakingToken} = ${_token}
           ),
           final_rate as (
@@ -82,7 +97,7 @@ export class RewardsService {
               COALESCE(MAX(${balanceSheet.exchangeRate}), 1) as final_rate
             FROM
               rio_restaking.balance_sheet
-            WHERE ${balanceSheet.chainId} = 17000
+            WHERE ${balanceSheet.chainId} = ${_chainId}
               AND ${balanceSheet.restakingToken} = ${_token}
           )
         SELECT
@@ -101,7 +116,7 @@ export class RewardsService {
           JOIN starting_rate on 1=1;
         `,
       );
-
+      this._logger.log(results[0].toString());
       return {
         eth_rewards_in_period: results[0]?.eth_rewards_in_period || '0',
         yearly_rewards_percent: results[0]?.yearly_rewards_percent || '0',
@@ -124,24 +139,33 @@ export class RewardsService {
   async getAddressRewardRate(
     token: string,
     address: string,
+    chain:
+      | (typeof SUPPORTED_CHAIN_IDS)[number]
+      | (typeof SUPPORTED_CHAIN_NAMES)[number],
   ): Promise<RewardsResponse> {
     const { transfer, balanceSheet } = schema;
     const { asset, to, from, value, chainId, timestamp } = schema.transfer;
     const { db } = this.drizzlePool;
 
-    const eligibleTokens = await db
-      .selectDistinct({ asset })
-      .from(transfer)
-      .then((r) => r.map((r) => r.asset));
+    const eligibleTokensAndChains = await db
+      .selectDistinct({ asset, chainId })
+      .from(transfer);
 
     const _address = address.toLowerCase();
-    const _token = eligibleTokens.find(
-      (t) => t.toLowerCase() === token.toLowerCase(),
-    );
+    const _token = eligibleTokensAndChains.find(
+      ({ asset }) => asset.toLowerCase() === token.toLowerCase(),
+    )?.asset;
 
-    if (!_token) {
-      throw new HttpException(`Token not supported`, HttpStatus.NO_CONTENT);
-    }
+    if (!_token)
+      throw new HttpException(`Token not supported`, HttpStatus.NOT_FOUND);
+
+    const _chainId = isNaN(Number(chain))
+      ? (CHAIN_ID[`${chain}`.toUpperCase()] as number)
+      : eligibleTokensAndChains.find(({ chainId }) => +chainId === +chain)
+          ?.chainId;
+
+    if (!_chainId)
+      throw new HttpException(`Chain not supported`, HttpStatus.NOT_FOUND);
 
     try {
       const results = await db.execute<RewardsForAddressQueryResponse>(
@@ -155,7 +179,7 @@ export class RewardsService {
                 CASE WHEN ${to} = ${_address} THEN ${value} ELSE -${value} END, 0
               )) OVER (ORDER BY ${timestamp} ASC) - ${value} AS balance_before
             FROM ${transfer}
-            WHERE ${chainId} = 17000
+            WHERE ${chainId} = ${_chainId}
             AND (${to} = ${_address} OR ${from} = ${_address} AND ${to} != ${zeroAddress})
           ),
           -- ...
@@ -177,7 +201,7 @@ export class RewardsService {
                 b.delta_rate_per_second AS rate_per_second,
                 b.exchange_rate
               FROM ${balanceSheet} b
-              WHERE b.chain_id = 17000 and b.timestamp <= t.timestamp
+              WHERE b.chain_id = ${_chainId} and b.timestamp <= t.timestamp
               ORDER BY b.timestamp DESC
               LIMIT 1
             ) bs

@@ -1,6 +1,6 @@
 import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
-import { RewardsResponse } from '@rio-app/common/types/rewards.types';
+import { RewardsResponse } from '@rio-app/common';
 import { RewardsService } from './rewards.service';
 import {
   AddressRewardRateDto,
@@ -18,23 +18,23 @@ export class RewardsController {
     return this.rewardsService.getTime();
   }
 
-  @Get('/:token/protocol')
+  @Get('/:token/chain/:chain/protocol')
   @CacheTTL(1) // TODO increase this amount of cache time on prod
   @UseInterceptors(CacheInterceptor)
   getProtocolRewardRate(
     @Param() params: ProtocolRewardRateDto,
   ): Promise<RewardsResponse> {
-    const { token } = params;
-    return this.rewardsService.getProtocolRewardRate(token);
+    const { token, chain } = params;
+    return this.rewardsService.getProtocolRewardRate(token, chain);
   }
 
-  @Get('/:token/address/:address')
+  @Get('/:token/chain/:chain/address/:address')
   @CacheTTL(1) // TODO increase this amount of cache time on prod
   @UseInterceptors(CacheInterceptor)
   getAddressRewardRate(
     @Param() params: AddressRewardRateDto,
   ): Promise<RewardsResponse> {
-    const { token, address } = params;
-    return this.rewardsService.getAddressRewardRate(token, address);
+    const { token, address, chain } = params;
+    return this.rewardsService.getAddressRewardRate(token, address, chain);
   }
 }
