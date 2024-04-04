@@ -27,8 +27,92 @@ export class RewardsService {
    * Calculates the total protocol rewards for a given token
    * @param token The token to pull the reward rate for
    */
-  async getProtocolRewardRate(token: string): Promise<string> {
-    return `${token} lots`;
+  async getProtocolRewardRate(token: string): Promise<RewardsResponse> {
+    const { transfer, balanceSheet } = schema;
+    const { db } = this.drizzlePool;
+
+    const eligibleTokens = await db
+      .selectDistinct({ asset: transfer.asset })
+      .from(transfer)
+      .then((r) => r.map((r) => r.asset));
+    const _token = eligibleTokens.find(
+      (t) => t.toLowerCase() === token.toLowerCase(),
+    );
+
+    if (!_token) {
+      throw new HttpException(`Token not supported`, HttpStatus.NO_CONTENT);
+    }
+
+    try {
+      const results = await db.execute<RewardsForAddressQueryResponse>(
+        sql`
+          WITH extrapolation AS (
+            SELECT ROUND(
+              (EXTRACT(EPOCH FROM INTERVAL '1 year') * 1000)
+              / (EXTRACT(EPOCH FROM INTERVAL '14 days') * 1000)
+            ) as extrapolation
+          ),
+          balance as (
+            SELECT
+              COALESCE(SUM(
+                CASE WHEN ${transfer.to} = ${zeroAddress}
+                  THEN - ${transfer.value}
+                  ELSE ${transfer.value}
+                END
+              ), 0) as balance
+            FROM ${transfer}
+            WHERE
+              ${transfer.chainId} = 17000
+              AND ${transfer.asset} = ${_token}
+              AND (${transfer.to} = ${zeroAddress} OR ${transfer.from} = ${zeroAddress})
+          ),
+          starting_rate as (
+            SELECT
+              COALESCE(MAX(${balanceSheet.exchangeRate}), 1) as starting_rate
+            FROM
+              ${balanceSheet}
+            WHERE
+              ${balanceSheet.timestamp} <= CURRENT_TIMESTAMP - INTERVAL '14 DAYS'
+              AND ${balanceSheet.chainId} = 17000
+              AND ${balanceSheet.restakingToken} = ${_token}
+          ),
+          final_rate as (
+            SELECT
+              COALESCE(MAX(${balanceSheet.exchangeRate}), 1) as final_rate
+            FROM
+              rio_restaking.balance_sheet
+            WHERE ${balanceSheet.chainId} = 17000
+              AND ${balanceSheet.restakingToken} = ${_token}
+          )
+        SELECT
+          TRUNC(
+            ((balance * final_rate) - (COALESCE(balance) * starting_rate)) / 1e18,
+            18
+          ) as eth_rewards_in_period,
+          TRUNC(
+            (final_rate - starting_rate) * extrapolation * 100,
+            18
+          ) as yearly_rewards_percent
+        FROM
+          balance
+          JOIN extrapolation on 1=1
+          JOIN final_rate on 1=1
+          JOIN starting_rate on 1=1;
+        `,
+      );
+
+      return {
+        eth_rewards_in_period: results[0]?.eth_rewards_in_period || '0',
+        yearly_rewards_percent: results[0]?.yearly_rewards_percent || '0',
+      };
+    } catch (e) {
+      this._logger.error(`[Error] Token: ${token}`, e.toString());
+      console.log('error', e.toString());
+      throw new HttpException(
+        `Internal Server Error`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   /**

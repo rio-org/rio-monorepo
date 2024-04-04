@@ -23,7 +23,7 @@ export class RewardsController {
   @UseInterceptors(CacheInterceptor)
   getProtocolRewardRate(
     @Param() params: ProtocolRewardRateDto,
-  ): Promise<string> {
+  ): Promise<RewardsResponse> {
     const { token } = params;
     return this.rewardsService.getProtocolRewardRate(token);
   }
