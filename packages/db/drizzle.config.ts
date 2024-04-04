@@ -6,10 +6,10 @@ export default {
   out: './drizzle',
   driver: 'pg',
   dbCredentials: {
-    host: ENV.DB_HOST,
-    user: ENV.DB_USER,
-    port: ENV.DB_PORT,
-    password: ENV.DB_PASSWORD,
-    database: ENV.DB_NAME,
+    host: ENV.DATABASE_HOST,
+    user: ENV.DATABASE_USERNAME,
+    port: ENV.DATABASE_PORT,
+    password: ENV.DATABASE_PASSWORD,
+    database: ENV.DATABASE_NAME,
   },
 } satisfies Config;

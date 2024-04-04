@@ -1,6 +1,6 @@
 import { LoggerService } from '@rio-app/common';
 import { Injectable } from '@nestjs/common';
-import { TaskSchedulerConfigService } from '@rio-app/config';
+import { TaskSchedulerConfigService } from '@rio-app/common';
 
 @Injectable()
 export class TaskSchedulerService {

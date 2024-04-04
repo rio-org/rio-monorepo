@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { SharedConfigService } from '../shared';
 import { TaskSchedulerServiceConfig } from './config.types';
-import { CronTask, CronTaskName, FormatService } from '@rio-app/common';
+import { CronTask, CronTaskName } from '../../';
+import { FormatService } from '../../utils';
 import { ConfigService } from '@nestjs/config';
 
 /**

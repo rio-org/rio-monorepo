@@ -2,10 +2,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { getDrizzlePool, schema, sql } from '@internal/db';
 import { zeroAddress } from 'viem';
 import {
+  DatabaseService,
+  LoggerService,
   RewardsResponse,
   RewardsForAddressQueryResponse,
-} from '@rio-app/common/types/rewards.types';
-import { DatabaseService, LoggerService } from '@rio-app/common';
+} from '@rio-app/common';
 
 @Injectable()
 export class RewardsService {

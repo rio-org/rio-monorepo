@@ -5,7 +5,9 @@ import { CHAIN_ID } from './chain.types';
  */
 export interface CronTask {
   task: CronTaskName;
-  chainId?: CHAIN_ID;
+  cronExpression: string;
+  chainId: CHAIN_ID;
+  isEnabled: boolean;
 }
 
 /**
@@ -23,7 +25,8 @@ export enum TaskSchedulerProvider {
  * Names of all cron tasks
  */
 export enum CronTaskName {
-  IMPORT_DATA = 'import_data',
+  SYNC_TRANSFERS = 'sync_transfers',
+  SYNC_EXCHANGE_RATES = 'sync_exchange_rates',
 }
 
 /**

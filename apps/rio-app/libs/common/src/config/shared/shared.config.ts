@@ -1,6 +1,6 @@
 import { LogLevel } from '@nestjs/common';
 import { SharedConfig } from './config.types';
-import { CHAIN_ID } from '@rio-app/common';
+import { CHAIN_ID } from '../../';
 
 export const sharedConfigPath = 'shared.env';
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SharedConfigService } from '../shared';
 import { ApiRioConfig } from './config.types';
-import { FormatService } from '@rio-app/common';
+import { FormatService } from '../../utils';
 import { ConfigService } from '@nestjs/config';
 import { ThrottlerOptions } from '@nestjs/throttler';
 

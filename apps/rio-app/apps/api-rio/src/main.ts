@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ShutdownSignal, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import * as compression from 'compression';
-import { ApiRioConfigService } from '@rio-app/config';
+import { ApiRioConfigService } from '@rio-app/common';
 import {
   LoggerService,
   attachGlobalExceptionHandlers,

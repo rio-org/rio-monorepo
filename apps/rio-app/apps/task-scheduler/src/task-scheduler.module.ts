@@ -1,24 +1,20 @@
 import { DynamicModule, Module } from '@nestjs/common';
-// import { RedisModule } from '@svtslv/nestjs-ioredis';
 import { ScheduleModule } from '@nestjs/schedule';
 import {
-  TaskSchedulerModuleOptions,
-  LoggerModule,
-  HealthModule,
   DatabaseModule,
   DatabaseService,
-} from '@rio-app/common';
-// import { LoggerService } from '@rio-app/common';
-import {
+  HealthModule,
+  LoggerModule,
   TaskSchedulerConfigModule,
   TaskSchedulerConfigService,
-} from '@rio-app/config';
-import { ImportDataTaskManagerModule } from './tasks';
+  TaskSchedulerModuleOptions,
+} from '@rio-app/common';
+import {
+  SyncExchangeRatesTaskManagerModule,
+  SyncTransfersTaskManagerModule,
+} from './tasks';
 import { TaskSchedulerController } from './task-scheduler.controller';
 import { TaskSchedulerService } from './task-scheduler.service';
-// import { TaskSchedulerProviders } from './task-scheduler.providers';
-// import { CacheModule, CacheStore } from '@nestjs/cache-manager';
-// import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
   imports: [TaskSchedulerConfigModule],
@@ -55,39 +51,13 @@ export class TaskSchedulerModule {
           inject: [TaskSchedulerConfigService],
           exports: [DatabaseService],
         }),
-        // RedisModule.forRootAsync({
-        //   useFactory: ({ redis }: TaskSchedulerConfigService) => ({
-        //     config: {
-        //       url: redis.url,
-        //     },
-        //   }),
-        //   inject: [TaskSchedulerConfigService],
-        // }),
 
-        // CacheModule.registerAsync({
-        //   isGlobal: true,
-        //   imports: [TaskSchedulerConfigModule],
-        //   useFactory: async ({
-        //     redis,
-        //     redisCache,
-        //   }: TaskSchedulerConfigService) => ({
-        //     ttl: redisCache.ttl,
-        //     store: (await redisStore({
-        //       url: redis.url,
-        //       // @ts-ignore
-        //       store: undefined,
-        //     })) as unknown as CacheStore,
-        //   }),
-        //   inject: [TaskSchedulerConfigService],
-        // }),
         ScheduleModule.forRoot(),
-        ImportDataTaskManagerModule.register(moduleOptions),
+        SyncExchangeRatesTaskManagerModule.register(moduleOptions),
+        SyncTransfersTaskManagerModule.register(moduleOptions),
       ],
       controllers: [TaskSchedulerController],
-      providers: [
-        // RedisCacheService,
-        TaskSchedulerService,
-      ],
+      providers: [TaskSchedulerService],
     };
   }
 }
