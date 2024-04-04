@@ -25,24 +25,24 @@ contract RioLRTCoordinatorTest is RioDeployer {
         (reLST,) = issueRestakedLST();
     }
 
-    function test_depositEtherNotSupportedReverts() public {
+    function test_depositETHNotSupportedReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.ASSET_NOT_SUPPORTED.selector, ETH_ADDRESS));
         reLST.coordinator.depositETH{value: 1 ether}();
     }
 
-    function test_depositEtherZeroValueReverts() public {
+    function test_depositETHZeroValueReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.AMOUNT_MUST_BE_GREATER_THAN_ZERO.selector));
         reETH.coordinator.depositETH{value: 0}();
     }
 
-    function test_depositEtherViaNamedFunction() public {
+    function test_depositETHViaNamedFunction() public {
         reETH.coordinator.depositETH{value: 1 ether}();
 
         // The initial exchange rate is 1:1.
         assertEq(reETH.token.balanceOf(address(this)), 1 ether);
     }
 
-    function test_depositEtherViaReceiveFunction() public {
+    function test_depositETHViaReceiveFunction() public {
         (bool success,) = address(reETH.coordinator).call{value: 1 ether}('');
         assertTrue(success);
 
@@ -209,7 +209,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         reETH.coordinator.rebalanceETH(root, signature);
     }
 
-    function test_rebalanceNotNeededReverts() public {
+    function test_rebalanceETHNotNeededReverts() public {
         (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
 
         // No withdrawals or deposits have been made, so no rebalance is needed.
@@ -219,7 +219,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         reETH.coordinator.rebalanceETH(root, signature);
     }
 
-    function test_rebalanceNotEOAReverts() public {
+    function test_rebalanceETHNotEOAReverts() public {
         // Get the latest POS deposit root and guardian signature.
         (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
 
@@ -229,7 +229,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         reETH.coordinator.rebalanceETH(root, signature);
     }
 
-    function test_rebalanceDelayNotMetReverts() public {
+    function test_rebalanceETHDelayNotMetReverts() public {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
 
@@ -249,7 +249,69 @@ contract RioLRTCoordinatorTest is RioDeployer {
         reETH.coordinator.rebalanceETH(root, signature);
     }
 
-    function test_rebalanceSetsNextRebalanceTimestamp() public {
+    function test_rebalanceETHInvalidGuardianSignatureBeforeWithdrawalOnlyPeriodReverts() public {
+        // Ensure there is an operator to allocate to.
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
+
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+
+        vm.warp(reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS) + 1);
+
+        // Get the latest POS deposit root and guardian signature.
+        (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.INVALID_GUARDIAN_SIGNATURE.selector));
+
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalanceETH(root, signature);
+    }
+
+    function test_rebalanceETHStaleDepositRootReverts() public {
+        // Ensure there is an operator to allocate to.
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
+
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+
+        // Get the latest POS deposit root and guardian signature.
+        (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalanceETH(root, signature);
+
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE}();
+
+        skip(reETH.coordinator.rebalanceDelay() + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.STALE_DEPOSIT_ROOT.selector));
+
+        // Rebalance using old root.
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalanceETH(root, signature);
+    }
+
+    function test_rebalanceETHInvalidGuardianSignatureDuringWithdrawalOnlyPeriodAllowsPartialRebalance() public {
+        // Ensure there is an operator to allocate to.
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
+
+        reETH.coordinator.depositETH{value: ETH_DEPOSIT_SIZE * 2}();
+
+        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, ETH_DEPOSIT_SIZE);
+
+        uint256 depositPoolBalanceBefore = address(reETH.depositPool).balance;
+
+        vm.warp(reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS) + 25 hours);
+
+        // Get the latest POS deposit root.
+        (bytes32 root,) = signCurrentDepositRoot(reETH.coordinator);
+
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalanceETH(root, new bytes(65));
+
+        // Only the withdrawal should be processed.
+        assertEq(address(reETH.depositPool).balance, depositPoolBalanceBefore - ETH_DEPOSIT_SIZE);
+    }
+
+    function test_rebalanceETHSetsNextRebalanceTimestamp() public {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
 
@@ -264,7 +326,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertTrue(reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS) > block.timestamp);
     }
 
-    function test_rebalanceAboveSoftCapAndBufferDoesNotIncreaseNextRebalanceTimestamp() public {
+    function test_rebalanceETHAboveSoftCapAndBufferDoesNotIncreaseNextRebalanceTimestamp() public {
         // Ensure there are operators to allocate to.
         addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 10);
 
@@ -291,7 +353,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertTrue(reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS) > initialRebalanceAfterTimestamp);
     }
 
-    function test_rebalanceSettlesWithdrawalEpochIfSufficientEtherInDepositPool() public {
+    function test_rebalanceETHSettlesWithdrawalEpochIfSufficientEtherInDepositPool() public {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
 
@@ -314,7 +376,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(address(reETH.withdrawalQueue).balance, amount);
     }
 
-    function test_rebalanceQueuesWithdrawalEpochLowEtherBalanceInDepositPool() public {
+    function test_rebalanceETHQueuesWithdrawalEpochLowEtherBalanceInDepositPool() public {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
 
@@ -353,7 +415,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(address(reETH.withdrawalQueue).balance, ETH_DEPOSIT_SIZE);
     }
 
-    function test_rebalanceQueuesWithdrawalEpochNoEtherBalanceInDepositPool() public {
+    function test_rebalanceETHQueuesWithdrawalEpochNoEtherBalanceInDepositPool() public {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
 
@@ -390,7 +452,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(address(reETH.withdrawalQueue).balance, 0);
     }
 
-    function test_rebalanceSettlesWithdrawalEpochIfSufficientERC20sInDepositPool() public {
+    function test_rebalanceERC20SettlesWithdrawalEpochIfSufficientERC20sInDepositPool() public {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
 
@@ -412,7 +474,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), amount);
     }
 
-    function test_rebalanceQueuesWithdrawalEpochLowERC20BalanceInDepositPool() public {
+    function test_rebalanceERC20QueuesWithdrawalEpochLowERC20BalanceInDepositPool() public {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
 
@@ -446,7 +508,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), amount);
     }
 
-    function test_rebalanceQueuesWithdrawalEpochNoERC20BalanceInDepositPool() public {
+    function test_rebalanceERC20QueuesWithdrawalEpochNoERC20BalanceInDepositPool() public {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
 
