@@ -1,12 +1,4 @@
-import { holesky } from 'viem/chains';
-import { Injectable } from '@nestjs/common';
-import {
-  Chain,
-  createPublicClient,
-  parseEther,
-  http as viemHttp,
-  zeroAddress,
-} from 'viem';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   Deposit,
   LiquidRestakingToken,
@@ -19,23 +11,20 @@ import { desc, schema } from '@internal/db';
 import {
   Deposit_OrderBy,
   OrderDirection,
-  TokenTransfer_OrderBy,
-  WithdrawalRequest_OrderBy,
 } from '@rionetwork/sdk/dist/subgraph/generated/graphql';
 import {
   CHAIN_ID,
+  ChainService,
+  CronTask,
   DatabaseService,
   LoggerService,
   TaskSchedulerConfigService,
+  TaskSchedulerProvider,
 } from '@rio-app/common';
+import { SyncTransfersUtils } from './sync-transfers.utils';
 
 @Injectable()
 export class SyncTransfersTaskManagerService {
-  private readonly subgraph: SubgraphClient;
-  private readonly chain: Chain;
-  private readonly rpcUrl: string;
-  private readonly publicClient;
-  private readonly chainId: CHAIN_ID;
   private readonly db: ReturnType<
     typeof this.databaseService.getConnection
   >['db'];
@@ -44,8 +33,12 @@ export class SyncTransfersTaskManagerService {
   >['client'];
 
   constructor(
+    @Inject(TaskSchedulerProvider.CRON_TASK)
+    private task: CronTask,
     private logger: LoggerService,
-    private configService: TaskSchedulerConfigService,
+    private chain: ChainService,
+    private config: TaskSchedulerConfigService,
+    private syncTransferUtils: SyncTransfersUtils,
     private readonly databaseService: DatabaseService,
   ) {
     this.logger.setContext(this.constructor.name);
@@ -53,116 +46,51 @@ export class SyncTransfersTaskManagerService {
     const { db, client } = this.databaseService.getConnection();
     this.db = db;
     this.client = client;
-
-    this.chainId = CHAIN_ID.HOLESKY;
-    const subgraph = this.configService.getSubgraphDatasource(CHAIN_ID.HOLESKY);
-
-    this.chain = holesky;
-    this.rpcUrl = this.chain.rpcUrls.default.http[0];
-    this.publicClient = createPublicClient({
-      chain: this.chain,
-      transport: viemHttp(this.rpcUrl),
-    });
-    this.subgraph = new SubgraphClient(subgraph.chainId, {
-      subgraphUrl: subgraph.url,
-      subgraphApiKey: subgraph.apiKey,
-    });
   }
 
-  static parseDeposit(chainId: number, symbol: string, deposit: Deposit) {
-    return {
-      chainId,
-      blockNumber: +deposit.blockNumber,
-      txHash: deposit.tx,
-      from: zeroAddress,
-      to: deposit.sender,
-      value: parseEther(deposit.amountOut).toString(),
-      asset: symbol,
-      timestamp: new Date(+deposit.timestamp * 1000),
-    };
-  }
-
-  static parseWithdrawal(
-    chainId: number,
-    symbol: string,
-    withdrawal: WithdrawalRequest,
-  ) {
-    return {
-      chainId,
-      blockNumber: +withdrawal.blockNumber,
-      txHash: withdrawal.tx,
-      from: withdrawal.sender,
-      to: zeroAddress,
-      value: parseEther(withdrawal.amountIn).toString(),
-      asset: symbol,
-      timestamp: new Date(+withdrawal.timestamp * 1000),
-    };
-  }
-
-  static parseTokenTransfer(
-    chainId: number,
-    symbol: string,
-    transfer: TokenTransfer,
-  ) {
-    return {
-      chainId,
-      blockNumber: +transfer.blockNumber,
-      txHash: transfer.tx,
-      from: transfer.sender,
-      to: transfer.receiver,
-      value: parseEther(transfer.amount).toString(),
-      asset: symbol,
-      timestamp: new Date(+transfer.timestamp * 1000),
-    };
-  }
-
-  static buildBatchQueryConfigs(blockNumber: number, batchSize: number) {
-    const common = {
-      where: {
-        blockNumber_gt: blockNumber,
-        blockNumber_lte: blockNumber + batchSize,
-      },
-      perPage: 100,
-      orderDirection: OrderDirection.Asc,
-    };
-    return {
-      deposits: {
-        ...common,
-        orderBy: Deposit_OrderBy.BlockNumber,
-      },
-      withdrawals: {
-        ...common,
-        orderBy: WithdrawalRequest_OrderBy.BlockNumber,
-      },
-      transfers: {
-        ...common,
-        orderBy: TokenTransfer_OrderBy.BlockNumber,
-      },
-    };
-  }
-
-  // @Cron('0 0-23/1 * * *')
   // @Cron(CronExpression.EVERY_HOUR)
-  // @Cron(CronExpression.EVERY_MINUTE)
   @Cron(CronExpression.EVERY_5_MINUTES)
+  // @Cron(CronExpression.EVERY_MINUTE)
+  /**
+   * Sync the transfers from the chains and tokens
+   */
   async syncTransfers() {
-    const liquidRestakingTokens =
-      await this.subgraph.getLiquidRestakingTokens();
+    if (this.task?.chainIds.length === 0) {
+      throw new Error(`No chain ids defined for ${this.task.task}`);
+    }
+    for (const chainId of this.task.chainIds) {
+      const subgraphDatasource = this.config.getSubgraphDatasource(chainId);
+      const subgraph = new SubgraphClient(subgraphDatasource.chainId, {
+        subgraphUrl: subgraphDatasource.url,
+        subgraphApiKey: subgraphDatasource.apiKey,
+      });
 
-    try {
-      this.logger.log(`[Transfers::Starting] Updating transfers`);
-      await this.updateTransfers(liquidRestakingTokens);
-    } catch (error) {
-      this.logger.error(`[Transfers::Error] ${(error as Error).toString()}`);
+      const liquidRestakingTokens = await subgraph.getLiquidRestakingTokens();
+
+      try {
+        this.logger.log(`[Transfers::Starting] Updating transfers`);
+        await this.updateTransfers(liquidRestakingTokens, chainId, subgraph);
+      } catch (error) {
+        this.logger.error(`[Transfers::Error] ${(error as Error).toString()}`);
+      }
     }
   }
 
-  private async updateTransfers(liquidRestakingTokens: LiquidRestakingToken[]) {
+  /**
+   * Update token transfers
+   * @param liquidRestakingTokens The LRTs
+   * @param chainId The Chain id
+   * @param subgraph The subgraph client
+   */
+  private async updateTransfers(
+    liquidRestakingTokens: LiquidRestakingToken[],
+    chainId: CHAIN_ID,
+    subgraph: SubgraphClient,
+  ) {
     const { currentBlockNumber, batchSize, ...batchInfo } =
-      await this.getBatchInfo();
+      await this.getBatchInfo(chainId, subgraph);
 
     if (!batchSize) return;
-
     let { blockNumber } = batchInfo;
 
     while (blockNumber < currentBlockNumber) {
@@ -178,6 +106,8 @@ export class SyncTransfersTaskManagerService {
           batchSize,
           blockNumber,
           liquidRestakingToken,
+          chainId,
+          subgraph,
         );
         transfers.push(..._batchTransfers);
         this.logger.log(
@@ -193,8 +123,15 @@ export class SyncTransfersTaskManagerService {
     }
   }
 
-  private async getBatchInfo() {
-    const currentBlockNumberPromise = this.publicClient.getBlockNumber();
+  /**
+   * Retrieves transfer data from the latest batch
+   * @param chainId The chain id
+   * @param subgraph The subgraph client
+   */
+  private async getBatchInfo(chainId: CHAIN_ID, subgraph: SubgraphClient) {
+    const currentBlockNumberPromise = this.chain
+      .chainClient(chainId)
+      .getBlockNumber();
     const latestTransferPromise = this.db.query.transfer.findFirst({
       orderBy: [desc(schema.transfer.blockNumber)],
     });
@@ -204,7 +141,7 @@ export class SyncTransfersTaskManagerService {
     const blockDifference = Number(currentBlockNumber) - blockNumber;
 
     if (!blockNumber) {
-      const firstDeposits = await this.subgraph.getDeposits({
+      const firstDeposits = await subgraph.getDeposits({
         perPage: 1,
         orderBy: Deposit_OrderBy.BlockNumber,
         orderDirection: OrderDirection.Asc,
@@ -226,20 +163,22 @@ export class SyncTransfersTaskManagerService {
 
   /**
    * Create batch of transfer objects
-   * @param batchSize
-   * @param blockNumber
-   * @param liquidRestakingToken
-   * @private
+   * @param batchSize The batch size
+   * @param blockNumber The block number
+   * @param liquidRestakingToken The liquid restaking token
+   * @param chainId The chain id
+   * @param subgraph The subgraph client
    */
   private async getTransferBatch(
     batchSize: number,
     blockNumber: number,
     liquidRestakingToken: LiquidRestakingToken,
+    chainId: CHAIN_ID,
+    subgraph: SubgraphClient,
   ) {
     const transfers: (typeof schema.transfer.$inferInsert)[] = [];
 
     const symbol = liquidRestakingToken.symbol;
-    const chainId = this.chainId;
     let depositsPage = 1;
     let withdrawalsPage = 1;
     let transfersPage = 1;
@@ -248,7 +187,7 @@ export class SyncTransfersTaskManagerService {
     let transfersFinished = false;
 
     while (!depositsFinished || !withdrawalsFinished || !transfersFinished) {
-      const configs = SyncTransfersTaskManagerService.buildBatchQueryConfigs(
+      const configs = this.syncTransferUtils.buildBatchQueryConfigs(
         blockNumber,
         batchSize,
       );
@@ -260,19 +199,19 @@ export class SyncTransfersTaskManagerService {
       ] = await Promise.all([
         depositsFinished
           ? Promise.resolve([])
-          : this.subgraph.getDeposits({
+          : subgraph.getDeposits({
               ...configs.deposits,
               page: depositsPage++,
             }),
         withdrawalsFinished
           ? Promise.resolve([])
-          : this.subgraph.getWithdrawalRequests({
+          : subgraph.getWithdrawalRequests({
               ...configs.withdrawals,
               page: withdrawalsPage++,
             }),
         transfersFinished
           ? Promise.resolve([])
-          : this.subgraph.getTokenTransfers({
+          : subgraph.getTokenTransfers({
               ...configs.transfers,
               page: transfersPage++,
             }),
@@ -285,17 +224,13 @@ export class SyncTransfersTaskManagerService {
 
       transfers.push(
         ...deposits.map((d) =>
-          SyncTransfersTaskManagerService.parseDeposit(chainId, symbol, d),
+          this.syncTransferUtils.parseDeposit(chainId, symbol, d),
         ),
         ...withdrawals.map((d) =>
-          SyncTransfersTaskManagerService.parseWithdrawal(chainId, symbol, d),
+          this.syncTransferUtils.parseWithdrawal(chainId, symbol, d),
         ),
         ...tokenTransfers.map((t) =>
-          SyncTransfersTaskManagerService.parseTokenTransfer(
-            chainId,
-            symbol,
-            t,
-          ),
+          this.syncTransferUtils.parseTokenTransfer(chainId, symbol, t),
         ),
       );
 
