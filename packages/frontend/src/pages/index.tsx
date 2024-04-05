@@ -33,6 +33,7 @@ import { WithdrawalRequestHistory } from '@/components/History/WithdrawalRequest
 import { RestakeForm } from '@/components/Lazy/RestakeForm.lazy';
 import { ClaimSection } from '@/components/Claim/ClaimSection';
 import { APP_NAV_ITEMS } from 'config';
+import { useProtocolRewards } from '@rio-monorepo/ui/hooks/useProtocolRewards';
 
 const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   faqs
@@ -51,6 +52,10 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   });
 
   useEffect(() => setActiveLrt(lrtList?.[0]), [lrtList]);
+
+  const { data: rewards } = useProtocolRewards({
+    restakingToken: activeLrt?.symbol
+  });
 
   const {
     data: {
@@ -97,7 +102,9 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     tvl: !isLoading
       ? `${Math.trunc(activeLrt.totalValueETH ?? 0).toLocaleString()} ETH`
       : null,
-    apy: !isLoading ? `${(activeLrt.percentAPY ?? 0).toLocaleString()}%` : null
+    apy: rewards?.yearly_rewards_percent
+      ? `${parseFloat(rewards.yearly_rewards_percent).toLocaleString()}%`
+      : null
   };
 
   return (

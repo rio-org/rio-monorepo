@@ -20,6 +20,8 @@ import {
 export const APP_ENV = (process.env.NEXT_PUBLIC_APP_ENV ||
   AppEnv.DEVELOPMENT) as AppEnv;
 
+export const API_URL = `${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1`;
+
 export const CHAIN_ID = 17000 as CHAIN_ID_NUMBER;
 
 export const DATADOG_APPLICATION_ID =
