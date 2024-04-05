@@ -31,13 +31,19 @@ export function useProtocolRewards({
 }: {
   restakingToken?: string;
   chainId?: number;
-}): UseQueryResult<RewardsResponse, Error> {
+}): UseQueryResult<RewardsResponse | undefined, Error> {
   const supportedChainId = useSupportedChainId();
   const _chainId = chainId || supportedChainId;
-  return useQuery<RewardsResponse, Error>({
+  const query = useQuery<RewardsResponse, Error>({
     queryKey: ['protocol-rewards', restakingToken, _chainId],
     queryFn: buildFetcher(restakingToken, _chainId),
     enabled: !!restakingToken && !!_chainId,
     staleTime: 60000
   });
+
+  if (!restakingToken) {
+    return { ...query, data: undefined };
+  }
+
+  return query;
 }

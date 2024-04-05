@@ -36,15 +36,21 @@ export function useAddressRewards({
   restakingToken?: string;
   address?: Address;
   chainId?: number;
-}): UseQueryResult<RewardsResponse, Error> {
+}): UseQueryResult<RewardsResponse | undefined, Error> {
   const { address: connectedAddress } = useAccountIfMounted();
   const supportedChainId = useSupportedChainId();
   const _chainId = chainId || supportedChainId;
   const _address = address || connectedAddress;
-  return useQuery<RewardsResponse, Error>({
+  const query = useQuery<RewardsResponse, Error>({
     queryKey: ['protocol-rewards', _chainId],
     queryFn: buildFetcher(restakingToken, _chainId, _address),
     enabled: !!_address && !!restakingToken && !!_chainId,
     staleTime: 60000
   });
+
+  if (!address || !restakingToken) {
+    return { ...query, data: undefined };
+  }
+
+  return query;
 }
