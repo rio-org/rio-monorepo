@@ -324,6 +324,15 @@ export interface LRTSubgraphResponse
 }
 
 ///////////////////////
+// API Responses
+///////////////////////
+
+export type RewardsResponse = {
+  eth_rewards_in_period: string;
+  yearly_rewards_percent: string;
+};
+
+///////////////////////
 // Validator/Operator
 ///////////////////////
 

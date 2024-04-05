@@ -31,6 +31,7 @@ import { useRestakeForm } from '../../hooks/useRestakeForm';
 import { useWithdrawForm } from '../../hooks/useWithdrawForm';
 import { RestakeField } from '../Lazy/RestakeField.lazy';
 import { MOBILE_MQ } from '@rio-monorepo/ui/lib/constants';
+import { twJoin } from 'tailwind-merge';
 
 export interface RestakeFormProps {
   lrtDetails?: LRTDetails;
@@ -188,9 +189,14 @@ function RestakeFormBase({
               }
               title="TVL"
               infoTooltipContent={
-                <p>
-                  The <strong>Total Value Locked (TVL)</strong> represents the
-                  total amount of assets underlying the reETH token.
+                <p
+                  className={twJoin(
+                    '[&>span]:text-foreground [&>span]:text-opacity-100',
+                    'text-foreground text-opacity-75'
+                  )}
+                >
+                  The <span>Total Value Locked (TVL)</span> represents the total
+                  amount of assets underlying the reETH token.
                 </p>
               }
             >
@@ -200,10 +206,16 @@ function RestakeFormBase({
               icon={<IconChart className="-translate-y-[1px]" />}
               title="APR"
               infoTooltipContent={
-                <p>
-                  Rewards are earned through {lrtDetails?.symbol} token value
-                  appreciation. The rewards rate is determined by the price of
-                  ETH versus the change of the price of {lrtDetails?.symbol}.
+                <p
+                  className={twJoin(
+                    '[&>span]:text-foreground [&>span]:text-opacity-100',
+                    'text-foreground text-opacity-75'
+                  )}
+                >
+                  Rewards are earned through <span>{lrtDetails?.symbol}</span>{' '}
+                  token value appreciation. The rewards rate is determined by
+                  the price of <span>ETH</span> versus the change of the price
+                  of <span>{lrtDetails?.symbol}</span> over the past 14 days.
                 </p>
               }
             >

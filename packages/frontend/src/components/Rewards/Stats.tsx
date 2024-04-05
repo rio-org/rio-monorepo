@@ -1,11 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useMemo, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
-import Stat from './Stat';
 import IconSelectArrow from '@rio-monorepo/ui/components/Icons/IconSelectArrow';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { useAddressRewards } from '@rio-monorepo/ui/hooks/useAddressRewards';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import Stat from './Stat';
 
 interface Props {
   lrt?: LRTDetails;
@@ -17,6 +19,17 @@ const Stats = ({ lrt }: Props) => {
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
+
+  const { address } = useAccountIfMounted();
+
+  const { data: rewards } = useAddressRewards({
+    restakingToken: lrt?.symbol,
+    address
+  });
+
+  const percent = rewards?.yearly_rewards_percent
+    ? parseFloat(rewards.yearly_rewards_percent)
+    : 0;
 
   const stats = useMemo(
     () => [
@@ -33,7 +46,9 @@ const Stats = ({ lrt }: Props) => {
       },
       {
         label: 'Average APY',
-        value: `${lrt?.percentAPY?.toString() || '--'}%`,
+        value: !address
+          ? 'Connect wallet'
+          : `${percent?.toLocaleString() || '--'}%`,
         denominator: '',
         infoTooltipContent: (
           <p>
@@ -44,7 +59,7 @@ const Stats = ({ lrt }: Props) => {
         )
       }
     ],
-    [lrt?.percentAPY]
+    [percent]
   );
 
   return (
