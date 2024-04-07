@@ -272,7 +272,9 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @param newPriceFeed The new price feed.
     function setAssetPriceFeed(address asset, address newPriceFeed) external onlyOwner {
         if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+
         if (newPriceFeed == address(0)) revert INVALID_PRICE_FEED();
+        if (IPriceFeed(newPriceFeed).decimals() != priceFeedDecimals) revert INVALID_PRICE_FEED_DECIMALS();
 
         assetInfo[asset].priceFeed = newPriceFeed;
 
@@ -326,6 +328,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         uint8 decimals = config.asset == ETH_ADDRESS ? 18 : IERC20Metadata(config.asset).decimals();
         if (config.asset == ETH_ADDRESS) {
             if (config.priceFeed != address(0)) revert INVALID_PRICE_FEED();
+            if (priceFeedDecimals != 18) revert INVALID_PRICE_FEED_DECIMALS();
             if (config.strategy != BEACON_CHAIN_STRATEGY) revert INVALID_STRATEGY();
         } else {
             if (decimals > 18) revert INVALID_ASSET_DECIMALS();
