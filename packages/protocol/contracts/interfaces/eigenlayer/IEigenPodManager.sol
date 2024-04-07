@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.23;
 
+import {IETHPOSDeposit} from 'contracts/interfaces/ethereum/IETHPOSDeposit.sol';
 import {IBeaconChainOracle} from 'contracts/interfaces/eigenlayer/IBeaconChainOracle.sol';
 import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
-import {IETHPOSDeposit} from 'contracts/interfaces/eigenlayer/IETHPOSDeposit.sol';
 import {IStrategy} from 'contracts/interfaces/eigenlayer/IStrategy.sol';
 import {IEigenPod} from 'contracts/interfaces/eigenlayer/IEigenPod.sol';
 import {ISlasher} from 'contracts/interfaces/eigenlayer/ISlasher.sol';

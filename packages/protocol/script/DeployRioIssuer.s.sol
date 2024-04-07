@@ -21,7 +21,7 @@ contract DeployRioIssuer is ScriptBase {
         address issuerImpl = address(
             new RioLRTIssuer(
                 address(new RioLRT(issuerAddress)),
-                address(new RioLRTCoordinator(issuerAddress)),
+                address(new RioLRTCoordinator(issuerAddress, ethPOS)),
                 address(new RioLRTAssetRegistry(issuerAddress)),
                 address(
                     new RioLRTOperatorRegistry(
