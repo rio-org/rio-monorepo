@@ -53,6 +53,31 @@ contract RioLRTIssuerTest is RioDeployer {
         );
     }
 
+    function test_issueLRTETHProvidedForNonETHDepositReverts() public {
+        address cbETHPriceFeed = address(new MockPriceFeed(1.05 ether));
+
+        IRioLRTAssetRegistry.AssetConfig[] memory assets = new IRioLRTAssetRegistry.AssetConfig[](1);
+        assets[0] = IRioLRTAssetRegistry.AssetConfig({
+            asset: CBETH_ADDRESS,
+            depositCap: 2_000_000 ether,
+            strategy: CBETH_STRATEGY,
+            priceFeed: cbETHPriceFeed
+        });
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTIssuer.INVALID_ETH_PROVIDED.selector));
+        issuer.issueLRT{value: 1}(
+            'Restaked ETH',
+            'reETH',
+            IRioLRTIssuer.LRTConfig({
+                assets: assets,
+                priceFeedDecimals: 18,
+                operatorRewardPool: address(this),
+                treasury: address(this),
+                deposit: IRioLRTIssuer.SacrificialDeposit({asset: CBETH_ADDRESS, amount: MIN_SACRIFICIAL_DEPOSIT})
+            })
+        );
+    }
+
     function test_issuesLRTWithValidParams() public {
         address rETHPriceFeed = address(new MockPriceFeed(1.09 ether));
         address cbETHPriceFeed = address(new MockPriceFeed(1.05 ether));
