@@ -336,7 +336,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
 
     /// @dev Returns the keccak256 hash of an EigenLayer `withdrawal`.
     /// @param withdrawal The withdrawal.
-    function _computeWithdrawalRoot(IDelegationManager.Withdrawal calldata withdrawal) public pure returns (bytes32) {
+    function _computeWithdrawalRoot(IDelegationManager.Withdrawal calldata withdrawal) internal pure returns (bytes32) {
         return keccak256(abi.encode(withdrawal));
     }
 

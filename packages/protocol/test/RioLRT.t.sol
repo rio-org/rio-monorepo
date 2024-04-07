@@ -31,13 +31,19 @@ contract RioLRTTest is RioDeployer {
         assertEq(token.balanceOf(address(42)), 1e18);
     }
 
+    function test_burnNonWithdrawalQueueReverts() public {
+        vm.prank(address(42));
+        vm.expectRevert(abi.encodeWithSelector(IRioLRT.ONLY_WITHDRAWAL_QUEUE.selector));
+        token.burn(1e18);
+    }
+
     function test_burn() public {
         uint256 initialSupply = token.totalSupply();
 
         vm.prank(address(reETH.coordinator));
-        token.mint(address(42), 1e18);
+        token.mint(address(reETH.withdrawalQueue), 1e18);
 
-        vm.prank(address(42));
+        vm.prank(address(reETH.withdrawalQueue));
         token.burn(1e18);
 
         assertEq(token.totalSupply(), initialSupply);
