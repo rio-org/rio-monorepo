@@ -147,16 +147,16 @@ library ValidatorDetails {
                 // Load key1 into memory
                 let _part1 := sload(keyOffset1) // Load bytes 0..31
                 let _part2 := sload(add(keyOffset1, 1)) // Load bytes 32..47
-                mstore(add(key1, 0x20), _part1) // Store bytes 0..31
                 mstore(add(key1, 0x30), shr(128, _part2)) // Store bytes 16..47
+                mstore(add(key1, 0x20), _part1) // Store bytes 0..31
 
                 isEmpty := iszero(or(_part1, _part2)) // Store if key1 is empty
 
                 // Load key2 into memory
                 _part1 := sload(keyOffset2) // Load bytes 0..31
                 _part2 := sload(add(keyOffset2, 1)) // Load bytes 32..47
-                mstore(add(key2, 0x20), _part1) // Store bytes 0..31
                 mstore(add(key2, 0x30), shr(128, _part2)) // Store bytes 16..47
+                mstore(add(key2, 0x20), _part1) // Store bytes 0..31
 
                 isEmpty := or(isEmpty, iszero(or(_part1, _part2))) // Store if key1 or key2 is empty
             }
