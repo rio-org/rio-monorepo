@@ -258,12 +258,12 @@ contract RioLRTCoordinatorTest is RioDeployer {
         vm.warp(reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS) + 1);
 
         // Get the latest POS deposit root and guardian signature.
-        (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+        (bytes32 root,) = signCurrentDepositRoot(reETH.coordinator);
 
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.INVALID_GUARDIAN_SIGNATURE.selector));
 
         vm.prank(EOA, EOA);
-        reETH.coordinator.rebalanceETH(root, signature);
+        reETH.coordinator.rebalanceETH(root, new bytes(65));
     }
 
     function test_rebalanceETHStaleDepositRootReverts() public {

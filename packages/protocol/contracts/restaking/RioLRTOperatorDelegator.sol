@@ -334,6 +334,7 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
         return WITHDRAWALS_ENABLED_PREFIX | bytes32(uint256(uint160(pod)));
     }
 
+    // forgefmt: disable-next-item
     /// @dev Returns the keccak256 hash of an EigenLayer `withdrawal`.
     /// @param withdrawal The withdrawal.
     function _computeWithdrawalRoot(IDelegationManager.Withdrawal calldata withdrawal) internal pure returns (bytes32) {
