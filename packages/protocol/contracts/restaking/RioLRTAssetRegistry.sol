@@ -230,7 +230,8 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         amount = IStrategy(strategy).sharesToUnderlyingView(shares);
     }
 
-    /// @dev Get the current price from the provided price feed.
+    /// @dev Get the current price from the provided price feed. This function performs no checks on the
+    /// price feed. Its output should not be trusted unless the price feed parameter is known and trusted.
     /// @param priceFeed The price feed contract address.
     function getPrice(address priceFeed) public view returns (uint256) {
         if (priceFeed == address(0)) {
