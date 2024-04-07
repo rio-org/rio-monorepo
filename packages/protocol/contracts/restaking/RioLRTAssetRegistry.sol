@@ -248,18 +248,14 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @notice Removes an underlying asset from the liquid restaking token.
     /// @param asset The address of the asset to remove.
     function removeAsset(address asset) external onlyOwner {
-        if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
-        if (getTVLForAsset(asset) > 0) revert ASSET_HAS_BALANCE();
+        _removeAsset(asset, false);
+    }
 
-        uint256 assetCount = supportedAssets.length;
-        uint256 assetIndex = _findAssetIndex(asset);
-
-        supportedAssets[assetIndex] = supportedAssets[assetCount - 1];
-        supportedAssets.pop();
-
-        delete assetInfo[asset];
-
-        emit AssetRemoved(asset);
+    /// @notice Force removes an underlying asset from the liquid restaking token
+    /// regardless of its balance.
+    /// @param asset The address of the asset to force remove.
+    function forceRemoveAsset(address asset) external onlyOwner {
+        _removeAsset(asset, true);
     }
 
     /// @dev Sets the asset's deposit cap.
@@ -346,6 +342,24 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         info.strategy = config.strategy;
 
         emit AssetAdded(config);
+    }
+
+    /// @dev Removes an underlying asset from the liquid restaking token.
+    /// @param asset The address of the asset to remove.
+    /// @param force If true, the asset will be removed regardless of its balance.
+    function _removeAsset(address asset, bool force) internal {
+        if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+        if (!force && getTVLForAsset(asset) > 0) revert ASSET_HAS_BALANCE();
+
+        uint256 assetCount = supportedAssets.length;
+        uint256 assetIndex = _findAssetIndex(asset);
+
+        supportedAssets[assetIndex] = supportedAssets[assetCount - 1];
+        supportedAssets.pop();
+
+        delete assetInfo[asset];
+
+        emit AssetRemoved(asset, force);
     }
 
     /// @dev Returns the index of the asset in the supported assets array.
