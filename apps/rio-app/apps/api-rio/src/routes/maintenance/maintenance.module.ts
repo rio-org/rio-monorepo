@@ -17,7 +17,7 @@ import { MaintenanceService } from './maintenance.service';
         ttl: redisCache.ttl,
         store: (await redisStore({
           url: redis.url,
-          store: 'none',
+          store: undefined,
         })) as unknown as CacheStore,
       }),
       inject: [ApiRioConfigService],

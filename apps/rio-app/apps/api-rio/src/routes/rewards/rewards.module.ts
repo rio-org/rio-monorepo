@@ -17,7 +17,7 @@ import { ApiRioConfigModule, ApiRioConfigService } from '@rio-app/common';
         ttl: redisCache.ttl,
         store: (await redisStore({
           url: redis.url,
-          store: 'none',
+          store: undefined,
         })) as unknown as CacheStore,
       }),
       inject: [ApiRioConfigService],
