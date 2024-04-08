@@ -39,7 +39,7 @@ export class MaintenanceController {
   @Get('/keys')
   @CacheTTL(5) // seconds
   @UseInterceptors(CacheInterceptor)
-  async keys(): Promise<any> {
+  keys(): Promise<any> {
     return this.cacheManager.store.keys();
   }
 }
