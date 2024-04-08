@@ -1,4 +1,11 @@
-import { Controller, Get, Inject, Ip, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Inject,
+  Ip,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import {
   CACHE_MANAGER,
   CacheInterceptor,
@@ -6,8 +13,10 @@ import {
 } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { MaintenanceService } from './maintenance.service';
+import { ThrottlerBehindProxyGuard } from '../../guards';
 
 @Controller('maintenance')
+@UseGuards(ThrottlerBehindProxyGuard)
 export class MaintenanceController {
   constructor(
     private rewardsService: MaintenanceService,
