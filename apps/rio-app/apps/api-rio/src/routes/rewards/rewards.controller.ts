@@ -2,24 +2,14 @@ import { Controller, Get, Param, UseInterceptors } from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { RewardsResponse } from '@rio-app/common';
 import { RewardsService } from './rewards.service';
-import {
-  AddressRewardRateDto,
-  ProtocolRewardRateDto,
-} from '../../dtos/rewards';
+import { AddressRewardRateDto, ProtocolRewardRateDto } from '../../dtos';
 
 @Controller('rewards')
 export class RewardsController {
   constructor(private rewardsService: RewardsService) {}
 
-  @Get('/time')
-  @CacheTTL(5) // seconds
-  @UseInterceptors(CacheInterceptor)
-  getTime(): string {
-    return this.rewardsService.getTime();
-  }
-
   @Get('/:token/chain/:chain/protocol')
-  @CacheTTL(1) // TODO increase this amount of cache time on prod
+  @CacheTTL(60)
   @UseInterceptors(CacheInterceptor)
   getProtocolRewardRate(
     @Param() params: ProtocolRewardRateDto,
@@ -29,7 +19,7 @@ export class RewardsController {
   }
 
   @Get('/:token/chain/:chain/address/:address')
-  @CacheTTL(1) // TODO increase this amount of cache time on prod
+  @CacheTTL(60)
   @UseInterceptors(CacheInterceptor)
   getAddressRewardRate(
     @Param() params: AddressRewardRateDto,

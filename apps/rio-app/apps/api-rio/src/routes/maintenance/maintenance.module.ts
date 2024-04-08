@@ -4,12 +4,12 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-store';
-import { RewardsController } from './rewards.controller';
-import { RewardsService } from './rewards.service';
 import { ApiRioConfigModule, ApiRioConfigService } from '@rio-app/common';
+import { MaintenanceController } from './maintenance.controller';
+import { MaintenanceService } from './maintenance.service';
 
 @Module({
-  controllers: [RewardsController],
+  controllers: [MaintenanceController],
   imports: [
     CacheModule.registerAsync({
       imports: [ApiRioConfigModule],
@@ -23,6 +23,9 @@ import { ApiRioConfigModule, ApiRioConfigService } from '@rio-app/common';
       inject: [ApiRioConfigService],
     }),
   ],
-  providers: [RewardsService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    MaintenanceService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
-export class RewardsModule {}
+export class MaintenanceModule {}

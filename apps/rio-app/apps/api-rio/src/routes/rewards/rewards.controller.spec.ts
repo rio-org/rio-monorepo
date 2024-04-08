@@ -22,8 +22,8 @@ describe('ApiController', () => {
   });
 
   describe('root', () => {
-    it('should return a truthy value', () => {
-      expect(appController.getTime()).toBeTruthy();
+    it('app should be a truthy value', () => {
+      expect(appController).toBeTruthy();
     });
   });
 });

@@ -2,8 +2,10 @@ import { Controller, Get, Inject } from '@nestjs/common';
 import { HealthCheck, HealthIndicatorFunction } from '@nestjs/terminus';
 import { HealthService } from './health.service';
 import { HealthProvider } from './health.types';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @Controller('health')
+@SkipThrottle()
 export class HealthController {
   constructor(
     @Inject(HealthProvider.HEALTH_CHECKS)
