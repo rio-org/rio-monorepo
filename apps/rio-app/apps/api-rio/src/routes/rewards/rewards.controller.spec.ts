@@ -3,6 +3,8 @@ import { RewardsController } from './rewards.controller';
 import { RewardsService } from './rewards.service';
 import { DatabaseService, LoggerService } from '@rio-app/common';
 import { CacheInterceptor } from '@nestjs/cache-manager';
+import { THROTTLER_OPTIONS } from '@nestjs/throttler/dist/throttler.constants';
+import { ThrottlerStorage } from '@nestjs/throttler';
 
 describe('ApiController', () => {
   let appController: RewardsController;
@@ -10,11 +12,19 @@ describe('ApiController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [RewardsController],
-      providers: [RewardsService, LoggerService, DatabaseService],
+      providers: [
+        RewardsService,
+        LoggerService,
+        DatabaseService,
+        { provide: THROTTLER_OPTIONS, useValue: jest.fn() },
+        { provide: ThrottlerStorage, useValue: jest.fn() },
+      ],
     })
       .overrideProvider(DatabaseService)
       .useValue({ getPoolConnection: () => {} })
       .overrideInterceptor(CacheInterceptor)
+      .useValue({})
+      .overrideProvider(THROTTLER_OPTIONS)
       .useValue({})
       .compile();
 
