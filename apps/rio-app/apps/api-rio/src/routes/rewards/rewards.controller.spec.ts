@@ -20,4 +20,10 @@ describe('ApiController', () => {
 
     appController = app.get<RewardsController>(RewardsController);
   });
+
+  describe('root', () => {
+    it('app should be a truthy value', () => {
+      expect(appController).toBeTruthy();
+    });
+  });
 });
