@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ApiRioController } from './api-rio.controller';
 import { ApiRioService } from './api-rio.service';
-import { RewardsModule } from './routes/rewards';
+import { RewardsModule, MaintenanceModule } from './routes/';
 import {
   ApiRioConfigModule,
   ApiRioConfigService,
@@ -45,6 +45,7 @@ import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
       inject: [ApiRioConfigService],
       exports: [DatabaseService],
     }),
+    MaintenanceModule,
     RewardsModule,
   ],
   controllers: [ApiRioController],
