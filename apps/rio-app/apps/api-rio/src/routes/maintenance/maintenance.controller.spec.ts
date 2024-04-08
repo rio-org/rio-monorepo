@@ -7,6 +7,9 @@ import {
   CacheInterceptor,
   CacheModule,
 } from '@nestjs/cache-manager';
+import { THROTTLER_OPTIONS } from '@nestjs/throttler/dist/throttler.constants';
+import { ThrottlerBehindProxyGuard } from '../../guards';
+import { ThrottlerStorage } from '@nestjs/throttler';
 
 describe('MaintenanceController', () => {
   let appController: MaintenanceController;
@@ -15,7 +18,14 @@ describe('MaintenanceController', () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [MaintenanceController],
       imports: [CacheModule],
-      providers: [MaintenanceService, LoggerService, DatabaseService],
+      providers: [
+        MaintenanceService,
+        LoggerService,
+        DatabaseService,
+        ThrottlerBehindProxyGuard,
+        { provide: THROTTLER_OPTIONS, useValue: jest.fn() },
+        { provide: ThrottlerStorage, useValue: jest.fn() },
+      ],
     })
       .overrideProvider(DatabaseService)
       .useValue({ getPoolConnection: () => {} })
