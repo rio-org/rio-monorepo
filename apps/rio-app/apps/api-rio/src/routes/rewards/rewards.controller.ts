@@ -17,7 +17,7 @@ export class RewardsController {
   constructor(private rewardsService: RewardsService) {}
 
   @Get('/:token/chain/:chain/protocol')
-  @CacheTTL(60)
+  @CacheTTL(10)
   @UseInterceptors(CacheInterceptor)
   getProtocolRewardRate(
     @Param() params: ProtocolRewardRateDto,
@@ -27,7 +27,7 @@ export class RewardsController {
   }
 
   @Get('/:token/chain/:chain/address/:address')
-  @CacheTTL(60)
+  @CacheTTL(10)
   @UseInterceptors(CacheInterceptor)
   getAddressRewardRate(
     @Param() params: AddressRewardRateDto,

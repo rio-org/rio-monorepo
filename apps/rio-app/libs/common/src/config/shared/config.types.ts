@@ -22,7 +22,7 @@ export interface SubgraphDatasource {
  * Redis Cache via Cache-Manager configuration values, note this is NOT for RedisCacheService (redis.service.ts)
  */
 export interface RedisCacheConfig {
-  ttl: number;
+  ttl?: number;
 }
 
 /**
@@ -30,7 +30,7 @@ export interface RedisCacheConfig {
  */
 export interface HttpPortConfig {
   apiRio: number;
-  taskSchedulerService: number;
+  taskSyncDBService: number;
 }
 
 /**
