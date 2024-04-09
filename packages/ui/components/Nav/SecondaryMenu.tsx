@@ -1,5 +1,5 @@
 import { Menu, MenuHandler, MenuList } from '@material-tailwind/react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import SecondaryMenuItems from './SecondaryMenuItems';
