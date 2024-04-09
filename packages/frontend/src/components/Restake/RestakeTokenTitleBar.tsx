@@ -96,7 +96,8 @@ export function RestakeTokenTitleBar({
       .getIssuer()
       .then((issuer) =>
         setContracts((prev) => ({ ...prev, issuer: issuer.address as Address }))
-      );
+      )
+      .catch(console.error);
   }, [contracts?.issuer, subgraph]);
 
   useEffect(() => {
