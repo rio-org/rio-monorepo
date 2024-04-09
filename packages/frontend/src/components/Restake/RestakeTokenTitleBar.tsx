@@ -1,5 +1,5 @@
 import Skeleton from 'react-loading-skeleton';
-import { useReadContracts, useWalletClient } from 'wagmi';
+import { useWalletClient } from 'wagmi';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
