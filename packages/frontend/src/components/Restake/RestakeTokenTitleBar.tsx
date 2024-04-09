@@ -106,7 +106,7 @@ export function RestakeTokenTitleBar({
 
   return (
     <Dialog>
-      <div className="flex items-center justify-between pb-4">
+      <div className="flex items-center justify-between pb-2 sm:pb-4">
         <h2 className="flex gap-2 items-center flex-start text-foreground text-base font-medium">
           <span className="leading-snug">
             {lrtDetails?.name ?? <Skeleton height={16} width={111} />}
@@ -120,11 +120,15 @@ export function RestakeTokenTitleBar({
           <DropdownMenuTrigger disabled={!lrtDetails} asChild>
             <Button
               variant="outline"
-              className="flex items-center justify-center gap-[3px] aspect-square w-7 h-7 p-0"
+              className={twJoin(
+                'flex items-center justify-center gap-[3px] aspect-square w-7 h-7 p-0',
+                '[&>div]:rounded-full [&>div]:bg-foreground [&>div]:opacity-70',
+                '[&>div]:w-[3px] [&>div]:h-[3px]'
+              )}
             >
-              <div className="rounded-full bg-foreground opacity-70 w-[3px] h-[3px]" />
-              <div className="rounded-full bg-foreground opacity-70 w-[3px] h-[3px]" />
-              <div className="rounded-full bg-foreground opacity-70 w-[3px] h-[3px]" />
+              <div />
+              <div />
+              <div />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent side="bottom" align="end">

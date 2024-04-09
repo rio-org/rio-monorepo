@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useMediaQuery } from 'react-responsive';
 import Skeleton from 'react-loading-skeleton';
 import { formatUnits } from 'viem';
-import { toast } from 'sonner';
 import {
   type LRTDetails,
   RioTransactionType,

@@ -12,7 +12,7 @@ export const RestakeTokenTitleBar = dynamic<RestakeTokenTitleBarProps>(
 
 export function RestakeTokenTitleBarSkeleton() {
   return (
-    <div className="flex items-center justify-between pb-4">
+    <div className="flex items-center justify-between pb-2 sm:pb-4">
       <h2 className="flex gap-2 items-center flex-start text-foreground text-base font-medium">
         <span className="leading-snug">
           <Skeleton height={16} width={111} />
