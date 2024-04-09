@@ -13,10 +13,12 @@ const APPEAR_VARIANTS = {
 };
 
 const buttonHoverCN = twJoin(
-  'w-full flex justify-between rounded-t-[4px]',
+  'w-full flex justify-between rounded-[4px]',
   'transition-colors duration-200 bg-transparent',
   'hover:bg-foreground hover:bg-opacity-[0.019]',
-  'active:bg-foreground active:bg-opacity-[0.031]'
+  'active:bg-foreground active:bg-opacity-[0.031]',
+  '[&:focus-visible]:outline-none [&:focus-visible]:ring-2',
+  '[&:focus-visible]:ring-primary [&:focus-visible]:ring-opacity-50'
 );
 
 export const FAQS = ({ faqs, tab }: { faqs: FAQ[]; tab?: string }) => {
@@ -69,15 +71,16 @@ export const FAQS = ({ faqs, tab }: { faqs: FAQ[]; tab?: string }) => {
 
       <AnimatePresence>
         {faqsExpanded && (
-          <motion.div
-            {...APPEAR_VARIANTS}
-            className="w-full space-y-4 overflow-hidden"
-          >
+          <motion.div {...APPEAR_VARIANTS} className="w-full space-y-4">
             {filteredFaqs.map((faq, i) => (
               <div key={i} className="w-full rounded-[4px] bg-foregroundA1">
                 <button
                   onClick={curriedExpandQuestion(i)}
-                  className={twJoin('py-2.5 px-4 items-start', buttonHoverCN)}
+                  className={twJoin(
+                    'py-2.5 px-4 items-start',
+                    buttonHoverCN,
+                    !!expandedQuestions[i] && 'rounded-b-none'
+                  )}
                 >
                   <h3 className="text-base text-foreground/90 text-left font-medium leading-tight py-1.5 max-w-[calc(100%-2rem)]">
                     {faq.q}

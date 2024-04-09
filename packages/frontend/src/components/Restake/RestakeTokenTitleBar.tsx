@@ -21,7 +21,10 @@ import {
 } from '@rio-monorepo/ui/components/shadcn/dropdown-menu';
 
 import { linkToAddressOnBlockExplorer } from '@rio-monorepo/ui/lib/utilities';
-import { RESTAKING_TOKEN_NAV_ITEMS } from '@rio-monorepo/ui/config';
+import {
+  RESTAKING_TOKEN_NAV_ITEMS,
+  RIO_CONTRACT_DESCRIPTIONS
+} from '@rio-monorepo/ui/config';
 import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
 import {
   ContractDeployment,
@@ -40,6 +43,8 @@ import {
 } from '@rio-monorepo/ui/components/shadcn/dialog';
 import { ContractAddressField } from '@rio-monorepo/ui/components/Shared/ContractAddressField';
 import { twJoin } from 'tailwind-merge';
+import { useMediaQuery } from 'react-responsive';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 
 export interface RestakeTokenTitleBarProps {
   lrtDetails?: LRTDetails;
@@ -101,8 +106,6 @@ export function RestakeTokenTitleBar({
       ...restakingTokenClient.token.deployment
     }));
   }, [restakingTokenClient?.token]);
-
-  console.log(contracts);
 
   return (
     <Dialog>
@@ -300,6 +303,10 @@ function ContractRow({
     { title: string; value?: string } | undefined
   ];
 }) {
+  const isDesktopOrLaptop = useMediaQuery({
+    query: DESKTOP_MQ
+  });
+
   return (
     <div
       className={twJoin(
@@ -312,6 +319,16 @@ function ContractRow({
           title={addresses[0].title}
           value={addresses[0].value}
           monospaceBoxClassName="w-full max-w-full"
+          tooltipProps={isDesktopOrLaptop ? { align: 'start' } : undefined}
+          tooltipContent={
+            <p className="max-w-[300px]">
+              {
+                RIO_CONTRACT_DESCRIPTIONS[
+                  addresses[0].title as keyof typeof RIO_CONTRACT_DESCRIPTIONS
+                ]
+              }
+            </p>
+          }
           className="w-full max-w-full"
         />
       </div>
@@ -320,7 +337,15 @@ function ContractRow({
           <ContractAddressField
             title={addresses[1].title}
             value={addresses[1].value}
-            monospaceBoxClassName="w-full"
+            monospaceBoxClassName="w-full max-w-full"
+            tooltipContent={
+              <p className="max-w-[300px]">
+                {addresses[1].title &&
+                  RIO_CONTRACT_DESCRIPTIONS[
+                    addresses[1].title as keyof typeof RIO_CONTRACT_DESCRIPTIONS
+                  ]}
+              </p>
+            }
             className="w-full max-w-full"
           />
         )}

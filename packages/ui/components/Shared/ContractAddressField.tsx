@@ -4,7 +4,7 @@ import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 import { IconEtherscan } from '../Icons/IconEtherscan';
 import { MonospaceBox } from '../Shared/MonospaceBox';
 import { cn, linkToAddressOnBlockExplorer } from '../../lib/utilities';
-import { InfoTooltip } from './InfoTooltip';
+import { InfoTooltip, InfoTooltipProps } from './InfoTooltip';
 
 export function ContractAddressField({
   title,
@@ -12,6 +12,7 @@ export function ContractAddressField({
   onEdit,
   className,
   tooltipContent,
+  tooltipProps,
   monospaceBoxClassName
 }: {
   title: string | React.ReactNode;
@@ -19,6 +20,7 @@ export function ContractAddressField({
   onEdit?: () => void;
   className?: string;
   tooltipContent?: string | React.ReactNode;
+  tooltipProps?: Omit<InfoTooltipProps, 'children'>;
   monospaceBoxClassName?: string;
 }) {
   const { chain } = useAccountIfMounted();
@@ -28,15 +30,22 @@ export function ContractAddressField({
 
   return (
     <div className={cn('w-full', className)}>
-      <h4 className="flex text-xs font-medium leading-4 mb-1 opacity-50 space-x-0.5">
-        <span>{title}</span>
-        {tooltipContent && (
-          <InfoTooltip iconClassName="opacity-50">{tooltipContent}</InfoTooltip>
-        )}
+      <h4 className="flex text-xs font-medium leading-4 mb-1 space-x-0.5">
+        <span className="opacity-50">{title}</span>
         {explorerLink && (
-          <a target="_blank" rel="noopener noreferrer" href={explorerLink}>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            className="opacity-50 hover:opacity-100 focus:opacity-100 rounded-full focus:ring-2 focus:ring-foreground focus:outline-0"
+            href={explorerLink}
+          >
             <IconEtherscan />
           </a>
+        )}
+        {tooltipContent && (
+          <InfoTooltip {...tooltipProps} iconClassName="opacity-50">
+            {tooltipContent}
+          </InfoTooltip>
         )}
       </h4>
       <div className="relative flex w-full items-center gap-2 max-w-full">

@@ -1,4 +1,7 @@
-import { TooltipContentProps } from '@radix-ui/react-tooltip';
+import {
+  type TooltipProps,
+  type TooltipContentProps
+} from '@radix-ui/react-tooltip';
 import { IconInfo } from '../Icons/IconInfo';
 import {
   HybridTooltip,
@@ -11,6 +14,7 @@ export type InfoTooltipProps = {
   triggerClassName?: string;
   iconClassName?: string;
   contentClassName?: string;
+  defaultOpen?: TooltipProps['defaultOpen'];
   side?: TooltipContentProps['side'];
   align?: TooltipContentProps['align'];
   children: React.ReactNode | React.ReactNode[];
@@ -22,9 +26,10 @@ export const InfoTooltip = ({
   contentClassName,
   side = 'top',
   align = 'end',
+  defaultOpen = false,
   children
 }: InfoTooltipProps) => (
-  <HybridTooltip>
+  <HybridTooltip defaultOpen={defaultOpen}>
     <HybridTooltipTrigger className={cn('rounded-full', triggerClassName)}>
       <IconInfo className={cn('rounded-full', iconClassName)} />
     </HybridTooltipTrigger>

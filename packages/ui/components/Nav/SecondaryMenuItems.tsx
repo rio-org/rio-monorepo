@@ -1,10 +1,12 @@
 import { MenuItem } from '@material-tailwind/react';
 import Link from 'next/link';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { twJoin } from 'tailwind-merge';
 import IconLineArrow from '../Icons/IconLineArrow';
 import Image from 'next/image';
 import { NavItem, SocialNavItem } from '../../lib/typings';
+import { DESKTOP_MQ } from '../../lib/constants';
+import { useMediaQuery } from 'react-responsive';
 
 type Props = {
   secondaryItems: NavItem[];
@@ -19,10 +21,34 @@ const SecondaryMenuItems = ({
   socialItems,
   setIsSecondaryMenuOpen
 }: Props) => {
+  const isDesktopOrLaptop = useMediaQuery({
+    query: DESKTOP_MQ
+  });
+
+  const visibleSecondaryItems = useMemo(
+    () =>
+      secondaryItems.filter(
+        (it) =>
+          it.url &&
+          !it.hideOn?.includes(isDesktopOrLaptop ? 'desktop' : 'mobile')
+      ),
+    [secondaryItems]
+  );
+
+  const visibleTertiaryItems = useMemo(
+    () =>
+      tertiaryItems.filter(
+        (it) =>
+          it.url &&
+          !it.hideOn?.includes(isDesktopOrLaptop ? 'desktop' : 'mobile')
+      ),
+    [tertiaryItems]
+  );
+
   return (
     <>
       <div>
-        {secondaryItems.map(
+        {visibleSecondaryItems.map(
           ({ label, url, icon }, index) =>
             url && (
               <MenuItem
@@ -52,9 +78,11 @@ const SecondaryMenuItems = ({
             )
         )}
       </div>
-      <hr className="mx-2 my-2 border-t border-foreground border-opacity-10 bg-transparent " />
+      {!!visibleSecondaryItems.length && !!visibleTertiaryItems.length && (
+        <hr className="mx-2 my-2 border-t border-foreground border-opacity-10 bg-transparent " />
+      )}
       <div className="mb-4">
-        {tertiaryItems.map(
+        {visibleTertiaryItems.map(
           ({ label, url, external, disabled }, index) =>
             url && (
               <MenuItem

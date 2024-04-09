@@ -61,7 +61,8 @@ export const APP_SECONDARY_NAV_ITEMS: NavItem[] = [
     label: 'Vote',
     url: undefined,
     icon: iconPaper as string,
-    external: false
+    external: false,
+    disabled: true
   }
 ];
 
@@ -114,3 +115,24 @@ export const APP_SOCIAL_NAV_ITEMS: SocialNavItem[] = [
     external: true
   }
 ];
+
+export const RIO_CONTRACT_DESCRIPTIONS = {
+  RioLRT:
+    'The Rio Liquid Restaking Token (LRT) issued by the Rio Protocol through the RioDAO ("DAO").',
+  RioLRTIssuer:
+    'Proposals made through the RioDAO ("DAO") are responsible for deploying a new Rio LRT. The DAO will interact with the LRT Issuer factory contract when deploying new LRTs.',
+  RioLRTAssetRegistry:
+    'The Asset Registry is responsible for storing the underlying assets available in the Rio LRT. This registry will also catalog the underlying EigenLayer strategy for each token.',
+  RioLRTAVSRegistry:
+    'The AVS Registry contract stores the AVSs that Operators can register for and subsequently opt into their slashing contracts.',
+  RioLRTCoordinator:
+    'Once a Rio LRT has been issued, the LRT Coordinator is responsible for processing deposits, withdrawals, and downstream deposits into EigenLayer',
+  RioLRTDepositPool:
+    'The Deposit functionality in the Coordinator contract works by pulling tokens from the sender/user and sending them to the Rio Deposit Pool.',
+  RioLRTOperatorRegistry:
+    'The Operator Registry contract manages the creation, activation, registration, configuration, and fund allocation/deallocation for the Operator ecosystem.',
+  RioLRTRewardDistributor:
+    'The Reward Distributor contract has the ability to receive ETH via the Ethereum Execution Layer or EigenPod rewards and then distribute those rewards.',
+  RioLRTWithdrawalQueue:
+    'To efficiently handle user withdrawals, the Rio Protocol will pull the Rio restaking tokens from the user and place them into a Withdrawal Queue.'
+};
