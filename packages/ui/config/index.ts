@@ -126,7 +126,7 @@ export const RIO_CONTRACT_DESCRIPTIONS = {
   RioLRTAVSRegistry:
     'The AVS Registry contract stores the AVSs that Operators can register for and subsequently opt into their slashing contracts.',
   RioLRTCoordinator:
-    'Once a Rio LRT has been issued, the LRT Coordinator is responsible for processing deposits, withdrawals, and downstream deposits into EigenLayer',
+    'Once a Rio LRT has been issued, the LRT Coordinator is responsible for processing deposits, withdrawals, and downstream deposits into EigenLayer.',
   RioLRTDepositPool:
     'The Deposit functionality in the Coordinator contract works by pulling tokens from the sender/user and sending them to the Rio Deposit Pool.',
   RioLRTOperatorRegistry:
