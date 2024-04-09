@@ -262,10 +262,10 @@ export class SyncExchangeRatesTaskManagerService {
       const [tvl, lrtSupply] = await protocolValues;
 
       const assetBalance = new BigDecimal(
-        tvl || parseEther(liquidRestakingToken.totalValueETH || '1'),
+        tvl || liquidRestakingToken.totalValueETH || '1',
       );
       const restakingTokenSupply = new BigDecimal(
-        lrtSupply || parseEther(liquidRestakingToken.totalSupply || '1'),
+        lrtSupply || liquidRestakingToken.totalSupply || '1',
       );
 
       await this.insertBalance({

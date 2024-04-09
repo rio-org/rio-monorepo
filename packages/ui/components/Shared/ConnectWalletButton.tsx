@@ -130,7 +130,7 @@ export function ConnectWalletButton({
           children?.({
             user: {
               address,
-              name,
+              name: chainUnsupported ? 'Wrong network' : name,
               avatarElement,
               isLoading: isMainnetSupported ? isEnsLoading : false,
               isInAllowedRegion,
@@ -143,7 +143,13 @@ export function ConnectWalletButton({
               {address ? (
                 <>
                   {avatarElement}
-                  {isEnsLoading ? <Skeleton className="h-4 w-12" /> : name}
+                  {isEnsLoading ? (
+                    <Skeleton className="h-4 w-12" />
+                  ) : chainUnsupported ? (
+                    'Wrong network'
+                  ) : (
+                    name
+                  )}
                 </>
               ) : (
                 <>

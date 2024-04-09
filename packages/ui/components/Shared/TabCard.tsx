@@ -89,7 +89,7 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps>(
           </TabsList>
           <div className="flex flex-col items-end justify-end shrink-0 w-full md:shrink">
             <div
-              className="flex justify-end items-center px-3 w-full"
+              className="flex justify-end items-center sm:px-3 w-full"
               style={{ height: height ? Math.max(0, height - 7) : undefined }}
             >
               {tabDetails}

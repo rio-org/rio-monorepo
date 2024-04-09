@@ -83,7 +83,6 @@ export const RestakeField = ({
       let message: string | null = null;
       const parsedValue = parseUnits(value, token.decimals || 18);
       const minAmount = parseUnits('0.01', token.decimals);
-
       message = !parsedValue
         ? 'Invalid amount'
         : tab === 'Restake' && parsedValue < minAmount
@@ -124,7 +123,7 @@ export const RestakeField = ({
 
       setAmount(strippedValue);
     },
-    [tab, token, setAmount, errorMessage]
+    [tab, token, setAmount, handleEvaluateError, errorMessage]
   );
 
   const focusInput = useCallback(() => {

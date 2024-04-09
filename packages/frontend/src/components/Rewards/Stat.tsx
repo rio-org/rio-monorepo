@@ -5,7 +5,7 @@ import { displayEthAmount } from '@rio-monorepo/ui/lib/utilities';
 import { twJoin } from 'tailwind-merge';
 
 type Props = {
-  label: string;
+  label: string | React.ReactNode;
   value: string;
   denominator: string;
   infoTooltipContent?: React.ReactNode | React.ReactNode[];

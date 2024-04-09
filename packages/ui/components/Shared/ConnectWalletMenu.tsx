@@ -87,7 +87,7 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
   }, [address]);
 
   const _ConnectWalletMenuTrigger = useMemo(
-    () => BuildConnectWalletMenuTrigger(setIsOpen),
+    () => BuildConnectWalletMenuTrigger(setIsOpen, chainUnsupported),
     []
   );
 
@@ -319,7 +319,8 @@ export function ConnectWalletMenu({ className }: { className?: string }) {
 }
 
 function BuildConnectWalletMenuTrigger(
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>,
+  chainUnsupported: boolean
 ) {
   return function ConnectWalletMenuTrigger({
     user: { address, name, avatarElement, isLoading }
@@ -357,12 +358,14 @@ function BuildConnectWalletMenuTrigger(
 
         <div className="flex w-10 items-center overflow-hidden">
           <DropdownMenuShortcut
-            className={twJoin(
+            className={twMerge(
               'overflow-hidden',
               !!address && [
                 'group-hover:max-w-0 group-focus:max-w-0 group-rdx-state-open:max-w-0',
                 'group-hover:opacity-0 group-focus:opacity-0 group-rdx-state-open:opacity-0'
-              ]
+              ],
+              chainUnsupported &&
+                '[&>span]:text-destructive [&>svg>*]:stroke-destructive'
             )}
             action
             character="I"

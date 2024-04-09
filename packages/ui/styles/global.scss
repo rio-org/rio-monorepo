@@ -123,6 +123,6 @@
   body,
   #__next,
   #__next > div {
-    @apply h-full text-foreground;
+    @apply min-h-full text-foreground;
   }
 }
