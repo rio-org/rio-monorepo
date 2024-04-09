@@ -45,7 +45,11 @@ const Stats = ({ lrt }: Props) => {
         )
       },
       {
-        label: 'Average APY',
+        label: (
+          <>
+            User APR <span className="opacity-50">(14-Day Avg)</span>
+          </>
+        ),
         value: !address
           ? 'Connect wallet'
           : `${percent?.toLocaleString() || '--'}%`,

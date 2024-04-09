@@ -144,7 +144,7 @@ export default function Layout({ children, nav }: LayoutProps) {
         <div className="fixed bottom-8 left-4 pt-4 hidden md:block md:sticky md:mt-auto z-0" />
       </main>
       <footer className="absolute bottom-0 left-0 flex items-end justify-between py-4 px-4 md:px-6 w-full">
-        <div className="font-mono text-[10px] opacity-10 leading-[10px]">
+        <div className="font-mono text-[10px] opacity-20 dark:opacity-10 leading-[10px]">
           &copy;{new Date().getFullYear()} Rio Network
         </div>
         <div className="flex flex-row items-center gap-4">
@@ -155,8 +155,8 @@ export default function Layout({ children, nav }: LayoutProps) {
               target="_blank"
               rel="noopener noreferrer"
               className={twJoin(
-                'aspect-square rounded-full',
-                'flex justify-center items-center font-medium opacity-10',
+                'aspect-square rounded-full opacity-20 dark:opacity-10',
+                'flex justify-center items-center font-medium',
                 'hover:opacity-100 focus:opacity-100 active:opacity-100',
                 'hover:outline-0 focus:outline-0 active:outline-0',
                 'transition-opacity'

@@ -2,7 +2,7 @@ import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
 import React from 'react';
 
 type Props = {
-  label: string;
+  label: string | React.ReactNode;
   infoTooltipContent?: React.ReactNode | React.ReactNode[];
 };
 
