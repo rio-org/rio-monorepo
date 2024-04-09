@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import {
   HealthCheckResult,
   HealthIndicatorFunction,
@@ -10,6 +6,7 @@ import {
 } from '@nestjs/terminus';
 import { HealthCheckExecutor } from '@nestjs/terminus/dist/health-check/health-check-executor.service';
 import { HealthIndicatorDns } from './health.indicator-dns';
+import { LoggerService } from '../logger';
 
 @Injectable()
 export class HealthService {
@@ -21,14 +18,15 @@ export class HealthService {
     async () => this._healthIndicator.check('dns', 'google.com'),
   ];
 
-  private readonly _logger = new Logger(HealthService.name);
-
   constructor(
     // @Inject(HealthProvider.HEALTH_METRIC_GAUGE)
     // private readonly _gauge: Gauge<string>,
+    private readonly _logger: LoggerService,
     private readonly _healthCheckExecutor: HealthCheckExecutor,
     private readonly _healthIndicator: HealthIndicatorDns,
-  ) {}
+  ) {
+    this._logger.setContext(this.constructor.name);
+  }
 
   /**
    * Check indicators, return the results and report them as prometheus metrics
@@ -83,7 +81,7 @@ export class HealthService {
       return result;
     }
     const message = `Health Check has failed! ${JSON.stringify(result.error)}`;
-    this._logger.log(message);
+    this._logger.debug(message);
     throw new ServiceUnavailableException(result);
   }
 }

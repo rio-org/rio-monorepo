@@ -13,8 +13,7 @@ import { ApiRioConfigModule, ApiRioConfigService } from '@rio-app/common';
   imports: [
     CacheModule.registerAsync({
       imports: [ApiRioConfigModule],
-      useFactory: async ({ redis, redisCache }: ApiRioConfigService) => ({
-        ttl: redisCache.ttl,
+      useFactory: async ({ redis }: ApiRioConfigService) => ({
         store: (await redisStore({
           url: redis.url,
           store: undefined,

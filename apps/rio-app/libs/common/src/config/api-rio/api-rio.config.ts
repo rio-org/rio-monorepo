@@ -8,7 +8,8 @@ export default (): ApiRioConfig => ({
         parseInt(
           process.env.API_RIO_THROTTLER_SHORT_TTL_MILLISECONDS as string,
         ) || 1_000,
-      limit: parseInt(process.env.API_RIO_THROTTLER_SHORT_LIMIT as string) || 5,
+      limit:
+        parseInt(process.env.API_RIO_THROTTLER_SHORT_LIMIT as string) || 10,
     },
     {
       name: 'medium',
@@ -17,7 +18,7 @@ export default (): ApiRioConfig => ({
           process.env.API_RIO_THROTTLER_MEDIUM_TTL_MILLISECONDS as string,
         ) || 10_000,
       limit:
-        parseInt(process.env.API_RIO_THROTTLER_MEDIUM_LIMIT as string) || 20,
+        parseInt(process.env.API_RIO_THROTTLER_MEDIUM_LIMIT as string) || 50,
     },
     {
       name: 'long',
@@ -25,7 +26,8 @@ export default (): ApiRioConfig => ({
         parseInt(
           process.env.API_RIO_THROTTLER_LONG_TTL_MILLISECONDS as string,
         ) || 60_000,
-      limit: parseInt(process.env.API_RIO_THROTTLER_LONG_LIMIT as string) || 40,
+      limit:
+        parseInt(process.env.API_RIO_THROTTLER_LONG_LIMIT as string) || 100,
     },
   ],
   rootLocation: process.env.API_RIO_ROOT_LOCATION || '/api/v1',

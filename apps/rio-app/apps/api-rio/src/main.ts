@@ -15,7 +15,7 @@ import { useContainer } from 'class-validator';
 async function bootstrap() {
   // Define the App
   const app = await NestFactory.create(ApiRioModule, { cors: true });
-  const protectedRoutes = ['/metrics', '/health'];
+  const protectedRoutes = ['/metrics', '/health', '/ping'];
 
   // Pull app configurations
   const { httpPorts, rootLocation } =
