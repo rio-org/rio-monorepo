@@ -1,5 +1,5 @@
 import { Menu, MenuHandler, MenuList } from '@material-tailwind/react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import SecondaryMenuItems from './SecondaryMenuItems';
@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { mainNavChildrenVariants } from '../../lib/motion';
 import { NavItem, SocialNavItem } from '../../lib/typings';
 import { IconDots } from '../Icons/IconDots';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 type Props = {
   secondaryItems: NavItem[];
@@ -24,17 +25,13 @@ const SecondaryMenu = ({
   isSecondaryMenuOpen,
   setIsSecondaryMenuOpen
 }: Props) => {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
   const handleMenuClick = () => {
     setIsSecondaryMenuOpen(!isSecondaryMenuOpen);
   };
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <>

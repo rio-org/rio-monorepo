@@ -19,6 +19,10 @@ import { cn } from '../../lib/utilities';
 import { ThemeSelector } from '../Shared/ThemeSelector';
 import { IconRio } from '../Icons/IconRio';
 import { ConnectWalletMenu } from '../Shared/ConnectWalletMenu';
+import { IconArrowDiagonal } from '../Icons/IconArrowDiagonal';
+import { twJoin } from 'tailwind-merge';
+import { DOCUMENTATION_NAV_ITEM } from '../../config';
+import { Button } from '../shadcn/button';
 
 const slugUrl = (slug: string) => {
   if (slug === '/') return '/';
@@ -41,6 +45,10 @@ const NavList = ({
   className?: string;
 }) => {
   const [isSecondaryMenuOpen, setIsSecondaryMenuOpen] = React.useState(false);
+  const secondaryMenuHasVisibleItems = secondaryItems.some(
+    (it) => it.url && !it.disabled && !it.hideOn?.includes('desktop')
+  );
+
   return (
     <motion.nav
       className={cn(
@@ -67,15 +75,33 @@ const NavList = ({
             </Link>
           </motion.li>
         ))}
-        <SecondaryMenu
-          secondaryItems={secondaryItems}
-          tertiaryItems={tertiaryItems}
-          socialItems={socialItems}
-          isSecondaryMenuOpen={isSecondaryMenuOpen}
-          setIsSecondaryMenuOpen={setIsSecondaryMenuOpen}
-        />
+        {secondaryMenuHasVisibleItems && (
+          <SecondaryMenu
+            secondaryItems={secondaryItems}
+            tertiaryItems={tertiaryItems}
+            socialItems={socialItems}
+            isSecondaryMenuOpen={isSecondaryMenuOpen}
+            setIsSecondaryMenuOpen={setIsSecondaryMenuOpen}
+          />
+        )}
       </ul>
       <div className="flex justify-end items-center gap-2">
+        <Button variant="link" asChild className="h-8 p-0 no-underline">
+          <a
+            className={twJoin(
+              'hidden md:flex items-center gap-0.5 px-3 rounded-[4px]',
+              'text-foreground opacity-60 duration-75 cursor-pointer !no-underline',
+              'hover:bg-foregroundA1 hover:opacity-100 focus:bg-foregroundA1 focus:opacity-100',
+              '[&:focus-visible]:outline-0 [&:focus-visible]:ring-2 ring-foreground'
+            )}
+            href={DOCUMENTATION_NAV_ITEM.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="leading-none">Docs</span>
+            <IconArrowDiagonal className="[&>fill" />{' '}
+          </a>
+        </Button>
         <ThemeSelector />
         <ConnectWalletMenu />
       </div>

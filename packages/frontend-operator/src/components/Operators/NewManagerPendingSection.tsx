@@ -2,8 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { OperatorDelegator } from '@rionetwork/sdk-react';
 import { Address, zeroAddress } from 'viem';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { ContractAddressField } from '@rio-monorepo/ui/components/Shared/ContractAddressField';
 import { IconWarning } from '@rio-monorepo/ui/components/Icons/IconWarning';
-import { OperatorField } from './OperatorField';
 import { RioLRTOperatorRegistryABI } from '@rio-monorepo/ui/abi/RioLRTOperatorRegistryABI';
 import { useCompleteContractWrite } from '@rio-monorepo/ui/hooks/useCompleteContractWrite';
 import { useEffect } from 'react';
@@ -99,7 +99,7 @@ export function NewManagerPendingSection({
               confirmation. Once confirmed, this will be the new manager and the
               connected wallet will lose access.
             </p>
-            <OperatorField
+            <ContractAddressField
               title="New Manager Address"
               value={pendingManager}
               className="rounded-lg bg-background pt-4 px-3"

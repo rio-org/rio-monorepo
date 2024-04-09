@@ -92,6 +92,7 @@ export interface NavItem {
   external: boolean;
   icon?: string;
   disabled?: boolean;
+  hideOn?: ('mobile' | 'desktop')[];
 }
 
 export interface LogoNavItem extends Omit<NavItem, 'url'> {
@@ -449,3 +450,26 @@ export type ApiErrorKind =
   | 'LOCKED'
   | 'TEAPOT'
   | 'FAHRENHEIT';
+
+///////////
+// Misc
+///////////
+
+interface UnionBuilder<T = never> {
+  add: <NewValue>(type?: NewValue) => UnionBuilder<T | NewValue>;
+  type: T;
+}
+
+export const UnionBuilder = new (class UnionBuilder<T = never>
+  implements UnionBuilder<T>
+{
+  public type: T;
+
+  constructor(value?: T) {
+    this.type = value as unknown as T;
+  }
+
+  public add = <NewValue>(value?: NewValue) => {
+    return new UnionBuilder<T | NewValue>(value as NewValue);
+  };
+})();
