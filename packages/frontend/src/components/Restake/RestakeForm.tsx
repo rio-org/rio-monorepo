@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useMediaQuery } from 'react-responsive';
 import Skeleton from 'react-loading-skeleton';
 import { formatUnits } from 'viem';
+import { toast } from 'sonner';
 import {
   type LRTDetails,
   RioTransactionType,
@@ -29,6 +30,7 @@ import {
 } from '@rio-monorepo/ui/lib/utilities';
 import { useRestakeForm } from '../../hooks/useRestakeForm';
 import { useWithdrawForm } from '../../hooks/useWithdrawForm';
+import { RestakeTokenTitleBar } from '../Lazy/RestakeTokenTitleBar.lazy';
 import { RestakeField } from '../Lazy/RestakeField.lazy';
 import { MOBILE_MQ } from '@rio-monorepo/ui/lib/constants';
 import { twJoin } from 'tailwind-merge';
@@ -176,6 +178,11 @@ function RestakeFormBase({
 
   return (
     <>
+      <RestakeTokenTitleBar
+        lrtDetails={lrtDetails}
+        restakingTokenClient={restakingTokenClient}
+      />
+
       <TabCard
         tabs={['Restake', 'Withdraw']}
         defaultValue={tab}

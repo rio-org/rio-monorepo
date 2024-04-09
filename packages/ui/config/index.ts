@@ -20,6 +20,8 @@ import {
 export const APP_ENV = (process.env.NEXT_PUBLIC_APP_ENV ||
   AppEnv.DEVELOPMENT) as AppEnv;
 
+export const API_URL = `${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1`;
+
 export const CHAIN_ID = 17000 as CHAIN_ID_NUMBER;
 
 export const DATADOG_APPLICATION_ID =
@@ -39,26 +41,34 @@ export const NATIVE_ETH_ADDRESS = getAddress(
 // Default Nav Items
 //////////////////////
 
+export const RESTAKING_TOKEN_NAV_ITEMS: { [symbol: string]: NavItem } = {
+  reETH: {
+    label: 'reETH',
+    url: 'https://www.rio.network/re-eth',
+    icon: iconEth as string,
+    external: true
+  }
+};
+
+export const DOCUMENTATION_NAV_ITEM: NavItem = {
+  label: 'Docs',
+  url: 'https://docs.rio.network',
+  external: true
+};
+
 export const APP_SECONDARY_NAV_ITEMS: NavItem[] = [
   {
     label: 'Vote',
     url: undefined,
     icon: iconPaper as string,
     external: false
-  },
-  {
-    label: 'reETH',
-    url: 'https://www.rio.network/re-eth',
-    icon: iconEth as string,
-    external: true
   }
 ];
 
 export const APP_TERTIARY_NAV_ITEMS: NavItem[] = [
   {
-    label: 'Docs',
-    url: 'https://docs.rio.network',
-    external: true
+    ...DOCUMENTATION_NAV_ITEM,
+    hideOn: ['desktop']
   },
   {
     label: 'News',

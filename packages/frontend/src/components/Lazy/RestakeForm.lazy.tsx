@@ -1,19 +1,21 @@
 import Skeleton from 'react-loading-skeleton';
-import { RestakeFieldSkeleton } from './RestakeField.lazy';
-import { type RestakeFormProps } from '@/components/Restake/RestakeForm';
 import dynamic from 'next/dynamic';
+import { type RestakeFormProps } from '@/components/Restake/RestakeForm';
+import { RestakeTokenTitleBarSkeleton } from './RestakeTokenTitleBar.lazy';
+import { RestakeFieldSkeleton } from './RestakeField.lazy';
 
 export const RestakeForm = dynamic<RestakeFormProps>(
-  () =>
-    import('@/components/Restake/RestakeForm').then(
-      (mod: { RestakeForm: React.FC<RestakeFormProps> }) => mod.RestakeForm
-    ),
+  import('@/components/Restake/RestakeForm').then(
+    (mod: { RestakeForm: React.FC<RestakeFormProps> }) => mod.RestakeForm
+  ),
   { loading: RestakeFormSkeleton }
 );
 
 export function RestakeFormSkeleton() {
   return (
     <>
+      <RestakeTokenTitleBarSkeleton />
+
       <div className="w-full">
         <div className="flex items-center flex-col-reverse gap-2 w-full md:items-end md:flex-row md:gap-0">
           <div className="justify-center rounded-md text-muted-foreground h-[unset] flex items-end gap-0 bg-transparent w-full md:w-[unset] p-0'">
