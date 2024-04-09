@@ -52,7 +52,7 @@ export const getSharedConfig = (): SharedConfig => ({
 
   httpPorts: {
     apiRio: parseInt(process.env.PORT_API_RIO as string, 10) || 4000,
-    taskSchedulerService:
+    taskSyncDBService:
       parseInt(process.env.PORT_TASK_SCHEDULER as string, 10) || 4005,
   },
 

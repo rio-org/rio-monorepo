@@ -19,13 +19,13 @@
         "tsConfigPath": "apps/api-rio/tsconfig.app.json"
       }
     },
-    "task-scheduler": {
+    "task-sync-db": {
       "type": "application",
-      "root": "apps/task-scheduler",
+      "root": "apps/task-sync-db",
       "entryFile": "main",
-      "sourceRoot": "apps/task-scheduler/src",
+      "sourceRoot": "apps/task-sync-db/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/task-scheduler/tsconfig.app.json"
+        "tsConfigPath": "apps/task-sync-db/tsconfig.app.json"
       }
     },
     "common": {

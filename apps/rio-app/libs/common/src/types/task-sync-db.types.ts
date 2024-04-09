@@ -3,26 +3,26 @@ import { CHAIN_ID } from './chain.types';
 /**
  * The configuration for single cron task
  */
-export interface CronTask {
-  task: CronTaskName;
+export interface TaskSyncDBCronTask {
+  task: TaskSyncDBCronTaskName;
   chainIds: CHAIN_ID[];
 }
 
 /**
  * Options that are passed into all cron task modules
  */
-export interface TaskSchedulerModuleOptions {
-  tasks: CronTask[] | undefined;
+export interface TaskSyncDBModuleOptions {
+  tasks: TaskSyncDBCronTask[] | undefined;
 }
 
-export enum TaskSchedulerProvider {
+export enum TaskSyncDBProvider {
   CRON_TASK = 'CRON_TASK',
 }
 
 /**
  * Names of all cron tasks
  */
-export enum CronTaskName {
+export enum TaskSyncDBCronTaskName {
   SYNC_TRANSFERS = 'sync_transfers',
   SYNC_EXCHANGE_RATES = 'sync_exchange_rates',
 }

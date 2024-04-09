@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-import configuration from './task-scheduler.config';
-import { TaskSchedulerConfigService } from './config.service';
+import configuration from './task-sync-db.config';
+import { TaskSyncDBConfigService } from './config.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SharedConfigModule } from '../shared';
 
@@ -13,10 +13,10 @@ import { SharedConfigModule } from '../shared';
     SharedConfigModule,
     ConfigModule.forRoot({
       load: [configuration],
-      envFilePath: ['task-scheduler.env'],
+      envFilePath: ['task-sync-db.env'],
     }),
   ],
-  providers: [ConfigService, TaskSchedulerConfigService],
-  exports: [ConfigService, TaskSchedulerConfigService],
+  providers: [ConfigService, TaskSyncDBConfigService],
+  exports: [ConfigService, TaskSyncDBConfigService],
 })
-export class TaskSchedulerConfigModule {}
+export class TaskSyncDBConfigModule {}

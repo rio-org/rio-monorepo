@@ -15,10 +15,10 @@ import {
 import {
   DatabaseService,
   LoggerService,
-  TaskSchedulerConfigService,
+  TaskSyncDBConfigService,
   RioLRTAssetRegistryABI,
-  TaskSchedulerProvider,
-  CronTask,
+  TaskSyncDBProvider,
+  TaskSyncDBCronTask,
   ChainService,
   CHAIN_ID,
 } from '@rio-app/common';
@@ -33,11 +33,11 @@ export class SyncExchangeRatesTaskManagerService {
   >['client'];
 
   constructor(
-    @Inject(TaskSchedulerProvider.CRON_TASK)
-    private task: CronTask,
+    @Inject(TaskSyncDBProvider.CRON_TASK)
+    private task: TaskSyncDBCronTask,
     private logger: LoggerService,
     private chain: ChainService,
-    private config: TaskSchedulerConfigService,
+    private config: TaskSyncDBConfigService,
     private readonly databaseService: DatabaseService,
   ) {
     this.logger.setContext(this.constructor.name);
