@@ -25,7 +25,7 @@ export default (): ApiRioConfig => ({
         parseInt(
           process.env.API_RIO_THROTTLER_LONG_TTL_MILLISECONDS as string,
         ) || 60_000,
-      limit: parseInt(process.env.API_RIO_THROTTLER_LONG_LIMIT as string) || 30,
+      limit: parseInt(process.env.API_RIO_THROTTLER_LONG_LIMIT as string) || 40,
     },
   ],
   rootLocation: process.env.API_RIO_ROOT_LOCATION || '/api/v1',

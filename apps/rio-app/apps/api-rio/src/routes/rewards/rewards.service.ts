@@ -9,6 +9,7 @@ import {
   CHAIN_ID,
   SUPPORTED_CHAIN_IDS,
   SUPPORTED_CHAIN_NAMES,
+  RewardChainAndToken,
 } from '@rio-app/common';
 
 @Injectable()
@@ -20,24 +21,19 @@ export class RewardsService {
   ) {
     this.drizzlePool = this._databaseService.getPoolConnection();
   }
-  /**
-   * Returns the current time in millis
-   */
-  getTime(): string {
-    return Date.now().toString();
-  }
 
   /**
-   * Calculates the total protocol rewards for a given token
-   * @param token The token to pull the reward rate for
+   * Retrieves the support token and chain from the request
+   * @param token The token from the request
+   * @param chain The chain from the request
    */
-  async getProtocolRewardRate(
+  async findTokenAndChain(
     token: string,
     chain:
       | (typeof SUPPORTED_CHAIN_IDS)[number]
       | (typeof SUPPORTED_CHAIN_NAMES)[number],
-  ): Promise<RewardsResponse> {
-    const { transfer, balanceSheet } = schema;
+  ): Promise<RewardChainAndToken> {
+    const { transfer } = schema;
     const { db } = this.drizzlePool;
 
     const eligibleTokensAndChains = await db
@@ -58,6 +54,25 @@ export class RewardsService {
 
     if (!_chainId)
       throw new HttpException(`Chain not supported`, HttpStatus.NOT_FOUND);
+
+    return { _chainId, _token };
+  }
+
+  /**
+   * Calculates the total protocol rewards for a given token
+   * @param token The token to pull the reward rate for
+   * @param chain The chain to pull data for
+   */
+  async getProtocolRewardRate(
+    token: string,
+    chain:
+      | (typeof SUPPORTED_CHAIN_IDS)[number]
+      | (typeof SUPPORTED_CHAIN_NAMES)[number],
+  ): Promise<RewardsResponse> {
+    const { transfer, balanceSheet } = schema;
+    const { db } = this.drizzlePool;
+
+    const { _chainId, _token } = await this.findTokenAndChain(token, chain);
 
     try {
       const results = await db.execute<RewardsForAddressQueryResponse>(
@@ -123,7 +138,6 @@ export class RewardsService {
       };
     } catch (e) {
       this._logger.error(`[Error] Token: ${token}`, e.toString());
-      console.log('error', e.toString());
       throw new HttpException(
         `Internal Server Error`,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -135,6 +149,7 @@ export class RewardsService {
    * Calculates the rewards for a given token and address extrapolated from the last 14 days
    * @param token The token to pull the reward rate for
    * @param address The address to calculate the rewards for
+   * @param chain The chain to pull data for
    */
   async getAddressRewardRate(
     token: string,
@@ -144,28 +159,10 @@ export class RewardsService {
       | (typeof SUPPORTED_CHAIN_NAMES)[number],
   ): Promise<RewardsResponse> {
     const { transfer, balanceSheet } = schema;
-    const { asset, to, from, value, chainId, timestamp } = schema.transfer;
+    const { to, from, value, chainId, timestamp } = schema.transfer;
     const { db } = this.drizzlePool;
-
-    const eligibleTokensAndChains = await db
-      .selectDistinct({ asset, chainId })
-      .from(transfer);
-
     const _address = address.toLowerCase();
-    const _token = eligibleTokensAndChains.find(
-      ({ asset }) => asset.toLowerCase() === token.toLowerCase(),
-    )?.asset;
-
-    if (!_token)
-      throw new HttpException(`Token not supported`, HttpStatus.NOT_FOUND);
-
-    const _chainId = isNaN(Number(chain))
-      ? (CHAIN_ID[`${chain}`.toUpperCase()] as number)
-      : eligibleTokensAndChains.find(({ chainId }) => +chainId === +chain)
-          ?.chainId;
-
-    if (!_chainId)
-      throw new HttpException(`Chain not supported`, HttpStatus.NOT_FOUND);
+    const { _chainId } = await this.findTokenAndChain(token, chain);
 
     try {
       const results = await db.execute<RewardsForAddressQueryResponse>(

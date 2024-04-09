@@ -19,3 +19,8 @@ export type RewardsForAddressQueryResponse = RewardsResponse & {
   eth_rewards_on_change: string;
   change_eth_value_starting_balance_ratio: string;
 };
+
+export interface RewardChainAndToken {
+  _chainId: number;
+  _token: string;
+}
