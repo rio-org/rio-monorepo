@@ -30,7 +30,7 @@ export interface RedisCacheConfig {
  */
 export interface HttpPortConfig {
   apiRio: number;
-  taskSchedulerService: number;
+  taskSyncDBService: number;
 }
 
 /**

@@ -1,20 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { ShutdownSignal } from '@nestjs/common';
 import { LoggerService } from '@rio-app/common';
-import { TaskSchedulerModule } from './task-scheduler.module';
-import { TaskSchedulerConfigService } from '@rio-app/common';
+import { TaskSyncDBConfigService } from '@rio-app/common';
 import { configure } from '@rio-app/common';
 import { attachGlobalExceptionHandlers } from '@rio-app/common';
+import { TaskSyncDBModule } from './task-sync-db.module';
 
 async function bootstrap() {
-  const context = await NestFactory.createApplicationContext(
-    TaskSchedulerModule,
-  );
-  const { tasks, httpPorts } = context.get<TaskSchedulerConfigService>(
-    TaskSchedulerConfigService,
+  const context = await NestFactory.createApplicationContext(TaskSyncDBModule);
+  const { tasks, httpPorts } = context.get<TaskSyncDBConfigService>(
+    TaskSyncDBConfigService,
   );
   const app = await NestFactory.create(
-    TaskSchedulerModule.register({
+    TaskSyncDBModule.register({
       tasks,
     }),
   );
@@ -24,9 +22,9 @@ async function bootstrap() {
   app.enableShutdownHooks([ShutdownSignal.SIGTERM]);
   await app.startAllMicroservices();
 
-  await app.listen(httpPorts.taskSchedulerService);
+  await app.listen(httpPorts.taskSyncDBService);
   logger.log(
-    `Service is listening on port ${httpPorts.taskSchedulerService} ...`,
+    `Task SyncDB Service is listening on port ${httpPorts.taskSyncDBService} ...`,
     'Main',
   );
 }

@@ -15,11 +15,11 @@ import {
 import {
   CHAIN_ID,
   ChainService,
-  CronTask,
+  TaskSyncDBCronTask,
   DatabaseService,
   LoggerService,
-  TaskSchedulerConfigService,
-  TaskSchedulerProvider,
+  TaskSyncDBConfigService,
+  TaskSyncDBProvider,
 } from '@rio-app/common';
 import { SyncTransfersUtils } from './sync-transfers.utils';
 
@@ -33,11 +33,11 @@ export class SyncTransfersTaskManagerService {
   >['client'];
 
   constructor(
-    @Inject(TaskSchedulerProvider.CRON_TASK)
-    private task: CronTask,
+    @Inject(TaskSyncDBProvider.CRON_TASK)
+    private task: TaskSyncDBCronTask,
     private logger: LoggerService,
     private chain: ChainService,
-    private config: TaskSchedulerConfigService,
+    private config: TaskSyncDBConfigService,
     private syncTransferUtils: SyncTransfersUtils,
     private readonly databaseService: DatabaseService,
   ) {

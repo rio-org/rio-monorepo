@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { SharedConfigService } from '../shared';
-import { TaskSchedulerServiceConfig } from './config.types';
-import { CronTask, CronTaskName } from '../../';
+import { TaskSyncDBServiceConfig } from './config.types';
+import { TaskSyncDBCronTask, TaskSyncDBCronTaskName } from '../../';
 import { FormatService } from '../../utils';
 import { ConfigService } from '@nestjs/config';
 
 /**
- * Convenience service used to access task-scheduler service configuration values
+ * Convenience service used to access task-sync-db service configuration values
  */
 @Injectable()
-export class TaskSchedulerConfigService extends SharedConfigService<TaskSchedulerServiceConfig> {
+export class TaskSyncDBConfigService extends SharedConfigService<TaskSyncDBServiceConfig> {
   constructor(
     protected readonly configService: ConfigService,
     protected readonly formatService: FormatService,
@@ -20,15 +20,17 @@ export class TaskSchedulerConfigService extends SharedConfigService<TaskSchedule
   /**
    * List of available cron tasks
    */
-  public get tasks(): CronTask[] | undefined {
-    return this.configService.get<CronTask[]>(this._accessor.tasks());
+  public get tasks(): TaskSyncDBCronTask[] | undefined {
+    return this.configService.get<TaskSyncDBCronTask[]>(this._accessor.tasks());
   }
 
   /**
    * Gets the properties of the specified cron task
    * @param taskName name of the cron task whose properties to get
    */
-  public getTask(taskName: CronTaskName): CronTask | undefined {
+  public getTask(
+    taskName: TaskSyncDBCronTaskName,
+  ): TaskSyncDBCronTask | undefined {
     return this.tasks?.find((task) => task.task === taskName);
   }
 }

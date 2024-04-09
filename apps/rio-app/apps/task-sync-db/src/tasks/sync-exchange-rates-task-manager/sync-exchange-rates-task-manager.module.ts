@@ -1,23 +1,23 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import {
-  CronTaskName,
-  TaskSchedulerModuleOptions,
-  TaskSchedulerProvider,
+  TaskSyncDBConfigModule,
+  TaskSyncDBCronTaskName,
+  TaskSyncDBModuleOptions,
+  TaskSyncDBProvider,
 } from '@rio-app/common';
-import { TaskSchedulerConfigModule } from '@rio-app/common';
 import { SyncExchangeRatesTaskManagerService } from './sync-exchange-rates-task-manager.service';
 
 @Module({})
 export class SyncExchangeRatesTaskManagerModule {
-  public static get task(): CronTaskName {
-    return CronTaskName.SYNC_EXCHANGE_RATES;
+  public static get task(): TaskSyncDBCronTaskName {
+    return TaskSyncDBCronTaskName.SYNC_EXCHANGE_RATES;
   }
 
   /**
    * Register the module dynamically
    * @param options The cron task module options
    */
-  public static register(options: TaskSchedulerModuleOptions): DynamicModule {
+  public static register(options: TaskSyncDBModuleOptions): DynamicModule {
     const task = options?.tasks?.filter(({ task }) => task === this.task);
     if (task.length === 0) {
       return {
@@ -27,10 +27,10 @@ export class SyncExchangeRatesTaskManagerModule {
 
     return {
       module: SyncExchangeRatesTaskManagerModule,
-      imports: [TaskSchedulerConfigModule],
+      imports: [TaskSyncDBConfigModule],
       providers: [
         SyncExchangeRatesTaskManagerService,
-        { provide: TaskSchedulerProvider.CRON_TASK, useValue: task[0] },
+        { provide: TaskSyncDBProvider.CRON_TASK, useValue: task[0] },
       ],
       exports: [SyncExchangeRatesTaskManagerService],
     };
