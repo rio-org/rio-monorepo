@@ -166,6 +166,8 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
             if (amount != msg.value) revert INVALID_ETH_PROVIDED();
             coordinator.depositETH{value: amount}();
             return;
+        } else if (msg.value > 0) {
+            revert INVALID_ETH_PROVIDED();
         }
 
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);

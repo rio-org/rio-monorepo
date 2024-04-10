@@ -46,24 +46,41 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         _setOperatorETHValidatorRewardShareBPS(500); // 5%
     }
 
+    /// @notice Sets the treasury and operator's share of ETH validator rewards.
+    /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
+    /// @param newOperatorETHValidatorRewardShareBPS The new operator share in basis points.
+    function setTreasuryAndOperatorETHValidatorRewardShareBPS(
+        uint16 newTreasuryETHValidatorRewardShareBPS,
+        uint16 newOperatorETHValidatorRewardShareBPS
+    ) external onlyOwner {
+        if (newTreasuryETHValidatorRewardShareBPS + newOperatorETHValidatorRewardShareBPS > MAX_BPS) {
+            revert ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
+        }
+        _setTreasuryETHValidatorRewardShareBPS(newTreasuryETHValidatorRewardShareBPS);
+        _setOperatorETHValidatorRewardShareBPS(newOperatorETHValidatorRewardShareBPS);
+    }
+
     /// @notice Sets the treasury's share of ETH validator rewards.
     /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
     function setTreasuryETHValidatorRewardShareBPS(uint16 newTreasuryETHValidatorRewardShareBPS) external onlyOwner {
+        if (newTreasuryETHValidatorRewardShareBPS + operatorETHValidatorRewardShareBPS > MAX_BPS) {
+            revert TREASURY_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
+        }
         _setTreasuryETHValidatorRewardShareBPS(newTreasuryETHValidatorRewardShareBPS);
     }
 
     /// @notice Sets the operator's share of ETH validator rewards.
     /// @param newOperatorETHValidatorRewardShareBPS The new operator share in basis points.
     function setOperatorETHValidatorRewardShareBPS(uint16 newOperatorETHValidatorRewardShareBPS) external onlyOwner {
+        if (newOperatorETHValidatorRewardShareBPS + treasuryETHValidatorRewardShareBPS > MAX_BPS) {
+            revert OPERATOR_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
+        }
         _setOperatorETHValidatorRewardShareBPS(newOperatorETHValidatorRewardShareBPS);
     }
 
     /// @notice Sets the treasury's share of Ethereum validator rewards.
     /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
     function _setTreasuryETHValidatorRewardShareBPS(uint16 newTreasuryETHValidatorRewardShareBPS) internal {
-        if (newTreasuryETHValidatorRewardShareBPS + operatorETHValidatorRewardShareBPS > MAX_BPS) {
-            revert TREASURY_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
-        }
         treasuryETHValidatorRewardShareBPS = newTreasuryETHValidatorRewardShareBPS;
         emit TreasuryETHValidatorRewardShareBPSSet(newTreasuryETHValidatorRewardShareBPS);
     }
@@ -71,9 +88,6 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
     /// @notice Sets the operator's share of Ethereum validator rewards.
     /// @param newOperatorETHValidatorRewardShareBPS The new operator share in basis points.
     function _setOperatorETHValidatorRewardShareBPS(uint16 newOperatorETHValidatorRewardShareBPS) internal {
-        if (newOperatorETHValidatorRewardShareBPS + treasuryETHValidatorRewardShareBPS > MAX_BPS) {
-            revert OPERATOR_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
-        }
         operatorETHValidatorRewardShareBPS = newOperatorETHValidatorRewardShareBPS;
         emit OperatorETHValidatorRewardShareBPSSet(newOperatorETHValidatorRewardShareBPS);
     }

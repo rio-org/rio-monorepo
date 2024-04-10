@@ -48,9 +48,14 @@ contract RioLRTOperatorDelegatorTest is RioDeployer {
         // Allocate ETH.
         reETH.coordinator.depositETH{value: TVL - address(reETH.depositPool).balance}();
 
-        // Push funds into EigenLayer.
-        vm.prank(EOA, EOA);
-        reETH.coordinator.rebalance(ETH_ADDRESS);
+        {
+            // Get the latest POS deposit root and guardian signature.
+            (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+
+            // Push funds into EigenLayer.
+            vm.prank(EOA, EOA);
+            reETH.coordinator.rebalanceETH(root, signature);
+        }
 
         // Verify validator withdrawal credentials.
         uint40[] memory validatorIndices = verifyCredentialsForValidators(reETH.operatorRegistry, operatorId, 2);
@@ -63,8 +68,12 @@ contract RioLRTOperatorDelegatorTest is RioDeployer {
         // Skip ahead and rebalance to queue the withdrawal within EigenLayer.
         skip(reETH.coordinator.rebalanceDelay());
 
-        vm.prank(EOA, EOA);
-        reETH.coordinator.rebalance(ETH_ADDRESS);
+        {
+            (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+
+            vm.prank(EOA, EOA);
+            reETH.coordinator.rebalanceETH(root, signature);
+        }
 
         // Verify and process two full validator exits.
         verifyAndProcessWithdrawalsForValidatorIndexes(operatorDelegator, validatorIndices);
@@ -119,5 +128,13 @@ contract RioLRTOperatorDelegatorTest is RioDeployer {
         assertEq(delegatorContract.getETHUnderManagement(), 0);
         assertEq(delegatorContract.getETHQueuedForWithdrawal(), ethQueuedBefore - SCRAPE_AMOUNT);
         assertEq(address(reETH.depositPool).balance, depositPoolBalanceBefore + SCRAPE_AMOUNT);
+    }
+
+    function test_forwardingETHToRewardDistributorSucceeds() public {
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor));
+        address operatorDelegator = reETH.operatorRegistry.getOperatorDetails(operatorId).delegator;
+
+        (bool success,) = operatorDelegator.call{value: 1 ether}('');
+        assertTrue(success);
     }
 }

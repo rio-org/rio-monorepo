@@ -65,7 +65,8 @@ interface IRioLRTAssetRegistry {
 
     /// @notice Emitted when an asset is removed.
     /// @param asset The address of the asset.
-    event AssetRemoved(address indexed asset);
+    /// @param forced True if the asset was removed by force, regardless of its balance.
+    event AssetRemoved(address indexed asset, bool forced);
 
     /// @notice Emitted when an asset's EigenLayer strategy is set.
     /// @param asset The address of the asset.

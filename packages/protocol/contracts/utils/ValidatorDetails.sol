@@ -59,7 +59,7 @@ library ValidatorDetails {
     /// @param keysCount Keys count to load.
     /// @param pubkeys Keys buffer to read from.
     /// @param signatures Signatures buffer to read from.
-    /// @return totalKeysCount New total keys count.
+    /// @return totalKeysCount New total keys count (last modified index).
     function saveValidatorDetails(
         bytes32 position,
         uint8 operatorId,
@@ -126,7 +126,7 @@ library ValidatorDetails {
 
         // forgefmt: disable-next-item
         // Ensure no overlap in indexes
-        if ((startIndex1 < startIndex2 && startIndex1 + keysCount >= startIndex2) || (startIndex2 < startIndex1 && startIndex2 + keysCount >= startIndex1)) {
+        if ((startIndex1 < startIndex2 && startIndex1 + keysCount > startIndex2) || (startIndex2 < startIndex1 && startIndex2 + keysCount > startIndex1)) {
             revert INDEXES_OVERLAP();
         }
 
@@ -147,16 +147,16 @@ library ValidatorDetails {
                 // Load key1 into memory
                 let _part1 := sload(keyOffset1) // Load bytes 0..31
                 let _part2 := sload(add(keyOffset1, 1)) // Load bytes 32..47
-                mstore(add(key1, 0x20), _part1) // Store bytes 0..31
                 mstore(add(key1, 0x30), shr(128, _part2)) // Store bytes 16..47
+                mstore(add(key1, 0x20), _part1) // Store bytes 0..31
 
                 isEmpty := iszero(or(_part1, _part2)) // Store if key1 is empty
 
                 // Load key2 into memory
                 _part1 := sload(keyOffset2) // Load bytes 0..31
                 _part2 := sload(add(keyOffset2, 1)) // Load bytes 32..47
-                mstore(add(key2, 0x20), _part1) // Store bytes 0..31
                 mstore(add(key2, 0x30), shr(128, _part2)) // Store bytes 16..47
+                mstore(add(key2, 0x20), _part1) // Store bytes 0..31
 
                 isEmpty := or(isEmpty, iszero(or(_part1, _part2))) // Store if key1 or key2 is empty
             }
@@ -200,7 +200,7 @@ library ValidatorDetails {
     /// @param position The storage slot.
     /// @param operatorId The Operator ID.
     /// @param startIndex The start index.
-    /// @param keysCount Keys count to load.
+    /// @param keysCount Key count to remove.
     /// @param totalKeysCount Current total keys count for operator.
     /// @return totalKeysCount New total keys count.
     function removeValidatorDetails(bytes32 position, uint8 operatorId, uint256 startIndex, uint256 keysCount, uint256 totalKeysCount) internal returns (uint40) {

@@ -27,8 +27,9 @@ library OperatorRegistryV1Admin {
     /// @notice The maximum number of operators allowed in the registry.
     uint8 public constant MAX_OPERATOR_COUNT = 254;
 
-    /// @notice The maximum number of active operators allowed.
-    uint8 public constant MAX_ACTIVE_OPERATOR_COUNT = 64;
+    /// @notice The maximum number of active operators allowed. This may be increased
+    /// to `64` in the future.
+    uint8 public constant MAX_ACTIVE_OPERATOR_COUNT = 32;
 
     /// @notice Adds a new operator to the registry, deploying a delegator contract and
     /// delegating to the provided `operator`.
@@ -261,7 +262,10 @@ library OperatorRegistryV1Admin {
         }
 
         // Persist the updated heap to the active operators tracking.
-        utilizationHeap.store(s.activeOperatorsByStrategyShareUtilization[newShareCap.strategy]);
+        utilizationHeap.store(
+            s.activeOperatorsByStrategyShareUtilization[newShareCap.strategy],
+            OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT
+        );
 
         // Update the share cap in the operator details.
         operatorDetails.shareDetails[newShareCap.strategy].cap = newShareCap.cap;
@@ -310,7 +314,9 @@ library OperatorRegistryV1Admin {
         }
 
         // Persist the updated heap to the active operators tracking for ETH deposits.
-        utilizationHeap.store(s.activeOperatorsByETHDepositUtilization);
+        utilizationHeap.store(
+            s.activeOperatorsByETHDepositUtilization, OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT
+        );
 
         // Update the validator cap in the operator details.
         operatorDetails.validatorDetails.cap = newValidatorCap;
