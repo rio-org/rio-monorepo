@@ -5,31 +5,29 @@ import {
   DatabaseService,
   HealthModule,
   LoggerModule,
-  TaskSchedulerConfigModule,
-  TaskSchedulerConfigService,
-  TaskSchedulerModuleOptions,
+  TaskSyncDBConfigModule,
+  TaskSyncDBConfigService,
+  TaskSyncDBModuleOptions,
   UtilsModule,
 } from '@rio-app/common';
 import {
   SyncExchangeRatesTaskManagerModule,
   SyncTransfersTaskManagerModule,
 } from './tasks';
-import { TaskSchedulerController } from './task-scheduler.controller';
-import { TaskSchedulerService } from './task-scheduler.service';
 
 @Module({
-  imports: [TaskSchedulerConfigModule],
+  imports: [TaskSyncDBConfigModule],
 })
-export class TaskSchedulerModule {
+export class TaskSyncDBModule {
   /**
    * Register the module dynamically
    * @param moduleOptions The cron task module options
    */
   public static register(
-    moduleOptions: TaskSchedulerModuleOptions,
+    moduleOptions: TaskSyncDBModuleOptions,
   ): DynamicModule {
     return {
-      module: TaskSchedulerModule,
+      module: TaskSyncDBModule,
       imports: [
         UtilsModule,
         HealthModule.forRootAsync({
@@ -39,18 +37,18 @@ export class TaskSchedulerModule {
               redis,
             };
           },
-          inject: [TaskSchedulerConfigService],
+          inject: [TaskSyncDBConfigService],
         }),
         LoggerModule.forRootAsync({
-          useFactory: ({ logger }: TaskSchedulerConfigService) => logger,
-          inject: [TaskSchedulerConfigService],
+          useFactory: ({ logger }: TaskSyncDBConfigService) => logger,
+          inject: [TaskSyncDBConfigService],
         }),
 
         DatabaseModule.forRootAsync({
-          useFactory: ({ database }: TaskSchedulerConfigService) => ({
+          useFactory: ({ database }: TaskSyncDBConfigService) => ({
             database,
           }),
-          inject: [TaskSchedulerConfigService],
+          inject: [TaskSyncDBConfigService],
           exports: [DatabaseService],
         }),
 
@@ -58,8 +56,6 @@ export class TaskSchedulerModule {
         SyncExchangeRatesTaskManagerModule.register(moduleOptions),
         SyncTransfersTaskManagerModule.register(moduleOptions),
       ],
-      controllers: [TaskSchedulerController],
-      providers: [TaskSchedulerService],
     };
   }
 }

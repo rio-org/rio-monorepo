@@ -14,7 +14,7 @@ export const getSharedConfig = (): SharedConfig => ({
   },
 
   redisCache: {
-    ttl: parseInt(process.env.REDIS_CACHE_TTL as string) || 10_000,
+    ttl: parseInt(process.env.REDIS_CACHE_TTL as string) || 10,
   },
 
   database: {
@@ -52,7 +52,7 @@ export const getSharedConfig = (): SharedConfig => ({
 
   httpPorts: {
     apiRio: parseInt(process.env.PORT_API_RIO as string, 10) || 4000,
-    taskSchedulerService:
+    taskSyncDBService:
       parseInt(process.env.PORT_TASK_SCHEDULER as string, 10) || 4005,
   },
 

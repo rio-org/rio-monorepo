@@ -19,6 +19,7 @@ export class RewardsService {
     private readonly _logger: LoggerService,
     private readonly _databaseService: DatabaseService,
   ) {
+    this._logger.setContext(this.constructor.name);
     this.drizzlePool = this._databaseService.getApiPoolConnection();
   }
 
@@ -131,7 +132,6 @@ export class RewardsService {
           JOIN starting_rate on 1=1;
         `,
       );
-      this._logger.log(results[0].toString());
       return {
         eth_rewards_in_period: results[0]?.eth_rewards_in_period || '0',
         yearly_rewards_percent: results[0]?.yearly_rewards_percent || '0',

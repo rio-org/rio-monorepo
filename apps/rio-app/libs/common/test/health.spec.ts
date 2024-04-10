@@ -6,7 +6,7 @@ import {
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 
-import { HealthModule, HealthModuleOptions } from '../src';
+import { HealthModule, HealthModuleOptions, LoggerModule } from '../src';
 import * as request from 'supertest';
 import * as dns from 'dns';
 
@@ -30,6 +30,7 @@ describe('Health Tests', () => {
           HealthModule.forRoot({
             ...options,
           }),
+          LoggerModule.forRoot({}),
         ],
       }).compile()
     ).createNestApplication();
