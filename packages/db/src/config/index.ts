@@ -1,11 +1,12 @@
 import 'dotenv/config';
-import { DatabaseEnvironment } from './types';
+import { DatabaseEnvironment } from '../types';
 
 const DEFAULTS = {
   HOST: 'localhost',
   PORT: '5432',
   USERNAME: 'postgres',
   PASSWORD: 'postgres',
+  NAME: 'rio-restaking',
 } as const;
 
 const API: DatabaseEnvironment = {
@@ -13,7 +14,7 @@ const API: DatabaseEnvironment = {
   DATABASE_PORT: parseInt(process.env.DATABASE_PORT || DEFAULTS.PORT),
   DATABASE_USERNAME: process.env.DATABASE_USERNAME || DEFAULTS.USERNAME,
   DATABASE_PASSWORD: process.env.DATABASE_PASSWORD || DEFAULTS.PASSWORD,
-  DATABASE_NAME: process.env.DATABASE_NAME || 'rio-restaking',
+  DATABASE_NAME: process.env.DATABASE_NAME || DEFAULTS.NAME,
 };
 
 const SECURITY: DatabaseEnvironment = {
@@ -25,7 +26,7 @@ const SECURITY: DatabaseEnvironment = {
     process.env.DATABASE_SECURITY_USERNAME || API.DATABASE_USERNAME,
   DATABASE_PASSWORD:
     process.env.DATABASE_SECURITY_PASSWORD || API.DATABASE_PASSWORD,
-  DATABASE_NAME: process.env.DATABASE_SECURITY_NAME || 'security-daemon',
+  DATABASE_NAME: process.env.DATABASE_SECURITY_NAME || API.DATABASE_NAME,
 };
 
 export const ENV: { API: DatabaseEnvironment; SECURITY: DatabaseEnvironment } =

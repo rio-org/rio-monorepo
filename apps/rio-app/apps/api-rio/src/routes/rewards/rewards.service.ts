@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { getDrizzlePool, schema, sql } from '@internal/db';
+import { getDrizzlePool, apiSchema, sql } from '@internal/db';
 import { zeroAddress } from 'viem';
 import {
   DatabaseService,
@@ -19,7 +19,7 @@ export class RewardsService {
     private readonly _logger: LoggerService,
     private readonly _databaseService: DatabaseService,
   ) {
-    this.drizzlePool = this._databaseService.getPoolConnection();
+    this.drizzlePool = this._databaseService.getApiPoolConnection();
   }
 
   /**
@@ -33,7 +33,7 @@ export class RewardsService {
       | (typeof SUPPORTED_CHAIN_IDS)[number]
       | (typeof SUPPORTED_CHAIN_NAMES)[number],
   ): Promise<RewardChainAndToken> {
-    const { transfer } = schema;
+    const { transfer } = apiSchema;
     const { db } = this.drizzlePool;
 
     const eligibleTokensAndChains = await db
@@ -69,7 +69,7 @@ export class RewardsService {
       | (typeof SUPPORTED_CHAIN_IDS)[number]
       | (typeof SUPPORTED_CHAIN_NAMES)[number],
   ): Promise<RewardsResponse> {
-    const { transfer, balanceSheet } = schema;
+    const { transfer, balanceSheet } = apiSchema;
     const { db } = this.drizzlePool;
 
     const { _chainId, _token } = await this.findTokenAndChain(token, chain);
@@ -158,8 +158,8 @@ export class RewardsService {
       | (typeof SUPPORTED_CHAIN_IDS)[number]
       | (typeof SUPPORTED_CHAIN_NAMES)[number],
   ): Promise<RewardsResponse> {
-    const { transfer, balanceSheet } = schema;
-    const { to, from, value, chainId, timestamp } = schema.transfer;
+    const { transfer, balanceSheet } = apiSchema;
+    const { to, from, value, chainId, timestamp } = transfer;
     const { db } = this.drizzlePool;
     const _address = address.toLowerCase();
     const { _chainId } = await this.findTokenAndChain(token, chain);
