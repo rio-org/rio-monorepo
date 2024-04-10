@@ -1,8 +1,8 @@
 import { Global, Inject, Injectable } from '@nestjs/common';
 import {
-  getDrizzlePool,
-  getDrizzleClient,
-  schema,
+  getApiDrizzlePool,
+  getApiDrizzleClient,
+  apiSchema,
   asc,
   desc,
   gt,
@@ -32,16 +32,16 @@ export class DatabaseService {
     private readonly databaseConfiguration: DatabaseConfig,
   ) {}
 
-  public getPoolConnection(): ReturnType<typeof getDrizzlePool> {
-    return getDrizzlePool(this._config);
+  public getPoolConnection(): ReturnType<typeof getApiDrizzlePool> {
+    return getApiDrizzlePool(this._config);
   }
 
-  public getConnection(): ReturnType<typeof getDrizzleClient> {
-    return getDrizzleClient(this._config);
+  public getConnection(): ReturnType<typeof getApiDrizzleClient> {
+    return getApiDrizzleClient(this._config);
   }
 
   public getSchema() {
-    return schema;
+    return apiSchema;
   }
 
   public getOrderOperators() {

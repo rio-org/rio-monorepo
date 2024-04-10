@@ -7,7 +7,7 @@ import {
   WithdrawalRequest,
 } from '@rionetwork/sdk';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { desc, schema } from '@internal/db';
+import { desc, apiSchema } from '@internal/db';
 import {
   Deposit_OrderBy,
   OrderDirection,
@@ -92,7 +92,7 @@ export class SyncTransfersTaskManagerService {
     let { blockNumber } = batchInfo;
 
     while (blockNumber < currentBlockNumber) {
-      const transfers: (typeof schema.transfer.$inferInsert)[] = [];
+      const transfers: (typeof apiSchema.transfer.$inferInsert)[] = [];
       this.logger.log(
         `[Transfers::Fetching Blocks] ${blockNumber}->${
           blockNumber + batchSize
@@ -114,7 +114,7 @@ export class SyncTransfersTaskManagerService {
       }
 
       if (transfers.length) {
-        await this.db.insert(schema.transfer).values(transfers).returning();
+        await this.db.insert(apiSchema.transfer).values(transfers).returning();
       }
 
       blockNumber += batchSize;
@@ -131,7 +131,7 @@ export class SyncTransfersTaskManagerService {
       .chainClient(chainId)
       .getBlockNumber();
     const latestTransferPromise = this.db.query.transfer.findFirst({
-      orderBy: [desc(schema.transfer.blockNumber)],
+      orderBy: [desc(apiSchema.transfer.blockNumber)],
     });
 
     let { blockNumber } = (await latestTransferPromise) ?? { blockNumber: 0 };
@@ -174,7 +174,7 @@ export class SyncTransfersTaskManagerService {
     chainId: CHAIN_ID,
     subgraph: SubgraphClient,
   ) {
-    const transfers: (typeof schema.transfer.$inferInsert)[] = [];
+    const transfers: (typeof apiSchema.transfer.$inferInsert)[] = [];
 
     const symbol = liquidRestakingToken.symbol;
     let depositsPage = 1;
