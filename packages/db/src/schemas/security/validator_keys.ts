@@ -5,7 +5,7 @@ import { removeKeysTransactions } from './remove_keys_transactions';
 import { addKeysTransactions } from './add_keys_transactions';
 
 export const validatorKeys = schema.table(
-  'validatorKeys',
+  'validator_keys',
   {
     id: uuid('id').defaultRandom().primaryKey(),
     chainId: integer('chain_id').notNull(),

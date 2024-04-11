@@ -111,11 +111,7 @@ export class SyncExchangeRatesTaskManagerService {
 
       // Get the last balance sheet entry
       let lastEntry = await this.db.query.balanceSheet.findFirst({
-        // eslint-disable-next-line
-        // @ts-ignore
         where: (balances, { eq }) =>
-          // eslint-disable-next-line
-          // @ts-ignore
           eq(balances.restakingToken, liquidRestakingToken.symbol),
         orderBy: [desc(apiSchema.balanceSheet.timestamp)],
       });

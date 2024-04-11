@@ -28,6 +28,7 @@ export class ChainService {
     return createPublicClient({
       chain: chain,
       transport: viemHttp(rpcUrl),
+      batch: { multicall: true },
     });
   }
 }

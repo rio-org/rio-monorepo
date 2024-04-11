@@ -12,7 +12,6 @@ export const addKeysTransactions = schema.table(
       length: 42,
     }).notNull(),
     txHash: char('transaction_hash', { length: 66 }).notNull(),
-    startIndex: integer('start_index').notNull(),
     timestamp: timestamp('timestamp', { withTimezone: true }).notNull(),
     blockNumber: integer('block_number').notNull(),
   },
