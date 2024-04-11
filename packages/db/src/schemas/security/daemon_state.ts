@@ -1,4 +1,4 @@
-import { char, index, integer, pgEnum, uniqueIndex } from 'drizzle-orm/pg-core';
+import { char, integer, pgEnum, uniqueIndex } from 'drizzle-orm/pg-core';
 
 import { schema } from './security_schema';
 
