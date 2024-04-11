@@ -26,11 +26,8 @@ import { SyncTransfersUtils } from './sync-transfers.utils';
 @Injectable()
 export class SyncTransfersTaskManagerService {
   private readonly db: ReturnType<
-    typeof this.databaseService.getConnection
+    typeof this.databaseService.getApiConnection
   >['db'];
-  private readonly client: ReturnType<
-    typeof this.databaseService.getConnection
-  >['client'];
 
   constructor(
     @Inject(TaskSyncDBProvider.CRON_TASK)
@@ -42,10 +39,7 @@ export class SyncTransfersTaskManagerService {
     private readonly databaseService: DatabaseService,
   ) {
     this.logger.setContext(this.constructor.name);
-
-    const { db, client } = this.databaseService.getConnection();
-    this.db = db;
-    this.client = client;
+    this.db = this.databaseService.getApiConnection().db;
   }
 
   @Cron(CronExpression.EVERY_HOUR)

@@ -54,6 +54,8 @@ export const getSharedConfig = (): SharedConfig => ({
     apiRio: parseInt(process.env.PORT_API_RIO as string, 10) || 4000,
     taskSyncDBService:
       parseInt(process.env.PORT_TASK_SCHEDULER as string, 10) || 4005,
+    securityDaemonService:
+      parseInt(process.env.PORT_SECURITY_DAEMON as string, 10) || 4010,
   },
 
   localhost: process.env.LOCALHOST || '127.0.0.1',

@@ -26,10 +26,10 @@ import {
 @Injectable()
 export class SyncExchangeRatesTaskManagerService {
   private readonly db: ReturnType<
-    typeof this.databaseService.getConnection
+    typeof this.databaseService.getApiConnection
   >['db'];
   private readonly client: ReturnType<
-    typeof this.databaseService.getConnection
+    typeof this.databaseService.getApiConnection
   >['client'];
 
   constructor(
@@ -41,10 +41,7 @@ export class SyncExchangeRatesTaskManagerService {
     private readonly databaseService: DatabaseService,
   ) {
     this.logger.setContext(this.constructor.name);
-
-    const { db, client } = this.databaseService.getConnection();
-    this.db = db;
-    this.client = client;
+    this.db = this.databaseService.getApiConnection().db;
   }
 
   @Cron('10 0-23/1 * * *')
