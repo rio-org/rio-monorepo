@@ -10,7 +10,7 @@ import {
   ChainService,
   CHAIN_ID,
 } from '@rio-app/common';
-import { Hash, PublicClient, decodeFunctionData, getAbiItem } from 'viem';
+import { Hash, PublicClient, decodeFunctionData } from 'viem';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import {
   OrderDirection,
