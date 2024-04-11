@@ -38,7 +38,7 @@ export class SyncValidatorKeysTaskManagerService {
   }
 
   // Runs half past the hour every hour
-  @Cron('19 0-23/1 * * *')
+  @Cron('30 0-23/1 * * *')
   /**
    * Retrieves all added validator keys for the past hour and
    * adds ejection requests to the queue for any invalid keys
@@ -131,9 +131,9 @@ export class SyncValidatorKeysTaskManagerService {
           keyUploadTx: string;
           keyUploadTimestamp: string;
           blockNumber: number;
-          signaturesByKeys: { [publicKey: Hash]: Hash };
+          signaturesByKeys: { [publicKey: string]: string };
           keys: {
-            [keyIndex: string]: { publicKey: Hash; signature: Hash };
+            [keyIndex: string]: { publicKey: string; signature: string };
           };
         };
       } = {};
@@ -159,6 +159,7 @@ export class SyncValidatorKeysTaskManagerService {
             const tx = await publicClient.getTransaction({
               hash: keyUploadTx as Hash,
             });
+
             if (!tx) {
               this.logger.error(
                 `[Error::${chainId}::${liquidRestakingToken.symbol}] Transaction not found: ${keyUploadTx}`,
@@ -192,10 +193,7 @@ export class SyncValidatorKeysTaskManagerService {
             const signaturesByKeys: (typeof txLookup)[string]['signaturesByKeys'] =
               {};
             for (let i = 0; i < pubkeysArr.length; i++) {
-              signaturesByKeys[pubkeysArr[i]] = {
-                publicKey: pubkeysArr[i] as Hash,
-                signature: signaturesArr[i] as Hash,
-              };
+              signaturesByKeys[pubkeysArr[i]] = signaturesArr[i];
             }
 
             txLookup[keyUploadTx] = {
@@ -212,10 +210,12 @@ export class SyncValidatorKeysTaskManagerService {
             continue;
           }
 
+          const publicKey = validator.publicKey.slice(2);
+          const signature =
+            txLookup[keyUploadTx].signaturesByKeys[publicKey].slice(2);
           txLookup[keyUploadTx].keys[keyIndex] = {
-            publicKey: validator.publicKey as Hash,
-            signature:
-              txLookup[keyUploadTx].signaturesByKeys[validator.publicKey],
+            publicKey,
+            signature,
           };
         }
 
@@ -274,23 +274,20 @@ export class SyncValidatorKeysTaskManagerService {
 
       const keysToDuplicateCheck = Object.keys(keysToAddLookup);
       const duplicateKeys = await Promise.all(
-        (() => {
-          return [...Array(Math.ceil(keysToDuplicateCheck.length / 200))].map(
-            (_, i) =>
-              this.db
-                .select({ publicKey: vk.publicKey })
-                .from(vk)
-                .where(
-                  and(
-                    eq(vk.chainId, chainId),
-                    inArray(
-                      vk.publicKey,
-                      keysToDuplicateCheck.slice(i * 100, (i + 1) * 100),
-                    ),
-                  ),
+        [...Array(Math.ceil(keysToDuplicateCheck.length / 200))].map((_, i) =>
+          this.db
+            .select({ publicKey: vk.publicKey })
+            .from(vk)
+            .where(
+              and(
+                eq(vk.chainId, chainId),
+                inArray(
+                  vk.publicKey,
+                  keysToDuplicateCheck.slice(i * 100, (i + 1) * 100),
                 ),
-          );
-        })(),
+              ),
+            ),
+        ),
       );
 
       duplicateKeys.flat().map(({ publicKey }) => {
@@ -299,11 +296,12 @@ export class SyncValidatorKeysTaskManagerService {
       });
 
       /**
-       * @todo Check validity of keys using [BLSService](https://github.com/lidofinance/lido-council-daemon/blob/develop/src/bls/bls.service.ts)
+       * @TODO Check validity of keys by forking Lido's
+       * {@link https://github.com/lidofinance/lido-council-daemon/blob/develop/src/bls/bls.service.ts BLSService}
        */
 
       /**
-       * @todo Check deposit status of keys
+       * @TODO Check deposit status of keys
        */
 
       this.logger.log(
@@ -336,14 +334,15 @@ export class SyncValidatorKeysTaskManagerService {
         }
       });
 
-      const rovalTxBatchesValues = Object.values(removalTxBatches);
+      const removalTxBatchesValues = Object.values(removalTxBatches);
       const keysToAdd = Object.values(keysToAddLookup);
 
       if (
-        (!allKeyTxs.length && !keysToAdd.length) ||
-        !rovalTxBatchesValues.length
+        !allKeyTxs.length &&
+        !keysToAdd.length &&
+        !removalTxBatchesValues.length
       ) {
-        return;
+        continue;
       }
 
       await this.db.transaction(async (tx) => {
@@ -364,7 +363,7 @@ export class SyncValidatorKeysTaskManagerService {
               )
               .returning({ id: akt.id, txHash: akt.txHash });
 
-        const removeTxRows = !rovalTxBatchesValues.length
+        const removeTxRows = !removalTxBatchesValues.length
           ? []
           : await tx
               .insert(rkt)
@@ -380,8 +379,8 @@ export class SyncValidatorKeysTaskManagerService {
             chainId,
             operatorId: key.operatorId,
             operatorRegistryAddress,
-            publicKey: key.publicKey,
-            signature: key.signature,
+            publicKey: key.publicKey.replace(/^0x/, ''),
+            signature: key.signature.replace(/^0x/, ''),
             keyIndex: key.keyIndex,
             addKeysTransactionId: addedTxRows.find(
               ({ txHash }) => txHash === key.txHash,
@@ -391,8 +390,8 @@ export class SyncValidatorKeysTaskManagerService {
             chainId,
             operatorId: key.operatorId,
             operatorRegistryAddress,
-            publicKey: key.publicKey,
-            signature: key.signature,
+            publicKey: key.publicKey.replace(/^0x/, ''),
+            signature: key.signature.replace(/^0x/, ''),
             keyIndex: key.keyIndex,
             addKeysTransactionId: addedTxRows.find(
               ({ txHash }) => txHash === key.txHash,
