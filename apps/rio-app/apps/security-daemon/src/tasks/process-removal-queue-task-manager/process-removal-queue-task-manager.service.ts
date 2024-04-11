@@ -40,9 +40,10 @@ export class ProcessRemovalQueueTaskManagerService {
     this.db = this.databaseService.getSecurityConnection().db;
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_MINUTE)
   /**
-   * Sync the transfers from the chains and tokens
+   * Process and emit validator key removal transactions in the
+   * removal queue
    */
   async processRemovalQueue() {
     if (this.task?.chainIds.length === 0) {
@@ -58,20 +59,14 @@ export class ProcessRemovalQueueTaskManagerService {
       const liquidRestakingTokens = await subgraph.getLiquidRestakingTokens();
 
       try {
-        this.logger.log(
-          `[ProcessQueue::${chainId}::Starting] Processing removal queue`,
-        );
+        this.logger.log(`[Starting::${chainId}] Processing removal queue`);
 
         // Do things to each item in
         liquidRestakingTokens;
         //
-        this.logger.log(
-          `[ProcessQueue::${chainId}::Finished] Processing removal queue`,
-        );
+        this.logger.log(`[Finished::${chainId}] Processing removal queue`);
       } catch (error) {
-        this.logger.error(
-          `[ProcessQueue::${chainId}::Error] ${(error as Error).toString()}`,
-        );
+        this.logger.error(`[Error::${chainId}] ${(error as Error).toString()}`);
       }
     }
   }

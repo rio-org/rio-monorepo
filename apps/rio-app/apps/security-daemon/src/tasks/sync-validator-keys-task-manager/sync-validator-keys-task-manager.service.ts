@@ -47,20 +47,14 @@ export class SyncValidatorKeysTaskManagerService {
       const liquidRestakingTokens = await subgraph.getLiquidRestakingTokens();
 
       try {
-        this.logger.log(
-          `[SyncAddedKeys::${chainId}::Starting] Syncing added keys...`,
-        );
+        this.logger.log(`[Starting::${chainId}] Syncing added keys...`);
         //
         // Do things to each item in
         liquidRestakingTokens;
         //
-        this.logger.log(
-          `[SyncAddedKeys::${chainId}::Complete] Finished syncing.`,
-        );
+        this.logger.log(`[Complete::${chainId}] Finished syncing.`);
       } catch (error) {
-        this.logger.error(
-          `[SyncAddedKeys::${chainId}::Error] ${(error as Error).toString()}`,
-        );
+        this.logger.error(`[Error::${chainId}] ${(error as Error).toString()}`);
       }
     }
   }
