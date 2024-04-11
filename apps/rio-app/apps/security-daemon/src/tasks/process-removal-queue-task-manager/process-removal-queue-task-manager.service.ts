@@ -1,19 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  Deposit,
-  LiquidRestakingToken,
-  SubgraphClient,
-  TokenTransfer,
-  WithdrawalRequest,
-} from '@rionetwork/sdk';
+import { SubgraphClient } from '@rionetwork/sdk';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { desc, apiSchema } from '@internal/db';
 import {
-  Deposit_OrderBy,
-  OrderDirection,
-} from '@rionetwork/sdk/dist/subgraph/generated/graphql';
-import {
-  CHAIN_ID,
   ChainService,
   SecurityDaemonCronTask,
   DatabaseService,
