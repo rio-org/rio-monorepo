@@ -1,4 +1,4 @@
-export type KeysToAddLookup = {
+export type ValidatorKeysByPubKey = {
   [publicKey: string]: {
     txHash: string;
     publicKey: string;
@@ -8,7 +8,7 @@ export type KeysToAddLookup = {
   };
 };
 
-export type TransactionLookup = {
+export type TransactionInformationByHash = {
   [keyUploadTx: string]: {
     operatorId: number;
     keyUploadTx: string;
