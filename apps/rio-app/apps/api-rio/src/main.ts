@@ -11,6 +11,7 @@ import {
 import { ApiRioModule } from './api-rio.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
+import '@rio-app/common/tracing';
 
 async function bootstrap() {
   // Define the App

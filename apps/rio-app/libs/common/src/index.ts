@@ -8,4 +8,5 @@ export * from './exceptions';
 export * from './health';
 export * from './logger';
 export * from './types';
+export * from './tracing';
 export * from './utils';
