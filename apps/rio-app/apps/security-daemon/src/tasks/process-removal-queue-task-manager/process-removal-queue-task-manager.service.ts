@@ -2,8 +2,8 @@ import { type RemoveKeysTransaction } from '@internal/db/dist/src/schemas/securi
 import { SubgraphClient, type LiquidRestakingToken } from '@rionetwork/sdk';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Inject, Injectable } from '@nestjs/common';
-import { type PublicClient } from 'viem';
-import { and, eq } from 'drizzle-orm';
+import { Address, decodeFunctionData, type PublicClient } from 'viem';
+import { and, desc, eq, gte, isNotNull, lt, sql } from 'drizzle-orm';
 import {
   ChainService,
   SecurityDaemonCronTask,
@@ -13,6 +13,7 @@ import {
   SecurityDaemonProvider,
   CHAIN_ID,
 } from '@rio-app/common';
+import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
 
 @Injectable()
 export class ProcessRemovalQueueTaskManagerService {
@@ -34,6 +35,34 @@ export class ProcessRemovalQueueTaskManagerService {
   }
 
   /**
+   * Get the status of the task for the given liquid restaking token
+   * @param {number} chainId The chain id
+   * @param {LiquidRestakingToken} liquidRestakingToken The liquid restaking token
+   * @param {'key_removal' | 'key_retrieval'} taskName The task name
+   * @returns {Promise<Pick<DaemonTaskState, 'lastBlockNumber' | 'status'>>} The last blocknumber that was run (or null if paused)
+   */
+  private async _getTaskStatus(
+    chainId: number,
+    liquidRestakingToken: LiquidRestakingToken,
+    taskName: 'key_removal' | 'key_retrieval',
+  ) {
+    const dts = this.schema.daemonTaskState;
+    const operatorRegistryAddress =
+      liquidRestakingToken.deployment.operatorRegistry;
+    return await this.db
+      .select({ status: dts.status, lastBlockNumber: dts.lastBlockNumber })
+      .from(dts)
+      .where(
+        and(
+          eq(dts.chainId, chainId),
+          eq(dts.operatorRegistryAddress, operatorRegistryAddress),
+          eq(dts.task, taskName),
+        ),
+      )
+      .then((results) => results[0]);
+  }
+
+  /**
    * Check if the task is paused for the given liquid restaking token
    * @param {number} chainId The chain id
    * @param {LiquidRestakingToken} liquidRestakingToken The liquid restaking token
@@ -46,16 +75,11 @@ export class ProcessRemovalQueueTaskManagerService {
     const dts = this.schema.daemonTaskState;
     const operatorRegistryAddress =
       liquidRestakingToken.deployment.operatorRegistry;
-    const taskStatus = await this.db
-      .select({ status: dts.status, lastBlockNumber: dts.lastBlockNumber })
-      .from(dts)
-      .where(
-        and(
-          eq(dts.operatorRegistryAddress, operatorRegistryAddress),
-          eq(dts.task, 'key_removal'),
-        ),
-      )
-      .then((results) => results[0]);
+    const taskStatus = await this._getTaskStatus(
+      chainId,
+      liquidRestakingToken,
+      'key_removal',
+    );
 
     if (!taskStatus) {
       await this.db.insert(dts).values({
@@ -105,25 +129,25 @@ export class ProcessRemovalQueueTaskManagerService {
             continue;
           }
 
-          // Store common arguments for sub-functions
-          const subFxnArgs = [
-            chainId,
-            publicClient,
-            subgraph,
-            liquidRestakingToken,
-          ] as const;
-
           // Before processing queue, make sure the daemon's state is current
           // with onchain state by processing any new
           // `OperatorPendingValidatorDetailsRemoved` events that have occured
           // since the last blockNumber (specifically to check for removals not
           // made by us)
-          this._syncWithOnchainRemovalEvents(...subFxnArgs, lastBlockNumber);
+          await this._syncWithOnchainRemovalEvents(
+            chainId,
+            publicClient,
+            liquidRestakingToken,
+            lastBlockNumber,
+          );
 
           // Fetch the next `remove_key_transaction` that's pending with a
           // `transaction_hash` and checks its status:
           const [pendingTx, nextQueuedTx] = await this._getCurrentAndNextTx(
-            ...subFxnArgs,
+            chainId,
+            publicClient,
+            liquidRestakingToken,
+            subgraph,
           );
 
           // Shepherd the current pending transaction by checking its status
@@ -131,7 +155,10 @@ export class ProcessRemovalQueueTaskManagerService {
           let shouldProcessQueuedTx = false;
           if (pendingTx) {
             const pendingTxFinished = await this._processPendingTx(
-              ...subFxnArgs,
+              chainId,
+              publicClient,
+              liquidRestakingToken,
+              subgraph,
               pendingTx,
             );
             shouldProcessQueuedTx = pendingTxFinished;
@@ -140,7 +167,13 @@ export class ProcessRemovalQueueTaskManagerService {
           // If the current pending transaction is finished, emit the next
           // queued transaction
           if (shouldProcessQueuedTx && nextQueuedTx) {
-            await this._emitQueuedTx(...subFxnArgs, nextQueuedTx);
+            await this._emitQueuedTx(
+              chainId,
+              publicClient,
+              liquidRestakingToken,
+              subgraph,
+              nextQueuedTx,
+            );
           }
         }
         this.logger.log(`[Finished::${chainId}] Processing removal queue`);
@@ -155,42 +188,138 @@ export class ProcessRemovalQueueTaskManagerService {
    * processing any new `OperatorPendingValidatorDetailsRemoved` events that have occured
    * @param {number} chainId The chain id
    * @param {PublicClient} publicClient The public client
-   * @param {SubgraphClient} subgraph The subgraph client
    * @param {LiquidRestakingToken} liquidRestakingTokens The liquid restaking token
    * @param {number} lastBlockNumber The last block number
    */
   private async _syncWithOnchainRemovalEvents(
-    chainId: CHAIN_ID, // eslint-disable-line @typescript-eslint/no-unused-vars
-    publicClient: PublicClient, // eslint-disable-line @typescript-eslint/no-unused-vars
-    subgraph: SubgraphClient, // eslint-disable-line @typescript-eslint/no-unused-vars
-    liquidRestakingTokens: LiquidRestakingToken, // eslint-disable-line @typescript-eslint/no-unused-vars
-    lastBlockNumber: number, // eslint-disable-line @typescript-eslint/no-unused-vars
+    chainId: CHAIN_ID,
+    publicClient: PublicClient,
+    liquidRestakingTokens: LiquidRestakingToken,
+    lastBlockNumber: number,
   ) {
-    /**
-     * @TODO
-     * If one is found that we don't have any record of scheduling,
-     * start a new DB transaction that swaps the last keys' indices
-     * with the removed keys before deleting the removed keys.
-     */
-    /**
-     * @TODO
-     * Uncomment
-     * ---
-     * const dts = this.schema.daemonTaskState;
-     *
-     * const lastBlockNumber =
-     *   lastRemovalEvent.blockNumber || (await publicClient.getBlockNumber());
-     *
-     * await this.db
-     *   .update(dts)
-     *   .set({ lastBlockNumber })
-     *   .where(
-     *     and(
-     *       eq(dts.operatorRegistryAddress, operatorRegistryAddress),
-     *       eq(dts.task, 'key_removal'),
-     *     ),
-     *   );
-     */
+    const operatorRegistryAddress = liquidRestakingTokens.deployment
+      .operatorRegistry as Address;
+    const currentBlock = await publicClient.getBlockNumber();
+    const {
+      validatorKeys: vk,
+      removeKeysTransactions: rkt,
+      daemonTaskState: dts,
+    } = this.schema;
+    const { keyIndex } = vk;
+
+    let blockNumber = lastBlockNumber;
+    let newLastBlockNumber = Number(currentBlock);
+    let finished = false;
+    const allLogs: [number, bigint, bigint][] = [];
+
+    while (blockNumber < currentBlock && !finished) {
+      const toBlock = Math.min(blockNumber + 50000, Number(currentBlock));
+      const logs = await publicClient.getContractEvents({
+        abi: RioLRTOperatorRegistryABI,
+        address: operatorRegistryAddress,
+        eventName: 'OperatorPendingValidatorDetailsRemoved',
+        fromBlock: BigInt(blockNumber + 1),
+        toBlock: BigInt(toBlock),
+      });
+
+      for await (const log of logs) {
+        const tx = await publicClient.getTransaction({
+          hash: log.transactionHash,
+        });
+
+        const { functionName, args } = decodeFunctionData({
+          abi: RioLRTOperatorRegistryABI,
+          data: tx.input,
+        });
+
+        if (functionName !== 'removeValidatorDetails') {
+          this.logger.error(
+            `Unexpected function name: ${functionName} for tx: ${log.transactionHash}`,
+          );
+
+          /**
+           * @todo
+           * Should this pause the task and alert us?
+           */
+
+          continue;
+        }
+
+        const [operatorId, fromIndex, validatorCount] =
+          args as (typeof allLogs)[number];
+
+        const lastRecordedKeyIndex = await this.db
+          .select({ keyIndex })
+          .from(vk)
+          .where(
+            and(
+              eq(vk.operatorId, operatorId),
+              eq(vk.chainId, chainId),
+              eq(vk.operatorRegistryAddress, operatorRegistryAddress),
+            ),
+          )
+          .limit(1)
+          .then((results) => results[0]?.keyIndex);
+
+        const maxKeyToRemove = fromIndex + validatorCount - 1n;
+        if (lastRecordedKeyIndex && lastRecordedKeyIndex < maxKeyToRemove) {
+          newLastBlockNumber = Number(tx.blockNumber) - 1;
+          finished = true;
+          break;
+        }
+
+        allLogs.push([operatorId, fromIndex, validatorCount]);
+      }
+
+      blockNumber = toBlock;
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    await this.db.transaction(async (tx) => {
+      for await (const [operatorId, fromIndex, validatorCount] of allLogs) {
+        const sharedWhereAndArr = [
+          eq(vk.operatorId, operatorId),
+          eq(vk.chainId, chainId),
+          eq(vk.operatorRegistryAddress, operatorRegistryAddress),
+          gte(vk.keyIndex, Number(fromIndex)),
+          lt(vk.keyIndex, Number(fromIndex + validatorCount)),
+        ];
+
+        const linkedRemoveTxIds = await tx
+          .delete(vk)
+          .where(
+            and(
+              ...sharedWhereAndArr,
+              lt(vk.keyIndex, Number(fromIndex + validatorCount)),
+            ),
+          )
+          .returning({ removeKeysTransactionId: vk.removeKeysTransactionId });
+        await tx
+          .update(vk)
+          .set({ keyIndex: sql`${vk.keyIndex} - ${Number(validatorCount)}` })
+          .where(and(...sharedWhereAndArr));
+
+        for await (const { removeKeysTransactionId } of linkedRemoveTxIds) {
+          if (!removeKeysTransactionId) continue;
+          await tx
+            .update(rkt)
+            .set({ status: 'succeeded' })
+            .where(eq(rkt.id, removeKeysTransactionId));
+        }
+      }
+
+      await this.db
+        .update(dts)
+        .set({ lastBlockNumber: newLastBlockNumber })
+        .where(
+          and(
+            eq(dts.chainId, chainId),
+            eq(dts.operatorRegistryAddress, operatorRegistryAddress),
+            eq(dts.task, 'key_removal'),
+          ),
+        );
+    });
   }
 
   /**
@@ -204,17 +333,33 @@ export class ProcessRemovalQueueTaskManagerService {
   private async _getCurrentAndNextTx(
     chainId: CHAIN_ID, // eslint-disable-line @typescript-eslint/no-unused-vars
     publicClient: PublicClient, // eslint-disable-line @typescript-eslint/no-unused-vars
-    subgraph: SubgraphClient, // eslint-disable-line @typescript-eslint/no-unused-vars
     liquidRestakingTokens: LiquidRestakingToken, // eslint-disable-line @typescript-eslint/no-unused-vars
+    subgraph: SubgraphClient, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<[RemoveKeysTransaction | null, RemoveKeysTransaction | null]> {
-    /**
-     * @TODO
-     * Implement two concurrent queries of the `remove_key_transaction` table:
-     * 1. Fetch an existing row that's pending (and has a `transaction_hash`)
-     * 2. Fetch the next row that's queued, sorted in descending order by
-     *    its linked `validator_key.key_index`.
-     */
-    return [null, null];
+    const { validatorKeys: vk, removeKeysTransactions: rkt } = this.schema;
+
+    return await Promise.all([
+      this.db
+        .select()
+        .from(rkt)
+        .where(eq(rkt.status, 'pending'))
+        .limit(1)
+        .then((results) => results[0]),
+      this.db
+        .select({ removeKeyTransaction: rkt })
+        .from(vk)
+        .leftJoin(
+          rkt,
+          and(
+            isNotNull(vk.removeKeysTransactionId),
+            eq(vk.removeKeysTransactionId, rkt.id),
+          ),
+        )
+        .where(eq(rkt.status, 'queued'))
+        .orderBy(desc(vk.keyIndex))
+        .limit(1)
+        .then((results) => results[0]?.removeKeyTransaction),
+    ]);
   }
 
   /**
@@ -229,8 +374,8 @@ export class ProcessRemovalQueueTaskManagerService {
   private async _processPendingTx(
     chainId: CHAIN_ID, // eslint-disable-line @typescript-eslint/no-unused-vars
     publicClient: PublicClient, // eslint-disable-line @typescript-eslint/no-unused-vars
-    subgraph: SubgraphClient, // eslint-disable-line @typescript-eslint/no-unused-vars
     liquidRestakingTokens: LiquidRestakingToken, // eslint-disable-line @typescript-eslint/no-unused-vars
+    subgraph: SubgraphClient, // eslint-disable-line @typescript-eslint/no-unused-vars
     pendingTx: RemoveKeysTransaction, // eslint-disable-line @typescript-eslint/no-unused-vars
   ) {
     /**
@@ -261,8 +406,8 @@ export class ProcessRemovalQueueTaskManagerService {
   private async _emitQueuedTx(
     chainId: CHAIN_ID, // eslint-disable-line @typescript-eslint/no-unused-vars
     publicClient: PublicClient, // eslint-disable-line @typescript-eslint/no-unused-vars
-    subgraph: SubgraphClient, // eslint-disable-line @typescript-eslint/no-unused-vars
     liquidRestakingTokens: LiquidRestakingToken, // eslint-disable-line @typescript-eslint/no-unused-vars
+    subgraph: SubgraphClient, // eslint-disable-line @typescript-eslint/no-unused-vars
     queuedTx: RemoveKeysTransaction, // eslint-disable-line @typescript-eslint/no-unused-vars
   ) {
     /**
