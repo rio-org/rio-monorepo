@@ -7,6 +7,8 @@ tracer.init({
   env: process.env.ENV,
   runtimeMetrics: true,
   profiling: true,
-  reportHostname: true,
+  startupLogs: true,
+  clientIpEnabled: true,
 });
+
 export default tracer;
