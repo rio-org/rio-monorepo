@@ -4,12 +4,13 @@ import tracer from 'dd-trace';
 tracer.init({
   // https://docs.datadoghq.com/tracing/connect_logs_and_traces/nodejs/
   logInjection: true,
-  env: process.env.ENV,
+  env: process.env.DD_ENV,
   runtimeMetrics: true,
   profiling: true,
   startupLogs: true,
   clientIpEnabled: true,
-  service: process.env.NAME,
+  service: process.env.DD_SERVICE,
+  dbmPropagationMode: 'full',
 });
 
 export default tracer;
