@@ -5,6 +5,7 @@ import { TaskSyncDBConfigService } from '@rio-app/common';
 import { configure } from '@rio-app/common';
 import { attachGlobalExceptionHandlers } from '@rio-app/common';
 import { TaskSyncDBModule } from './task-sync-db.module';
+import '@rio-app/common/tracing';
 
 async function bootstrap() {
   const context = await NestFactory.createApplicationContext(TaskSyncDBModule);
