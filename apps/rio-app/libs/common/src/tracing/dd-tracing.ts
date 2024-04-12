@@ -9,6 +9,7 @@ tracer.init({
   profiling: true,
   startupLogs: true,
   clientIpEnabled: true,
+  service: process.env.NAME,
 });
 
 export default tracer;
