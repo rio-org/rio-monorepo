@@ -102,16 +102,13 @@ export class SyncValidatorKeysTaskManagerService {
 
     // Retrieve all the added validator keys since last run and
     // store them in a dictionary by transaction hash
-    const { txInfoByHash, lastBlockNumber } = await this._getAddedValidatorTxs(
+    const { addKeyTxs, lastBlockNumber } = await this._getAddedValidatorTxs(
       chainId,
       publicClient,
       subgraph,
       liquidRestakingToken,
       operatorRegistryAddress,
     );
-
-    // Convert the dictionary to an array of key information
-    const addKeyTxs = Object.values(txInfoByHash);
 
     this.logger.log(
       `[Info::${chainId}::${liquidRestakingToken.symbol}] Found ${addKeyTxs.length} transactions`,
@@ -173,6 +170,7 @@ export class SyncValidatorKeysTaskManagerService {
 
     // Insert all transactions and keys into the database
     await this.db.transaction(async (tx) => {
+      const commonArgs = [chainId, operatorRegistryAddress] as const;
       const {
         daemonTaskState: dts,
         addKeysTransactions: akt,
@@ -185,15 +183,11 @@ export class SyncValidatorKeysTaskManagerService {
         : await tx
             .insert(akt)
             .values(
-              addKeyTxs.map((tx) => ({
+              this._formatAddKeyTxDbInserts(
                 chainId,
-                operatorId: tx.operatorId,
                 operatorRegistryAddress,
-                txHash: tx.keyUploadTx,
-                timestamp: new Date(Number(tx.keyUploadTimestamp) * 1000),
-                startIndex: 0,
-                blockNumber: tx.blockNumber,
-              })),
+                addKeyTxs,
+              ),
             )
             .returning({ id: akt.id, txHash: akt.txHash });
 
@@ -206,33 +200,17 @@ export class SyncValidatorKeysTaskManagerService {
             .returning({ id: rkt.id });
 
       if (keysToAdd.length || keysToRemove.length) {
-        await tx.insert(vk).values([
-          ...Object.values(validatorKeysByPubKey).map((key) => ({
-            chainId,
-            operatorId: key.operatorId,
-            operatorRegistryAddress,
-            publicKey: key.publicKey.replace(/^0x/, ''),
-            signature: key.signature.replace(/^0x/, ''),
-            keyIndex: key.keyIndex,
-            addKeysTransactionId: addKeyTxRows.find(
-              ({ txHash }) => txHash === key.txHash,
-            )!.id,
-          })),
-          ...keysToRemove.map((key) => ({
-            chainId,
-            operatorId: key.operatorId,
-            operatorRegistryAddress,
-            publicKey: key.publicKey.replace(/^0x/, ''),
-            signature: key.signature.replace(/^0x/, ''),
-            keyIndex: key.keyIndex,
-            addKeysTransactionId: addKeyTxRows.find(
-              ({ txHash }) => txHash === key.txHash,
-            )!.id,
-            removeKeysTransactionId:
-              removeTxRows[batchHashLookup[`${key.operatorId}-${key.keyIndex}`]]
-                .id,
-          })),
-        ]);
+        await tx
+          .insert(vk)
+          .values(
+            this._formatKeysDbInserts(
+              ...commonArgs,
+              [...keysToAdd, ...keysToRemove],
+              addKeyTxRows,
+              removeTxRows,
+              batchHashLookup,
+            ),
+          );
       }
 
       if (lastBlockNumber > lastTaskBlockNumber) {
@@ -247,6 +225,48 @@ export class SyncValidatorKeysTaskManagerService {
           );
       }
     });
+  }
+
+  private _formatAddKeyTxDbInserts(
+    chainId: CHAIN_ID,
+    operatorRegistryAddress: string,
+    addKeyTxs: TransactionInformationByHash[string][],
+  ) {
+    return addKeyTxs.map((tx) => ({
+      chainId,
+      operatorId: tx.operatorId,
+      operatorRegistryAddress,
+      txHash: tx.keyUploadTx,
+      timestamp: new Date(Number(tx.keyUploadTimestamp) * 1000),
+      startIndex: 0,
+      blockNumber: tx.blockNumber,
+    }));
+  }
+
+  private _formatKeysDbInserts(
+    chainId: CHAIN_ID,
+    operatorRegistryAddress: string,
+    keysToRemove: (ValidatorKeysByPubKey[string] & {
+      removalReason?: RemoveKeysTransaction['removalReason'];
+    })[],
+    addKeyTxRows: { id: string; txHash: string }[],
+    removeTxRows: { id: string }[],
+    batchHashLookup: { [operatorIdDashKeyIndex: string]: number },
+  ) {
+    return keysToRemove.map((key) => ({
+      chainId,
+      operatorId: key.operatorId,
+      operatorRegistryAddress,
+      publicKey: key.publicKey.replace(/^0x/, ''),
+      signature: key.signature.replace(/^0x/, ''),
+      keyIndex: key.keyIndex,
+      addKeysTransactionId: addKeyTxRows.find(
+        ({ txHash }) => txHash === key.txHash,
+      )!.id,
+      removeKeysTransactionId: !key.removalReason
+        ? undefined
+        : removeTxRows[batchHashLookup[`${key.operatorId}-${key.keyIndex}`]].id,
+    }));
   }
 
   /**
@@ -415,7 +435,10 @@ export class SyncValidatorKeysTaskManagerService {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    return { txInfoByHash, lastBlockNumber };
+    // Convert the dictionary to an array of key information
+    const addKeyTxs = Object.values(txInfoByHash);
+
+    return { addKeyTxs, lastBlockNumber };
   }
 
   async _removeDuplicateKeys(
