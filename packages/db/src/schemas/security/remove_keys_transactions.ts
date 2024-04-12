@@ -9,6 +9,12 @@ export const transactionStatusEnum = pgEnum('transaction_status', [
   'succeeded',
 ]);
 
+export const removalReasonEnum = pgEnum('removal_reason', [
+  'duplicate',
+  'public_key_used',
+  'invalid_signature',
+]);
+
 export const removeKeysTransactions = schema.table(
   'remove_keys_transactions',
   {
@@ -19,6 +25,7 @@ export const removeKeysTransactions = schema.table(
       length: 42,
     }).notNull(),
     txHash: char('transaction_hash', { length: 66 }),
+    removalReason: removalReasonEnum('removal_reason').notNull(),
     status: transactionStatusEnum('status').default('queued'),
   },
   (table) => ({

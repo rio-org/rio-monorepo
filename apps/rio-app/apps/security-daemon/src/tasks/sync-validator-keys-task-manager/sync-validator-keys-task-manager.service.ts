@@ -17,6 +17,7 @@ import {
   Validator_OrderBy,
 } from '@rionetwork/sdk/dist/subgraph/generated/graphql';
 import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
+import { RemoveKeysTransaction } from '@internal/db/dist/src/schemas/security';
 
 @Injectable()
 export class SyncValidatorKeysTaskManagerService {
@@ -90,7 +91,7 @@ export class SyncValidatorKeysTaskManagerService {
         liquidRestakingToken.deployment.operatorRegistry.toLowerCase();
 
       const taskStatus = await this.db
-        .select({ status: dts.status })
+        .select({ status: dts.status, lastBlockNumber: dts.lastBlockNumber })
         .from(dts)
         .where(
           and(
@@ -142,6 +143,7 @@ export class SyncValidatorKeysTaskManagerService {
       lastTimestamp ??= Number(liquidRestakingToken.createdTimestamp);
       const perPage = 200;
       let [finished, page] = [false, 1];
+      let lastBlockNumber = 0;
 
       while (!finished) {
         const validators = await subgraph.getValidators({
@@ -167,6 +169,8 @@ export class SyncValidatorKeysTaskManagerService {
               txLookupErrors[keyUploadTx] = new Error('Transaction not found');
               continue;
             }
+
+            lastBlockNumber = Number(tx.blockNumber);
 
             const { functionName, args } = decodeFunctionData({
               abi: RioLRTOperatorRegistryABI,
@@ -246,7 +250,9 @@ export class SyncValidatorKeysTaskManagerService {
           operatorId: number;
         };
       } = {};
-      const keysToRemove: (typeof keysToAddLookup)[string][] = [];
+      const keysToRemove: ((typeof keysToAddLookup)[string] & {
+        removalReason: RemoveKeysTransaction['removalReason'];
+      })[] = [];
 
       for await (const [txHash, txData] of allKeyTxs) {
         const keyEntries = Object.entries(txData.keys);
@@ -260,6 +266,7 @@ export class SyncValidatorKeysTaskManagerService {
               ...keys,
               keyIndex: Number(keyIndex),
               operatorId: txData.operatorId,
+              removalReason: 'duplicate',
             });
             continue;
           }
@@ -291,7 +298,10 @@ export class SyncValidatorKeysTaskManagerService {
       );
 
       duplicateKeys.flat().map(({ publicKey }) => {
-        keysToRemove.push(keysToAddLookup[publicKey]);
+        keysToRemove.push({
+          ...keysToAddLookup[publicKey],
+          removalReason: 'duplicate',
+        });
         delete keysToAddLookup[publicKey];
       });
 
@@ -320,7 +330,7 @@ export class SyncValidatorKeysTaskManagerService {
       } = {};
       const batchHashLookup: { [operatorIdDashKeyIndex: string]: number } = {};
       keysToRemove.forEach((keyToRemove) => {
-        const { operatorId, keyIndex } = keyToRemove;
+        const { operatorId, keyIndex, removalReason } = keyToRemove;
         const batchNumber =
           batchHashLookup[`${operatorId}-${keyIndex - 1}`] ?? batchCount++;
         batchHashLookup[`${operatorId}-${keyIndex}`] = batchNumber;
@@ -329,6 +339,7 @@ export class SyncValidatorKeysTaskManagerService {
             chainId,
             operatorId,
             operatorRegistryAddress,
+            removalReason,
             status: 'queued',
           };
         }
@@ -401,6 +412,18 @@ export class SyncValidatorKeysTaskManagerService {
                 .id,
           })),
         ]);
+
+        if (lastBlockNumber > taskStatus.lastBlockNumber) {
+          await tx
+            .update(dts)
+            .set({ lastBlockNumber })
+            .where(
+              and(
+                eq(dts.operatorRegistryAddress, operatorRegistryAddress),
+                eq(dts.task, 'key_retrieval'),
+              ),
+            );
+        }
       });
     }
   }

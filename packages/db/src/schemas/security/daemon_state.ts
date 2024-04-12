@@ -17,6 +17,7 @@ export const daemonTaskState = schema.table(
     }).notNull(),
     task: daemonTaskEnum('task').notNull().primaryKey(),
     status: daemonStatusEnum('status').default('running'),
+    lastBlockNumber: integer('last_block_number').default(0).notNull(),
   },
   (table) => ({
     taskByOperatorRegistryRef: uniqueIndex(
