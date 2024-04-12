@@ -38,7 +38,7 @@
   "dependencies": {
     "@apollo/client": "^3.8.7",
     "@internal/config": "workspace:*",
-    "@internal/db": "workspace:*",
+    "@internal/db": "workspace:0.0.1",
     "@nestjs/cache-manager": "^2.2.2",
     "@nestjs/common": "^10.3.7",
     "@nestjs/config": "^3.2.1",
