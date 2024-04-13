@@ -3,7 +3,8 @@ import { SubgraphClient, type LiquidRestakingToken } from '@rionetwork/sdk';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Inject, Injectable } from '@nestjs/common';
 import { Address, decodeFunctionData, type PublicClient } from 'viem';
-import { and, desc, eq, gte, isNotNull, lt, sql } from 'drizzle-orm';
+import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
+import { and, desc, eq, gte, inArray, isNotNull, lt, sql } from 'drizzle-orm';
 import {
   ChainService,
   SecurityDaemonCronTask,
@@ -13,7 +14,6 @@ import {
   SecurityDaemonProvider,
   CHAIN_ID,
 } from '@rio-app/common';
-import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
 
 @Injectable()
 export class ProcessRemovalQueueTaskManagerService {
@@ -143,37 +143,37 @@ export class ProcessRemovalQueueTaskManagerService {
 
           // Fetch the next `remove_key_transaction` that's pending with a
           // `transaction_hash` and checks its status:
-          const [pendingTx, nextQueuedTx] = await this._getCurrentAndNextTx(
-            chainId,
-            publicClient,
-            liquidRestakingToken,
-            subgraph,
-          );
+          const currentAndNextTxsForOperators =
+            await this._getCurrentAndNextTxs(chainId, liquidRestakingToken);
 
-          // Shepherd the current pending transaction by checking its status
-          // and processing it accordingly
-          let shouldProcessQueuedTx = false;
-          if (pendingTx) {
-            const pendingTxFinished = await this._processPendingTx(
-              chainId,
-              publicClient,
-              liquidRestakingToken,
-              subgraph,
-              pendingTx,
-            );
-            shouldProcessQueuedTx = pendingTxFinished;
-          }
+          for await (const currentAndNextTx of currentAndNextTxsForOperators) {
+            const [pendingTx, nextQueuedTx] = currentAndNextTx;
 
-          // If the current pending transaction is finished, emit the next
-          // queued transaction
-          if (shouldProcessQueuedTx && nextQueuedTx) {
-            await this._emitQueuedTx(
-              chainId,
-              publicClient,
-              liquidRestakingToken,
-              subgraph,
-              nextQueuedTx,
-            );
+            // Shepherd the current pending transaction by checking its status
+            // and processing it accordingly
+            let shouldProcessQueuedTx = false;
+            if (pendingTx) {
+              const pendingTxFinished = await this._processPendingTx(
+                chainId,
+                publicClient,
+                liquidRestakingToken,
+                subgraph,
+                pendingTx,
+              );
+              shouldProcessQueuedTx = pendingTxFinished;
+            }
+
+            // If the current pending transaction is finished, emit the next
+            // queued transaction
+            if (shouldProcessQueuedTx && nextQueuedTx) {
+              await this._emitQueuedTx(
+                chainId,
+                publicClient,
+                liquidRestakingToken,
+                subgraph,
+                nextQueuedTx,
+              );
+            }
           }
         }
         this.logger.log(`[Finished::${chainId}] Processing removal queue`);
@@ -330,36 +330,72 @@ export class ProcessRemovalQueueTaskManagerService {
    * @param {LiquidRestakingToken} liquidRestakingTokens The liquid restaking token
    * @returns {Promise<[RemoveKeysTransaction | null, RemoveKeysTransaction | null]>}
    */
-  private async _getCurrentAndNextTx(
+  private async _getCurrentAndNextTxs(
     chainId: CHAIN_ID, // eslint-disable-line @typescript-eslint/no-unused-vars
-    publicClient: PublicClient, // eslint-disable-line @typescript-eslint/no-unused-vars
     liquidRestakingTokens: LiquidRestakingToken, // eslint-disable-line @typescript-eslint/no-unused-vars
-    subgraph: SubgraphClient, // eslint-disable-line @typescript-eslint/no-unused-vars
-  ): Promise<[RemoveKeysTransaction | null, RemoveKeysTransaction | null]> {
+  ): Promise<[RemoveKeysTransaction | null, RemoveKeysTransaction | null][]> {
     const { validatorKeys: vk, removeKeysTransactions: rkt } = this.schema;
+    const operatorRegistryAddress = liquidRestakingTokens.deployment
+      .operatorRegistry as Address;
 
-    return await Promise.all([
-      this.db
-        .select()
-        .from(rkt)
-        .where(eq(rkt.status, 'pending'))
-        .limit(1)
-        .then((results) => results[0]),
-      this.db
-        .select({ removeKeyTransaction: rkt })
-        .from(vk)
-        .leftJoin(
-          rkt,
-          and(
-            isNotNull(vk.removeKeysTransactionId),
-            eq(vk.removeKeysTransactionId, rkt.id),
-          ),
-        )
-        .where(eq(rkt.status, 'queued'))
-        .orderBy(desc(vk.keyIndex))
-        .limit(1)
-        .then((results) => results[0]?.removeKeyTransaction),
-    ]);
+    const result: Promise<
+      [RemoveKeysTransaction | null, RemoveKeysTransaction | null]
+    >[] = [];
+
+    const operatorIds = await this.db
+      .selectDistinct({ operatorId: rkt.operatorId })
+      .from(rkt)
+      .where(
+        and(
+          eq(rkt.chainId, chainId),
+          eq(rkt.operatorRegistryAddress, operatorRegistryAddress),
+          inArray(rkt.status, ['pending', 'queued']),
+        ),
+      )
+      .then((results) => results.map((result) => result.operatorId));
+
+    for (const operatorId of operatorIds) {
+      result.push(
+        Promise.all([
+          this.db
+            .select()
+            .from(rkt)
+            .where(
+              and(
+                eq(rkt.operatorId, operatorId),
+                eq(rkt.chainId, chainId),
+                eq(rkt.operatorRegistryAddress, operatorRegistryAddress),
+                eq(rkt.status, 'pending'),
+              ),
+            )
+            .limit(1)
+            .then(
+              (results) => results[0] || null,
+            ) as Promise<RemoveKeysTransaction | null>,
+          this.db
+            .select({ removeKeyTransaction: rkt })
+            .from(vk)
+            .leftJoin(
+              rkt,
+              and(
+                eq(vk.operatorId, operatorId),
+                eq(vk.chainId, chainId),
+                eq(vk.operatorRegistryAddress, operatorRegistryAddress),
+                isNotNull(vk.removeKeysTransactionId),
+                eq(vk.removeKeysTransactionId, rkt.id),
+              ),
+            )
+            .where(eq(rkt.status, 'queued'))
+            .orderBy(desc(vk.keyIndex))
+            .limit(1)
+            .then(
+              (results) => results[0]?.removeKeyTransaction || null,
+            ) as Promise<RemoveKeysTransaction | null>,
+        ]),
+      );
+    }
+
+    return await Promise.all(result);
   }
 
   /**
