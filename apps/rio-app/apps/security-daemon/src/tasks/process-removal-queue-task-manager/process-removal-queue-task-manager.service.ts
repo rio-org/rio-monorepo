@@ -283,7 +283,6 @@ export class ProcessRemovalQueueTaskManagerService {
           eq(vk.chainId, chainId),
           eq(vk.operatorRegistryAddress, operatorRegistryAddress),
           gte(vk.keyIndex, Number(fromIndex)),
-          lt(vk.keyIndex, Number(fromIndex + validatorCount)),
         ];
 
         const linkedRemoveTxIds = await tx
