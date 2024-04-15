@@ -10,18 +10,21 @@ import {
   ChainService,
   CHAIN_ID,
 } from '@rio-app/common';
-import { Hash, PublicClient, decodeFunctionData } from 'viem';
+import { Address, Hash, PublicClient, decodeFunctionData } from 'viem';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import {
   OrderDirection,
   Validator_OrderBy,
 } from '@rionetwork/sdk/dist/subgraph/generated/graphql';
 import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
-import { RemoveKeysTransaction } from '@internal/db/dist/src/schemas/security';
 import {
   type ValidatorKeysByPubKey,
   type TransactionInformationByHash,
+  ValidatorKeyToBeRemoved,
+  AddedValidatorKeyTxInformation,
+  AddedValidatorKey,
 } from './sync-validator-keys-task-manager.types';
+import { SyncValidatorKeysUtils } from './sync-validator-keys-task-manager.utils';
 
 @Injectable()
 export class SyncValidatorKeysTaskManagerService {
@@ -37,6 +40,7 @@ export class SyncValidatorKeysTaskManagerService {
     private chain: ChainService,
     private config: SecurityDaemonConfigService,
     private readonly databaseService: DatabaseService,
+    private readonly utils: SyncValidatorKeysUtils,
   ) {
     this.logger.setContext(this.constructor.name);
     this.db = this.databaseService.getSecurityConnection().db;
@@ -124,7 +128,7 @@ export class SyncValidatorKeysTaskManagerService {
     const validatorKeysByPubKey: ValidatorKeysByPubKey = {};
 
     // Remove duplicate keys from the dictionary and return the keys that were removed
-    const { keysWithDuplicates } = await this._removeDuplicateKeys(
+    const keysWithDuplicates = await this._removeDuplicateKeys(
       chainId,
       liquidRestakingToken,
       validatorKeysByPubKey,
@@ -138,10 +142,13 @@ export class SyncValidatorKeysTaskManagerService {
      * Then remove keys from `validatorKeysByPubKey` and return an array of keys that were removed
      */
 
-    /**
-     * @TODO Check deposit status of keys
-     * Then remove keys from `validatorKeysByPubKey` and return an array of keys that were removed
-     */
+    // Remove keys with deposits from the dictionary and return the keys that were removed
+    const keysWithDeposits = await this._removeKeysWithDeposits(
+      chainId,
+      liquidRestakingToken,
+      validatorKeysByPubKey,
+      publicClient,
+    );
 
     // Obtain the keys to be added
     const keysToAdd = Object.values(validatorKeysByPubKey);
@@ -149,8 +156,8 @@ export class SyncValidatorKeysTaskManagerService {
     // Combine all removed keys into a single array
     const keysToRemove = [
       ...keysWithDuplicates,
-      // keysWithInvalidSignatures,
-      // keysWithDeposits,
+      ...keysWithDeposits,
+      // ...keysWithInvalidSignatures,
     ];
 
     this.logger.log(
@@ -230,7 +237,7 @@ export class SyncValidatorKeysTaskManagerService {
   private _formatAddKeyTxDbInserts(
     chainId: CHAIN_ID,
     operatorRegistryAddress: string,
-    addKeyTxs: TransactionInformationByHash[string][],
+    addKeyTxs: AddedValidatorKeyTxInformation[],
   ) {
     return addKeyTxs.map((tx) => ({
       chainId,
@@ -246,9 +253,7 @@ export class SyncValidatorKeysTaskManagerService {
   private _formatKeysDbInserts(
     chainId: CHAIN_ID,
     operatorRegistryAddress: string,
-    keysToRemove: (ValidatorKeysByPubKey[string] & {
-      removalReason?: RemoveKeysTransaction['removalReason'];
-    })[],
+    keysToRemove: AddedValidatorKey[],
     addKeyTxRows: { id: string; txHash: string }[],
     removeTxRows: { id: string }[],
     batchHashLookup: { [operatorIdDashKeyIndex: string]: number },
@@ -445,13 +450,11 @@ export class SyncValidatorKeysTaskManagerService {
     chainId: CHAIN_ID,
     liquidRestakingToken: LiquidRestakingToken,
     validatorKeysByPubKey: ValidatorKeysByPubKey,
-    addKeyTxs: TransactionInformationByHash[string][],
+    addKeyTxs: AddedValidatorKeyTxInformation[],
   ) {
     const { validatorKeys: vk } = this.schema;
 
-    const keysWithDuplicates: (ValidatorKeysByPubKey[string] & {
-      removalReason: RemoveKeysTransaction['removalReason'];
-    })[] = [];
+    const keysWithDuplicates: ValidatorKeyToBeRemoved[] = [];
 
     for await (const txData of addKeyTxs) {
       const keyEntries = Object.entries(txData.keys);
@@ -496,7 +499,7 @@ export class SyncValidatorKeysTaskManagerService {
       ),
     );
 
-    duplicateKeys.flat().map(({ publicKey }) => {
+    duplicateKeys.flat().forEach(({ publicKey }) => {
       keysWithDuplicates.push({
         ...validatorKeysByPubKey[publicKey],
         removalReason: 'duplicate',
@@ -504,15 +507,35 @@ export class SyncValidatorKeysTaskManagerService {
       delete validatorKeysByPubKey[publicKey];
     });
 
-    return { keysWithDuplicates };
+    return keysWithDuplicates;
+  }
+
+  private async _removeKeysWithDeposits(
+    chainId: CHAIN_ID,
+    liquidRestakingToken: LiquidRestakingToken,
+    validatorKeysByPubKey: ValidatorKeysByPubKey,
+    publicClient: PublicClient,
+  ) {
+    const keysWithDeposits = await this.utils.verifyValidatorKeysAreUnused(
+      chainId,
+      liquidRestakingToken.deployment.coordinator as Address,
+      Object.values(validatorKeysByPubKey),
+      publicClient,
+    );
+
+    return keysWithDeposits.map((key) => {
+      delete validatorKeysByPubKey[key.publicKey];
+      return {
+        ...key,
+        removalReason: 'public_key_used',
+      } as ValidatorKeyToBeRemoved;
+    });
   }
 
   private _getRemovalTransactionBatches(
     chainId: CHAIN_ID,
     operatorRegistryAddress: string,
-    keysToRemove: (ValidatorKeysByPubKey[string] & {
-      removalReason: RemoveKeysTransaction['removalReason'];
-    })[],
+    keysToRemove: ValidatorKeyToBeRemoved[],
   ) {
     const { removeKeysTransactions: rkt } = this.schema;
     let batchCount = 0;
