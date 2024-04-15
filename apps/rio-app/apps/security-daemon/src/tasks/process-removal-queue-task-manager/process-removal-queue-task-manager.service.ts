@@ -4,7 +4,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { Inject, Injectable } from '@nestjs/common';
 import { Address, decodeFunctionData, type PublicClient } from 'viem';
 import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
-import { and, desc, eq, gte, inArray, isNotNull, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNotNull, lt } from 'drizzle-orm';
 import {
   ChainService,
   SecurityDaemonCronTask,
