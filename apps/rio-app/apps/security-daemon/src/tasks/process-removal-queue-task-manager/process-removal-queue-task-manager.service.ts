@@ -282,30 +282,64 @@ export class ProcessRemovalQueueTaskManagerService {
           eq(vk.operatorId, operatorId),
           eq(vk.chainId, chainId),
           eq(vk.operatorRegistryAddress, operatorRegistryAddress),
-          gte(vk.keyIndex, Number(fromIndex)),
         ];
 
-        const linkedRemoveTxIds = await tx
+        const linkedRemoveTxIdsPromise = tx
           .delete(vk)
           .where(
             and(
               ...sharedWhereAndArr,
+
+              gte(vk.keyIndex, Number(fromIndex)),
               lt(vk.keyIndex, Number(fromIndex + validatorCount)),
             ),
           )
-          .returning({ removeKeysTransactionId: vk.removeKeysTransactionId });
-        await tx
-          .update(vk)
-          .set({ keyIndex: sql`${vk.keyIndex} - ${Number(validatorCount)}` })
-          .where(and(...sharedWhereAndArr));
+          .returning({
+            keyIndex: vk.keyIndex,
+            removeKeysTransactionId: vk.removeKeysTransactionId,
+          })
+          .then((r) => r.sort((a, b) => a.keyIndex - b.keyIndex));
 
-        for await (const { removeKeysTransactionId } of linkedRemoveTxIds) {
-          if (!removeKeysTransactionId) continue;
-          await tx
-            .update(rkt)
-            .set({ status: 'succeeded' })
-            .where(eq(rkt.id, removeKeysTransactionId));
-        }
+        const keysNeedingIndicesReplacedPromise = tx
+          .select({ id: vk.id })
+          .from(vk)
+          .where(
+            and(
+              ...sharedWhereAndArr,
+              gte(vk.keyIndex, Number(fromIndex + validatorCount)),
+            ),
+          )
+          .orderBy(desc(vk.keyIndex))
+          .limit((await linkedRemoveTxIdsPromise).length);
+
+        const linkedRemoveTxIds = await linkedRemoveTxIdsPromise;
+        const keysNeedingIndicesReplaced =
+          await keysNeedingIndicesReplacedPromise;
+
+        await Promise.all(
+          linkedRemoveTxIds.map(
+            async ({ keyIndex, removeKeysTransactionId }, i) => {
+              const swapKeyIndex = !keysNeedingIndicesReplaced[i]
+                ? Promise.resolve([])
+                : tx
+                    .update(vk)
+                    .set({ keyIndex })
+                    .where(eq(vk.id, keysNeedingIndicesReplaced[i].id));
+
+              const removeKeysTransactionIdUpdate = !removeKeysTransactionId
+                ? Promise.resolve([])
+                : tx
+                    .update(rkt)
+                    .set({ status: 'succeeded' })
+                    .where(eq(rkt.id, removeKeysTransactionId));
+
+              return await Promise.all([
+                swapKeyIndex,
+                removeKeysTransactionIdUpdate,
+              ]);
+            },
+          ),
+        );
       }
 
       await this.db
