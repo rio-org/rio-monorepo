@@ -651,8 +651,8 @@ importers:
   packages/sdk-react:
     dependencies:
       '@rionetwork/sdk':
-        specifier: 0.1.0
-        version: link:../sdk
+        specifier: 0.1.0-alpha.24
+        version: 0.1.0-alpha.24(graphql@16.8.1)(typescript@5.1.6)
     devDependencies:
       '@types/react':
         specifier: ^18.2.37
@@ -8033,6 +8033,25 @@ packages:
       '@rionetwork/sdk': 0.1.0-alpha.24(graphql@16.8.1)(typescript@5.2.2)
       react: 18.2.0
       wagmi: 2.5.7(@tanstack/react-query@5.28.6)(@types/react@18.2.37)(react-dom@18.2.0)(react-native@0.73.6)(react@18.2.0)(typescript@5.2.2)(viem@2.7.13)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - graphql
+      - typescript
+      - utf-8-validate
+      - zod
+    dev: false
+
+  /@rionetwork/sdk@0.1.0-alpha.24(graphql@16.8.1)(typescript@5.1.6):
+    resolution: {integrity: sha512-JRsl7sE20j6mPFTNckMtL4aDFXvrDPq58UgcTQBmOIrl9xvfVJsb22N0ZYsflWib1T3NwLsS0+XioHnQtXcTgQ==}
+    engines: {node: '>=16', pnpm: '>=7.5.1'}
+    dependencies:
+      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
+      abitype: 0.10.3(typescript@5.1.6)
+      big.js: 6.2.1
+      cacheables: 1.2.2
+      graphql-request: 6.1.0(graphql@16.8.1)
+      viem: 2.9.5(typescript@5.1.6)
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -23376,7 +23395,6 @@ packages:
       - bufferutil
       - utf-8-validate
       - zod
-    dev: true
 
   /viem@2.9.5(typescript@5.2.2):
     resolution: {integrity: sha512-IKLmGZJEQkdt9fqvryjR+W1FsPZM+dhALT0pwR8xhBOLvVHM0/lEViGRWDpm2ArNsFszipFhc2EpKp80/PnXkw==}
