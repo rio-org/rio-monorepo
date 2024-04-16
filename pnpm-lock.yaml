@@ -109,7 +109,7 @@ importers:
         specifier: ^5.1.2
         version: 5.1.2(@nestjs/common@10.3.7)(@nestjs/core@10.3.7)(reflect-metadata@0.2.2)
       '@rionetwork/sdk':
-        specifier: workspace:0.1.0-alpha.25
+        specifier: 0.1.0
         version: link:../../packages/sdk
       '@svtslv/nestjs-ioredis':
         specifier: ^1.0.2
@@ -278,8 +278,8 @@ importers:
   packages/bot:
     dependencies:
       '@rionetwork/sdk':
-        specifier: 0.1.0-alpha.24
-        version: 0.1.0-alpha.24(graphql@16.8.1)(typescript@5.2.2)
+        specifier: 0.1.0
+        version: link:../sdk
       date-fns:
         specifier: ^3.3.1
         version: 3.3.1
