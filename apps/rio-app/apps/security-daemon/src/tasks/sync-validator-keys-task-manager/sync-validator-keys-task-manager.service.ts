@@ -47,7 +47,7 @@ export class SyncValidatorKeysTaskManagerService {
   }
 
   // Runs half past the hour every hour
-  @Cron('30 0-23/1 * * *')
+  @Cron('34 0-23/1 * * *')
   /**
    * Retrieves all added validator keys for the past hour and
    * adds ejection requests to the queue for any invalid keys
