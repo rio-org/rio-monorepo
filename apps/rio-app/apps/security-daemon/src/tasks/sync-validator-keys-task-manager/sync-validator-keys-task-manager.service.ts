@@ -29,8 +29,11 @@ import { SyncValidatorKeysUtils } from './sync-validator-keys-task-manager.utils
 @Injectable()
 export class SyncValidatorKeysTaskManagerService {
   private readonly schema = DatabaseService.securitySchema;
-  private readonly db: ReturnType<
+  private readonly dbSingleClient: ReturnType<
     typeof this.databaseService.getSecurityConnection
+  >['db'];
+  private readonly dbPool: ReturnType<
+    typeof this.databaseService.getSecurityPoolConnection
   >['db'];
 
   constructor(
@@ -43,7 +46,8 @@ export class SyncValidatorKeysTaskManagerService {
     private readonly utils: SyncValidatorKeysUtils,
   ) {
     this.logger.setContext(this.constructor.name);
-    this.db = this.databaseService.getSecurityConnection().db;
+    this.dbSingleClient = this.databaseService.getSecurityConnection().db;
+    this.dbPool = this.databaseService.getSecurityPoolConnection().db;
   }
 
   // Runs half past the hour every hour
@@ -176,7 +180,7 @@ export class SyncValidatorKeysTaskManagerService {
       );
 
     // Insert all transactions and keys into the database
-    await this.db.transaction(async (tx) => {
+    await this.dbSingleClient.transaction(async (tx) => {
       const commonArgs = [chainId, operatorRegistryAddress] as const;
       const {
         daemonTaskState: dts,
@@ -287,7 +291,7 @@ export class SyncValidatorKeysTaskManagerService {
     const { daemonTaskState: dts } = this.schema;
     const operatorRegistryAddress =
       liquidRestakingToken.deployment.operatorRegistry;
-    const taskStatus = await this.db
+    const taskStatus = await this.dbPool
       .select({ status: dts.status, lastBlockNumber: dts.lastBlockNumber })
       .from(dts)
       .where(
@@ -299,7 +303,7 @@ export class SyncValidatorKeysTaskManagerService {
       .then((results) => results[0]);
 
     if (!taskStatus) {
-      await this.db.insert(dts).values({
+      await this.dbSingleClient.insert(dts).values({
         chainId,
         operatorRegistryAddress,
         task: 'key_retrieval',
@@ -329,7 +333,7 @@ export class SyncValidatorKeysTaskManagerService {
   ) {
     const akt = this.schema.addKeysTransactions;
 
-    let lastTimestamp = await this.db
+    let lastTimestamp = await this.dbPool
       .select({ timestamp: akt.timestamp })
       .from(akt)
       .where(
@@ -484,7 +488,7 @@ export class SyncValidatorKeysTaskManagerService {
     const keysToDuplicateCheck = Object.keys(validatorKeysByPubKey);
     const duplicateKeys = await Promise.all(
       [...Array(Math.ceil(keysToDuplicateCheck.length / 200))].map((_, i) =>
-        this.db
+        this.dbPool
           .select({ publicKey: vk.publicKey })
           .from(vk)
           .where(
@@ -538,16 +542,19 @@ export class SyncValidatorKeysTaskManagerService {
     keysToRemove: ValidatorKeyToBeRemoved[],
   ) {
     const { removeKeysTransactions: rkt } = this.schema;
-    let batchCount = 0;
+    const batchHashLookup: { [operatorIdDashKeyIndex: string]: number } = {};
     const removalTxBatches: {
       [batchNumber: number]: typeof rkt.$inferInsert;
     } = {};
-    const batchHashLookup: { [operatorIdDashKeyIndex: string]: number } = {};
+
+    let batchCount = 0;
+
     keysToRemove.forEach((keyToRemove) => {
       const { operatorId, keyIndex, removalReason } = keyToRemove;
       const batchNumber =
         batchHashLookup[`${operatorId}-${keyIndex - 1}`] ?? batchCount++;
       batchHashLookup[`${operatorId}-${keyIndex}`] = batchNumber;
+
       if (!removalTxBatches[batchNumber]) {
         removalTxBatches[batchNumber] = {
           chainId,

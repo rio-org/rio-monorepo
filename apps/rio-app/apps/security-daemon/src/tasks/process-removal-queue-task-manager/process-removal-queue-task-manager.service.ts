@@ -30,8 +30,11 @@ import {
 @Injectable()
 export class ProcessRemovalQueueTaskManagerService {
   private readonly schema = DatabaseService.securitySchema;
-  private readonly db: ReturnType<
+  private readonly dbSingleClient: ReturnType<
     typeof this.databaseService.getSecurityConnection
+  >['db'];
+  private readonly dbPool: ReturnType<
+    typeof this.databaseService.getSecurityPoolConnection
   >['db'];
 
   constructor(
@@ -43,7 +46,8 @@ export class ProcessRemovalQueueTaskManagerService {
     private readonly databaseService: DatabaseService,
   ) {
     this.logger.setContext(this.constructor.name);
-    this.db = this.databaseService.getSecurityConnection().db;
+    this.dbSingleClient = this.databaseService.getSecurityConnection().db;
+    this.dbPool = this.databaseService.getSecurityPoolConnection().db;
   }
 
   /**
@@ -61,7 +65,7 @@ export class ProcessRemovalQueueTaskManagerService {
     const dts = this.schema.daemonTaskState;
     const operatorRegistryAddress =
       liquidRestakingToken.deployment.operatorRegistry;
-    return await this.db
+    return await this.dbPool
       .select({ status: dts.status, lastBlockNumber: dts.lastBlockNumber })
       .from(dts)
       .where(
@@ -170,7 +174,7 @@ export class ProcessRemovalQueueTaskManagerService {
     );
 
     if (!taskStatus) {
-      await this.db.insert(dts).values({
+      await this.dbSingleClient.insert(dts).values({
         chainId,
         operatorRegistryAddress,
         task: 'key_removal',
@@ -330,7 +334,7 @@ export class ProcessRemovalQueueTaskManagerService {
         const [operatorId, fromIndex, validatorCount] =
           args as (typeof allLogs)[number];
 
-        const lastRecordedKeyIndex = await this.db
+        const lastRecordedKeyIndex = await this.dbPool
           .select({ keyIndex })
           .from(vk)
           .where(
@@ -358,7 +362,7 @@ export class ProcessRemovalQueueTaskManagerService {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    await this.db.transaction(async (tx) => {
+    await this.dbSingleClient.transaction(async (tx) => {
       await Promise.all([
         ...allLogs.map(([operatorId, fromIndex, validatorCount]) =>
           this._processRemoveKeyTransactionWithDbTx(
@@ -370,7 +374,7 @@ export class ProcessRemovalQueueTaskManagerService {
             validatorCount,
           ),
         ),
-        this.db
+        tx
           .update(dts)
           .set({ lastBlockNumber: newLastBlockNumber })
           .where(
@@ -393,8 +397,8 @@ export class ProcessRemovalQueueTaskManagerService {
    * @returns {Promise<[RemoveKeysTransaction | null, RemoveKeysTransaction | null]>}
    */
   private async _getCurrentAndNextTxs(
-    chainId: CHAIN_ID, // eslint-disable-line @typescript-eslint/no-unused-vars
-    liquidRestakingTokens: LiquidRestakingToken, // eslint-disable-line @typescript-eslint/no-unused-vars
+    chainId: CHAIN_ID,
+    liquidRestakingTokens: LiquidRestakingToken,
   ): Promise<[RemoveKeysTransaction | null, RemoveKeysTransaction | null][]> {
     const { validatorKeys: vk, removeKeysTransactions: rkt } = this.schema;
     const operatorRegistryAddress = liquidRestakingTokens.deployment
@@ -404,7 +408,7 @@ export class ProcessRemovalQueueTaskManagerService {
       [RemoveKeysTransaction | null, RemoveKeysTransaction | null]
     >[] = [];
 
-    const operatorIds = await this.db
+    const operatorIds = await this.dbPool
       .selectDistinct({ operatorId: rkt.operatorId })
       .from(rkt)
       .where(
@@ -416,10 +420,10 @@ export class ProcessRemovalQueueTaskManagerService {
       )
       .then((results) => results.map((result) => result.operatorId));
 
-    for (const operatorId of operatorIds) {
-      result.push(
+    return await Promise.all([
+      ...operatorIds.map(async (operatorId) =>
         Promise.all([
-          this.db
+          this.dbPool
             .select()
             .from(rkt)
             .where(
@@ -434,7 +438,7 @@ export class ProcessRemovalQueueTaskManagerService {
             .then(
               (results) => results[0] || null,
             ) as Promise<RemoveKeysTransaction | null>,
-          this.db
+          this.dbPool
             .select({ removeKeyTransaction: rkt })
             .from(vk)
             .leftJoin(
@@ -454,10 +458,8 @@ export class ProcessRemovalQueueTaskManagerService {
               (results) => results[0]?.removeKeyTransaction || null,
             ) as Promise<RemoveKeysTransaction | null>,
         ]),
-      );
-    }
-
-    return await Promise.all(result);
+      ),
+    ]);
   }
 
   /**
@@ -512,7 +514,7 @@ export class ProcessRemovalQueueTaskManagerService {
         `[Error::${chainId}::${liquidRestakingToken.symbol}] Tx: ${pendingTx.txHash} reverted`,
       );
 
-      await this.db.transaction(async (tx) => {
+      await this.dbSingleClient.transaction(async (tx) => {
         return Promise.all([
           tx
             .update(rkt)
@@ -542,13 +544,13 @@ export class ProcessRemovalQueueTaskManagerService {
     //  - set the index of the last key(s) to it the removed keys' index
     //  - delete the linked `validator_key`s
     const { validatorKeys: vk } = this.schema;
-    const keyIndices = await this.db
+    const keyIndices = await this.dbPool
       .select({ keyIndex: vk.keyIndex })
       .from(vk)
       .where(eq(vk.removeKeysTransactionId, pendingTx.id))
       .orderBy(asc(vk.keyIndex));
 
-    await this.db.transaction(
+    await this.dbSingleClient.transaction(
       async (tx) =>
         await this._processRemoveKeyTransactionWithDbTx(
           tx,
