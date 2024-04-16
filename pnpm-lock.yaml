@@ -373,8 +373,8 @@ importers:
         specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0
-        version: link:../sdk-react
+        specifier: 0.1.0-alpha.25
+        version: 0.1.0-alpha.25(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7)
       '@tailwindcss/container-queries':
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@3.3.5)
@@ -515,8 +515,8 @@ importers:
         specifier: workspace:*
         version: link:../ui
       '@rionetwork/sdk-react':
-        specifier: 0.1.0
-        version: link:../sdk-react
+        specifier: 0.1.0-alpha.25
+        version: 0.1.0-alpha.25(graphql@16.8.1)(react@18.2.0)(typescript@5.2.2)(wagmi@2.5.7)
       '@tailwindcss/container-queries':
         specifier: ^0.1.1
         version: 0.1.1(tailwindcss@3.3.5)
