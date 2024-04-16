@@ -1,20 +1,25 @@
+import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
 import { type RemoveKeysTransaction } from '@internal/db/dist/src/schemas/security';
+import { type RemovalQueueUtils } from './process-removal-queue-task-manager.utils';
 import { SubgraphClient, type LiquidRestakingToken } from '@rionetwork/sdk';
+import { and, asc, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Inject, Injectable } from '@nestjs/common';
-import { Address, decodeFunctionData, Hash, type PublicClient } from 'viem';
-import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
-import { and, asc, desc, eq, inArray, isNotNull, lt } from 'drizzle-orm';
 import {
-  ChainService,
-  SecurityDaemonCronTask,
+  decodeFunctionData,
+  type PublicClient,
+  type Address,
+  type Hash,
+} from 'viem';
+import {
+  type SecurityDaemonConfigService,
+  type SecurityDaemonCronTask,
+  type LoggerService,
+  type ChainService,
+  type CHAIN_ID,
   DatabaseService,
-  LoggerService,
-  SecurityDaemonConfigService,
   SecurityDaemonProvider,
-  CHAIN_ID,
 } from '@rio-app/common';
-import { RemovalQueueUtils } from './process-removal-queue-task-manager.utils';
 import {
   OrderDirection,
   Validator_OrderBy,
