@@ -7,6 +7,7 @@ import {
 } from '@rio-app/common';
 import { SecurityDaemonConfigModule } from '@rio-app/common';
 import { ProcessRemovalQueueTaskManagerService } from './process-removal-queue-task-manager.service';
+import { RemovalQueueUtils } from './process-removal-queue-task-manager.utils';
 
 @Module({})
 export class ProcessRemovalQueueTaskManagerModule {
@@ -31,6 +32,7 @@ export class ProcessRemovalQueueTaskManagerModule {
       imports: [SecurityDaemonConfigModule],
       providers: [
         ChainService,
+        RemovalQueueUtils,
         ProcessRemovalQueueTaskManagerService,
         { provide: SecurityDaemonProvider.CRON_TASK, useValue: task[0] },
       ],

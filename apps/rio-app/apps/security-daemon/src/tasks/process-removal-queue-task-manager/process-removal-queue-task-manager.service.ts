@@ -4,19 +4,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { Inject, Injectable } from '@nestjs/common';
 import { Address, decodeFunctionData, Hash, type PublicClient } from 'viem';
 import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
-import { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js';
-import { PgTransaction } from 'drizzle-orm/pg-core';
-import {
-  ExtractTablesWithRelations,
-  and,
-  asc,
-  desc,
-  eq,
-  gte,
-  inArray,
-  isNotNull,
-  lt,
-} from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, lt } from 'drizzle-orm';
 import {
   ChainService,
   SecurityDaemonCronTask,
@@ -26,6 +14,11 @@ import {
   SecurityDaemonProvider,
   CHAIN_ID,
 } from '@rio-app/common';
+import { RemovalQueueUtils } from './process-removal-queue-task-manager.utils';
+import {
+  OrderDirection,
+  Validator_OrderBy,
+} from '@rionetwork/sdk/dist/subgraph/generated/graphql';
 
 @Injectable()
 export class ProcessRemovalQueueTaskManagerService {
@@ -44,153 +37,18 @@ export class ProcessRemovalQueueTaskManagerService {
     private chain: ChainService,
     private config: SecurityDaemonConfigService,
     private readonly databaseService: DatabaseService,
+    private readonly utils: RemovalQueueUtils,
   ) {
     this.logger.setContext(this.constructor.name);
     this.dbSingleClient = this.databaseService.getSecurityConnection().db;
     this.dbPool = this.databaseService.getSecurityPoolConnection().db;
   }
 
-  /**
-   * Get the status of the task for the given liquid restaking token
-   * @param {number} chainId The chain id
-   * @param {LiquidRestakingToken} liquidRestakingToken The liquid restaking token
-   * @param {'key_removal' | 'key_retrieval'} taskName The task name
-   * @returns {Promise<Pick<DaemonTaskState, 'lastBlockNumber' | 'status'>>} The last blocknumber that was run (or null if paused)
-   */
-  private async _getTaskStatus(
-    chainId: number,
-    liquidRestakingToken: LiquidRestakingToken,
-    taskName: 'key_removal' | 'key_retrieval',
-  ) {
-    const dts = this.schema.daemonTaskState;
-    const operatorRegistryAddress =
-      liquidRestakingToken.deployment.operatorRegistry;
-    return await this.dbPool
-      .select({ status: dts.status, lastBlockNumber: dts.lastBlockNumber })
-      .from(dts)
-      .where(
-        and(
-          eq(dts.chainId, chainId),
-          eq(dts.operatorRegistryAddress, operatorRegistryAddress),
-          eq(dts.task, taskName),
-        ),
-      )
-      .then((results) => results[0]);
-  }
-
-  private async _processRemoveKeyTransactionWithDbTx(
-    tx: PgTransaction<
-      PostgresJsQueryResultHKT,
-      typeof this.schema,
-      ExtractTablesWithRelations<typeof this.schema>
-    >,
-    operatorId: number,
-    chainId: number,
-    operatorRegistryAddress: Address,
-    fromIndex: bigint,
-    validatorCount: bigint,
-  ) {
-    const { validatorKeys: vk, removeKeysTransactions: rkt } = this.schema;
-    const sharedWhereAndArr = [
-      eq(vk.operatorId, operatorId),
-      eq(vk.chainId, chainId),
-      eq(vk.operatorRegistryAddress, operatorRegistryAddress),
-    ];
-
-    const linkedRemoveTxIdsPromise = tx
-      .delete(vk)
-      .where(
-        and(
-          ...sharedWhereAndArr,
-
-          gte(vk.keyIndex, Number(fromIndex)),
-          lt(vk.keyIndex, Number(fromIndex + validatorCount)),
-        ),
-      )
-      .returning({
-        keyIndex: vk.keyIndex,
-        removeKeysTransactionId: vk.removeKeysTransactionId,
-      })
-      .then((r) => r.sort((a, b) => a.keyIndex - b.keyIndex));
-
-    const keysNeedingIndicesReplacedPromise = tx
-      .select({ id: vk.id })
-      .from(vk)
-      .where(
-        and(
-          ...sharedWhereAndArr,
-          gte(vk.keyIndex, Number(fromIndex + validatorCount)),
-        ),
-      )
-      .orderBy(desc(vk.keyIndex))
-      .limit((await linkedRemoveTxIdsPromise).length);
-
-    const linkedRemoveTxIds = await linkedRemoveTxIdsPromise;
-    const keysNeedingIndicesReplaced = await keysNeedingIndicesReplacedPromise;
-
-    await Promise.all(
-      linkedRemoveTxIds.map(
-        async ({ keyIndex, removeKeysTransactionId }, i) => {
-          const swapKeyIndex = !keysNeedingIndicesReplaced[i]
-            ? Promise.resolve([])
-            : tx
-                .update(vk)
-                .set({ keyIndex })
-                .where(eq(vk.id, keysNeedingIndicesReplaced[i].id));
-
-          const removeKeysTransactionIdUpdate = !removeKeysTransactionId
-            ? Promise.resolve([])
-            : tx
-                .update(rkt)
-                .set({ status: 'succeeded' })
-                .where(eq(rkt.id, removeKeysTransactionId));
-
-          return await Promise.all([
-            swapKeyIndex,
-            removeKeysTransactionIdUpdate,
-          ]);
-        },
-      ),
-    );
-  }
-
-  /**
-   * Check if the task is paused for the given liquid restaking token
-   * @param {number} chainId The chain id
-   * @param {LiquidRestakingToken} liquidRestakingToken The liquid restaking token
-   * @returns {Promise<number | null>} The last blocknumber that was run (or null if paused)
-   */
-  private async _getLastTaskBlockNumberIfNotPaused(
-    chainId: number,
-    liquidRestakingToken: LiquidRestakingToken,
-  ) {
-    const dts = this.schema.daemonTaskState;
-    const operatorRegistryAddress =
-      liquidRestakingToken.deployment.operatorRegistry;
-    const taskStatus = await this._getTaskStatus(
-      chainId,
-      liquidRestakingToken,
-      'key_removal',
-    );
-
-    if (!taskStatus) {
-      await this.dbSingleClient.insert(dts).values({
-        chainId,
-        operatorRegistryAddress,
-        task: 'key_removal',
-        status: 'running',
-      });
-    } else if (taskStatus.status !== 'running') {
-      return null;
-    }
-
-    return taskStatus.lastBlockNumber ?? 0;
-  }
-
   @Cron(CronExpression.EVERY_MINUTE)
   /**
    * Process and emit validator key removal transactions in the
    * removal queue
+   * @title Process removal queue
    */
   async processRemovalQueue() {
     if (this.task?.chainIds.length === 0) {
@@ -211,10 +69,12 @@ export class ProcessRemovalQueueTaskManagerService {
 
         for await (const liquidRestakingToken of liquidRestakingTokens) {
           // Retrieve the task's last task's block from the DB and check if paused
-          const lastBlockNumber = await this._getLastTaskBlockNumberIfNotPaused(
-            chainId,
-            liquidRestakingToken,
-          );
+          const lastBlockNumber =
+            await this.utils.getLastTaskBlockNumberIfNotPaused(
+              this.dbPool,
+              chainId,
+              liquidRestakingToken,
+            );
 
           // If the task is paused, skip processing the queue
           if (lastBlockNumber === null) {
@@ -235,12 +95,12 @@ export class ProcessRemovalQueueTaskManagerService {
 
           // Fetch the next `remove_key_transaction` that's pending with a
           // `transaction_hash` and checks its status:
-          const currentAndNextTxsForOperators =
-            await this._getCurrentAndNextTxs(chainId, liquidRestakingToken);
+          const allCurrentAndNextTxs = await this._getCurrentAndNextTxs(
+            chainId,
+            liquidRestakingToken,
+          );
 
-          for await (const currentAndNextTx of currentAndNextTxsForOperators) {
-            const [pendingTx, nextQueuedTx] = currentAndNextTx;
-
+          for await (const [pendingTx, nextQueuedTx] of allCurrentAndNextTxs) {
             // Shepherd the current pending transaction by checking its status
             // and processing it accordingly
             const shouldProcessQueuedTx =
@@ -273,7 +133,7 @@ export class ProcessRemovalQueueTaskManagerService {
   }
 
   /**
-   * Thie function makes sure the daemon's state is current with onchain state by
+   * This function makes sure the daemon's state is current with onchain state by
    * processing any new `OperatorPendingValidatorDetailsRemoved` events that have occured
    * @param {number} chainId The chain id
    * @param {PublicClient} publicClient The public client
@@ -365,7 +225,7 @@ export class ProcessRemovalQueueTaskManagerService {
     await this.dbSingleClient.transaction(async (tx) => {
       await Promise.all([
         ...allLogs.map(([operatorId, fromIndex, validatorCount]) =>
-          this._processRemoveKeyTransactionWithDbTx(
+          this.utils.processRemoveKeyTransactionWithDbTx(
             tx,
             operatorId,
             chainId,
@@ -404,10 +264,6 @@ export class ProcessRemovalQueueTaskManagerService {
     const operatorRegistryAddress = liquidRestakingTokens.deployment
       .operatorRegistry as Address;
 
-    const result: Promise<
-      [RemoveKeysTransaction | null, RemoveKeysTransaction | null]
-    >[] = [];
-
     const operatorIds = await this.dbPool
       .selectDistinct({ operatorId: rkt.operatorId })
       .from(rkt)
@@ -421,8 +277,28 @@ export class ProcessRemovalQueueTaskManagerService {
       .then((results) => results.map((result) => result.operatorId));
 
     return await Promise.all([
-      ...operatorIds.map(async (operatorId) =>
-        Promise.all([
+      ...operatorIds.map(async (operatorId) => {
+        const nextQueuedIdPromise = this.dbPool
+          .select({
+            removeKeysTransactionId: vk.removeKeysTransactionId,
+          })
+          .from(vk)
+          .leftJoin(rkt, eq(vk.removeKeysTransactionId, rkt.id))
+          .where(
+            and(
+              eq(vk.operatorId, operatorId),
+              eq(vk.chainId, chainId),
+              eq(vk.operatorRegistryAddress, operatorRegistryAddress),
+              isNotNull(vk.removeKeysTransactionId),
+              eq(rkt.status, 'queued'),
+              isNotNull(rkt.txHash),
+            ),
+          )
+          .orderBy(desc(vk.keyIndex))
+          .limit(1)
+          .then((results) => results[0]?.removeKeysTransactionId || null);
+
+        return Promise.all([
           this.dbPool
             .select()
             .from(rkt)
@@ -432,33 +308,27 @@ export class ProcessRemovalQueueTaskManagerService {
                 eq(rkt.chainId, chainId),
                 eq(rkt.operatorRegistryAddress, operatorRegistryAddress),
                 eq(rkt.status, 'pending'),
+                isNotNull(rkt.txHash),
               ),
             )
             .limit(1)
-            .then(
-              (results) => results[0] || null,
-            ) as Promise<RemoveKeysTransaction | null>,
-          this.dbPool
-            .select({ removeKeyTransaction: rkt })
-            .from(vk)
-            .leftJoin(
-              rkt,
-              and(
-                eq(vk.operatorId, operatorId),
-                eq(vk.chainId, chainId),
-                eq(vk.operatorRegistryAddress, operatorRegistryAddress),
-                isNotNull(vk.removeKeysTransactionId),
-                eq(vk.removeKeysTransactionId, rkt.id),
-              ),
-            )
-            .where(eq(rkt.status, 'queued'))
-            .orderBy(desc(vk.keyIndex))
-            .limit(1)
-            .then(
-              (results) => results[0]?.removeKeyTransaction || null,
-            ) as Promise<RemoveKeysTransaction | null>,
-        ]),
-      ),
+            .then((results) => results[0] || null),
+
+          !(await nextQueuedIdPromise)
+            ? Promise.resolve(null)
+            : this.dbPool
+                .select()
+                .from(rkt)
+                .where(
+                  and(
+                    eq(rkt.id, await nextQueuedIdPromise),
+                    eq(rkt.status, 'queued'),
+                  ),
+                )
+                .limit(1)
+                .then((results) => results[0] || null),
+        ]);
+      }),
     ]);
   }
 
@@ -550,50 +420,106 @@ export class ProcessRemovalQueueTaskManagerService {
       .where(eq(vk.removeKeysTransactionId, pendingTx.id))
       .orderBy(asc(vk.keyIndex));
 
-    await this.dbSingleClient.transaction(
-      async (tx) =>
-        await this._processRemoveKeyTransactionWithDbTx(
-          tx,
-          pendingTx.operatorId,
-          chainId,
-          liquidRestakingToken.deployment.operatorRegistry as Address,
-          BigInt(keyIndices[0].keyIndex),
-          BigInt(
-            1 +
-              (keyIndices[keyIndices.length - 1].keyIndex -
-                keyIndices[0].keyIndex),
-          ),
+    await this.dbSingleClient.transaction(async (tx) => {
+      return await this.utils.processRemoveKeyTransactionWithDbTx(
+        tx,
+        pendingTx.operatorId,
+        chainId,
+        liquidRestakingToken.deployment.operatorRegistry as Address,
+        BigInt(keyIndices[0].keyIndex),
+        BigInt(
+          1 +
+            (keyIndices[keyIndices.length - 1].keyIndex -
+              keyIndices[0].keyIndex),
         ),
-    );
+      );
+    });
 
     return true;
   }
 
   /**
-   *
+   * Verifies that the onchain `keyIndices` are correct for the next queued transaction's `validator_keys`
+   * using the subgraph and then either emits it or alerts the team if they don't match
    * @param {number} chainId The chain id
    * @param {PublicClient} publicClient The public client
    * @param {SubgraphClient} subgraph The subgraph client
    * @param {LiquidRestakingToken} liquidRestakingTokens The liquid restaking token
    * @param {RemoveKeysTransaction} queuedTx The next queued transaction
-   * @returns
    */
   private async _emitQueuedTx(
-    chainId: CHAIN_ID, // eslint-disable-line @typescript-eslint/no-unused-vars
+    chainId: CHAIN_ID,
     publicClient: PublicClient, // eslint-disable-line @typescript-eslint/no-unused-vars
-    liquidRestakingTokens: LiquidRestakingToken, // eslint-disable-line @typescript-eslint/no-unused-vars
-    subgraph: SubgraphClient, // eslint-disable-line @typescript-eslint/no-unused-vars
-    queuedTx: RemoveKeysTransaction, // eslint-disable-line @typescript-eslint/no-unused-vars
+    liquidRestakingTokens: LiquidRestakingToken,
+    subgraph: SubgraphClient,
+    queuedTx: RemoveKeysTransaction,
   ) {
+    const { operatorId, operatorRegistryAddress } = queuedTx;
+    const {
+      validatorKeys: vk,
+      daemonTaskState: dts,
+      removeKeysTransactions: rkt,
+    } = this.schema;
+
+    // Fetch the (sequential) `validator_keys` that are linked from the db
+    const keysToRemove = await this.dbPool
+      .select()
+      .from(vk)
+      .where(eq(vk.removeKeysTransactionId, queuedTx.id))
+      .orderBy(asc(vk.keyIndex));
+
+    // Fetch thee respective key indices from the subgraph
+    const onchainKeys = await subgraph.getValidators({
+      where: {
+        delegator: `${operatorRegistryAddress}-${operatorId}`,
+        keyIndex_gte: keysToRemove[0].keyIndex,
+        keyIndex_lte: keysToRemove[keysToRemove.length - 1].keyIndex + 1,
+      },
+      orderBy: Validator_OrderBy.KeyIndex,
+      orderDirection: OrderDirection.Asc,
+    });
+
+    // Verify that the `key_index` of the keys line up with the keys
+    // found on the subgraph
+    const matchingKeys = keysToRemove.every((key, index) => {
+      return key.keyIndex === Number(onchainKeys[index].keyIndex);
+    });
+
+    // If they don't, alert us, pause the queue, and return
+    if (!matchingKeys) {
+      this.logger.error(
+        `[Error::${chainId}::${liquidRestakingTokens.symbol}] Key indices do not match for tx: ${queuedTx.txHash}`,
+      );
+
+      await this.dbPool
+        .update(dts)
+        .set({ status: 'paused' })
+        .where(
+          and(
+            eq(dts.chainId, chainId),
+            eq(dts.task, 'key_removal'),
+            eq(dts.operatorRegistryAddress, operatorRegistryAddress),
+          ),
+        );
+
+      return;
+    }
+
+    // Emit the transaction, set `status=pending` and the `transaction_hash`
+
     /**
      * @TODO
-     * Implement a function that double-checks the onchain keyIndices of the
-     * `validator_keys` linked to the next queued transaction and then emits it:
-     * 1. Fetch the (sequential) `validator_keys` that are linked from the db
-     * 2. Verify that the `key_index` of the keys line up with the keys
-     *    found on the subgraph
-     *    a. If they do, emit the transaction, set `status=pending` and the `transaction_hash`
-     *    b. If they don't, alert us, and return without
+     * Emit the transaction and set the transaction hash
      */
+
+    await this.dbPool
+      .update(rkt)
+      .set({ status: 'pending' })
+      .where(eq(rkt.id, queuedTx.id));
+
+    // Log that this needs attention
+    this.logger.log(
+      `[Info::${chainId}::${liquidRestakingTokens.symbol}] Removal needs attention for remove_key_transaction.id: ${queuedTx.id}`,
+    );
   }
 }
