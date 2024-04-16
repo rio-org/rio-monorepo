@@ -285,11 +285,8 @@ export class ProcessRemovalQueueTaskManagerService {
     const operatorRegistryAddress = liquidRestakingTokens.deployment
       .operatorRegistry as Address;
     const currentBlock = await publicClient.getBlockNumber();
-    const {
-      validatorKeys: vk,
-      removeKeysTransactions: rkt,
-      daemonTaskState: dts,
-    } = this.schema;
+
+    const { validatorKeys: vk, daemonTaskState: dts } = this.schema;
     const { keyIndex } = vk;
 
     let blockNumber = lastBlockNumber;
