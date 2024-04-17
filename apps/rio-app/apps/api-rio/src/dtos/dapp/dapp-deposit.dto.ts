@@ -1,5 +1,14 @@
-import { IsAlpha, IsAlphanumeric, IsNotEmpty, IsString } from 'class-validator';
-import { SUPPORTED_CHAIN_IDS, SUPPORTED_CHAIN_NAMES } from '@rio-app/common';
+import {
+  IsAlpha,
+  IsAlphanumeric,
+  IsNotEmpty,
+  IsNumberString,
+  IsString,
+} from 'class-validator';
+import {
+  IsEthereumTransactionHash,
+  SUPPORTED_CHAIN_IDS,
+} from '@rio-app/common';
 
 export class DappDepositDto {
   @IsString()
@@ -8,13 +17,12 @@ export class DappDepositDto {
   token: string;
 
   @IsNotEmpty()
-  @IsAlphanumeric()
-  chain:
-    | (typeof SUPPORTED_CHAIN_IDS)[number]
-    | (typeof SUPPORTED_CHAIN_NAMES)[number];
+  @IsNumberString()
+  chainId: (typeof SUPPORTED_CHAIN_IDS)[number];
 
   @IsString()
   @IsNotEmpty()
   @IsAlphanumeric()
+  @IsEthereumTransactionHash()
   txHash: string;
 }
