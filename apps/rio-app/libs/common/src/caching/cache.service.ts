@@ -39,11 +39,7 @@ export default abstract class CacheService implements CommonCache {
         await this._cacheService.del(cacheKey);
       }
     } catch (e) {
-      this._logger.error(
-        `Could not set cache: (${e.message})`,
-        undefined,
-        cacheKey,
-      );
+      this._logger.error(`Could not set cache: (${e.message})`, cacheKey);
     }
   }
 }

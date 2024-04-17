@@ -10,6 +10,7 @@ import {
   SUPPORTED_CHAIN_IDS,
   SUPPORTED_CHAIN_NAMES,
   RewardChainAndToken,
+  ApiDataParams,
 } from '@rio-app/common';
 
 @Injectable()
@@ -137,7 +138,9 @@ export class RewardsService {
         yearly_rewards_percent: results[0]?.yearly_rewards_percent || '0',
       };
     } catch (e) {
-      this._logger.error(`[Error] Token: ${token}`, e.toString());
+      this._logger.error(
+        `[getProtocolRewardRate] Token: ${token}, Chain: ${chain}, Error: ${e.message}`,
+      );
       throw new HttpException(
         `Internal Server Error`,
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -264,7 +267,9 @@ export class RewardsService {
         yearly_rewards_percent: results[0]?.yearly_rewards_percent || '0',
       };
     } catch (e) {
-      this._logger.error(`[Error] Address: ${address}, Token: ${token}`, e);
+      this._logger.error(
+        `[getAddressRewardRate] Token: ${token}, Chain: ${chain}, Address: ${address}, Error: ${e.message}`,
+      );
       throw new HttpException(
         `Internal Server Error`,
         HttpStatus.INTERNAL_SERVER_ERROR,
