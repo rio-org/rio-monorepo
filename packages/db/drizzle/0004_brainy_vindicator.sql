@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS "dapp_tx_transaction_hash_idx";--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "dapp_tx_chain_id_transaction_hash_idx" ON "rio_restaking"."dapp_deposit" ("transaction_hash","chain_id");
