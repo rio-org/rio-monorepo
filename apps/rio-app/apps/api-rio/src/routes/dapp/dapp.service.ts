@@ -3,10 +3,7 @@ import { getDrizzlePool, schema } from '@internal/db';
 import {
   DatabaseService,
   LoggerService,
-  CHAIN_ID,
   SUPPORTED_CHAIN_IDS,
-  SUPPORTED_CHAIN_NAMES,
-  RewardChainAndToken,
 } from '@rio-app/common';
 
 @Injectable()
