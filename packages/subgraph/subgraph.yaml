@@ -134,6 +134,8 @@ templates:
           file: ./abis/RioLRTOperatorRegistry.json
         - name: DelegationManager
           file: ./abis/DelegationManager.json
+        - name: EigenPodManager
+          file: ./abis/EigenPodManager.json
       eventHandlers:
         - event: OperatorAdded(indexed uint8,indexed address,indexed
             address,address,address,string)

@@ -1,6 +1,7 @@
 import { ETHDepositsAllocated, ETHDepositsDeallocated, OperatorAdded, ValidatorDetailsAdded, ValidatorDetailsRemoved } from '../generated/templates/OperatorRegistry/RioLRTOperatorRegistry';
 import { OperatorMetadata as OperatorMetadataTemplate } from '../generated/templates';
 import { DelegationManager } from '../generated/DelegationManager/DelegationManager';
+import { EigenPodManager } from '../generated/templates/OperatorRegistry/EigenPodManager';
 import { Address, Bytes, dataSource, store } from '@graphprotocol/graph-ts';
 import { OperatorRegistry, Operator, OperatorDelegator, Validator, ValidatorKeyIndex } from '../generated/schema';
 import { DELEGATION_MANAGERS, ONE_BI, ValidatorStatus, ZERO_BI } from './helpers/constants';
@@ -33,9 +34,15 @@ export function handleOperatorAdded(event: OperatorAdded): void {
   }
   operator.save();
 
+  const eigenPodManagerContract = EigenPodManager.bind(changetype<Address>(
+    delegationManagerContract.eigenPodManager()
+  ));
+  const eigenPod = eigenPodManagerContract.getPod(event.params.delegator);
+
   const operatorDelegator = new OperatorDelegator(getOperatorDelegatorID(operatorRegistry.id, event.params.operatorId));
   operatorDelegator.address = event.params.delegator;
   operatorDelegator.delegatorId = event.params.operatorId;
+  operatorDelegator.eigenPod = eigenPod;
   operatorDelegator.operator = operator.id;
   operatorDelegator.manager = event.params.initialManager;
   operatorDelegator.earningsReceiver = event.params.initialEarningsReceiver;
