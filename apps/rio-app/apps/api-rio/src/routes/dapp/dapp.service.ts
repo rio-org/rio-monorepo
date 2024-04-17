@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { getDrizzlePool, schema } from '@internal/db';
+import { getDrizzlePool, apiSchema } from '@internal/db';
 import {
   DatabaseService,
   LoggerService,
@@ -14,7 +14,7 @@ export class DappService {
     private readonly _databaseService: DatabaseService,
   ) {
     this._logger.setContext(this.constructor.name);
-    this.drizzlePool = this._databaseService.getPoolConnection();
+    this.drizzlePool = this._databaseService.getApiPoolConnection();
   }
 
   /**
@@ -30,7 +30,7 @@ export class DappService {
     txHash: string,
     ip: string,
   ): Promise<boolean> {
-    const { dappDeposit } = schema;
+    const { dappDeposit } = apiSchema;
     const { db } = this.drizzlePool;
 
     try {
