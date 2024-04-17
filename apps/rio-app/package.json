@@ -64,6 +64,7 @@
     "js-big-decimal": "^2.0.4",
     "nestjs-throttler-storage-redis": "^0.4.4",
     "nestjs-ddtrace": "^5.0.0",
+    "nestjs-real-ip": "^3.0.1",
     "pg": "^8.11.3",
     "pino": "^8.19.0",
     "pino-http": "^9.0.0",

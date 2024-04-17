@@ -13,3 +13,9 @@ export enum UtilsProvider {
   DATABASE_CONNECTION = 'DATABASE_CONNECTION',
   SUBGRAPH_CONNECTION = 'SUBGRAPH_CONNECTION',
 }
+
+export enum ApiDataParams {
+  Address = 'Address',
+  Token = 'Token',
+  Chain = 'Chain',
+}

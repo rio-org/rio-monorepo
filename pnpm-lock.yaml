@@ -168,6 +168,9 @@ importers:
       nestjs-ddtrace:
         specifier: ^5.0.0
         version: 5.0.0(@nestjs/common@10.3.7)(@nestjs/core@10.3.7)(dd-trace@5.10.0)
+      nestjs-real-ip:
+        specifier: ^3.0.1
+        version: 3.0.1(@nestjs/common@10.3.7)
       nestjs-throttler-storage-redis:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.7)(@nestjs/core@10.3.7)(@nestjs/throttler@5.1.2)(ioredis@5.3.2)(reflect-metadata@0.2.2)
@@ -318,24 +321,24 @@ importers:
         specifier: workspace:*
         version: link:../config
       dotenv:
-        specifier: ^16.3.2
+        specifier: ^16.4.5
         version: 16.4.5
       drizzle-orm:
-        specifier: ^0.30.4
-        version: 0.30.4(@opentelemetry/api@1.8.0)(@types/pg@8.11.4)(pg@8.11.3)(postgres@3.4.4)
+        specifier: ^0.30.8
+        version: 0.30.8(@types/pg@8.11.5)(pg@8.11.5)(postgres@3.4.4)
       pg:
-        specifier: ^8.11.3
-        version: 8.11.3
+        specifier: ^8.11.5
+        version: 8.11.5
       postgres:
         specifier: ^3.4.4
         version: 3.4.4
       tsx:
-        specifier: ^4.7.1
-        version: 4.7.1
+        specifier: ^4.7.2
+        version: 4.7.2
     devDependencies:
       '@types/pg':
-        specifier: ^8.11.4
-        version: 8.11.4
+        specifier: ^8.11.5
+        version: 8.11.5
       drizzle-kit:
         specifier: ^0.20.14
         version: 0.20.14
@@ -5348,7 +5351,7 @@ packages:
       '@jest/reporters': 29.6.2
       '@jest/test-result': 29.6.2
       '@jest/transform': 29.6.2
-      '@jest/types': 29.6.1
+      '@jest/types': 29.6.3
       '@types/node': 20.11.30
       ansi-escapes: 4.3.2
       chalk: 4.1.2
@@ -5358,18 +5361,18 @@ packages:
       jest-changed-files: 29.5.0
       jest-config: 29.6.2(@types/node@20.11.30)
       jest-haste-map: 29.6.2
-      jest-message-util: 29.6.2
+      jest-message-util: 29.7.0
       jest-regex-util: 29.4.3
       jest-resolve: 29.6.2
       jest-resolve-dependencies: 29.6.2
       jest-runner: 29.6.2
       jest-runtime: 29.6.2
       jest-snapshot: 29.6.2
-      jest-util: 29.6.2
-      jest-validate: 29.6.2
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
       jest-watcher: 29.6.2
       micromatch: 4.0.5
-      pretty-format: 29.6.2
+      pretty-format: 29.7.0
       slash: 3.0.0
       strip-ansi: 6.0.1
     transitivePeerDependencies:
@@ -8762,6 +8765,10 @@ packages:
       '@stablelib/random': 1.0.2
       '@stablelib/wipe': 1.0.1
 
+  /@supercharge/request-ip@1.2.0:
+    resolution: {integrity: sha512-wlt6JW69MHqLY2M6Sm/jVyCojNRKq2CBvwH0Hbx24SFhDQQGkgEjeKxVutDxHSyrWixFaOSLXC27euzxijhyMQ==}
+    dev: false
+
   /@svtslv/nestjs-ioredis@1.0.2(@nestjs/common@10.3.7)(@nestjs/core@10.3.7)(ioredis@5.3.2):
     resolution: {integrity: sha512-QoecK0fEp/rVGQaejfJE1n7wI4qX+TOq3CJOuI7T8yBWRgc77MCc3hlUvedSAooB/0liFy35iAeTQrcHdg4zuQ==}
     peerDependencies:
@@ -9219,6 +9226,14 @@ packages:
 
   /@types/pg@8.11.4:
     resolution: {integrity: sha512-yw3Bwbda6vO+NvI1Ue/YKOwtl31AYvvd/e73O3V4ZkNzuGpTDndLSyc0dQRB2xrQqDePd20pEGIfqSp/GH3pRw==}
+    dependencies:
+      '@types/node': 20.11.30
+      pg-protocol: 1.6.0
+      pg-types: 4.0.2
+    dev: false
+
+  /@types/pg@8.11.5:
+    resolution: {integrity: sha512-2xMjVviMxneZHDHX5p5S6tsRRs7TpDHeeK7kTTMe/kAC/mRRNjWHjZg0rkiY+e17jXSZV3zJYDxXV8Cy72/Vuw==}
     dependencies:
       '@types/node': 20.11.30
       pg-protocol: 1.6.0
@@ -13260,6 +13275,91 @@ packages:
       '@opentelemetry/api': 1.8.0
       '@types/pg': 8.11.4
       pg: 8.11.3
+      postgres: 3.4.4
+    dev: false
+
+  /drizzle-orm@0.30.8(@types/pg@8.11.5)(pg@8.11.5)(postgres@3.4.4):
+    resolution: {integrity: sha512-9pBJA0IjnpPpzZ6s9jlS1CQAbKoBmbn2GJesPhXaVblAA/joOJ4AWWevYcqvLGj9SvThBAl7WscN8Zwgg5mnTw==}
+    peerDependencies:
+      '@aws-sdk/client-rds-data': '>=3'
+      '@cloudflare/workers-types': '>=3'
+      '@electric-sql/pglite': '>=0.1.1'
+      '@libsql/client': '*'
+      '@neondatabase/serverless': '>=0.1'
+      '@op-engineering/op-sqlite': '>=2'
+      '@opentelemetry/api': ^1.4.1
+      '@planetscale/database': '>=1'
+      '@types/better-sqlite3': '*'
+      '@types/pg': '*'
+      '@types/react': '>=18'
+      '@types/sql.js': '*'
+      '@vercel/postgres': '>=0.8.0'
+      '@xata.io/client': '*'
+      better-sqlite3: '>=7'
+      bun-types: '*'
+      expo-sqlite: '>=13.2.0'
+      knex: '*'
+      kysely: '*'
+      mysql2: '>=2'
+      pg: '>=8'
+      postgres: '>=3'
+      react: '>=18'
+      sql.js: '>=1'
+      sqlite3: '>=5'
+    peerDependenciesMeta:
+      '@aws-sdk/client-rds-data':
+        optional: true
+      '@cloudflare/workers-types':
+        optional: true
+      '@electric-sql/pglite':
+        optional: true
+      '@libsql/client':
+        optional: true
+      '@neondatabase/serverless':
+        optional: true
+      '@op-engineering/op-sqlite':
+        optional: true
+      '@opentelemetry/api':
+        optional: true
+      '@planetscale/database':
+        optional: true
+      '@types/better-sqlite3':
+        optional: true
+      '@types/pg':
+        optional: true
+      '@types/react':
+        optional: true
+      '@types/sql.js':
+        optional: true
+      '@vercel/postgres':
+        optional: true
+      '@xata.io/client':
+        optional: true
+      better-sqlite3:
+        optional: true
+      bun-types:
+        optional: true
+      expo-sqlite:
+        optional: true
+      knex:
+        optional: true
+      kysely:
+        optional: true
+      mysql2:
+        optional: true
+      pg:
+        optional: true
+      postgres:
+        optional: true
+      react:
+        optional: true
+      sql.js:
+        optional: true
+      sqlite3:
+        optional: true
+    dependencies:
+      '@types/pg': 8.11.5
+      pg: 8.11.5
       postgres: 3.4.4
     dev: false
 
@@ -17310,7 +17410,7 @@ packages:
         optional: true
     dependencies:
       '@jest/core': 29.6.2
-      '@jest/types': 29.6.1
+      '@jest/types': 29.6.3
       import-local: 3.1.0
       jest-cli: 29.6.2(@types/node@18.17.1)
     transitivePeerDependencies:
@@ -18977,6 +19077,15 @@ packages:
       dd-trace: 5.10.0
     dev: false
 
+  /nestjs-real-ip@3.0.1(@nestjs/common@10.3.7):
+    resolution: {integrity: sha512-vsBlvXBWXg+GorIoXmTasNaJZyeBpTypgnrq1jk9xOEL7FGv9ZFBafyhllliNbSuCDpwxeC7Sxc6hBk8onPXUg==}
+    peerDependencies:
+      '@nestjs/common': '>=8'
+    dependencies:
+      '@nestjs/common': 10.3.7(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.2)(rxjs@7.8.1)
+      '@supercharge/request-ip': 1.2.0
+    dev: false
+
   /nestjs-throttler-storage-redis@0.4.4(@nestjs/common@10.3.7)(@nestjs/core@10.3.7)(@nestjs/throttler@5.1.2)(ioredis@5.3.2)(reflect-metadata@0.2.2):
     resolution: {integrity: sha512-QLYfsat/qutHQaTn3QAoa79WEHG4Uyk8rWRqNhVCVxzQ+qdzaNBUlBwxb8MYhfCmgoCA+eX3Paws8FZI/bYe7A==}
     peerDependencies:
@@ -19694,6 +19803,10 @@ packages:
     resolution: {integrity: sha512-ch6OwaeaPYcova4kKZ15sbJ2hKb/VP48ZD2gE7i1J+L4MspCtBMAx8nMgz7bksc7IojCIIWuEhHibSMFH8m8oA==}
     dev: false
 
+  /pg-connection-string@2.6.4:
+    resolution: {integrity: sha512-v+Z7W/0EO707aNMaAEfiGnGL9sxxumwLl2fJvCQtMn9Fxsg+lPpPkdcyBSv/KFgpGdYkMfn+EI1Or2EHjpgLCA==}
+    dev: false
+
   /pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
@@ -19710,8 +19823,20 @@ packages:
       pg: 8.11.3
     dev: false
 
+  /pg-pool@3.6.2(pg@8.11.5):
+    resolution: {integrity: sha512-Htjbg8BlwXqSBQ9V8Vjtc+vzf/6fVUuak/3/XXKA9oxZprwW3IMDQTGHP+KDmVL7rtd+R1QjbnCFPuTHm3G4hg==}
+    peerDependencies:
+      pg: '>=8.0'
+    dependencies:
+      pg: 8.11.5
+    dev: false
+
   /pg-protocol@1.6.0:
     resolution: {integrity: sha512-M+PDm637OY5WM307051+bsDia5Xej6d9IR4GwJse1qA1DIhiKlksvrneZOYQq42OM+spubpcNYEo2FcKQrDk+Q==}
+
+  /pg-protocol@1.6.1:
+    resolution: {integrity: sha512-jPIlvgoD63hrEuihvIg+tJhoGjUsLPn6poJY9N5CnlPd91c2T18T/9zBtLxZSb1EhYxBRoZJtzScCaWlYLtktg==}
+    dev: false
 
   /pg-types@2.2.0:
     resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
@@ -19750,6 +19875,24 @@ packages:
       pg-connection-string: 2.6.2
       pg-pool: 3.6.1(pg@8.11.3)
       pg-protocol: 1.6.0
+      pg-types: 2.2.0
+      pgpass: 1.0.5
+    optionalDependencies:
+      pg-cloudflare: 1.1.1
+    dev: false
+
+  /pg@8.11.5:
+    resolution: {integrity: sha512-jqgNHSKL5cbDjFlHyYsCXmQDrfIX/3RsNwYqpd4N0Kt8niLuNoRNH+aazv6cOd43gPh9Y4DjQCtb+X0MH0Hvnw==}
+    engines: {node: '>= 8.0.0'}
+    peerDependencies:
+      pg-native: '>=3.0.1'
+    peerDependenciesMeta:
+      pg-native:
+        optional: true
+    dependencies:
+      pg-connection-string: 2.6.4
+      pg-pool: 3.6.2(pg@8.11.5)
+      pg-protocol: 1.6.1
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
@@ -20072,15 +20215,6 @@ packages:
       ansi-regex: 5.0.1
       ansi-styles: 4.3.0
       react-is: 17.0.2
-
-  /pretty-format@29.6.2:
-    resolution: {integrity: sha512-1q0oC8eRveTg5nnBEWMXAU2qpv65Gnuf2eCQzSjxpWFkPaPARwqZZDGuNE0zPAZfTCHzIk3A8dIjwlQKKLphyg==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      '@jest/schemas': 29.6.0
-      ansi-styles: 5.2.0
-      react-is: 18.2.0
-    dev: true
 
   /pretty-format@29.7.0:
     resolution: {integrity: sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==}
@@ -22657,8 +22791,8 @@ packages:
   /tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
-  /tsx@4.7.1:
-    resolution: {integrity: sha512-8d6VuibXHtlN5E3zFkgY8u4DX7Y3Z27zvvPKVmLon/D4AjuKzarkUBTLDBgj9iTQ0hg5xM7c/mYiRVM+HETf0g==}
+  /tsx@4.7.2:
+    resolution: {integrity: sha512-BCNd4kz6fz12fyrgCTEdZHGJ9fWTGeUzXmQysh0RVocDY3h4frk05ZNCXSy4kIenF7y/QnrdiVpTsyNRn6vlAw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     dependencies:

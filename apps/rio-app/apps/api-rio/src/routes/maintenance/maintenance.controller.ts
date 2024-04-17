@@ -14,6 +14,7 @@ import {
 import { Cache } from 'cache-manager';
 import { MaintenanceService } from './maintenance.service';
 import { ThrottlerBehindProxyGuard } from '../../guards';
+import { RealIP } from 'nestjs-real-ip';
 
 @Controller('maintenance')
 @UseGuards(ThrottlerBehindProxyGuard)
@@ -33,8 +34,8 @@ export class MaintenanceController {
   @Get('/ip')
   @CacheTTL(5) // seconds
   @UseInterceptors(CacheInterceptor)
-  getIp(@Ip() ip: string): string {
-    return ip;
+  getIp(@Ip() ip: string, @RealIP() realIp: string): string {
+    return `internal ip=${ip} external ip=${realIp}`;
   }
 
   @Get('/reset-cache')
