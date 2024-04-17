@@ -10,7 +10,6 @@ import {
   SUPPORTED_CHAIN_IDS,
   SUPPORTED_CHAIN_NAMES,
   RewardChainAndToken,
-  ApiDataParams,
 } from '@rio-app/common';
 
 @Injectable()
