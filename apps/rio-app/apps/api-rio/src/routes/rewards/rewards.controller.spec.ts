@@ -6,7 +6,7 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 import { THROTTLER_OPTIONS } from '@nestjs/throttler/dist/throttler.constants';
 import { ThrottlerStorage } from '@nestjs/throttler';
 
-describe('ApiController', () => {
+describe('RewardsController', () => {
   let appController: RewardsController;
 
   beforeEach(async () => {
