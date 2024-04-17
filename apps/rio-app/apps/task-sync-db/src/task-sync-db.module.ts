@@ -14,6 +14,7 @@ import {
   SyncExchangeRatesTaskManagerModule,
   SyncTransfersTaskManagerModule,
 } from './tasks';
+import { DatadogTraceModule } from 'nestjs-ddtrace';
 
 @Module({
   imports: [TaskSyncDBConfigModule],
@@ -51,6 +52,7 @@ export class TaskSyncDBModule {
           inject: [TaskSyncDBConfigService],
           exports: [DatabaseService],
         }),
+        DatadogTraceModule.forRoot(),
 
         ScheduleModule.forRoot(),
         SyncExchangeRatesTaskManagerModule.register(moduleOptions),

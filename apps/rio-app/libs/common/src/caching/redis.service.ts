@@ -31,11 +31,7 @@ export class RedisCacheService extends CacheService implements BufferCache {
     try {
       return this._cacheService.store.ttl(cacheKey);
     } catch (e) {
-      this._logger.error(
-        `Could not get cache ttl: (${e.message})`,
-        undefined,
-        cacheKey,
-      );
+      this._logger.error(`Could not get cache ttl: (${e.message})`, cacheKey);
     }
   }
 
@@ -53,11 +49,7 @@ export class RedisCacheService extends CacheService implements BufferCache {
 
       return buffer ? Buffer.from(buffer) : null;
     } catch (e) {
-      this._logger.error(
-        `Could not get buffer: (${e.message})`,
-        undefined,
-        cacheKey,
-      );
+      this._logger.error(`Could not get buffer: (${e.message})`, cacheKey);
 
       if (cleanupBadData) {
         // Delete the "bad" data

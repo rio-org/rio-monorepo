@@ -1,19 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RewardsController } from './rewards.controller';
-import { RewardsService } from './rewards.service';
+import { DappController } from './dapp.controller';
+import { DappService } from './dapp.service';
 import { DatabaseService, LoggerService } from '@rio-app/common';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { THROTTLER_OPTIONS } from '@nestjs/throttler/dist/throttler.constants';
 import { ThrottlerStorage } from '@nestjs/throttler';
 
-describe('RewardsController', () => {
-  let appController: RewardsController;
+describe('DappController', () => {
+  let appController: DappController;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [RewardsController],
+      controllers: [DappController],
       providers: [
-        RewardsService,
+        DappService,
         LoggerService,
         DatabaseService,
         { provide: THROTTLER_OPTIONS, useValue: jest.fn() },
@@ -28,7 +28,7 @@ describe('RewardsController', () => {
       .useValue({})
       .compile();
 
-    appController = app.get<RewardsController>(RewardsController);
+    appController = app.get<DappController>(DappController);
   });
 
   describe('root', () => {

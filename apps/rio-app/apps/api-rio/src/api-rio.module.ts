@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { DatadogTraceModule } from 'nestjs-ddtrace';
+import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 import { ApiRioController } from './api-rio.controller';
 import { ApiRioService } from './api-rio.service';
-import { RewardsModule, MaintenanceModule } from './routes/';
+import { DappModule, MaintenanceModule, RewardsModule } from './routes/';
 import {
   ApiRioConfigModule,
   ApiRioConfigService,
@@ -12,7 +14,6 @@ import {
   LoggerService,
 } from '@rio-app/common';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 
 @Module({
   imports: [
@@ -45,7 +46,10 @@ import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
       inject: [ApiRioConfigService],
       exports: [DatabaseService],
     }),
+    DatadogTraceModule.forRoot(),
+
     MaintenanceModule,
+    DappModule,
     RewardsModule,
   ],
   controllers: [ApiRioController],

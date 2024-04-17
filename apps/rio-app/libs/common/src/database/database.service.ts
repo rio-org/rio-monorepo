@@ -1,5 +1,9 @@
 import { Global, Inject, Injectable } from '@nestjs/common';
-import { DatabaseProvider, type DatabaseConfig } from './database.types';
+import {
+  DatabaseProvider,
+  type DatabaseConfig,
+  type DrizzleConnection,
+} from './database.types';
 import {
   getDrizzlePool,
   getDrizzleClient,
@@ -28,19 +32,19 @@ export class DatabaseService {
     private readonly databaseConfiguration: DatabaseConfig,
   ) {}
 
-  public getApiPoolConnection() {
+  public getApiPoolConnection(): DrizzleConnection<typeof apiSchema> {
     return getDrizzlePool(this._config, { schema: apiSchema });
   }
 
-  public getApiConnection() {
+  public getApiConnection(): DrizzleConnection<typeof apiSchema> {
     return getDrizzleClient(this._config, { schema: apiSchema });
   }
 
-  public getSecurityPoolConnection() {
+  public getSecurityPoolConnection(): DrizzleConnection<typeof securitySchema> {
     return getDrizzlePool(this._config, { schema: securitySchema });
   }
 
-  public getSecurityConnection() {
+  public getSecurityConnection(): DrizzleConnection<typeof securitySchema> {
     return getDrizzleClient(this._config, { schema: securitySchema });
   }
 }

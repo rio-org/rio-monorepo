@@ -1,12 +1,15 @@
-FROM node:18-alpine as build
+FROM --platform=linux/amd64 node:18-alpine as build
 
-WORKDIR /app
+WORKDIR /apps
 
 COPY . .
 
-RUN npm i -g @nestjs/cli
-RUN npm ci --omit=dev --ignore-scripts
-RUN npm run build
+# Install PNPM
+RUN npm install -g pnpm
+
+RUN pnpm install
+#RUN pnpm build:ci --filter=./apps/rio-app
+RUN pnpm run:api-rio
 
 RUN ls dist/src -al
 
