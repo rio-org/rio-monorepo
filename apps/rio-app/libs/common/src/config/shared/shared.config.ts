@@ -3,6 +3,7 @@ import { SharedConfig } from './config.types';
 import { CHAIN_ID } from '../../';
 
 export const sharedConfigPath = 'shared.env';
+export const sharedConfigLocalPath = 'shared.env.local';
 
 export const getSharedConfig = (): SharedConfig => ({
   redis: {
@@ -27,6 +28,10 @@ export const getSharedConfig = (): SharedConfig => ({
     username: process.env.DATABASE_USERNAME || 'postgres',
     password: process.env.DATABASE_PASSWORD || 'postgres',
     databaseName: process.env.DATABASE_NAME || 'rio-restaking',
+  },
+
+  discord: {
+    token: process.env.DISCORD_TOKEN || '',
   },
 
   subgraphDatasources: [

@@ -15,9 +15,14 @@ import {
   gte,
   lt,
 } from '@internal/db';
+import { DiscordLoggerService } from '@rio-app/common';
 
 @Injectable()
 export class RemovalQueueUtils {
+  constructor(private readonly discordLogger: DiscordLoggerService) {
+    this.discordLogger.register(this.constructor.name);
+  }
+
   /**
    * Get the status of the task for the given liquid restaking token
    * @param {number} chainId The chain id

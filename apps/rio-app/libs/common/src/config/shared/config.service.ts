@@ -104,12 +104,18 @@ export class SharedConfigService<T> {
   }
 
   /**
+   * Discord configuration details
+   */
+  public get discord(): { token: string } {
+    return this.configService.get<{ token: string }>(
+      this._accessor.discord(),
+    ) as { token: string };
+  }
+
+  /**
    * Determine if code is running in the development environment
    */
   public get isDevelopment(): boolean {
-    if (process.env.NODE_ENV === 'production') {
-      return false;
-    }
-    return true;
+    return process.env.NODE_ENV !== 'production';
   }
 }

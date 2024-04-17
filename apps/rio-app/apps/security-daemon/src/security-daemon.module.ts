@@ -14,6 +14,8 @@ import {
   SyncValidatorKeysTaskManagerModule,
   ProcessRemovalQueueTaskManagerModule,
 } from './tasks';
+import { DiscordModule, DiscordService } from '@rio-app/common/discord';
+import { DiscordLoggerModule, DiscordLoggerService } from '@rio-app/common';
 
 @Module({
   imports: [SecurityDaemonConfigModule],
@@ -49,6 +51,16 @@ export class SecurityDaemonModule {
           }),
           inject: [SecurityDaemonConfigService],
           exports: [DatabaseService],
+        }),
+        DiscordModule,
+        DiscordLoggerModule.forRootAsync({
+          useFactory: ({ discordLogger }: SecurityDaemonConfigService) => {
+            return {
+              discordLogger,
+            };
+          },
+          inject: [SecurityDaemonConfigService, DiscordService],
+          exports: [DiscordLoggerService],
         }),
         ScheduleModule.forRoot(),
         SyncValidatorKeysTaskManagerModule.register(moduleOptions),

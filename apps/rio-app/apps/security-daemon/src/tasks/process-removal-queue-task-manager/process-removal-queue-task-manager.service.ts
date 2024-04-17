@@ -19,11 +19,13 @@ import {
   type CHAIN_ID,
   DatabaseService,
   SecurityDaemonProvider,
+  DiscordLoggerService,
 } from '@rio-app/common';
 import {
   OrderDirection,
   Validator_OrderBy,
 } from '@rionetwork/sdk/dist/subgraph/generated/graphql';
+import { codeBlock } from 'discord.js';
 
 @Injectable()
 export class ProcessRemovalQueueTaskManagerService {
@@ -42,14 +44,16 @@ export class ProcessRemovalQueueTaskManagerService {
     private chain: ChainService,
     private config: SecurityDaemonConfigService,
     private readonly databaseService: DatabaseService,
+    private readonly discordLogger: DiscordLoggerService,
     private readonly utils: RemovalQueueUtils,
   ) {
     this.logger.setContext(this.constructor.name);
+    this.discordLogger.register(this.constructor.name);
     this.dbSingleClient = this.databaseService.getSecurityConnection().db;
     this.dbPool = this.databaseService.getSecurityPoolConnection().db;
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_5_MINUTES)
   /**
    * Process and emit validator key removal transactions in the
    * removal queue
@@ -389,6 +393,14 @@ export class ProcessRemovalQueueTaskManagerService {
         `[Error::${chainId}::${liquidRestakingToken.symbol}] Tx: ${pendingTx.txHash} reverted`,
       );
 
+      await this.discordLogger.sendWarningEmbed('Removal Tx Reverted', {
+        taskName: 'Processing pending transaction',
+        description: `Pausing removal queue because of transaction hash: \`${pendingTx.txHash}\``,
+        chainId,
+        operatorId: pendingTx.operatorId,
+        operatorRegistry: pendingTx.operatorRegistryAddress,
+      });
+
       await this.dbSingleClient.transaction(async (tx) => {
         return Promise.all([
           tx
@@ -455,7 +467,7 @@ export class ProcessRemovalQueueTaskManagerService {
   private async _emitQueuedTx(
     chainId: CHAIN_ID,
     publicClient: PublicClient, // eslint-disable-line @typescript-eslint/no-unused-vars
-    liquidRestakingTokens: LiquidRestakingToken,
+    liquidRestakingToken: LiquidRestakingToken,
     subgraph: SubgraphClient,
     queuedTx: RemoveKeysTransaction,
   ) {
@@ -493,8 +505,24 @@ export class ProcessRemovalQueueTaskManagerService {
     // If they don't, alert us, pause the queue, and return
     if (!matchingKeys) {
       this.logger.error(
-        `[Error::${chainId}::${liquidRestakingTokens.symbol}] Key indices do not match for tx: ${queuedTx.txHash}`,
+        `[Error::${chainId}::${liquidRestakingToken.symbol}] Key indices do not match for tx: ${queuedTx.txHash}`,
       );
+
+      await this.discordLogger.sendErrorEmbed('Mismatching key indices', {
+        taskName: 'Emit queued transaction',
+        description: `Pausing removal queue because key indices don't match subgraph for remove_key_transaction.id=\`${queuedTx.id}\``,
+        chainId,
+        operatorId,
+        symbol: liquidRestakingToken.symbol,
+        code: JSON.stringify(
+          {
+            expected: `[${keysToRemove.map((key) => key.keyIndex).join(',')}]`,
+            subgraph: `[${onchainKeys.map((key) => key.keyIndex).join(',')}]`,
+          },
+          null,
+          2,
+        ),
+      });
 
       await this.dbPool
         .update(dts)
@@ -524,7 +552,28 @@ export class ProcessRemovalQueueTaskManagerService {
 
     // Log that this needs attention
     this.logger.log(
-      `[Info::${chainId}::${liquidRestakingTokens.symbol}] Removal needs attention for remove_key_transaction.id: ${queuedTx.id}`,
+      `[Info::${chainId}::${liquidRestakingToken.symbol}] Removal needs attention for remove_key_transaction.id: ${queuedTx.id}`,
     );
+
+    await this.discordLogger.sendWarningEmbed('Removal Tx Needs Attention', {
+      taskName: 'Emit Queued Transaction',
+      description: `A transaction needs to be emitted to remove validatorKeys`,
+      chainId,
+      symbol: liquidRestakingToken.symbol,
+      operatorId: queuedTx.operatorId,
+      operatorRegistry: queuedTx.operatorRegistryAddress,
+      code: codeBlock(
+        'json',
+        JSON.stringify(
+          {
+            'remove_key_transaction.id': queuedTx.id,
+            keyIndices: keysToRemove.map((key) => key.keyIndex),
+            reason: queuedTx.removalReason,
+          },
+          null,
+          2,
+        ),
+      ),
+    });
   }
 }

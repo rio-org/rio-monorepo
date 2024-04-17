@@ -13,4 +13,8 @@ export default (): SecurityDaemonServiceConfig => ({
     },
   ],
   privateKey: process.env.SECURITY_DAEMON_PRIVATE_KEY || '',
+  discordLogger: {
+    warn: process.env.SECURITY_DAEMON_DISCORD_WARN_CHANNEL || '',
+    error: process.env.SECURITY_DAEMON_DISCORD_ERROR_CHANNEL || '',
+  },
 });

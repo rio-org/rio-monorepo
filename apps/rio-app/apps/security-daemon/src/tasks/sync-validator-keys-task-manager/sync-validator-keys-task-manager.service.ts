@@ -25,6 +25,7 @@ import {
   AddedValidatorKey,
 } from './sync-validator-keys-task-manager.types';
 import { SyncValidatorKeysUtils } from './sync-validator-keys-task-manager.utils';
+import { DiscordLoggerService } from '@rio-app/common';
 
 @Injectable()
 export class SyncValidatorKeysTaskManagerService {
@@ -43,6 +44,7 @@ export class SyncValidatorKeysTaskManagerService {
     private chain: ChainService,
     private config: SecurityDaemonConfigService,
     private readonly databaseService: DatabaseService,
+    private readonly discordLogger: DiscordLoggerService,
     private readonly utils: SyncValidatorKeysUtils,
   ) {
     this.logger.setContext(this.constructor.name);
@@ -405,6 +407,22 @@ export class SyncValidatorKeysTaskManagerService {
             this.logger.error(
               `[Error::${chainId}::${liquidRestakingToken.symbol}] Invalid key lengths: hash=${tx.hash}pubkeys=${pubkeysArr.length} signatures=${signaturesArr.length}`,
             );
+
+            await this.discordLogger.sendWarningEmbed('Invalid key lengths', {
+              taskName: 'Get added validator transactions',
+              description: `Transaction has different pubkey and signature lengths: \`${tx.hash}\``,
+              chainId,
+              operatorId,
+              symbol: liquidRestakingToken.symbol,
+              code: JSON.stringify(
+                {
+                  pubkeys: pubkeysArr.length,
+                  signatures: signaturesArr.length,
+                },
+                null,
+                2,
+              ),
+            });
           }
 
           const signaturesByKeys: (typeof txInfoByHash)[string]['signaturesByKeys'] =

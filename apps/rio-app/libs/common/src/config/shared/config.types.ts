@@ -35,6 +35,13 @@ export interface HttpPortConfig {
 }
 
 /**
+ * Discord configuration values
+ */
+export interface DiscordConfig {
+  token: string;
+}
+
+/**
  * Common configuration values
  */
 export interface SharedConfig {
@@ -44,6 +51,7 @@ export interface SharedConfig {
   redis: RedisConfig;
   redisCache: RedisCacheConfig;
   logger: LoggerModuleOptions;
+  discord: DiscordConfig;
   localhost: string;
 }
 

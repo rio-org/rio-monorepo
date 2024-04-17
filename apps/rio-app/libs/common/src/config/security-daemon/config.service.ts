@@ -42,4 +42,17 @@ export class SecurityDaemonConfigService extends SharedConfigService<SecurityDae
   public get privateKey(): string {
     return this.configService.get<string>(this._accessor.privateKey());
   }
+
+  /**
+   * Gets the discord channels for the security daemon
+   */
+  public get discordLogger(): {
+    warn: string;
+    error: string;
+  } {
+    return this.configService.get<{
+      warn: string;
+      error: string;
+    }>(this._accessor.discordLogger());
+  }
 }

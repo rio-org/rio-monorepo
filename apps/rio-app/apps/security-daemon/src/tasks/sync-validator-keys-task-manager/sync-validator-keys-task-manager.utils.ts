@@ -12,6 +12,7 @@ import { BeaconChainDepositResponse } from '@rio-app/common/types/validators.typ
 import { AddedValidatorKey } from './sync-validator-keys-task-manager.types';
 import { BlsService } from '@rio-app/common/bls';
 import { UintNumberType, toHexString } from '@chainsafe/ssz';
+import { DiscordLoggerService } from '@rio-app/common';
 
 @Injectable()
 export class SyncValidatorKeysUtils {
@@ -21,7 +22,12 @@ export class SyncValidatorKeysUtils {
     'DepositEvent(bytes pubkey, bytes withdrawal_credentials, bytes amount, bytes signature, bytes index)',
   );
 
-  constructor(private readonly bls: BlsService) {}
+  constructor(
+    private readonly bls: BlsService,
+    private readonly discordLogger: DiscordLoggerService,
+  ) {
+    this.discordLogger.register(this.constructor.name);
+  }
 
   /**
    * Builds the URL to fetch the validator information from beaconcha.in
@@ -183,13 +189,24 @@ export class SyncValidatorKeysUtils {
        */
 
       if (depositReceipt === null) {
-        console.error(
-          `Failed to fetch tx receipt for deposit tx ${deposit.tx_hash}`,
-        );
+        await this.discordLogger.sendWarningEmbed('Failed to fetch receipt', {
+          taskName: 'Verify Validator Keys Are Unused',
+          description: `Transaction hash: \`${deposit.tx_hash}\``,
+          chainId,
+          operatorId: addedKeyInfoByPubkey[deposit.publickey].operatorId,
+        });
         continue;
       }
       if (keyAddedTx === null) {
-        console.error(`Failed to fetch keyAddedTx ${addedKeyInfo.txHash}`);
+        await this.discordLogger.sendWarningEmbed(
+          'Failed to fetch transaction',
+          {
+            taskName: 'Verify Validator Keys Are Unused',
+            description: ` AddValidatorDetails Transaction hash: \`${addedKeyInfo.txHash}\``,
+            chainId,
+            operatorId: addedKeyInfoByPubkey[deposit.publickey].operatorId,
+          },
+        );
         continue;
       }
 

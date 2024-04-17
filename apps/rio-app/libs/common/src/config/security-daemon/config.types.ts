@@ -6,7 +6,13 @@ import { SecurityDaemonCronTask } from '../..';
 export interface SecurityDaemonServiceConfig {
   tasks: SecurityDaemonCronTask[];
   privateKey: string;
+  discordLogger: SecurityDaemonDiscordChannels;
 }
+
+export type SecurityDaemonDiscordChannels = {
+  warn: string;
+  error: string;
+};
 
 export type SecurityDaemonAccount = {
   privateKey?: string;
