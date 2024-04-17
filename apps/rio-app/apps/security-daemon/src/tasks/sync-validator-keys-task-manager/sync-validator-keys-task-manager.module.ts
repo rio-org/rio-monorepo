@@ -7,6 +7,7 @@ import {
 import { SecurityDaemonConfigModule } from '@rio-app/common';
 import { SyncValidatorKeysTaskManagerService } from './sync-validator-keys-task-manager.service';
 import { SyncValidatorKeysUtils } from './sync-validator-keys-task-manager.utils';
+import { BlsModule } from '@rio-app/common/bls';
 
 @Module({})
 export class SyncValidatorKeysTaskManagerModule {
@@ -28,7 +29,7 @@ export class SyncValidatorKeysTaskManagerModule {
 
     return {
       module: SyncValidatorKeysTaskManagerModule,
-      imports: [SecurityDaemonConfigModule],
+      imports: [BlsModule, SecurityDaemonConfigModule],
       providers: [
         SyncValidatorKeysUtils,
         SyncValidatorKeysTaskManagerService,

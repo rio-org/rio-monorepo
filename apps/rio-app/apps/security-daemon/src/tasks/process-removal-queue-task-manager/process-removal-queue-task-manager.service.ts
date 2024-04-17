@@ -1,6 +1,6 @@
 import { RioLRTOperatorRegistryABI } from '@rio-app/common/abis/rio-lrt-operator-registry.abi';
 import { type RemoveKeysTransaction } from '@internal/db/dist/src/schemas/security';
-import { type RemovalQueueUtils } from './process-removal-queue-task-manager.utils';
+import { RemovalQueueUtils } from './process-removal-queue-task-manager.utils';
 import { SubgraphClient, type LiquidRestakingToken } from '@rionetwork/sdk';
 import { and, asc, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -12,10 +12,10 @@ import {
   type Hash,
 } from 'viem';
 import {
-  type SecurityDaemonConfigService,
-  type SecurityDaemonCronTask,
-  type LoggerService,
-  type ChainService,
+  SecurityDaemonConfigService,
+  SecurityDaemonCronTask,
+  LoggerService,
+  ChainService,
   type CHAIN_ID,
   DatabaseService,
   SecurityDaemonProvider,
@@ -130,7 +130,7 @@ export class ProcessRemovalQueueTaskManagerService {
             }
           }
         }
-        this.logger.log(`[Finished::${chainId}] Processing removal queue`);
+        this.logger.log(`[Finished::${chainId}] Removal queue processed`);
       } catch (error) {
         this.logger.error(`[Error::${chainId}] ${(error as Error).toString()}`);
       }

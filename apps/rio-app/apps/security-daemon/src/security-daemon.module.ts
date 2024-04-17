@@ -43,7 +43,6 @@ export class SecurityDaemonModule {
           useFactory: ({ logger }: SecurityDaemonConfigService) => logger,
           inject: [SecurityDaemonConfigService],
         }),
-
         DatabaseModule.forRootAsync({
           useFactory: ({ database }: SecurityDaemonConfigService) => ({
             database,
@@ -51,7 +50,6 @@ export class SecurityDaemonModule {
           inject: [SecurityDaemonConfigService],
           exports: [DatabaseService],
         }),
-
         ScheduleModule.forRoot(),
         SyncValidatorKeysTaskManagerModule.register(moduleOptions),
         ProcessRemovalQueueTaskManagerModule.register(moduleOptions),

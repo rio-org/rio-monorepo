@@ -10,14 +10,18 @@ import {
 } from 'viem';
 import { BeaconChainDepositResponse } from '@rio-app/common/types/validators.types';
 import { AddedValidatorKey } from './sync-validator-keys-task-manager.types';
+import { BlsService } from '@rio-app/common/bls';
+import { UintNumberType, toHexString } from '@chainsafe/ssz';
 
 @Injectable()
 export class SyncValidatorKeysUtils {
+  static depositAddress = `0x${[...Array(20)].fill(42).join('')}`;
   static rebalanceEventSelector = toEventSelector('Rebalanced(address)');
   static depositEventSelector = toEventSelector(
     'DepositEvent(bytes pubkey, bytes withdrawal_credentials, bytes amount, bytes signature, bytes index)',
   );
-  static depositAddress = `0x${[...Array(20)].fill(42).join('')}`;
+
+  constructor(private readonly bls: BlsService) {}
 
   /**
    * Builds the URL to fetch the validator information from beaconcha.in
@@ -78,32 +82,16 @@ export class SyncValidatorKeysUtils {
     }
   }
 
-  /**
-   * Verifies that any deposits to the given pubkeys are allowed, and returns the invalid ones.
-   * @dev Max lengh ot the pubkeys array is 100
-   * @param {number} chainId The chain id
-   * @param {Address} coordinatorAddress The coordinator address
-   * @param {Array<AddedValidatorKey>} pubkeys The symbol
-   * @param {PublicClient} publicClient The public client
-   */
-  async verifyValidatorKeysAreUnused(
+  private async getDepositsFromBeaconChain(
     chainId: number,
-    coordinatorAddress: Address,
-    pubkeys: Array<AddedValidatorKey>,
-    publicClient: PublicClient,
-  ): Promise<AddedValidatorKey[]> {
-    if (pubkeys.length) throw new Error('Pubkeys array is empty');
-    if (pubkeys.length > 100)
-      throw new Error('Max length of pubkeys array is 100');
-
-    const addedKeyInfoByPubkey = Object.fromEntries(
-      pubkeys.map((keyInfo) => [keyInfo.publicKey, keyInfo]),
-    );
-    const keysToBeRemoved: AddedValidatorKey[] = [];
-    const threeDays = BigInt(3 * 24 * 60 * 60);
+    validatorKeys: Array<AddedValidatorKey>,
+  ) {
+    if (validatorKeys.length) throw new Error('ValidatorKeys array is empty');
+    if (validatorKeys.length > 100)
+      throw new Error('Max length of validatorKeys array is 100');
 
     const response = await fetch(
-      `${this.buildBeaconChainValidatorUrl(chainId)}/${pubkeys
+      `${this.buildBeaconChainValidatorUrl(chainId)}/${validatorKeys
         .map((k) => k.publicKey)
         .join(',')}/deposits`,
     );
@@ -122,7 +110,65 @@ export class SyncValidatorKeysUtils {
       throw new Error('Failed to fetch deposits');
     }
 
-    for await (const deposit of data) {
+    return data;
+  }
+
+  async verifyDepositsAreValid(
+    chainId: number,
+    validatorKeys: Array<AddedValidatorKey>,
+  ): Promise<AddedValidatorKey[]> {
+    const keysToBeRemoved: AddedValidatorKey[] = [];
+    const addedKeyInfoByPubkey = Object.fromEntries(
+      validatorKeys.map((keyInfo) => [keyInfo.publicKey, keyInfo]),
+    );
+
+    const deposits = await this.getDepositsFromBeaconChain(
+      chainId,
+      validatorKeys,
+    );
+
+    for (const deposit of deposits) {
+      const isValid = this.bls.verify(chainId, {
+        pubkey: deposit.publickey,
+        wc: deposit.withdrawal_credentials,
+        signature: deposit.signature,
+        amount: toHexString(new UintNumberType(8).serialize(deposit.amount)),
+      });
+
+      if (!isValid) {
+        keysToBeRemoved.push(addedKeyInfoByPubkey[deposit.publickey]);
+      }
+    }
+
+    return keysToBeRemoved;
+  }
+
+  /**
+   * Verifies that any deposits to the given pubkeys are allowed, and returns the invalid ones.
+   * @dev Max lengh ot the pubkeys array is 100
+   * @param {number} chainId The chain id
+   * @param {Address} coordinatorAddress The coordinator address
+   * @param {Array<AddedValidatorKey>} pubkeys The symbol
+   * @param {PublicClient} publicClient The public client
+   */
+  async verifyValidatorKeysAreUnused(
+    chainId: number,
+    coordinatorAddress: Address,
+    validatorKeys: Array<AddedValidatorKey>,
+    publicClient: PublicClient,
+  ): Promise<AddedValidatorKey[]> {
+    const keysToBeRemoved: AddedValidatorKey[] = [];
+    const threeDays = BigInt(3 * 24 * 60 * 60);
+    const addedKeyInfoByPubkey = Object.fromEntries(
+      validatorKeys.map((keyInfo) => [keyInfo.publicKey, keyInfo]),
+    );
+
+    const deposits = await this.getDepositsFromBeaconChain(
+      chainId,
+      validatorKeys,
+    );
+
+    for await (const deposit of deposits) {
       const addedKeyInfo = addedKeyInfoByPubkey[deposit.publickey];
       const [depositReceipt, keyAddedTx] = await Promise.all([
         publicClient.getTransactionReceipt({ hash: deposit.tx_hash }),

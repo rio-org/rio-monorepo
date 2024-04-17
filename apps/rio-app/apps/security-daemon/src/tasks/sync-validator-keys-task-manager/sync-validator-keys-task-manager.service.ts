@@ -139,20 +139,20 @@ export class SyncValidatorKeysTaskManagerService {
       addKeyTxs,
     );
 
-    /**
-     * @TODO
-     * Check validity of keys by forking Lido's
-     * {@link https://github.com/lidofinance/lido-council-daemon/blob/develop/src/bls/bls.service.ts BLSService}
-     * Then remove keys from `validatorKeysByPubKey` and return an array of keys that were removed
-     */
+    // Remove keys with invalid signatures from the dictionary and return the keys that were removed
+    const keysWithInvalidSignatures =
+      await this._removeKeysWithInvalidSignatures(
+        chainId,
+        validatorKeysByPubKey,
+      );
 
-    // Remove keys with deposits from the dictionary and return the keys that were removed
-    const keysWithDeposits = await this._removeKeysWithDeposits(
-      chainId,
-      liquidRestakingToken,
-      validatorKeysByPubKey,
-      publicClient,
-    );
+    // // Remove keys with deposits from the dictionary and return the keys that were removed
+    // const keysWithDeposits = await this._removeKeysWithDeposits(
+    //   chainId,
+    //   liquidRestakingToken,
+    //   validatorKeysByPubKey,
+    //   publicClient,
+    // );
 
     // Obtain the keys to be added
     const keysToAdd = Object.values(validatorKeysByPubKey);
@@ -160,8 +160,8 @@ export class SyncValidatorKeysTaskManagerService {
     // Combine all removed keys into a single array
     const keysToRemove = [
       ...keysWithDuplicates,
-      ...keysWithDeposits,
-      // ...keysWithInvalidSignatures,
+      ...keysWithInvalidSignatures,
+      // ...keysWithDeposits,
     ];
 
     this.logger.log(
@@ -514,18 +514,54 @@ export class SyncValidatorKeysTaskManagerService {
     return keysWithDuplicates;
   }
 
+  private async _removeKeysWithInvalidSignatures(
+    chainId: CHAIN_ID,
+    validatorKeysByPubKey: ValidatorKeysByPubKey,
+  ) {
+    const validatorKeys = Object.values(validatorKeysByPubKey);
+    const keysWithInvalidSignatures: AddedValidatorKey[] = [];
+    const pages = [...Array(Math.ceil(validatorKeys.length / 100))].map(
+      (_, i) => i,
+    );
+
+    for await (const page of pages) {
+      const keysToRemove = await this.utils.verifyDepositsAreValid(
+        chainId,
+        validatorKeys.slice(page * 100, (page + 1) * 100),
+      );
+      keysWithInvalidSignatures.push(...keysToRemove);
+    }
+
+    return keysWithInvalidSignatures.map((key) => {
+      delete validatorKeysByPubKey[key.publicKey];
+      return {
+        ...key,
+        removalReason: 'invalid_signature',
+      } as ValidatorKeyToBeRemoved;
+    });
+  }
+
   private async _removeKeysWithDeposits(
     chainId: CHAIN_ID,
     liquidRestakingToken: LiquidRestakingToken,
     validatorKeysByPubKey: ValidatorKeysByPubKey,
     publicClient: PublicClient,
   ) {
-    const keysWithDeposits = await this.utils.verifyValidatorKeysAreUnused(
-      chainId,
-      liquidRestakingToken.deployment.coordinator as Address,
-      Object.values(validatorKeysByPubKey),
-      publicClient,
+    const validatorKeys = Object.values(validatorKeysByPubKey);
+    const keysWithDeposits: AddedValidatorKey[] = [];
+    const pages = [...Array(Math.ceil(validatorKeys.length / 100))].map(
+      (_, i) => i,
     );
+
+    for await (const page of pages) {
+      const keysToRemove = await this.utils.verifyValidatorKeysAreUnused(
+        chainId,
+        liquidRestakingToken.deployment.coordinator as Address,
+        validatorKeys.slice(page * 100, (page + 1) * 100),
+        publicClient,
+      );
+      keysWithDeposits.push(...keysToRemove);
+    }
 
     return keysWithDeposits.map((key) => {
       delete validatorKeysByPubKey[key.publicKey];
