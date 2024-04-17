@@ -1,0 +1,300 @@
+{
+  "id": "df94b26f-496b-4ee8-9c38-945ddfe4b134",
+  "prevId": "e0331700-8c82-423e-abe1-425d0a536061",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "balance_sheet": {
+      "name": "balance_sheet",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "chain_id": {
+          "name": "chain_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset": {
+          "name": "asset",
+          "type": "varchar(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "restaking_token": {
+          "name": "restaking_token",
+          "type": "varchar(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "asset_balance": {
+          "name": "asset_balance",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "restaking_token_supply": {
+          "name": "restaking_token_supply",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "exchange_rate": {
+          "name": "exchange_rate",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "delta_rate_per_second": {
+          "name": "delta_rate_per_second",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "block_number": {
+          "name": "block_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "balance_sheet_network_idx": {
+          "name": "balance_sheet_network_idx",
+          "columns": ["chain_id"],
+          "isUnique": false
+        },
+        "balance_sheet_asset_idx": {
+          "name": "balance_sheet_asset_idx",
+          "columns": ["asset"],
+          "isUnique": false
+        },
+        "balance_sheet_restaking_token_idx": {
+          "name": "balance_sheet_restaking_token_idx",
+          "columns": ["restaking_token"],
+          "isUnique": false
+        },
+        "balance_sheet_timestamp_idx": {
+          "name": "balance_sheet_timestamp_idx",
+          "columns": ["timestamp"],
+          "isUnique": false
+        },
+        "balance_sheet_block_number_idx": {
+          "name": "balance_sheet_block_number_idx",
+          "columns": ["block_number"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "dapp_deposit": {
+      "name": "dapp_deposit",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "chain_id": {
+          "name": "chain_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "restaking_token": {
+          "name": "restaking_token",
+          "type": "varchar(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "ip": {
+          "name": "ip",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transaction_hash": {
+          "name": "transaction_hash",
+          "type": "char(66)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "dapp_tx_network_idx": {
+          "name": "dapp_tx_network_idx",
+          "columns": ["chain_id"],
+          "isUnique": false
+        },
+        "dapp_tx_restaking_token_idx": {
+          "name": "dapp_tx_restaking_token_idx",
+          "columns": ["restaking_token"],
+          "isUnique": false
+        },
+        "dapp_tx_timestamp_idx": {
+          "name": "dapp_tx_timestamp_idx",
+          "columns": ["timestamp"],
+          "isUnique": false
+        },
+        "dapp_tx_ip_idx": {
+          "name": "dapp_tx_ip_idx",
+          "columns": ["ip"],
+          "isUnique": false
+        },
+        "dapp_tx_transaction_hash_idx": {
+          "name": "dapp_tx_transaction_hash_idx",
+          "columns": ["transaction_hash"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "dapp_deposit_transaction_hash_unique": {
+          "name": "dapp_deposit_transaction_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": ["transaction_hash"]
+        }
+      }
+    },
+    "transfer": {
+      "name": "transfer",
+      "schema": "rio_restaking",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "chain_id": {
+          "name": "chain_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_hash": {
+          "name": "transaction_hash",
+          "type": "char(66)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "from": {
+          "name": "from",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0x0000000000000000000000000000000000000000'"
+        },
+        "to": {
+          "name": "to",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0x0000000000000000000000000000000000000000'"
+        },
+        "asset": {
+          "name": "asset",
+          "type": "varchar(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "numeric(78, 0)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "block_number": {
+          "name": "block_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "transfer_network_idx": {
+          "name": "transfer_network_idx",
+          "columns": ["chain_id"],
+          "isUnique": false
+        },
+        "transfer_transaction_hash_idx": {
+          "name": "transfer_transaction_hash_idx",
+          "columns": ["transaction_hash"],
+          "isUnique": false
+        },
+        "transfer_from_idx": {
+          "name": "transfer_from_idx",
+          "columns": ["from"],
+          "isUnique": false
+        },
+        "transfer_to_idx": {
+          "name": "transfer_to_idx",
+          "columns": ["to"],
+          "isUnique": false
+        },
+        "transfer_asset_idx": {
+          "name": "transfer_asset_idx",
+          "columns": ["asset"],
+          "isUnique": false
+        },
+        "transfer_timestamp_idx": {
+          "name": "transfer_timestamp_idx",
+          "columns": ["timestamp"],
+          "isUnique": false
+        },
+        "transfer_block_number_idx": {
+          "name": "transfer_block_number_idx",
+          "columns": ["block_number"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "rio_restaking": "rio_restaking"
+  },
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
