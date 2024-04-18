@@ -33,7 +33,7 @@ export class SyncValidatorKeysUtils {
    * Builds the URL to fetch the validator information from beaconcha.in
    * @param {number} chainId The chain id
    */
-  async buildBeaconChainValidatorUrl(chainId: number) {
+  buildBeaconChainValidatorUrl(chainId: number) {
     let subdomain = '';
     switch (chainId) {
       case 1:
@@ -99,6 +99,12 @@ export class SyncValidatorKeysUtils {
     if (validatorKeys.length > 100) {
       throw new Error('Max length of validatorKeys array is 100');
     }
+
+    console.log(
+      `${this.buildBeaconChainValidatorUrl(chainId)}/${validatorKeys
+        .map((k) => k.publicKey)
+        .join(',')}/deposits`,
+    );
 
     const response = await fetch(
       `${this.buildBeaconChainValidatorUrl(chainId)}/${validatorKeys
