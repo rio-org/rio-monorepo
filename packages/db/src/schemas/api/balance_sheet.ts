@@ -8,7 +8,7 @@ import {
   decimal,
 } from 'drizzle-orm/pg-core';
 
-import { schema } from './pg-schema';
+import { schema } from './api_schema';
 
 export const balanceSheet = schema.table(
   'balance_sheet',

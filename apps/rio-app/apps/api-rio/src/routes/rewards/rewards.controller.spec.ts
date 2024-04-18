@@ -21,7 +21,7 @@ describe('RewardsController', () => {
       ],
     })
       .overrideProvider(DatabaseService)
-      .useValue({ getPoolConnection: () => {} })
+      .useValue({ getApiPoolConnection: () => {} })
       .overrideInterceptor(CacheInterceptor)
       .useValue({})
       .overrideProvider(THROTTLER_OPTIONS)

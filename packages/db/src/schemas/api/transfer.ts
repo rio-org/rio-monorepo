@@ -8,8 +8,8 @@ import {
   integer,
 } from 'drizzle-orm/pg-core';
 
-import { schema } from './pg-schema';
-import { ZERO_ADDRESS } from '../lib/constants';
+import { schema } from './api_schema';
+import { ZERO_ADDRESS } from '../../lib/constants';
 
 export const transfer = schema.table(
   'transfer',

@@ -7,7 +7,7 @@ import {
   char,
 } from 'drizzle-orm/pg-core';
 
-import { schema } from './pg-schema';
+import { schema } from './api_schema';
 import { unique } from 'drizzle-orm/pg-core/unique-constraint';
 
 export const dappDeposit = schema.table(

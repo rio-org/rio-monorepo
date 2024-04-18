@@ -28,6 +28,15 @@
         "tsConfigPath": "apps/task-sync-db/tsconfig.app.json"
       }
     },
+    "security-daemon": {
+      "type": "application",
+      "root": "apps/security-daemon",
+      "entryFile": "main",
+      "sourceRoot": "apps/security-daemon/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/security-daemon/tsconfig.app.json"
+      }
+    },
     "common": {
       "type": "library",
       "root": "libs/common",

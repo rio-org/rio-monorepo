@@ -1,3 +1,6 @@
+import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import { type Sql } from 'postgres';
+
 export interface DatabaseSource {
   host: string;
   port: number;
@@ -14,6 +17,11 @@ export enum DatabaseProvider {
 export interface DatabaseModuleOptions {
   database: DatabaseConfig;
 }
+
+export type DrizzleConnection<TSchema extends Record<string, unknown>> = {
+  client: Sql;
+  db: PostgresJsDatabase<TSchema>;
+};
 
 /**
  * Database configuration values

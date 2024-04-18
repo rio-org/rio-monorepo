@@ -1,22 +1,22 @@
 import { Global, Inject, Injectable } from '@nestjs/common';
 import {
+  DatabaseProvider,
+  type DatabaseConfig,
+  type DrizzleConnection,
+} from './database.types';
+import {
   getDrizzlePool,
   getDrizzleClient,
-  schema,
-  asc,
-  desc,
-  gt,
-  gte,
-  eq,
-  not,
-  lt,
-  lte,
+  apiSchema,
+  securitySchema,
 } from '@internal/db';
-import { DatabaseConfig, DatabaseProvider } from './database.types';
 
 @Global()
 @Injectable()
 export class DatabaseService {
+  static readonly apiSchema = apiSchema;
+  static readonly securitySchema = securitySchema;
+
   private get _config() {
     return {
       user: this.databaseConfiguration.username,
@@ -32,33 +32,19 @@ export class DatabaseService {
     private readonly databaseConfiguration: DatabaseConfig,
   ) {}
 
-  public getPoolConnection(): ReturnType<typeof getDrizzlePool> {
-    return getDrizzlePool(this._config);
+  public getApiPoolConnection(): DrizzleConnection<typeof apiSchema> {
+    return getDrizzlePool(this._config, { schema: apiSchema });
   }
 
-  public getConnection(): ReturnType<typeof getDrizzleClient> {
-    return getDrizzleClient(this._config);
+  public getApiConnection(): DrizzleConnection<typeof apiSchema> {
+    return getDrizzleClient(this._config, { schema: apiSchema });
   }
 
-  public getSchema() {
-    return schema;
+  public getSecurityPoolConnection(): DrizzleConnection<typeof securitySchema> {
+    return getDrizzlePool(this._config, { schema: securitySchema });
   }
 
-  public getOrderOperators() {
-    return {
-      ASC: asc,
-      DESC: desc,
-    };
-  }
-
-  public getComparisonOperators() {
-    return {
-      GT: gt,
-      GTE: gte,
-      EQ: eq,
-      NOT: not,
-      LT: lt,
-      LTE: lte,
-    };
+  public getSecurityConnection(): DrizzleConnection<typeof securitySchema> {
+    return getDrizzleClient(this._config, { schema: securitySchema });
   }
 }

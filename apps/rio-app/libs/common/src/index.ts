@@ -2,6 +2,7 @@ export * from './abis';
 export * from './boilerplate';
 export * from './caching';
 export * from './config';
+export * from './discord';
 export * from './constants';
 export * from './database';
 export * from './exceptions';
