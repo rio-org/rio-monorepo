@@ -92,9 +92,13 @@ export class SyncValidatorKeysUtils {
     chainId: number,
     validatorKeys: Array<AddedValidatorKey>,
   ) {
-    if (validatorKeys.length) throw new Error('ValidatorKeys array is empty');
-    if (validatorKeys.length > 100)
+    if (!validatorKeys.length) {
+      return [];
+    }
+
+    if (validatorKeys.length > 100) {
       throw new Error('Max length of validatorKeys array is 100');
+    }
 
     const response = await fetch(
       `${this.buildBeaconChainValidatorUrl(chainId)}/${validatorKeys
