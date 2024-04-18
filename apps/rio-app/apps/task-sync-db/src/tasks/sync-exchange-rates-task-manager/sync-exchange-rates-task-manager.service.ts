@@ -28,9 +28,6 @@ export class SyncExchangeRatesTaskManagerService {
   private readonly db: ReturnType<
     typeof this.databaseService.getApiConnection
   >['db'];
-  private readonly client: ReturnType<
-    typeof this.databaseService.getApiConnection
-  >['client'];
 
   constructor(
     @Inject(TaskSyncDBProvider.CRON_TASK)

@@ -8,7 +8,6 @@ export class TaskSyncDbProviders {
     return {
       provide: UtilsProvider.SUBGRAPH_CONNECTION,
       useFactory: ({ getSubgraphDatasource }: TaskSyncDBConfigService) => {
-        console.log(getSubgraphDatasource);
         const subgraph = getSubgraphDatasource(CHAIN_ID.HOLESKY);
 
         return new SubgraphClient(subgraph.chainId, {
