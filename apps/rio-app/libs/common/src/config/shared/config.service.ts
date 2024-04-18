@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { CHAIN_ID, DatabaseConfig, DeepDotKey } from '../../';
 import { FormatService } from '../../utils';
 import {
+  DeploymentConfig,
   ExtendsShared,
   HttpPortConfig,
   RedisCacheConfig,
@@ -110,6 +111,15 @@ export class SharedConfigService<T> {
     return this.configService.get<{ token: string }>(
       this._accessor.discord(),
     ) as { token: string };
+  }
+
+  /**
+   * Deployment configuration details
+   */
+  public get deployment(): { environment: DeploymentConfig['environment'] } {
+    return this.configService.get<{
+      environment: DeploymentConfig['environment'];
+    }>(this._accessor.deployment());
   }
 
   /**

@@ -63,6 +63,11 @@ export const getSharedConfig = (): SharedConfig => ({
       parseInt(process.env.PORT_SECURITY_DAEMON as string, 10) || 4010,
   },
 
+  deployment: {
+    environment: (process.env.DEPLOYMENT_ENV ||
+      'local') as SharedConfig['deployment']['environment'],
+  },
+
   localhost: process.env.LOCALHOST || '127.0.0.1',
 });
 

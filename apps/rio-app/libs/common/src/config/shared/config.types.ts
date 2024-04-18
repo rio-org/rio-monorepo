@@ -42,6 +42,13 @@ export interface DiscordConfig {
 }
 
 /**
+ * Deployment configuration values
+ */
+export interface DeploymentConfig {
+  environment: 'production' | 'staging' | 'local';
+}
+
+/**
  * Common configuration values
  */
 export interface SharedConfig {
@@ -52,6 +59,7 @@ export interface SharedConfig {
   redisCache: RedisCacheConfig;
   logger: LoggerModuleOptions;
   discord: DiscordConfig;
+  deployment: DeploymentConfig;
   localhost: string;
 }
 

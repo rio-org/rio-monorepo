@@ -11,6 +11,7 @@ import {
   type DiscordLoggerConfig,
   DiscordLoggerProvider,
 } from './discord-logger.types';
+import { SharedConfig, SharedConfigService } from '@rio-app/common/config';
 
 @Global()
 @Injectable()
@@ -23,6 +24,7 @@ export class DiscordLoggerService implements OnModuleInit {
     @Inject(DiscordLoggerProvider.DISCORD_LOGGER_CONFIGURATION)
     private readonly discordLoggerConfig: DiscordLoggerConfig,
     private readonly discord: DiscordService,
+    private readonly config: SharedConfigService<SharedConfig>,
   ) {}
 
   register(serviceName: string) {
@@ -128,10 +130,13 @@ export class DiscordLoggerService implements OnModuleInit {
     },
   ) {
     const color = type === 'warn' ? 0xffaa00 : 0xff0000;
+    const envName =
+      this.config.deployment.environment?.[0]?.toLowerCase() +
+      this.config.deployment.environment?.slice(1);
     const embed = new EmbedBuilder()
       .setColor(color)
       .setTitle(title)
-      .setAuthor({ name: this.serviceName })
+      .setAuthor({ name: `[${envName}]` })
       .setDescription(description)
       .addFields(
         ...[

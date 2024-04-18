@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { DiscordLoggerService } from './discord-logger.service';
-import { createDynamicRootModule } from '../..';
+import { SharedConfigService, createDynamicRootModule } from '../..';
 import { DiscordLoggerProviders } from './discord-logger.providers';
 import {
   DiscordLoggerModuleOptions,
@@ -13,6 +13,7 @@ export class DiscordLoggerModule extends createDynamicRootModule<DiscordLoggerMo
   DiscordLoggerProvider.DISCORD_LOGGER_MODULE_OPTIONS,
   {
     providers: [
+      SharedConfigService,
       DiscordLoggerService,
       DiscordLoggerProviders.createDiscordLoggerProvider(),
     ],
