@@ -63,6 +63,7 @@ export class ProcessRemovalQueueTaskManagerService {
     if (this.task?.chainIds.length === 0) {
       throw new Error(`No chain ids defined for ${this.task.task}`);
     }
+
     for (const chainId of this.task.chainIds) {
       const subgraphDatasource = this.config.getSubgraphDatasource(chainId);
       const subgraph = new SubgraphClient(subgraphDatasource.chainId, {
@@ -137,6 +138,13 @@ export class ProcessRemovalQueueTaskManagerService {
         this.logger.log(`[Finished::${chainId}] Removal queue processed`);
       } catch (error) {
         this.logger.error(`[Error::${chainId}] ${(error as Error).toString()}`);
+
+        await this.discordLogger.sendErrorEmbed('An unforeseen error occured', {
+          taskName: 'Processing removal queue',
+          description: `An unforeseen error occured while processing the removal queue`,
+          chainId,
+          code: error.toString(),
+        });
       }
     }
   }

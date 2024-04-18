@@ -85,7 +85,12 @@ export class SyncValidatorKeysTaskManagerService {
         this.logger.log(`[Complete::${chainId}] Finished syncing.`);
       } catch (error) {
         this.logger.error(`[Error::${chainId}] ${(error as Error).toString()}`);
-        console.log(error);
+        await this.discordLogger.sendErrorEmbed('An unforeseen error occured', {
+          taskName: 'Syncing validator keys',
+          description: `An unforeseen error occured while syncing validator keys`,
+          chainId,
+          code: error.toString(),
+        });
       }
     }
   }
