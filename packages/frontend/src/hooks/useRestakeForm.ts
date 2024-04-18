@@ -2,6 +2,7 @@ import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
 import { useContractGasCost } from '@rio-monorepo/ui/hooks/useContractGasCost';
+import { useReportDepositTxHash } from '@rio-monorepo/ui/hooks/useReportDepositTxHash';
 import {
   AssetDetails,
   ContractError,
@@ -54,7 +55,7 @@ export const useRestakeForm = ({
   const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
   const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
   const [isAllowed, setIsAllowed] = useState(true);
-  const { address } = useAccountIfMounted();
+  const { address, chainId } = useAccountIfMounted();
   const [coordinatorAddress, setCoordinatorAddress] = useState<
     Address | undefined
   >(
@@ -274,6 +275,12 @@ export const useRestakeForm = ({
   } = useWaitForTransactionReceipt({
     hash: depositTxHash,
     query: { enabled: !!depositTxHash }
+  });
+
+  useReportDepositTxHash({
+    token: lrtDetails?.symbol,
+    hash: depositTxHash,
+    chainId
   });
 
   useEffect(() => {
