@@ -6,8 +6,7 @@ import { useSupportedChainId } from './useSupportedChainId';
 const submitDepositTxHash = async (
   token: string,
   hash: Hash,
-  chainId: number,
-  ref: { [tokenDashChainIdDashHash: string]: boolean }
+  chainId: number
 ) => {
   const response = await fetch(
     `${API_URL}/dapp/${token}/${chainId}/deposit/${hash}`
@@ -15,7 +14,6 @@ const submitDepositTxHash = async (
   if (!response.ok) {
     throw new Error(`Failed to submit deposit tx hash: ${hash}`);
   }
-  ref[`${token}-${chainId}-${hash}`] = true;
 };
 
 export const useReportDepositTxHash = ({
@@ -36,6 +34,10 @@ export const useReportDepositTxHash = ({
   useEffect(() => {
     if (!hash || !token) return;
     if (alreadyCalledRef.current[`${token}-${_chainId}-${hash}`]) return;
-    submitDepositTxHash(token, hash, _chainId, alreadyCalledRef.current);
+    submitDepositTxHash(token, hash, _chainId)
+      .then(() => {
+        alreadyCalledRef.current[`${token}-${chainId}-${hash}`] = true;
+      })
+      .catch(console.error);
   }, [alreadyCalledRef, token, _chainId, hash]);
 };
