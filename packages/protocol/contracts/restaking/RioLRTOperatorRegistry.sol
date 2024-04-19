@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {LibMap} from '@solady/utils/LibMap.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
-import {UpgradeableBeacon} from '@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
@@ -62,14 +61,12 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         _;
     }
 
-    // forgefmt: disable-next-item
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
     /// @param strategyManager_ The primary entry and exit-point for funds into and out of EigenLayer.
-    /// @param initialBeaconOwner The initial owner who can upgrade the operator delegator beacon contract.
-    /// @param operatorDelegatorImpl_ The operator contract implementation.
-    constructor(address issuer_, address strategyManager_, address initialBeaconOwner, address operatorDelegatorImpl_) RioLRTCore(issuer_) {
+    /// @param operatorDelegatorBeacon_ The operator delegator beacon contract.
+    constructor(address issuer_, address strategyManager_, address operatorDelegatorBeacon_) RioLRTCore(issuer_) {
         strategyManager = IStrategyManager(strategyManager_);
-        operatorDelegatorBeacon = address(new UpgradeableBeacon(operatorDelegatorImpl_, initialBeaconOwner));
+        operatorDelegatorBeacon = operatorDelegatorBeacon_;
     }
 
     /// @notice Initializes the contract.

@@ -9,6 +9,7 @@ import {RioLRTOperatorRegistry} from 'contracts/restaking/RioLRTOperatorRegistry
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {CredentialsProofs, BeaconWithdrawal} from 'test/utils/beacon-chain/MockBeaconChain.sol';
+import {UpgradeableBeacon} from '@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {RioLRTRewardDistributor} from 'contracts/restaking/RioLRTRewardDistributor.sol';
 import {RioLRTOperatorDelegator} from 'contracts/restaking/RioLRTOperatorDelegator.sol';
@@ -67,27 +68,23 @@ abstract contract RioDeployer is EigenLayerDeployer {
 
         (guardianSigner, guardianSignerPrivateKey) = makeAddrAndKey('guardian');
 
-        address issuerAddress = computeCreateAddress(address(this), vm.getNonce(address(this)) + 10);
+        address issuerAddress = computeCreateAddress(address(this), vm.getNonce(address(this)) + 11);
+        address operatorDelegatorBeacon = address(
+            new UpgradeableBeacon(
+                address(
+                    new RioLRTOperatorDelegator(
+                        issuerAddress, STRATEGY_MANAGER_ADDRESS, EIGEN_POD_MANAGER_ADDRESS, DELEGATION_MANAGER_ADDRESS
+                    )
+                ),
+                address(this)
+            )
+        );
         address issuerImpl = address(
             new RioLRTIssuer(
                 address(new RioLRT(issuerAddress)),
                 address(new RioLRTCoordinator(issuerAddress, ETH_POS_ADDRESS)),
                 address(new RioLRTAssetRegistry(issuerAddress)),
-                address(
-                    new RioLRTOperatorRegistry(
-                        issuerAddress,
-                        STRATEGY_MANAGER_ADDRESS,
-                        address(this),
-                        address(
-                            new RioLRTOperatorDelegator(
-                                issuerAddress,
-                                STRATEGY_MANAGER_ADDRESS,
-                                EIGEN_POD_MANAGER_ADDRESS,
-                                DELEGATION_MANAGER_ADDRESS
-                            )
-                        )
-                    )
-                ),
+                address(new RioLRTOperatorRegistry(issuerAddress, STRATEGY_MANAGER_ADDRESS, operatorDelegatorBeacon)),
                 address(new RioLRTAVSRegistry(issuerAddress)),
                 address(new RioLRTDepositPool(issuerAddress)),
                 address(new RioLRTWithdrawalQueue(issuerAddress)),
