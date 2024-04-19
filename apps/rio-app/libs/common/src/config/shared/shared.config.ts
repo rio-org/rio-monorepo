@@ -59,6 +59,8 @@ export const getSharedConfig = (): SharedConfig => ({
     apiRio: parseInt(process.env.PORT_API_RIO as string, 10) || 4000,
     taskSyncDBService:
       parseInt(process.env.PORT_TASK_SCHEDULER as string, 10) || 4005,
+    rebalancerBotService:
+      parseInt(process.env.PORT_REBALANCER_BOT as string, 10) || 4009,
     securityDaemonService:
       parseInt(process.env.PORT_SECURITY_DAEMON as string, 10) || 4010,
   },

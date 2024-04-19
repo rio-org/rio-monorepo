@@ -31,6 +31,7 @@ export interface RedisCacheConfig {
 export interface HttpPortConfig {
   apiRio: number;
   taskSyncDBService: number;
+  rebalancerBotService: number;
   securityDaemonService: number;
 }
 

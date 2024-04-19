@@ -97,7 +97,7 @@ export class SyncValidatorKeysTaskManagerService {
 
   async fetchAllNewValidatorKeysForLrt(
     chainId: CHAIN_ID,
-    publicClient: PublicClient,
+    publicClient: PublicClient<any>,
     subgraph: SubgraphClient,
     liquidRestakingToken: LiquidRestakingToken,
   ) {

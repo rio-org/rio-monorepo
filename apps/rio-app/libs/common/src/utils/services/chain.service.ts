@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Chain, createPublicClient, http as viemHttp } from 'viem';
+import {
+  Chain,
+  createPublicClient,
+  http as viemHttp,
+  PublicClient,
+} from 'viem';
 import { CHAIN_ID, SUPPORTED_CHAIN_IDS } from '@rio-app/common';
 import { goerli, holesky, mainnet } from 'viem/chains';
 
@@ -12,7 +17,7 @@ export class ChainService {
    * Builds a chain client
    * @param chainId Chain id
    */
-  chainClient(chainId: CHAIN_ID) {
+  chainClient(chainId: CHAIN_ID): PublicClient<any> {
     let chain: Chain;
     switch (chainId) {
       case CHAIN_ID.HOLESKY:
@@ -28,6 +33,8 @@ export class ChainService {
         throw 'Unsupported chain';
     }
     const rpcUrl = chain.rpcUrls.default.http[0];
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     return createPublicClient({
       chain: chain,
       transport: viemHttp(rpcUrl),
