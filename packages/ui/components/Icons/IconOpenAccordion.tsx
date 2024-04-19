@@ -12,7 +12,7 @@ export const IconOpenAccordion = ({
     viewBox="0 0 24 24"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    className={cn('[&>path]:fill-[var(--color-element-wrapper-bg)]', className)}
+    className={cn('[&>path]:fill-foregroundA5', className)}
     {...props}
   >
     <motion.path

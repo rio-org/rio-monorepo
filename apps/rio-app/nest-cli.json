@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "monorepo": true,
+  "root": "apps/api-rio/",
+  "compilerOptions": {
+    "webpack": true,
+    "tsConfigPath": "apps/api-rio/tsconfig.app.json",
+    "watchAssets": true,
+    "assets": ["**/*.yaml"]
+  },
+  "projects": {
+    "api-rio": {
+      "type": "application",
+      "root": "apps/api-rio",
+      "entryFile": "main",
+      "sourceRoot": "apps/api-rio/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/api-rio/tsconfig.app.json"
+      }
+    },
+    "task-sync-db": {
+      "type": "application",
+      "root": "apps/task-sync-db",
+      "entryFile": "main",
+      "sourceRoot": "apps/task-sync-db/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/task-sync-db/tsconfig.app.json"
+      }
+    },
+    "security-daemon": {
+      "type": "application",
+      "root": "apps/security-daemon",
+      "entryFile": "main",
+      "sourceRoot": "apps/security-daemon/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/security-daemon/tsconfig.app.json"
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
+      }
+    },
+    "config": {
+      "type": "library",
+      "root": "libs/config",
+      "entryFile": "index",
+      "sourceRoot": "libs/config/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/config/tsconfig.lib.json"
+      }
+    }
+  }
+}

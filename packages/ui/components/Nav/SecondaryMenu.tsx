@@ -1,7 +1,5 @@
 import { Menu, MenuHandler, MenuList } from '@material-tailwind/react';
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import dots from '../../assets/nav-dots.svg';
+import React from 'react';
 import cx from 'classnames';
 import { useMediaQuery } from 'react-responsive';
 import SecondaryMenuItems from './SecondaryMenuItems';
@@ -9,6 +7,8 @@ import { DESKTOP_MQ } from '../../lib/constants';
 import { motion } from 'framer-motion';
 import { mainNavChildrenVariants } from '../../lib/motion';
 import { NavItem, SocialNavItem } from '../../lib/typings';
+import { IconDots } from '../Icons/IconDots';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 type Props = {
   secondaryItems: NavItem[];
@@ -25,7 +25,7 @@ const SecondaryMenu = ({
   isSecondaryMenuOpen,
   setIsSecondaryMenuOpen
 }: Props) => {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useIsMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
@@ -33,13 +33,9 @@ const SecondaryMenu = ({
     setIsSecondaryMenuOpen(!isSecondaryMenuOpen);
   };
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   return (
     <>
-      <motion.div key={'secondaryMenu'} variants={mainNavChildrenVariants}>
+      <motion.li key={'secondaryMenu'} variants={mainNavChildrenVariants}>
         {isMounted && isDesktopOrLaptop ? (
           <Menu
             placement="bottom-start"
@@ -51,25 +47,19 @@ const SecondaryMenu = ({
             <MenuHandler>
               <div
                 className={cx(
-                  'group py-3 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-[var(--color-element-wrapper-bg)]',
-                  isSecondaryMenuOpen
-                    ? 'bg-[var(--color-element-wrapper-bg)]'
-                    : ''
+                  'group py-3 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-foregroundA1',
+                  isSecondaryMenuOpen ? 'bg-foregroundA1' : ''
                 )}
               >
-                <Image
+                <IconDots
                   className={cx(
                     'opacity-40 group-hover:opacity-80',
                     isSecondaryMenuOpen ? 'opacity-80' : ''
                   )}
-                  src={dots}
-                  alt=""
-                  width={16}
-                  height={16}
                 />
               </div>
             </MenuHandler>
-            <MenuList>
+            <MenuList className="bg-background border-border shadow-cardlight rounded-[4px]">
               <SecondaryMenuItems
                 secondaryItems={secondaryItems}
                 tertiaryItems={tertiaryItems}
@@ -83,26 +73,22 @@ const SecondaryMenu = ({
             <button
               onClick={() => handleMenuClick()}
               className={cx(
-                'group py-3 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-[var(--color-element-wrapper-bg)]',
-                isSecondaryMenuOpen
-                  ? 'bg-[var(--color-element-wrapper-bg)]'
-                  : ''
+                'group py-3 px-4 hover:cursor-pointer rounded-xl h-full flex items-center hover:bg-foregroundA1',
+                isSecondaryMenuOpen ? 'bg-foregroundA1' : ''
               )}
             >
-              <Image
+              <IconDots
                 className={cx(
                   'opacity-40 group-hover:opacity-80',
                   isSecondaryMenuOpen ? 'opacity-80' : ''
                 )}
-                src={dots}
-                alt=""
                 width={16}
                 height={16}
               />
             </button>
           </>
         )}
-      </motion.div>
+      </motion.li>
     </>
   );
 };

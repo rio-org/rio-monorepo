@@ -1,12 +1,14 @@
 export * as SubgraphTypes from './generated/graphql';
 export { SubgraphClient } from './client';
 export {
+  SubgraphClientOptions,
   QueryConfig,
   Issuer,
   UnderlyingAsset,
   ContractDeployment,
   LiquidRestakingToken,
   Deposit,
+  TokenTransfer,
   WithdrawalEpochStatus,
   WithdrawalRequest,
   WithdrawalClaim,
@@ -16,7 +18,7 @@ export {
   Validator
 } from './types';
 export {
-  SUBGRAPH_URLS,
+  getSubgraphUrls,
   getSubgraphUrlForChainOrThrow,
   getDefaultConfig,
   toPaginated

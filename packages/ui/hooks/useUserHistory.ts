@@ -2,7 +2,7 @@ import { useGetDeposits } from './useGetDeposits';
 import { useGetWithdrawalClaims } from './useGetWithdrawalClaims';
 import { useGetAccountWithdrawals } from './useGetAccountWithdrawals';
 import { useCallback, useMemo } from 'react';
-import { UseQueryResult } from 'react-query';
+import { type UseQueryResult } from '@tanstack/react-query';
 import { Address } from 'viem';
 import {
   BaseAssetDetails,
@@ -52,7 +52,7 @@ export const useTransactionHistory = (config?: {
       },
       {} as Record<Address, BaseAssetDetails>
     );
-  }, [lrtList?.length]);
+  }, [lrtList?.map((lrt) => lrt.address)]);
 
   const assetLookup = useMemo(() => {
     if (!assetList?.length) return null;
@@ -63,7 +63,7 @@ export const useTransactionHistory = (config?: {
       },
       {} as Record<Address, BaseAssetDetails>
     );
-  }, [assetList?.length]);
+  }, [assetList?.map((asset) => asset.address)]);
 
   const txHistory = useMemo(() => {
     if (
@@ -103,7 +103,7 @@ export const useTransactionHistory = (config?: {
     requestsValues,
     depositsValues,
     lrtListValues
-  ] as const;
+  ] as (Partial<UseQueryResult<unknown, Error>> & { refetch(): void })[];
 
   const refetch = useCallback(
     () => refetchAll(values),
@@ -132,7 +132,9 @@ export const useTransactionHistory = (config?: {
 ///////////
 
 function refetchAll(
-  values: readonly (Partial<UseQueryResult> & { refetch(): void })[]
+  values: readonly (Partial<UseQueryResult<unknown, Error>> & {
+    refetch(): void;
+  })[]
 ) {
   values.forEach((v) => {
     v.refetch().catch((e) => console.error(`refetch error`, e));
@@ -183,9 +185,9 @@ function buildParseTx(
         valueUSD: Number(tx.valueUSD),
         amountChange: Number(isClaim ? _ctx.amountClaimed : _dwtx.amountIn),
         amountChangeSymbol: isRequest
-          ? lrtLookup[tx.restakingToken as Address].symbol
+          ? lrtLookup[tx.restakingToken as Address]?.symbol
           : assetLookup[asType<Address>(isClaim ? _ctx.assetOut : _dtx.assetIn)]
-              .symbol,
+              ?.symbol,
         restakingToken: lrtLookup[tx.restakingToken as Address],
         restakingTokenPriceUSD: Number(tx.restakingTokenPriceUSD),
         tx: tx.tx,

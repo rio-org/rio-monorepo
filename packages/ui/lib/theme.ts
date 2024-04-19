@@ -3,6 +3,8 @@ export const theme = {
     styles: {
       base: {
         indicator: {
+          backgroundColor: 'bg-background',
+          borderColor: 'border-border',
           borderRadius: 'rounded-full'
         }
       }
@@ -38,7 +40,7 @@ export const theme = {
   tooltip: {
     styles: {
       base: {
-        bg: 'bg-white',
+        bg: 'bg-card',
         textColor: 'text-[var(--color-dark-gray)]',
         boxShadow: 'shadow-lg'
       }

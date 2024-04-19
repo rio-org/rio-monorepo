@@ -2,11 +2,11 @@ import { type OperatorDelegator } from '@rionetwork/sdk-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Skeleton from 'react-loading-skeleton';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { type Address } from 'wagmi';
-import { zeroAddress } from 'viem';
+import { type Address, zeroAddress } from 'viem';
 import { useState } from 'react';
 import dayjs from 'dayjs';
 
+import { ContractAddressField } from '@rio-monorepo/ui/components/Shared/ContractAddressField';
 import { IconCloudArrowDown } from '@rio-monorepo/ui/components/Icons/IconCloudArrowDown';
 import { IconOpenAccordion } from '@rio-monorepo/ui/components/Icons/IconOpenAccordion';
 import { IconCalendarClock } from '@rio-monorepo/ui/components/Icons/IconCalendarClock';
@@ -23,7 +23,6 @@ import { ValidatorOptionsKabobMenu } from './ValidatorOptionsKabobMenu';
 import { PendingManagerInvitation } from './PendingManagerInvitation';
 import { NewManagerPendingSection } from './NewManagerPendingSection';
 import { EditOperatorFieldDialog } from './EditOperatorFieldDialog';
-import { OperatorField } from './OperatorField';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 import { cn, isEqualAddress } from '@rio-monorepo/ui/lib/utilities';
 import {
@@ -201,15 +200,15 @@ export function OperatorCard({
             <div>
               <h3 className="text-sm font-medium leading-5 mb-2">Details</h3>
               <div className="space-y-2">
-                <OperatorField
+                <ContractAddressField
                   title="Address"
                   value={operatorDelegator.operator.address}
                 />
-                <OperatorField
+                <ContractAddressField
                   title="Delegator"
                   value={operatorDelegator.address}
                 />
-                <OperatorField
+                <ContractAddressField
                   title="Manager"
                   value={operatorDelegator.manager}
                   onEdit={
@@ -218,7 +217,7 @@ export function OperatorCard({
                       : () => setUpdateFxnName('setOperatorPendingManager')
                   }
                 />
-                <OperatorField
+                <ContractAddressField
                   title="Earnings Receiver"
                   value={operatorDelegator.earningsReceiver}
                   onEdit={
@@ -332,7 +331,7 @@ function OperatorValidatorDetail({
   value?: string | number | React.ReactNode;
 }) {
   return (
-    <MonospaceBox className="w-full lg:w-[calc(50%-0.25rem)] h-[42px] text-xs">
+    <MonospaceBox className="w-full md:w-[calc(50%-0.25rem)] h-[42px] text-xs">
       <div className="flex items-center gap-2">
         {icon}
         <span className="opacity-75 font-[500] text-[11px] space-x-0.5">

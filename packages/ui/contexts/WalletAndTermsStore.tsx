@@ -6,9 +6,8 @@ import {
   useMemo,
   useState
 } from 'react';
-import { mainnet, useChainId, useDisconnect, useNetwork } from 'wagmi';
-import { CHAIN_ID } from '../config';
-import { CHAIN_ID_NUMBER } from '../lib/typings';
+import { useDisconnect } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccountIfMounted } from '../hooks/useAccountIfMounted';
 import { useAcceptedTerms } from '../hooks/useAcceptedTerms';
@@ -16,6 +15,7 @@ import { useRegionChecked } from '../hooks/useRegionChecked';
 import { GeofenceModal } from '../components/Shared/GeofenceModal';
 import { AcceptTermsModal } from '../components/Shared/AcceptTermsModal';
 import { asType } from '../lib/utilities';
+import { useSupportedChainId } from '../hooks/useSupportedChainId';
 
 type BadGlobalThis =
   | undefined
@@ -55,10 +55,8 @@ export default function WalletAndTermsStoreProvider({
       ? asType<BadGlobalThis>(globalThis)
       : undefined;
 
-  const { chain } = useNetwork();
-  const defaultChainId = useChainId() || CHAIN_ID;
-  const chainId = (chain?.id || defaultChainId) as CHAIN_ID_NUMBER;
   const { address } = useAccountIfMounted();
+  const chainId = useSupportedChainId();
   const { disconnect } = useDisconnect();
   const { openConnectModal, connectModalOpen } = useConnectModal();
   const [walletModalOpen, setWalletModalOpen] = useState(false);
@@ -69,7 +67,6 @@ export default function WalletAndTermsStoreProvider({
 
   const isMainnet = chainId === mainnet.id;
 
-  regionCheckedMutation.isLoading || regionChecked.isLoading;
   const isRegionBlocked = useMemo(
     () => regionChecked.data === false,
     [regionChecked.data]
@@ -98,11 +95,13 @@ export default function WalletAndTermsStoreProvider({
     disconnect();
   }, [requireGeofence, isRegionBlocked, isMainnet, address, disconnect]);
 
+  const mutate = useCallback(() => regionCheckedMutation.mutate(null), []);
+
   const fetchRegionBlockOnModalOpen = useCallback(() => {
     if (!isMainnet) return;
     if (isRegionBlocked) return;
     if (!walletModalOpen) return;
-    regionCheckedMutation.mutate();
+    mutate();
   }, [isMainnet, requireGeofence, walletModalOpen, isRegionBlocked]);
 
   const fetchRegionBlockOnNetworkChange = useCallback(() => {
@@ -110,7 +109,7 @@ export default function WalletAndTermsStoreProvider({
     if (walletModalOpen) return;
     if (!isMainnet) return;
     if (!address) return;
-    regionCheckedMutation.mutate();
+    mutate();
   }, [walletModalOpen, isRegionBlocked, isMainnet, address]);
 
   useEffect(() => {
@@ -172,9 +171,9 @@ export default function WalletAndTermsStoreProvider({
                   setShowDisconnectOnNetworkChange(false);
                 }
           }
-          refetch={regionCheckedMutation.mutate}
+          refetch={mutate}
           isRegionBlocked={isRegionBlocked}
-          isLoading={regionCheckedMutation.isLoading || regionChecked.isLoading}
+          isLoading={regionCheckedMutation.isPending || regionChecked.isLoading}
           isError={regionCheckedMutation.isError}
         />
       )}

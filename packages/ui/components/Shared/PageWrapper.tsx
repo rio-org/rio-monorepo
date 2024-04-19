@@ -5,7 +5,7 @@ type Props = React.ComponentProps<'div'> & {
 };
 
 export const PageWrapper = ({ children, isWide, className }: Props) => {
-  const maxWidthClass = isWide ? `sm:max-w-[1024px]` : 'lg:max-w-[588px]';
+  const maxWidthClass = isWide ? `sm:max-w-[1024px]` : 'md:max-w-[588px]';
   return (
     <div
       className={cn(

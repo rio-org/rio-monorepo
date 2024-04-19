@@ -1,8 +1,8 @@
 import { Deposited } from '../generated/templates/Coordinator/RioLRTCoordinator';
-import { Asset, Coordinator, Deposit, LiquidRestakingToken } from '../generated/schema';
-import { findOrCreateUser, getExchangeRateUSD, toUnits } from './helpers/utils';
-import { ETH_ADDRESS, STAT_UPDATE_MIN_TRADE, ZERO_BD } from './helpers/constants';
-import { BigDecimal } from '@graphprotocol/graph-ts';
+import { Asset, Coordinator, Deposit, HistoricalExchangeRate, LiquidRestakingToken } from '../generated/schema';
+import { findOrCreateHistoricalExchangeRate, findOrCreateUser, getExchangeRateUSD, toUnits } from './helpers/utils';
+import { ETH_ADDRESS, RATE_MINIMUM_UPDATE_SECONDS, STAT_UPDATE_MIN_TRADE, ZERO_BD } from './helpers/constants';
+import { BigDecimal, BigInt } from '@graphprotocol/graph-ts';
 
 export function handleDeposited(event: Deposited): void {
   const coordinator = Coordinator.load(event.address.toHex())!;
@@ -22,6 +22,23 @@ export function handleDeposited(event: Deposited): void {
     restakingToken.totalValueETH = restakingToken.exchangeRateETH && restakingToken.totalSupply.times(restakingToken.exchangeRateETH!);
     restakingToken.totalValueUSD = restakingToken.exchangeRateUSD && restakingToken.totalSupply.times(restakingToken.exchangeRateUSD!);
     restakingToken.percentAPY = ZERO_BD;
+
+    const lastExchangeRateId = restakingToken.historicalExchangeRates[restakingToken.historicalExchangeRates.length - 1];
+    const lastExchangeRate = HistoricalExchangeRate.load(lastExchangeRateId);
+    const lastExchangeRateTimestamp = lastExchangeRate == null ? restakingToken.createdTimestamp : lastExchangeRate.timestamp;
+    const timeSinceLastUpdate = event.block.timestamp.minus(lastExchangeRateTimestamp);
+
+    if (timeSinceLastUpdate.ge(RATE_MINIMUM_UPDATE_SECONDS)) {
+      const historicalExchangeRate = findOrCreateHistoricalExchangeRate(restakingToken.id, event.block.timestamp);
+      historicalExchangeRate.exchangeRateETH = restakingToken.exchangeRateETH;
+      historicalExchangeRate.exchangeRateUSD = restakingToken.exchangeRateUSD;
+      historicalExchangeRate.totalValueETH = restakingToken.totalValueETH;
+      historicalExchangeRate.totalValueUSD = restakingToken.totalValueUSD;
+      historicalExchangeRate.percentAPY = restakingToken.percentAPY;
+      historicalExchangeRate.totalSupply = restakingToken.totalSupply;
+      historicalExchangeRate.save();
+    }
+
     restakingToken.save();
   }
 

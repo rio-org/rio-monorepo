@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { useGetLiquidRestakingTokens } from '@rio-monorepo/ui/hooks/useGetLiquidRestakingTokens';
 import { useGetOperators } from '@rio-monorepo/ui/hooks/useGetOperators';
 import { OperatorDetails } from '@/components/Operators/OperatorDetails';
+import { TestnetBanner } from '@rio-monorepo/ui/components/Shared/TestnetBanner';
+import { PageWrapper } from '@rio-monorepo/ui/components/Shared/PageWrapper';
 
 const OperatorsPage: NextPage = () => {
   const { data: lrts } = useGetLiquidRestakingTokens();
@@ -24,13 +26,16 @@ const OperatorsPage: NextPage = () => {
   }, [operatorsUnsorted]);
 
   return (
-    <div className="w-full flex flex-col gap-4 justify-center items-start">
-      <OperatorDetails
-        refetchOperators={refetch}
-        restakingToken={activeLrt}
-        operatorDelegators={operatorDelegators}
-      />
-    </div>
+    <PageWrapper>
+      <TestnetBanner />
+      <div className="w-full flex flex-col gap-4 justify-center items-start">
+        <OperatorDetails
+          refetchOperators={refetch}
+          restakingToken={activeLrt}
+          operatorDelegators={operatorDelegators}
+        />
+      </div>
+    </PageWrapper>
   );
 };
 

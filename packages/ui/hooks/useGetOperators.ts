@@ -1,10 +1,12 @@
 import { buildRioSdkRestakingKey } from '../lib/utilities';
-import { useQuery, UseQueryOptions } from 'react-query';
 import {
-  OperatorDelegator,
-  SubgraphClient,
-  useSubgraph
-} from '@rionetwork/sdk-react';
+  useQuery,
+  type UseQueryOptions,
+  type UseQueryResult
+} from '@tanstack/react-query';
+import { OperatorDelegator, SubgraphClient } from '@rionetwork/sdk-react';
+import { useSupportedChainId } from './useSupportedChainId';
+import { SUBGRAPH_API_KEY } from '../config';
 
 function buildFetcherAndParser(
   subgraph: SubgraphClient,
@@ -18,16 +20,20 @@ function buildFetcherAndParser(
 
 export function useGetOperators(
   config?: Parameters<SubgraphClient['getOperatorDelegators']>[0],
-  queryConfig?: UseQueryOptions<OperatorDelegator[], Error>
-) {
-  const subgraph = useSubgraph();
-  return useQuery<OperatorDelegator[], Error>(
-    buildRioSdkRestakingKey('getOperatorDelegators', config),
-    buildFetcherAndParser(subgraph, config),
-    {
-      staleTime: 30 * 1000,
-      ...queryConfig,
-      enabled: queryConfig?.enabled !== false
-    }
-  );
+  queryConfig?: Partial<
+    Omit<UseQueryOptions<OperatorDelegator[], Error>, 'queryKey' | 'queryFn'>
+  >
+): UseQueryResult<OperatorDelegator[], Error> {
+  const chainId = useSupportedChainId();
+  const subgraph = SubgraphClient.for(chainId, {
+    subgraphApiKey: SUBGRAPH_API_KEY
+  });
+
+  return useQuery<OperatorDelegator[], Error>({
+    queryKey: buildRioSdkRestakingKey('getOperatorDelegators', chainId, config),
+    queryFn: buildFetcherAndParser(subgraph, config),
+    staleTime: 30 * 1000,
+    ...queryConfig,
+    enabled: queryConfig?.enabled !== false
+  });
 }

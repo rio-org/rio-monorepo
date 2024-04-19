@@ -2,6 +2,7 @@ export const RioLRTWithdrawalQueueABI = [
   {
     type: 'constructor',
     inputs: [
+      { name: 'issuer_', type: 'address', internalType: 'address' },
       { name: 'delegationManager_', type: 'address', internalType: 'address' }
     ],
     stateMutability: 'nonpayable'
@@ -28,11 +29,7 @@ export const RioLRTWithdrawalQueueABI = [
           { name: 'withdrawer', type: 'address', internalType: 'address' },
           { name: 'nonce', type: 'uint256', internalType: 'uint256' },
           { name: 'startBlock', type: 'uint32', internalType: 'uint32' },
-          {
-            name: 'strategies',
-            type: 'address[]',
-            internalType: 'contract IStrategy[]'
-          },
+          { name: 'strategies', type: 'address[]', internalType: 'address[]' },
           { name: 'shares', type: 'uint256[]', internalType: 'uint256[]' }
         ]
       }
@@ -75,13 +72,6 @@ export const RioLRTWithdrawalQueueABI = [
       { name: 'amountsOut', type: 'uint256[]', internalType: 'uint256[]' }
     ],
     stateMutability: 'nonpayable'
-  },
-  {
-    type: 'function',
-    name: 'coordinator',
-    inputs: [],
-    outputs: [{ name: '', type: 'address', internalType: 'address' }],
-    stateMutability: 'view'
   },
   {
     type: 'function',
@@ -164,11 +154,17 @@ export const RioLRTWithdrawalQueueABI = [
     name: 'initialize',
     inputs: [
       { name: 'initialOwner', type: 'address', internalType: 'address' },
-      { name: 'restakingToken_', type: 'address', internalType: 'address' },
-      { name: 'coordinator_', type: 'address', internalType: 'address' }
+      { name: 'token_', type: 'address', internalType: 'address' }
     ],
     outputs: [],
     stateMutability: 'nonpayable'
+  },
+  {
+    type: 'function',
+    name: 'issuer',
+    inputs: [],
+    outputs: [{ name: '', type: 'address', internalType: 'address' }],
+    stateMutability: 'view'
   },
   {
     type: 'function',
@@ -221,13 +217,6 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'function',
-    name: 'restakingToken',
-    inputs: [],
-    outputs: [{ name: '', type: 'address', internalType: 'contract IRioLRT' }],
-    stateMutability: 'view'
-  },
-  {
-    type: 'function',
     name: 'settleCurrentEpoch',
     inputs: [
       { name: 'asset', type: 'address', internalType: 'address' },
@@ -257,11 +246,7 @@ export const RioLRTWithdrawalQueueABI = [
           { name: 'withdrawer', type: 'address', internalType: 'address' },
           { name: 'nonce', type: 'uint256', internalType: 'uint256' },
           { name: 'startBlock', type: 'uint32', internalType: 'uint32' },
-          {
-            name: 'strategies',
-            type: 'address[]',
-            internalType: 'contract IStrategy[]'
-          },
+          { name: 'strategies', type: 'address[]', internalType: 'address[]' },
           { name: 'shares', type: 'uint256[]', internalType: 'uint256[]' }
         ]
       },
@@ -273,6 +258,13 @@ export const RioLRTWithdrawalQueueABI = [
     ],
     outputs: [],
     stateMutability: 'nonpayable'
+  },
+  {
+    type: 'function',
+    name: 'token',
+    inputs: [],
+    outputs: [{ name: '', type: 'address', internalType: 'contract IRioLRT' }],
+    stateMutability: 'view'
   },
   {
     type: 'function',
@@ -526,9 +518,14 @@ export const RioLRTWithdrawalQueueABI = [
     inputs: []
   },
   { type: 'error', name: 'InvalidInitialization', inputs: [] },
+  { type: 'error', name: 'NO_SHARES_OWED', inputs: [] },
   { type: 'error', name: 'NO_SHARES_OWED_IN_EPOCH', inputs: [] },
   { type: 'error', name: 'NotInitializing', inputs: [] },
   { type: 'error', name: 'ONLY_COORDINATOR', inputs: [] },
+  { type: 'error', name: 'ONLY_DEPOSIT_POOL', inputs: [] },
+  { type: 'error', name: 'ONLY_ISSUER', inputs: [] },
+  { type: 'error', name: 'ONLY_OPERATOR_REGISTRY', inputs: [] },
+  { type: 'error', name: 'ONLY_WITHDRAWAL_QUEUE', inputs: [] },
   {
     type: 'error',
     name: 'OwnableInvalidOwner',

@@ -8,7 +8,8 @@ import {
   Drawer,
   Spinner
 } from '@material-tailwind/react';
-import { mainnet, useBalance, useDisconnect } from 'wagmi';
+import { useBalance, useDisconnect } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
 import { useMediaQuery } from 'react-responsive';
 import { useEffect, useRef, useState } from 'react';
 import { DESKTOP_MQ } from '../../lib/constants';
@@ -21,7 +22,7 @@ import { useIsMounted } from '../../hooks/useIsMounted';
 import { useGetLiquidRestakingTokens } from '../../hooks/useGetLiquidRestakingTokens';
 import { useWalletAndTermsStore } from '../../contexts/WalletAndTermsStore';
 import { useRegionChecked } from '../../hooks/useRegionChecked';
-import { CHAIN_ID } from '../../config';
+import { useSupportedChainId } from '../../hooks/useSupportedChainId';
 
 export const CustomConnectButton = () => {
   const isMounted = useIsMounted();
@@ -42,7 +43,8 @@ export const CustomConnectButton = () => {
         authenticationStatus,
         openChainModal
       }: ConnectButtonProps) => {
-        const chainId = (chain?.id || CHAIN_ID) as CHAIN_ID_NUMBER;
+        const supportedChainId = useSupportedChainId();
+        const chainId = (chain?.id || supportedChainId) as CHAIN_ID_NUMBER;
 
         const [isLoading, setIsLoading] = useState(false);
         const [isDisconnected, setIsDisconnected] = useState(false);
@@ -52,10 +54,12 @@ export const CustomConnectButton = () => {
         const [{ data: isInAllowedRegion }] = useRegionChecked();
 
         const { disconnect } = useDisconnect({
-          onSuccess() {
-            setIsDisconnected(true);
-            setIsLoading(false);
-            setOpenNav(false);
+          mutation: {
+            onSuccess() {
+              setIsDisconnected(true);
+              setIsLoading(false);
+              setOpenNav(false);
+            }
           }
         });
 
@@ -85,7 +89,7 @@ export const CustomConnectButton = () => {
                 userSelect: 'none'
               }
             })}
-            className="lg:ml-auto"
+            className="md:ml-auto"
             variants={mainNavConnectVariants}
           >
             {(() => {
@@ -98,7 +102,7 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={openWalletModal}
                     type="button"
-                    className="relative flex flex-col text-right items-end px-4 py-2 hover:bg-opacity-70 bg-black text-white rounded-full font-medium"
+                    className="relative flex flex-col text-right items-end px-4 py-2 hover:bg-opacity-70 bg-primary text-primary-foreground rounded-full font-medium"
                   >
                     <span className={cx(isLoading && 'text-transparent')}>
                       Connect wallet
@@ -116,7 +120,7 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={openChainModal}
                     type="button"
-                    className="flex flex-col text-right items-end px-2 py-1 hover:bg-black hover:bg-opacity-5 rounded-md"
+                    className="flex flex-col text-right items-end px-2 py-1 hover:bg-foregroundA1 rounded-md"
                   >
                     Wrong network
                   </button>
@@ -127,16 +131,16 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={() => !isDesktopOrLaptop && setOpenNav(true)}
                     type="button"
-                    className="lg:hidden flex flex-col text-right items-end px-2 py-1 hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer"
+                    className="md:hidden flex flex-col text-right items-end px-2 py-1 hover:bg-foregroundA1 rounded-md hover:cursor-pointer"
                   >
                     {isLoading ? <Spinner /> : account?.displayName}
                   </button>
-                  <div className="hidden lg:block">
+                  <div className="hidden md:block">
                     <Menu placement="bottom-end">
                       <MenuHandler>
-                        <div className="flex flex-col py-1 px-2 text-right items-end hover:bg-black hover:bg-opacity-5 rounded-md hover:cursor-pointer text-[14px]">
+                        <div className="flex flex-col py-1 px-2 text-right items-end hover:bg-foregroundA1 rounded-md hover:cursor-pointer text-[14px]">
                           {account?.displayName}
-                          <span className="text-sm opacity-50 hidden lg:block">
+                          <span className="text-sm opacity-50 hidden md:block">
                             {reEthBalance &&
                               displayEthAmount(
                                 formatUnits(
@@ -150,6 +154,7 @@ export const CustomConnectButton = () => {
                       </MenuHandler>
                       <MenuList>
                         <MenuItem
+                          className="text-foregroundA7 hover:text-foreground"
                           onClick={() => {
                             disconnect();
                             setIsLoading(true);
@@ -172,7 +177,7 @@ export const CustomConnectButton = () => {
                         ref={drawerContentRef}
                         className="p-4 pb-6 flex flex-col gap-2"
                       >
-                        <div className="flex flex-row justify-between mb-2 text-black">
+                        <div className="flex flex-row justify-between mb-2 text-foreground">
                           {account?.displayName}
                           <span className="text-sm opacity-50 -tracking-tighter">
                             {reEthBalance
@@ -189,7 +194,7 @@ export const CustomConnectButton = () => {
                             disconnect();
                             setIsLoading(true);
                           }}
-                          className="flex flex-col items-center px-4 py-2 hover:bg-opacity-70 bg-black text-white rounded-full font-medium w-full text-center"
+                          className="flex flex-col items-center px-4 py-2 hover:bg-opacity-70 bg-foreground text-background rounded-full font-medium w-full text-center"
                         >
                           {isLoading || !account ? <Spinner /> : 'Disconnect'}
                         </button>

@@ -1,10 +1,12 @@
-import { buildRioSdkRestakingKey } from '../lib/utilities';
-import { useQuery, UseQueryOptions } from 'react-query';
 import {
-  SubgraphClient,
-  WithdrawalClaim,
-  useSubgraph
-} from '@rionetwork/sdk-react';
+  useQuery,
+  type UseQueryOptions,
+  type UseQueryResult
+} from '@tanstack/react-query';
+import { SubgraphClient, WithdrawalClaim } from '@rionetwork/sdk-react';
+import { buildRioSdkRestakingKey } from '../lib/utilities';
+import { useSupportedChainId } from './useSupportedChainId';
+import { SUBGRAPH_API_KEY } from '../config';
 
 function buildFetcherAndParser(
   subgraph: SubgraphClient,
@@ -18,19 +20,23 @@ function buildFetcherAndParser(
 
 export function useGetWithdrawalClaims(
   config?: Parameters<SubgraphClient['getWithdrawalClaims']>[0],
-  queryConfig?: UseQueryOptions<WithdrawalClaim[], Error>
-) {
-  const subgraph = useSubgraph();
-  return useQuery<WithdrawalClaim[], Error>(
-    buildRioSdkRestakingKey('getWithdrawalClaims', config),
-    buildFetcherAndParser(subgraph, config),
-    {
-      staleTime: 30 * 1000,
-      ...queryConfig,
-      enabled:
-        queryConfig?.enabled !== false &&
-        (!config?.where ||
-          !Object.values(config.where).some((v) => v === undefined))
-    }
-  );
+  queryConfig?: Omit<
+    UseQueryOptions<WithdrawalClaim[], Error>,
+    'queryKey' | 'queryFn'
+  >
+): UseQueryResult<WithdrawalClaim[], Error> {
+  const chainId = useSupportedChainId();
+  const subgraph = SubgraphClient.for(chainId, {
+    subgraphApiKey: SUBGRAPH_API_KEY
+  });
+  return useQuery<WithdrawalClaim[], Error>({
+    queryKey: buildRioSdkRestakingKey('getWithdrawalClaims', chainId, config),
+    queryFn: buildFetcherAndParser(subgraph, config),
+    staleTime: 30 * 1000,
+    ...queryConfig,
+    enabled:
+      queryConfig?.enabled !== false &&
+      (!config?.where ||
+        !Object.values(config.where).some((v) => v === undefined))
+  });
 }

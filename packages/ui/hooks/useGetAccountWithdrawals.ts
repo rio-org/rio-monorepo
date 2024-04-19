@@ -1,14 +1,19 @@
-import { UseQueryOptions, useQuery } from 'react-query';
+import { Address } from 'viem';
+import {
+  type UseQueryResult,
+  type UseQueryOptions,
+  useQuery
+} from '@tanstack/react-query';
 import {
   ClaimWithdrawalParams,
   SubgraphClient,
-  WithdrawalRequest,
-  useSubgraph
+  WithdrawalRequest
 } from '@rionetwork/sdk-react';
 import { BaseAssetDetails, TokenSymbol } from '../lib/typings';
 import { buildRioSdkRestakingKey, isEqualAddress } from '../lib/utilities';
 import { useGetAssetsList } from './useGetAssetsList';
-import { Address } from 'viem';
+import { useSupportedChainId } from './useSupportedChainId';
+import { SUBGRAPH_API_KEY } from '../config';
 
 interface UseGetAccountWithdrawalsReturn {
   withdrawalRequests?: WithdrawalRequest[];
@@ -73,27 +78,32 @@ function buildFetcherAndParser(
 
 export function useGetAccountWithdrawals(
   config?: Parameters<SubgraphClient['getWithdrawalRequests']>[0],
-  queryConfig?: UseQueryOptions<UseGetAccountWithdrawalsReturn, Error>
+  queryConfig?: Omit<
+    UseQueryOptions<UseGetAccountWithdrawalsReturn, Error>,
+    'queryKey' | 'queryFn'
+  >
 ) {
-  const subgraph = useSubgraph();
+  const chainId = useSupportedChainId();
+  const subgraph = SubgraphClient.for(chainId, {
+    subgraphApiKey: SUBGRAPH_API_KEY
+  });
+
   const { data: assets } = useGetAssetsList();
-  const { data, ...rest } = useQuery<UseGetAccountWithdrawalsReturn, Error>(
-    buildRioSdkRestakingKey('getWithdrawalRequests', config),
-    buildFetcherAndParser(subgraph, assets, config),
-    {
-      staleTime: 30 * 1000,
-      placeholderData: {
-        withdrawalParams: [],
-        withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
-      },
-      ...queryConfig,
-      enabled:
-        !!assets?.length &&
-        (!config?.where ||
-          !Object.values(config.where).some((v) => v === undefined)) &&
-        queryConfig?.enabled !== false
-    }
-  );
+  const { data, ...rest } = useQuery<UseGetAccountWithdrawalsReturn, Error>({
+    queryKey: buildRioSdkRestakingKey('getWithdrawalRequests', chainId, config),
+    queryFn: buildFetcherAndParser(subgraph, assets, config),
+    staleTime: 30 * 1000,
+    placeholderData: {
+      withdrawalParams: [],
+      withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
+    },
+    ...queryConfig,
+    enabled:
+      !!assets?.length &&
+      (!config?.where ||
+        !Object.values(config.where).some((v) => v === undefined)) &&
+      queryConfig?.enabled !== false
+  });
 
   return {
     data: data || {
@@ -101,5 +111,7 @@ export function useGetAccountWithdrawals(
       withdrawalAssets: [{ amount: 0, symbol: 'ETH' }]
     },
     ...rest
+  } as Omit<UseQueryResult<UseGetAccountWithdrawalsReturn, Error>, 'data'> & {
+    data: UseGetAccountWithdrawalsReturn;
   };
 }

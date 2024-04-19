@@ -1,0 +1,350 @@
+{
+  "id": "a48f39d1-1bdd-4186-ab3c-8783528dea1d",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "add_keys_transactions": {
+      "name": "add_keys_transactions",
+      "schema": "security",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "chain_id": {
+          "name": "chain_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "operator_id": {
+          "name": "operator_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "operator_registry_address": {
+          "name": "operator_registry_address",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_hash": {
+          "name": "transaction_hash",
+          "type": "char(66)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_index": {
+          "name": "start_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "block_number": {
+          "name": "block_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "add_keys_transactions_chain_idx": {
+          "name": "add_keys_transactions_chain_idx",
+          "columns": ["chain_id"],
+          "isUnique": false
+        },
+        "add_keys_transactions_transaction_hash_idx": {
+          "name": "add_keys_transactions_transaction_hash_idx",
+          "columns": ["transaction_hash"],
+          "isUnique": false
+        },
+        "add_keys_transactions_operator_idx": {
+          "name": "add_keys_transactions_operator_idx",
+          "columns": ["operator_id"],
+          "isUnique": false
+        },
+        "add_keys_transactions_operator_registry_idx": {
+          "name": "add_keys_transactions_operator_registry_idx",
+          "columns": ["operator_id"],
+          "isUnique": false
+        },
+        "add_keys_transactions_timestamp_idx": {
+          "name": "add_keys_transactions_timestamp_idx",
+          "columns": ["timestamp"],
+          "isUnique": false
+        },
+        "add_keys_transactions_block_number_idx": {
+          "name": "add_keys_transactions_block_number_idx",
+          "columns": ["block_number"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "daemon_task_state": {
+      "name": "daemon_task_state",
+      "schema": "security",
+      "columns": {
+        "task": {
+          "name": "task",
+          "type": "daemon_task",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "daemon_status",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'running'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "validatorKeys": {
+      "name": "validatorKeys",
+      "schema": "security",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "chain_id": {
+          "name": "chain_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "operator_id": {
+          "name": "operator_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "operator_registry_address": {
+          "name": "operator_registry_address",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "public_key": {
+          "name": "public_key",
+          "type": "char(96)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "signature": {
+          "name": "signature",
+          "type": "char(192)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "key_index": {
+          "name": "key_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "add_keys_transaction_id": {
+          "name": "add_keys_transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "remove_keys_transaction_id": {
+          "name": "remove_keys_transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "validator_keys_chain_idx": {
+          "name": "validator_keys_chain_idx",
+          "columns": ["chain_id"],
+          "isUnique": false
+        },
+        "validator_keys_operator_idx": {
+          "name": "validator_keys_operator_idx",
+          "columns": ["operator_id"],
+          "isUnique": false
+        },
+        "validator_keys_operator_registry_idx": {
+          "name": "validator_keys_operator_registry_idx",
+          "columns": ["operator_id"],
+          "isUnique": false
+        },
+        "validator_keys_public_key_idx": {
+          "name": "validator_keys_public_key_idx",
+          "columns": ["public_key"],
+          "isUnique": false
+        },
+        "validator_keys_key_index_idx": {
+          "name": "validator_keys_key_index_idx",
+          "columns": ["key_index"],
+          "isUnique": false
+        },
+        "validator_keys_add_keys_transaction_idx": {
+          "name": "validator_keys_add_keys_transaction_idx",
+          "columns": ["add_keys_transaction_id"],
+          "isUnique": false
+        },
+        "validator_keys_remove_keys_transaction_idx": {
+          "name": "validator_keys_remove_keys_transaction_idx",
+          "columns": ["remove_keys_transaction_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "validatorKeys_add_keys_transaction_id_add_keys_transactions_id_fk": {
+          "name": "validatorKeys_add_keys_transaction_id_add_keys_transactions_id_fk",
+          "tableFrom": "validatorKeys",
+          "tableTo": "add_keys_transactions",
+          "schemaTo": "security",
+          "columnsFrom": ["add_keys_transaction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "validatorKeys_remove_keys_transaction_id_remove_keys_transactions_id_fk": {
+          "name": "validatorKeys_remove_keys_transaction_id_remove_keys_transactions_id_fk",
+          "tableFrom": "validatorKeys",
+          "tableTo": "remove_keys_transactions",
+          "schemaTo": "security",
+          "columnsFrom": ["remove_keys_transaction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "remove_keys_transactions": {
+      "name": "remove_keys_transactions",
+      "schema": "security",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "chain_id": {
+          "name": "chain_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "operator_id": {
+          "name": "operator_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "operator_registry_address": {
+          "name": "operator_registry_address",
+          "type": "char(42)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "transaction_hash": {
+          "name": "transaction_hash",
+          "type": "char(66)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "transaction_status",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'queued'"
+        }
+      },
+      "indexes": {
+        "remove_keys_transactions_chain_idx": {
+          "name": "remove_keys_transactions_chain_idx",
+          "columns": ["chain_id"],
+          "isUnique": false
+        },
+        "remove_keys_transactions_transaction_hash_idx": {
+          "name": "remove_keys_transactions_transaction_hash_idx",
+          "columns": ["transaction_hash"],
+          "isUnique": false
+        },
+        "remove_keys_transactions_operator_idx": {
+          "name": "remove_keys_transactions_operator_idx",
+          "columns": ["operator_id"],
+          "isUnique": false
+        },
+        "remove_keys_transactions_operator_registry_idx": {
+          "name": "remove_keys_transactions_operator_registry_idx",
+          "columns": ["operator_id"],
+          "isUnique": false
+        },
+        "remove_keys_transactions_status_idx": {
+          "name": "remove_keys_transactions_status_idx",
+          "columns": ["status"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "daemon_status": {
+      "name": "daemon_status",
+      "values": {
+        "running": "running",
+        "paused": "paused"
+      }
+    },
+    "daemon_task": {
+      "name": "daemon_task",
+      "values": {
+        "key_retrieval": "key_retrieval",
+        "key_removal": "key_removal"
+      }
+    },
+    "transaction_status": {
+      "name": "transaction_status",
+      "values": {
+        "queued": "queued",
+        "pending": "pending",
+        "reverted": "reverted",
+        "succeeded": "succeeded"
+      }
+    }
+  },
+  "schemas": {
+    "security": "security"
+  },
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

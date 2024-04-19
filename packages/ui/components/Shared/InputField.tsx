@@ -53,8 +53,8 @@ const InputField = forwardRef<HTMLInputElement, Props>(
         {title && <span className="mb-1 font-medium block">{title}</span>}
         <div
           className={cn(
-            'bg-[#f4f4f4] text-black px-4 lg:px-[20px] py-4 rounded-xl border border-transparent hover:border-gray-300',
-            isFocused && 'border-gray-400 hover:border-gray-400'
+            'bg-input text-foreground px-4 md:px-[20px] py-4 rounded-xl border border-transparent hover:border-border',
+            isFocused && 'border-border hover:border-border'
           )}
         >
           <div

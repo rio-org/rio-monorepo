@@ -1,0 +1,7 @@
+# Generated files
+.pnpm-lock.yaml
+.next
+.turbo
+node_modules
+data
+

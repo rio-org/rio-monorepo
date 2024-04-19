@@ -1,21 +1,22 @@
-import { UseQueryOptions, useQuery } from 'react-query';
+import {
+  type UseQueryOptions,
+  type UseQueryResult,
+  useQuery
+} from '@tanstack/react-query';
 import { Address } from 'viem';
 import { getLatestAssetUSDPrice } from '../lib/graphqlQueries';
-import {
-  AssetDetails,
-  AssetSubgraphResponse,
-  CHAIN_ID_NUMBER
-} from '../lib/typings';
+import { AssetDetails, AssetSubgraphResponse } from '../lib/typings';
 import subgraphClient from '../lib/subgraphClient';
-import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
+import { NATIVE_ETH_ADDRESS } from '../config';
 import { parseSubgraphAsset } from '../lib/utilities';
+import { useSupportedChainId } from './useSupportedChainId';
 
 const fetcher = async ({
-  tokenAddress = NATIVE_ETH_ADDRESS,
-  chainId = CHAIN_ID
+  chainId,
+  tokenAddress = NATIVE_ETH_ADDRESS
 }: {
+  chainId: number;
   tokenAddress?: Address;
-  chainId?: CHAIN_ID_NUMBER;
 }) => {
   const { data } = await subgraphClient(chainId).query<{
     asset: AssetSubgraphResponse;
@@ -26,20 +27,23 @@ const fetcher = async ({
 export function useGetLatestAssetPrice(
   {
     tokenAddress,
-    chainId = CHAIN_ID
+    chainId: _chainId
   }: {
     tokenAddress?: Address;
-    chainId?: CHAIN_ID_NUMBER;
+    chainId?: number;
   },
-  queryConfig?: UseQueryOptions<AssetDetails, Error>
-) {
-  return useQuery<AssetDetails, Error>(
-    ['useGetLatestAssetPrice', chainId, tokenAddress] as const,
-    () => fetcher({ tokenAddress, chainId }),
-    {
-      staleTime: 60 * 1000,
-      ...queryConfig,
-      enabled: !!tokenAddress && queryConfig?.enabled !== false
-    }
-  );
+  queryConfig?: Omit<
+    UseQueryOptions<AssetDetails, Error>,
+    'queryKey' | 'queryFn'
+  >
+): UseQueryResult<AssetDetails> {
+  const supportedChainId = useSupportedChainId();
+  const chainId = _chainId ?? supportedChainId;
+  return useQuery<AssetDetails, Error>({
+    queryKey: ['useGetLatestAssetPrice', chainId, tokenAddress] as const,
+    queryFn: () => fetcher({ tokenAddress, chainId }),
+    staleTime: 60 * 1000,
+    ...queryConfig,
+    enabled: !!tokenAddress && queryConfig?.enabled !== false
+  });
 }

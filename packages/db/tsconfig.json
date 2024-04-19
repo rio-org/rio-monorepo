@@ -1,0 +1,16 @@
+{
+  "extends": "@internal/config/tsconfig/api.json",
+  "display": "DB",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist",
+    "rootDir": ".",
+    "sourceRoot": "./src",
+    "noEmit": false,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.json"],
+  "exclude": ["node_modules", "dist", "data", ".turbo"]
+}

@@ -1,50 +1,57 @@
 import {
-  UsePrepareContractWriteConfig,
-  useContractWrite,
-  usePrepareContractWrite,
-  useWaitForTransaction
+  useWriteContract,
+  useSimulateContract,
+  useWaitForTransactionReceipt,
+  type Config,
+  type UseWriteContractReturnType,
+  type UseSimulateContractParameters
 } from 'wagmi';
-import { WalletClient } from '@wagmi/core';
-import { Abi } from 'viem';
+import {
+  type Abi,
+  type AbiStateMutability,
+  type ContractFunctionArgs,
+  type ContractFunctionName
+} from 'viem';
 import { ContractError } from '../lib/typings';
 
 export function useCompleteContractWrite<
   TAbi extends Abi | readonly unknown[],
-  TFunctionName extends string,
-  TChainId extends number,
-  TWalletClient extends WalletClient
+  TFunctionName extends ContractFunctionName<TAbi>,
+  TArgs extends ContractFunctionArgs<TAbi, AbiStateMutability, TFunctionName>,
+  TChainId extends number
 >(
-  preparedContractWriteConfig: UsePrepareContractWriteConfig<
+  preparedContractWriteConfig: UseSimulateContractParameters<
     TAbi,
     TFunctionName,
-    TChainId,
-    TWalletClient
+    TArgs,
+    Config,
+    TChainId
   >,
   waitForTransactionConfig?: { confirmations: number }
 ) {
-  const prepareContractWrite = usePrepareContractWrite<
+  const prepareContractWrite = useSimulateContract<
     TAbi,
     TFunctionName,
+    TArgs,
+    Config,
     TChainId
   >(preparedContractWriteConfig);
 
-  const contractWrite = useContractWrite<TAbi, TFunctionName, 'prepared'>(
-    prepareContractWrite.config
-  );
+  const contractWrite = useWriteContract();
 
-  const waitForTx = useWaitForTransaction({
-    hash: contractWrite.data?.hash,
+  const waitForTx = useWaitForTransactionReceipt({
+    hash: contractWrite.data,
     confirmations: waitForTransactionConfig?.confirmations
   });
 
   const isUserSigning =
-    prepareContractWrite.isLoading || contractWrite.isLoading;
+    prepareContractWrite.isLoading || contractWrite.isPending;
   const txError =
     prepareContractWrite.error || contractWrite.error || waitForTx.error;
   const isTxPending =
-    !!contractWrite.data?.hash && !waitForTx.isSuccess && !waitForTx.error;
+    !!contractWrite.data && !waitForTx.isSuccess && !waitForTx.error;
   const isTxComplete =
-    !!contractWrite.data?.hash && (waitForTx.isSuccess || !!waitForTx.error);
+    !!contractWrite.data && (waitForTx.isSuccess || !!waitForTx.error);
 
   return {
     status: {
@@ -64,11 +71,9 @@ export function useCompleteContractWrite<
       txError: ContractError | undefined;
     };
     prepareContractWrite: ReturnType<
-      typeof usePrepareContractWrite<TAbi, TFunctionName, TChainId>
+      typeof useSimulateContract<TAbi, TFunctionName, TArgs, Config, TChainId>
     >;
-    contractWrite: ReturnType<
-      typeof useContractWrite<TAbi, TFunctionName, 'prepared'>
-    >;
-    waitForTx: ReturnType<typeof useWaitForTransaction>;
+    contractWrite: UseWriteContractReturnType;
+    waitForTx: ReturnType<typeof useWaitForTransactionReceipt>;
   };
 }

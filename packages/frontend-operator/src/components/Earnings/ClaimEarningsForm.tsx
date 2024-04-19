@@ -21,7 +21,7 @@ export const ClaimEarningsForm = ({ lrt }: Partial<Props>) => {
     return (
       <div>
         <ClaimAmountViewer title="Earnings available to claim" />
-        <motion.button className="rounded-full w-full py-3 mt-4 font-bold bg-black duration-200 bg-opacity-20">
+        <motion.button className="rounded-full w-full py-3 mt-4 font-bold bg-foreground duration-200 bg-opacity-20">
           <Skeleton height="1rem" width={100} className="opacity-30" />
         </motion.button>
       </div>
@@ -46,7 +46,7 @@ function HydratedClaimEarningsForm({ lrt }: Props) {
   );
 
   const operator = operators?.[0];
-  const amountToClaim = 0;
+  const amountToClaim: number = 0;
 
   const execute = useCallback(async () => {
     if (!lrtClient || !address || !operator) return;
@@ -82,6 +82,14 @@ function HydratedClaimEarningsForm({ lrt }: Props) {
 
       <TransactionButton
         transactionType={RioTransactionType.CLAIM_EARNINGS}
+        toasts={{
+          sent: 'Claim transaction sent',
+          success:
+            amountToClaim !== 0
+              ? `Successfully claimed ${amountToClaim} ETH`
+              : 'Claim successful',
+          error: `An error occurred  requesting withdrawal`
+        }}
         hash={txHash}
         refetch={onReset}
         disabled={!canClaim || isLoading}

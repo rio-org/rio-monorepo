@@ -1,11 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import React, { useMemo, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
-import Stat from './Stat';
 import IconSelectArrow from '@rio-monorepo/ui/components/Icons/IconSelectArrow';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { useAddressRewards } from '@rio-monorepo/ui/hooks/useAddressRewards';
 import { useIsMounted } from '@rio-monorepo/ui/hooks/useIsMounted';
 import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import { LRTDetails } from '@rio-monorepo/ui/lib/typings';
+import Stat from './Stat';
 
 interface Props {
   lrt?: LRTDetails;
@@ -18,6 +20,17 @@ const Stats = ({ lrt }: Props) => {
     query: DESKTOP_MQ
   });
 
+  const { address } = useAccountIfMounted();
+
+  const { data: rewards } = useAddressRewards({
+    restakingToken: lrt?.symbol,
+    address
+  });
+
+  const percent = rewards?.yearly_rewards_percent
+    ? parseFloat(rewards.yearly_rewards_percent)
+    : 0;
+
   const stats = useMemo(
     () => [
       {
@@ -26,24 +39,31 @@ const Stats = ({ lrt }: Props) => {
         denominator: '',
         infoTooltipContent: (
           <p>
-            The share of EigenLayer points that have been earned by this
+            The number of EigenLayer points that have been earned by this
             {" address's"} deposits.
           </p>
         )
       },
       {
-        label: 'Average APY',
-        value: `${lrt?.percentAPY?.toString() || '--'}%`,
+        label: (
+          <>
+            User APR <span className="opacity-50">(14-Day Avg)</span>
+          </>
+        ),
+        value: !address
+          ? 'Connect wallet'
+          : `${percent?.toLocaleString() || '--'}%`,
         denominator: '',
         infoTooltipContent: (
           <p>
             The average <strong>Annual Percentage Yield (APY)</strong>{' '}
-            calculated from the last 14 days anticipated over the next year.
+            calculated from the last 14 days extrapolated over the next 12
+            months.
           </p>
         )
       }
     ],
-    [lrt?.percentAPY]
+    [percent]
   );
 
   return (
@@ -55,7 +75,7 @@ const Stats = ({ lrt }: Props) => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.1 }}
-            className="flex items-center justify-between mb-5 text-2xl cursor-pointer lg:cursor-default font-medium"
+            className="flex items-center justify-between mb-5 text-2xl cursor-pointer md:cursor-default font-medium"
             onClick={() => {
               setIsExpanded(!isExpanded);
             }}
@@ -73,7 +93,7 @@ const Stats = ({ lrt }: Props) => {
           exit={{ height: 0 }}
           transition={{ type: 'spring', bounce: 0, duration: 0.4, delay: 0.1 }}
         >
-          <div className="flex flex-col lg:flex-row gap-2 mb-6">
+          <div className="flex flex-col md:flex-row gap-2 mb-6">
             {stats.map((stat, index) => (
               <Stat
                 key={index}

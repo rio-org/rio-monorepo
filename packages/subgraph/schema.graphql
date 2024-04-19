@@ -82,6 +82,20 @@ type LiquidRestakingToken @entity {
 
   priceFeeds: [PriceFeed!] @derivedFrom(field: "usedBy")
   underlyingAssets: [UnderlyingAsset!] @derivedFrom(field: "restakingToken")
+  historicalExchangeRates: [HistoricalExchangeRate!]! @derivedFrom(field: "restakingToken")
+}
+
+# Historical exchange rate data for a liquid restaking token.
+type HistoricalExchangeRate @entity {
+  id: ID!
+  restakingToken: LiquidRestakingToken!
+  timestamp: BigInt!
+  totalSupply: BigDecimal!
+  totalValueETH: BigDecimal
+  totalValueUSD: BigDecimal
+  exchangeRateETH: BigDecimal
+  exchangeRateUSD: BigDecimal
+  percentAPY: BigDecimal # APY based on a 14-day moving average.
 }
 
 # A user who has interacted with a liquid restaking token.
@@ -261,6 +275,7 @@ type OperatorDelegator @entity {
   id: ID!
   address: Bytes!
   delegatorId: Int!
+  eigenPod: Bytes!
   operator: Operator!
   manager: Bytes!
   earningsReceiver: Bytes!
@@ -293,4 +308,22 @@ type Validator @entity {
   publicKey: Bytes!
   keyUploadTimestamp: BigInt!
   keyUploadTx: Bytes!
+}
+
+# A restaking token transfer between users
+type TokenTransfer @entity(immutable: true) {
+  id: ID!
+  receiver: User!
+  sender: User!
+  amount: BigDecimal!
+  restakingToken: LiquidRestakingToken!
+  restakingTokenPriceUSD: BigDecimal
+  senderBalanceBefore: BigDecimal!
+  senderBalanceAfter: BigDecimal!
+  receiverBalanceBefore: BigDecimal!
+  receiverBalanceAfter: BigDecimal!
+  valueUSD: BigDecimal
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  tx: Bytes!
 }

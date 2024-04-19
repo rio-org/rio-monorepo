@@ -10,6 +10,7 @@ import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDele
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
+import {ValidatorDetails} from 'contracts/utils/ValidatorDetails.sol';
 import {BEACON_CHAIN_STRATEGY} from 'contracts/utils/Constants.sol';
 import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
@@ -19,6 +20,7 @@ library OperatorRegistryV1Admin {
     using OperatorRegistryV1Admin for RioLRTOperatorRegistryStorageV1.StorageV1;
     using OperatorRegistryV1Admin for IRioLRTOperatorRegistry.OperatorDetails;
     using OperatorUtilizationHeap for OperatorUtilizationHeap.Data;
+    using ValidatorDetails for bytes32;
     using FixedPointMathLib for *;
     using LibMap for *;
     using Array for *;
@@ -30,6 +32,9 @@ library OperatorRegistryV1Admin {
     /// @notice The maximum number of active operators allowed. This may be increased
     /// to `64` in the future.
     uint8 public constant MAX_ACTIVE_OPERATOR_COUNT = 32;
+
+    /// @dev The validator details storage position.
+    bytes32 internal constant VALIDATOR_DETAILS_POSITION = keccak256('RIO.OPERATOR_REGISTRY.VALIDATOR_DETAILS');
 
     /// @notice Adds a new operator to the registry, deploying a delegator contract and
     /// delegating to the provided `operator`.
@@ -106,7 +111,7 @@ library OperatorRegistryV1Admin {
     }
 
     /// Deactivates an operator, exiting all remaining stake to the
-    /// asset manager.
+    /// deposit pool.
     /// @param s The operator registry v1 storage accessor.
     /// @param assetRegistry The asset registry contract.
     /// @param operatorId The operator's ID.
@@ -300,6 +305,14 @@ library OperatorRegistryV1Admin {
         if (validatorDetails.cap > 0 && newValidatorCap == 0) {
             // If there are active deposits, queue the operator for strategy exit.
             if (activeDeposits > 0) {
+                // Unlike ERC20 strategies, we MUST emit the `ETHDepositsDeallocated` event here to
+                // trigger the operator's validator exit automation software.
+                bytes memory pubKeyBatch = ValidatorDetails.allocateMemoryForPubKeys(activeDeposits);
+                VALIDATOR_DETAILS_POSITION.loadValidatorDetails(
+                    operatorId, validatorDetails.exited, activeDeposits, pubKeyBatch, new bytes(0), 0
+                );
+                emit IRioLRTOperatorRegistry.ETHDepositsDeallocated(operatorId, activeDeposits, pubKeyBatch);
+
                 operatorDetails.queueOperatorStrategyExit(operatorId, BEACON_CHAIN_STRATEGY);
                 s.operatorDetails[operatorId].validatorDetails.exited += activeDeposits;
             }

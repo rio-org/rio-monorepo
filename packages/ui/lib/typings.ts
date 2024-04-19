@@ -2,10 +2,15 @@ import { AbiParametersToPrimitiveTypes, ExtractAbiFunction } from 'abitype';
 import { AuthenticationStatus } from '@rainbow-me/rainbowkit';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { StaticImageData } from 'next/image';
-import { Chain as WagmiChain } from 'wagmi';
+import { Chain as WagmiChain } from 'wagmi/chains';
 import { NextRequest } from 'next/server';
 import { Address, Hash } from 'viem';
 import { RioLRTOperatorRegistryABI } from '../abi/RioLRTOperatorRegistryABI';
+
+export enum Theme {
+  LIGHT = 'light',
+  DARK = 'dark'
+}
 
 export type NumberString = `${number}`;
 export type EthereumTransactionHash = `0x${string}`;
@@ -16,6 +21,7 @@ export type BytesType = `0x${string}`;
 export type CHAIN_ID_NUMBER =
   | 1
   | 5
+  | 17000
   | 11155111
   | 10
   | 420
@@ -48,6 +54,33 @@ export type Not<T, R> = T extends R ? never : T;
 //////////////
 // Interface
 //////////////
+
+export interface NavigatorWithUAD extends Navigator {
+  userAgentData?: {
+    brands?: string[];
+    mobile?: boolean;
+    platform?: string;
+  };
+}
+
+export type HotKeyShift = 'shift' | 'no-shift';
+export type HotKeyAction = 'action' | 'no-action';
+export type HotKeyAlt = 'alt' | 'no-alt';
+export type HotKeyKey = string;
+export type HotKeyString =
+  `${HotKeyShift}+${HotKeyAlt}+${HotKeyAction}+${HotKeyKey}`;
+export type HotKeys = Record<HotKeyString, () => void>;
+
+export type WindowSize = {
+  width: number;
+  height: number;
+};
+
+export type MousePosition = {
+  clientX: number;
+  clientY: number;
+};
+
 export interface InternalAppNavItem {
   label: string;
   slug: string;
@@ -59,6 +92,7 @@ export interface NavItem {
   external: boolean;
   icon?: string;
   disabled?: boolean;
+  hideOn?: ('mobile' | 'desktop')[];
 }
 
 export interface LogoNavItem extends Omit<NavItem, 'url'> {
@@ -127,6 +161,11 @@ export type MobileTableColumns<T> = {
   top: TableColumn<T>[];
   expanded: TableColumn<T>[];
 };
+
+export enum RestakeFormTab {
+  RESTAKE = 'Restake',
+  WITHDRAW = 'Withdraw'
+}
 
 ///////////////////////////
 // asset types
@@ -286,6 +325,15 @@ export interface LRTSubgraphResponse
 }
 
 ///////////////////////
+// API Responses
+///////////////////////
+
+export type RewardsResponse = {
+  eth_rewards_in_period: string;
+  yearly_rewards_percent: string;
+};
+
+///////////////////////
 // Validator/Operator
 ///////////////////////
 
@@ -326,10 +374,21 @@ export enum RioTransactionType {
 export type PendingTransaction = {
   hash: Hash;
   type: RioTransactionType;
+  chainId: number;
+  toasts: {
+    sent: string;
+    success: string;
+    error: string;
+  };
 };
 
 export interface TransactionStore {
-  [chainId: number]: PendingTransaction[];
+  past: {
+    [hash: Hash]: true;
+  };
+  current: {
+    [chainId: number]: PendingTransaction[];
+  };
 }
 
 ////////
@@ -347,6 +406,7 @@ export type EdgeFunctionHandlers = { [method in Methods]?: EdgeFunction };
 export type FAQ = {
   q: string;
   a: string;
+  tab?: string;
 };
 
 export type FAQsDirectory = {
@@ -390,3 +450,26 @@ export type ApiErrorKind =
   | 'LOCKED'
   | 'TEAPOT'
   | 'FAHRENHEIT';
+
+///////////
+// Misc
+///////////
+
+interface UnionBuilder<T = never> {
+  add: <NewValue>(type?: NewValue) => UnionBuilder<T | NewValue>;
+  type: T;
+}
+
+export const UnionBuilder = new (class UnionBuilder<T = never>
+  implements UnionBuilder<T>
+{
+  public type: T;
+
+  constructor(value?: T) {
+    this.type = value as unknown as T;
+  }
+
+  public add = <NewValue>(value?: NewValue) => {
+    return new UnionBuilder<T | NewValue>(value as NewValue);
+  };
+})();

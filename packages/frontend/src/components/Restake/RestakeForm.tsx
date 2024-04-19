@@ -1,516 +1,446 @@
-import {
-  Address,
-  Hash,
-  formatUnits,
-  getAddress,
-  parseEther,
-  parseUnits,
-  zeroAddress
-} from 'viem';
-import {
-  erc20ABI,
-  useContractRead,
-  useContractWrite,
-  usePrepareContractWrite,
-  useWaitForTransaction
-} from 'wagmi';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Spinner } from '@material-tailwind/react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useMediaQuery } from 'react-responsive';
+import Skeleton from 'react-loading-skeleton';
+import { formatUnits } from 'viem';
 import {
-  type AssetDetails,
-  type ContractError,
   type LRTDetails,
-  RioTransactionType
+  RioTransactionType,
+  AssetDetails,
+  RestakeFormTab
 } from '@rio-monorepo/ui/lib/typings';
 import {
   type LiquidRestakingTokenClient,
-  useLiquidRestakingToken,
-  RioLRTCoordinatorABI
+  useLiquidRestakingToken
 } from '@rionetwork/sdk-react';
 import { RestakingTokenExchangeRate } from '@rio-monorepo/ui/components/Shared/RestakingTokenExchangeRate';
 import TransactionButton from '@rio-monorepo/ui/components/Shared/TransactionButton';
 import ApproveButtons from '@rio-monorepo/ui/components/Shared/ApproveButtons';
 import { InfoTooltip } from '@rio-monorepo/ui/components/Shared/InfoTooltip';
-import HR from '@rio-monorepo/ui/components/Shared/HR';
-import StakeField from './StakeField';
+import { InfoBadge } from '@rio-monorepo/ui/components/Shared/InfoBadge';
+import { IconMedal } from '@rio-monorepo/ui/components/Icons/IconMedal';
+import { IconChart } from '@rio-monorepo/ui/components/Icons/IconChart';
+import { DetailBox } from '@rio-monorepo/ui/components/Shared/DetailBox';
+import { TabCard } from '@rio-monorepo/ui/components/Shared/TabCard';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
-import { useAssetBalance } from '@rio-monorepo/ui/hooks/useAssetBalance';
 import {
-  asType,
   displayAmount,
   displayEthAmount
 } from '@rio-monorepo/ui/lib/utilities';
-import { NATIVE_ETH_ADDRESS } from '@rio-monorepo/ui/config';
-import { useContractGasCost } from '@rio-monorepo/ui/hooks/useContractGasCost';
+import { useRestakeForm } from '../../hooks/useRestakeForm';
+import { useWithdrawForm } from '../../hooks/useWithdrawForm';
+import { RestakeTokenTitleBar } from '../Lazy/RestakeTokenTitleBar.lazy';
+import { RestakeField } from '../Lazy/RestakeField.lazy';
+import { MOBILE_MQ } from '@rio-monorepo/ui/lib/constants';
+import { twJoin } from 'tailwind-merge';
 
-const queryTokens = async (
-  restakingToken: LiquidRestakingTokenClient | null,
-  amount: bigint | null
-): Promise<bigint | undefined> => {
-  const query = await restakingToken?.getEstimatedOutForETHDeposit({
-    amount: amount || BigInt(0)
-  });
-  return query;
-};
-
-export function RestakeForm({ lrtDetails }: { lrtDetails?: LRTDetails }) {
-  if (lrtDetails) {
-    return <RestakeFormWithLRTWrapper lrtDetails={lrtDetails} />;
-  }
-
-  return (
-    <RestakeFormBase lrtDetails={lrtDetails} restakingTokenClient={null} />
-  );
+export interface RestakeFormProps {
+  lrtDetails?: LRTDetails;
+  tab?: RestakeFormTab;
+  onChangeTab?: (tab: RestakeFormTab) => void;
+  onWithdrawSuccess?: () => void;
+  networkStats: { tvl: string | null; apy: string | null };
 }
 
-function RestakeFormWithLRTWrapper({ lrtDetails }: { lrtDetails: LRTDetails }) {
-  const restakingTokenClient = useLiquidRestakingToken(lrtDetails.address);
+export function RestakeForm({ lrtDetails, ...props }: RestakeFormProps) {
+  if (lrtDetails) {
+    return <RestakeFormWithLRTWrapper lrtDetails={lrtDetails} {...props} />;
+  }
+
+  return <RestakeFormBase restakingTokenClient={null} {...props} />;
+}
+
+function RestakeFormWithLRTWrapper(
+  props: Omit<RestakeFormProps, 'lrtDetails'> & { lrtDetails: LRTDetails }
+) {
+  const restakingTokenClient = useLiquidRestakingToken(
+    props.lrtDetails.address
+  );
   return (
-    <RestakeFormBase
-      restakingTokenClient={restakingTokenClient}
-      lrtDetails={lrtDetails}
-    />
+    <RestakeFormBase {...props} restakingTokenClient={restakingTokenClient} />
   );
 }
 
 function RestakeFormBase({
   restakingTokenClient,
-  lrtDetails
-}: {
+  lrtDetails,
+  networkStats,
+  onWithdrawSuccess,
+  tab: tabProp,
+  onChangeTab
+}: RestakeFormProps & {
   restakingTokenClient: LiquidRestakingTokenClient | null;
-  lrtDetails?: LRTDetails;
 }) {
+  const { address } = useAccountIfMounted();
+  const [restakeInputAmount, setRestakeInputAmount] = useState<string>('');
+  const [withdrawInputAmount, setWithdrawInputAmount] = useState<string>('');
+  const [tab, setTab] = useState<RestakeFormTab>(
+    tabProp || RestakeFormTab.RESTAKE
+  );
   const assets = useMemo(() => {
     return lrtDetails?.underlyingAssets.map((t) => t.asset) || [];
   }, [lrtDetails]);
-  const [coordinatorAddress, setCoordinatorAddress] = useState<
-    Address | undefined
-  >(
-    restakingTokenClient?.token?.deployment?.coordinator as Address | undefined
-  );
-
-  useEffect(
-    function setCoordinatorAddressBecauseLRTDoesNotTriggerRerender() {
-      if (coordinatorAddress || !restakingTokenClient) return;
-      const timeout = setInterval(
-        () =>
-          setCoordinatorAddress(
-            asType<Address>(
-              restakingTokenClient?.token?.deployment?.coordinator
-            )
-          ),
-        500
-      );
-      return () => clearInterval(timeout);
-    },
-    [restakingTokenClient, coordinatorAddress]
-  );
-
-  const [amount, setAmount] = useState<bigint | null>(null);
-  const [accountTokenBalance, setAccountTokenBalance] = useState(BigInt(0));
   const [activeToken, setActiveToken] = useState<AssetDetails>(assets?.[0]);
-  const [isDepositLoading, setIsDepositLoading] = useState(false);
-  const [depositError, setDepositError] = useState<ContractError | null>(null);
-  const [depositTxHash, setDepositTxHash] = useState<Hash>();
-  const [allowanceTarget, setAllowanceTarget] = useState<Address>();
-  const [allowanceNote, setAllowanceNote] = useState<string | null>(null);
-  const [minAmountOut, setMinAmountOut] = useState<string | bigint>(BigInt(0));
-  const [isAllowed, setIsAllowed] = useState(true);
-  const { address } = useAccountIfMounted();
 
-  const { refetch: refetchLrtBalance } = useAssetBalance(lrtDetails);
+  const isMobile = useMediaQuery({ query: MOBILE_MQ });
+
+  useEffect(() => {
+    if (tabProp) setTab(tabProp);
+  }, [tabProp]);
+
+  const isRestakeTab = tab === RestakeFormTab.RESTAKE;
+
+  const handleChangeTab = useCallback(
+    (newTab: string) => (onChangeTab || setTab)(newTab as RestakeFormTab),
+    [onChangeTab]
+  );
 
   const {
-    data,
-    isError,
-    isLoading,
-    refetch: refetchBalance
-  } = useAssetBalance(activeToken);
-
-  const isEth = activeToken?.symbol === 'ETH';
-
-  const contractWriteConfig = useMemo(
-    () =>
-      ({
-        address: coordinatorAddress || zeroAddress,
-        abi: RioLRTCoordinatorABI,
-        functionName: isEth ? 'depositETH' : 'deposit',
-        args: isEth
-          ? undefined
-          : ([activeToken?.address || zeroAddress, amount || 0n] as const),
-        value: isEth ? amount || 0n : undefined,
-        enabled: !!coordinatorAddress && !!activeToken?.address
-      }) as const,
-    [coordinatorAddress, isEth, activeToken?.address, amount, address]
-  );
-
-  const gasEstimateArgAmount = isEth
-    ? parseEther(data?.formatted ?? '0')
-    : parseUnits(data?.formatted ?? '0', activeToken?.decimals);
-
-  const { data: gasEstimates, isLoading: isGasLoading } = useContractGasCost({
-    ...contractWriteConfig,
-    args: isEth
-      ? undefined
-      : ([activeToken?.address || zeroAddress, gasEstimateArgAmount] as const),
-    value: isEth ? gasEstimateArgAmount : undefined
+    contractWrite: withdrawWrite,
+    restakingTokenBalance,
+    // balanceError,
+    handleChangeAmount,
+    // resetForm,
+    // isValidAmount,
+    // amount,
+    // amountOut,
+    // refetch
+    ...withdrawForm
+  } = useWithdrawForm({
+    inputAmount: withdrawInputAmount,
+    activeToken,
+    assets,
+    restakingTokenClient,
+    lrtDetails,
+    setInputAmount: setWithdrawInputAmount,
+    onSuccess: onWithdrawSuccess
   });
 
-  const gas = useMemo(() => {
-    const _gas = { ...gasEstimates };
-    delete _gas.estimatedTotalCost;
-    return _gas;
-  }, [gasEstimates]);
-
-  const isValidAmount =
-    !!amount &&
-    amount > BigInt(0) &&
-    amount <= accountTokenBalance &&
-    !!gasEstimates &&
-    !!activeToken &&
-    (activeToken.symbol !== 'ETH' ||
-      amount <= accountTokenBalance - gasEstimates.estimatedTotalCost);
-  const isEmpty = !amount;
-
-  const clearErrors = useCallback(() => {
-    setDepositError(null);
-    setIsDepositLoading(false);
-    setDepositTxHash(undefined);
-  }, []);
-
-  const resetForm = useCallback(() => {
-    setAmount(null);
-    clearErrors();
-  }, []);
-
-  useEffect(() => {
-    if (!data) return;
-    setAccountTokenBalance(data.value);
-  }, [data]);
-
-  useEffect(() => {
-    setAmount(null);
-  }, [accountTokenBalance]);
-
-  useEffect(() => {
-    !address && resetForm();
-    setActiveToken((_activeToken) => _activeToken || assets?.[0]);
-  }, [address, assets]);
-
-  const { data: allowance, refetch: refetchAllowance } = useContractRead({
-    address: activeToken?.address,
-    abi: erc20ABI,
-    functionName: 'allowance',
-    args: [address || zeroAddress, allowanceTarget || zeroAddress],
-    enabled:
-      !!address &&
-      !!allowanceTarget &&
-      getAddress(allowanceTarget) !== NATIVE_ETH_ADDRESS &&
-      !!activeToken &&
-      activeToken.symbol !== 'ETH'
+  const { contractWrite: restakeWrite, ...restakeForm } = useRestakeForm({
+    lrtDetails,
+    restakingTokenClient,
+    inputAmount: restakeInputAmount,
+    setInputAmount: setRestakeInputAmount,
+    assets,
+    activeToken,
+    setActiveToken
   });
 
-  const handleRefetchAllowance = () => {
-    refetchAllowance().catch((err) => {
-      console.log('Error refetching allowance', err);
-    });
-  };
-
-  useEffect(() => {
-    if (!activeToken) return;
-
-    resetForm(); // reset form when switching tokens
-    if (!restakingTokenClient || activeToken?.symbol === 'ETH') {
-      setAllowanceTarget(undefined);
-      return;
-    }
-    try {
-      if (restakingTokenClient?.allowanceTarget) {
-        setAllowanceTarget(restakingTokenClient.allowanceTarget as Address);
-      }
-    } catch (err) {
-      console.error('Error getting allowance target', err);
-    }
-  }, [restakingTokenClient, activeToken]);
-
-  useEffect(() => {
-    if (!activeToken) return;
-
-    if (activeToken.symbol === 'ETH') {
-      setIsAllowed(true);
-      return;
-    }
-    if (amount && (allowance || BigInt(0)) >= amount) {
-      setIsAllowed(true);
-      setAllowanceNote(null);
-    } else {
-      if (isValidAmount && allowance && allowance > BigInt(0)) {
-        setAllowanceNote('Increase your allowance to restake this amount');
-      }
-      setIsAllowed(false);
-    }
-    if (!amount) {
-      setIsAllowed((allowance || BigInt(0)) > BigInt(0));
-      setAllowanceNote(null);
-    }
-  }, [allowance, amount]);
-
-  useEffect(() => {
-    if (restakingTokenClient) {
-      queryTokens(restakingTokenClient, amount)
-        .then(handleTokenQuery)
-        .catch(console.error);
-    }
-  }, [amount, activeToken]);
-
-  const handleTokenQuery = (estimatedOut?: bigint) => {
-    if (typeof estimatedOut === 'undefined') return;
-    setMinAmountOut(estimatedOut);
-  };
-
-  const {
-    data: txData,
-    isError: isTxError,
-    isLoading: isTxLoading,
-    error: txError
-  } = useWaitForTransaction({
-    hash: depositTxHash,
-    enabled: !!depositTxHash
-  });
-
-  useEffect(() => {
-    if (isTxLoading) {
-      setIsDepositLoading(true);
-      setDepositError(null);
-      return;
-    }
-    if (isTxError || txError) {
-      setIsDepositLoading(false);
-      setDepositError(txError);
-      return;
-    }
-    if (txData?.status === 'success') {
-      setIsDepositLoading(false);
-      setDepositError(null);
-      setAmount(null);
-      return;
-    }
-    if (txData?.status === 'reverted') {
-      setIsDepositLoading(false);
-      setDepositError(txError || null);
-      return;
-    }
-  }, [txData, isTxLoading, isTxError, txError]);
-
-  const { config, error: prepareWriteError } = usePrepareContractWrite({
-    ...contractWriteConfig,
-    ...gas,
-    enabled:
-      !!coordinatorAddress &&
-      !!activeToken?.address &&
-      !!address &&
-      isValidAmount &&
-      !!contractWriteConfig.enabled &&
-      !!gasEstimates &&
-      !isGasLoading &&
-      !!amount
-  });
-
-  const {
-    data: writeData,
-    write,
-    error: writeError,
-    reset: resetWrite
-  } = useContractWrite(config);
-
-  useEffect(
-    function storeHash() {
-      if (!writeData?.hash) return;
-      setDepositTxHash(writeData.hash);
-    },
-    [writeData?.hash]
-  );
-
-  const executionError = writeError || prepareWriteError;
-  useEffect(
-    function storeTxError() {
-      if (!executionError) return;
-      setDepositError(executionError);
-      setIsDepositLoading(false);
-    },
-    [executionError]
-  );
-
-  const handleExecute = () => {
-    if (!activeToken || isDepositLoading || !amount || !write) {
-      return;
-    }
-    setIsDepositLoading(true);
-    setDepositError(null);
-    setDepositTxHash(undefined);
-    write?.();
-  };
-
-  const { data: txReceipt } = useWaitForTransaction({
-    hash: depositTxHash,
-    confirmations: 1,
-    enabled: !!depositTxHash
-  });
-
-  const refetchUserBalances = useCallback(() => {
-    refetchLrtBalance().catch(console.error);
-    refetchBalance().catch(console.error);
-  }, [refetchLrtBalance, refetchBalance]);
-
-  useEffect(() => {
-    if (!txReceipt) return;
-    refetchUserBalances();
-  }, [txReceipt]);
-
-  const handleChangeAmount = useCallback(
-    (amount: bigint | null) => {
-      if (depositTxHash || depositError) {
-        clearErrors();
-        resetWrite();
-      }
-      setAmount(amount);
-    },
-    [clearErrors, depositTxHash, depositError, resetWrite]
-  );
-
-  const handleChangeActiveToken = useCallback(
-    (activeToken: AssetDetails) => {
-      if (depositTxHash || depositError) {
-        clearErrors();
-        resetWrite();
-      }
-      setActiveToken(activeToken);
-    },
-    [clearErrors, depositTxHash, depositError, resetWrite]
+  const estimatedWithdrawalAmount = useMemo(
+    () => (
+      <strong className="flex flex-row gap-2 items-center leading-none">
+        {tab === RestakeFormTab.RESTAKE ? (
+          <>
+            {typeof restakeForm.minAmountOut !== 'bigint' ? (
+              <Skeleton width={120} />
+            ) : (
+              displayEthAmount(
+                formatUnits(
+                  restakeForm.minAmountOut,
+                  restakeForm.activeToken?.decimals ?? 18
+                )
+              )
+            )}
+          </>
+        ) : (
+          <>
+            {!activeToken ? (
+              <Skeleton width={120} />
+            ) : (
+              <>
+                {withdrawForm.amount
+                  ? displayEthAmount(
+                      formatUnits(withdrawForm.amount, activeToken.decimals)
+                    )
+                  : displayEthAmount(
+                      formatUnits(BigInt(0), activeToken.decimals)
+                    )}
+              </>
+            )}
+          </>
+        )}
+        <span className="leading-none">
+          {(tab === RestakeFormTab.RESTAKE
+            ? lrtDetails?.symbol
+            : activeToken?.symbol) || <Skeleton className="w-6 h-3.5" />}
+        </span>
+      </strong>
+    ),
+    [
+      tab,
+      withdrawForm.amount,
+      restakeForm.minAmountOut,
+      lrtDetails,
+      activeToken
+    ]
   );
 
   return (
     <>
-      {isLoading && (
-        <div className="w-full text-center min-h-[100px] flex items-center justify-center">
-          <Spinner />
-        </div>
-      )}
-      {!!address && isError && (
-        <Alert color="red">Error loading account balance.</Alert>
-      )}
-      {!isLoading && (
-        <>
-          <StakeField
-            amount={amount}
-            activeToken={activeToken}
-            accountTokenBalance={accountTokenBalance}
-            isDisabled={isDepositLoading}
-            assets={assets}
-            lrt={lrtDetails}
-            estimatedMaxGas={gasEstimates?.estimatedTotalCost}
-            setAmount={handleChangeAmount}
-            setActiveToken={handleChangeActiveToken}
-          />
-          <div className="flex flex-col gap-2 mt-4">
-            <div className="flex justify-between">
-              <span className="flex items-center text-black gap-1">
-                <span className="opacity-50 text-[14px]">Exchange rate</span>
+      <RestakeTokenTitleBar
+        lrtDetails={lrtDetails}
+        restakingTokenClient={restakingTokenClient}
+      />
 
-                <InfoTooltip
-                  align="center"
-                  contentClassName="max-w-[300px] space-y-1 p-3"
+      <TabCard
+        tabs={['Restake', 'Withdraw']}
+        defaultValue={tab}
+        onValueChange={handleChangeTab}
+        cardProps={{ className: 'p-4' }}
+        tabDetails={
+          <div className="flex justify-between items-center w-full md:justify-start md:w-[unset] gap-6">
+            <InfoBadge
+              icon={
+                <IconMedal strokeWidth={1} className="-translate-y-[1px]" />
+              }
+              title="TVL"
+              infoTooltipContent={
+                <p
+                  className={twJoin(
+                    '[&>span]:text-foreground [&>span]:text-opacity-100',
+                    'text-foreground text-opacity-75'
+                  )}
                 >
-                  <p>
-                    The amount of {lrtDetails?.symbol} you will receive for each{' '}
-                    {activeToken?.symbol} deposited.
-                  </p>
-                  <p className="opacity-75 text-xs">
-                    The exchange rate increases ({lrtDetails?.symbol} is worth
-                    more than {activeToken?.symbol}) as restaking rewards are
-                    earned and may decrease if there is a slashing event.
-                  </p>
-                </InfoTooltip>
-              </span>
-              <RestakingTokenExchangeRate
-                assetSymbol={activeToken?.symbol}
-                restakingTokenSymbol={lrtDetails?.symbol}
-                defaultRateDenominator="asset"
-              />
-            </div>
-            <div className="flex justify-between">
-              <span className="flex items-center text-black gap-1">
-                <span className="opacity-50 text-[14px]">Reward fee</span>
-
-                <InfoTooltip
-                  align="center"
-                  contentClassName="max-w-[300px] p-3"
+                  The <span>Total Value Locked (TVL)</span> represents the total
+                  amount of assets underlying the reETH token.
+                </p>
+              }
+            >
+              {networkStats.tvl}
+            </InfoBadge>
+            <InfoBadge
+              icon={<IconChart className="-translate-y-[1px]" />}
+              title="APR"
+              infoTooltipContent={
+                <p
+                  className={twJoin(
+                    '[&>span]:text-foreground [&>span]:text-opacity-100',
+                    'text-foreground text-opacity-75'
+                  )}
                 >
-                  <p>
-                    The percentage taken from all staking rewards (not
-                    deposits).
-                  </p>
-                </InfoTooltip>
-              </span>
-              <strong className="text-right text-[14px]">10%</strong>
-            </div>
+                  Rewards are earned through <span>{lrtDetails?.symbol}</span>{' '}
+                  token value appreciation. The rewards rate is determined by
+                  the price of <span>ETH</span> versus the change of the price
+                  of <span>{lrtDetails?.symbol}</span> over the past 14 days.
+                </p>
+              }
+            >
+              {networkStats.apy}
+            </InfoBadge>
           </div>
-          <HR />
-          <div className="flex justify-between">
-            <span className="flex items-center text-black gap-1">
-              <span className="font-bold text-[14px]">Received</span>
+        }
+      >
+        <RestakeField
+          tab={tab}
+          amount={isRestakeTab ? restakeInputAmount : withdrawInputAmount}
+          activeToken={activeToken}
+          disabled={
+            isRestakeTab ? restakeWrite.isLoading : withdrawWrite.isLoading
+          }
+          lrtDetails={lrtDetails}
+          activeTokenBalance={restakeForm.accountTokenBalance}
+          restakingTokenBalance={restakingTokenBalance}
+          estimatedMaxGas={restakeForm.gasEstimates?.estimatedTotalCost}
+          setRestakingAmount={restakeForm.handleChangeAmount}
+          setWithdrawalAmount={handleChangeAmount}
+        />
+        <div className="flex flex-col items-center w-full md:flex-row">
+          <RestakingTokenExchangeRate
+            assetSymbol={restakeForm.activeToken?.symbol}
+            restakingTokenSymbol={lrtDetails?.symbol}
+            rateDenominator={isRestakeTab ? 'asset' : 'restakingToken'}
+            className="basis-[calc(33%-32px)] mb-2 md:mb-0 md:mr-2 w-full md:w-[unset]"
+          />
+          <AnimatePresence>
+            {!isRestakeTab && (
+              <AppearingDetailBox isMobile={isMobile}>
+                <DetailBox
+                  title={
+                    <div className="flex items-center gap-1">
+                      <span className="leading-none">Withdrawal delay</span>
+                      <InfoTooltip
+                        align="center"
+                        contentClassName="max-w-[300px] p-3"
+                      >
+                        <p className="font-normal block whitespace-break-spaces max-w-full">
+                          The waiting period for your funds to be claimable
+                          after making a withdrawal request.
+                        </p>
+                      </InfoTooltip>
+                    </div>
+                  }
+                  className="w-full h-full whitespace-nowrap flex-grow flex-shrink-0 basis-full"
+                >
+                  <span className="leading-none">1-8 days</span>
+                </DetailBox>
+              </AppearingDetailBox>
+            )}
+          </AnimatePresence>
+          <DetailBox
+            title={
+              <div className="flex items-center gap-1 leading-none">
+                <span className="leading-none">
+                  {isRestakeTab ? 'Reward fee' : 'Withdrawal fee'}
+                </span>
+
+                <InfoTooltip
+                  align="center"
+                  contentClassName="max-w-[300px] p-3 font-normal"
+                >
+                  {isRestakeTab ? (
+                    <p>
+                      The percentage taken from all staking and restaking
+                      rewards (not withdrawals or deposits).
+                    </p>
+                  ) : (
+                    <p>
+                      Fees applied when funds are withdrawn from the Rio
+                      Network.
+                    </p>
+                  )}
+                </InfoTooltip>
+              </div>
+            }
+            className="w-full md:w-[unset] basis-[calc(33%-32px)] mt-2 md:mt-0 md:ml-2"
+          >
+            <span className="leading-none">
+              {isRestakeTab ? '10%' : 'None'}
+            </span>
+          </DetailBox>
+        </div>
+        <DetailBox
+          direction="row"
+          title={
+            <div className="flex items-center gap-2 leading-none">
+              <span>{isRestakeTab ? 'Receive' : 'Estimated to Receive'}</span>
 
               <InfoTooltip align="center" contentClassName="max-w-[300px] p-3">
-                <p>
-                  The amount of reETH received is an estimate. The actual amount
-                  of reETH may vary slightly due to fluctuations in the price of
-                  ETH and cost of gas.
-                </p>
+                {isRestakeTab ? (
+                  <p>
+                    Estimation is based on current market conditions. Actual
+                    amounts may change based on market fluctuations, pending
+                    rewards, and slashing events.
+                  </p>
+                ) : (
+                  <p>
+                    An estimated amount and may change based on market
+                    fluctuations, pending rewards and slashing events.
+                  </p>
+                )}
               </InfoTooltip>
-            </span>
-            <strong className="text-[14px]">
-              {minAmountOut && typeof minAmountOut === 'bigint'
-                ? displayEthAmount(
-                    formatUnits(minAmountOut, activeToken.decimals)
-                  )
-                : displayAmount(0)}{' '}
-              {lrtDetails?.symbol}
-            </strong>
-          </div>
-          {isAllowed && (
-            <>
-              <TransactionButton
-                transactionType={RioTransactionType.DEPOSIT}
-                refetch={refetchUserBalances}
-                hash={depositTxHash}
-                disabled={!isValidAmount || isEmpty || isDepositLoading}
-                isSigning={isDepositLoading}
-                error={depositError}
-                reset={resetForm}
-                clearErrors={clearErrors}
-                write={handleExecute}
-              >
-                Restake
-              </TransactionButton>
-            </>
-          )}
-          {!isAllowed && address && (
-            <ApproveButtons
-              allowanceTarget={allowanceTarget}
-              accountAddress={address}
-              isValidAmount={isValidAmount}
-              amount={amount || BigInt(0)}
-              token={activeToken}
-              refetchAllowance={handleRefetchAllowance}
-            />
-          )}
-          {allowanceNote && (
-            <p className="text-sm text-center px-2 mt-2 text-gray-500 font-normal">
-              {allowanceNote}
-            </p>
-          )}
-        </>
-      )}
+            </div>
+          }
+        >
+          {estimatedWithdrawalAmount}
+        </DetailBox>
+
+        <TransactionButton
+          {...(isRestakeTab
+            ? {
+                transactionType: RioTransactionType.DEPOSIT,
+                toasts: {
+                  sent: 'Restake transaction sent',
+                  error: 'Failed to restake',
+                  success: `Sucessfully restaked ${displayAmount(
+                    Number(restakeInputAmount)
+                  )} ${restakeForm.activeToken?.symbol ?? ''}`
+                },
+                refetch: restakeForm.refetchUserBalances,
+                hash: restakeWrite.txHash,
+                disabled:
+                  !restakeForm.isValidAmount ||
+                  restakeForm.isEmpty ||
+                  restakeWrite.isLoading,
+                isSigning: restakeWrite.isLoading,
+                error: restakeWrite.error,
+                reset: restakeForm.resetForm,
+                clearErrors: restakeForm.clearErrors,
+                write: restakeWrite.write
+              }
+            : {
+                transactionType: RioTransactionType.WITHDRAW_REQUEST,
+                toasts: {
+                  sent: `Withdrawal request sent`,
+                  success: `Sucessfully requested to unstake ${withdrawInputAmount} ${lrtDetails?.symbol}`,
+                  error: `An error occurred requesting withdrawal`
+                },
+                hash: withdrawWrite.txHash,
+                refetch: withdrawForm.refetch,
+                disabled:
+                  !address ||
+                  !withdrawForm.amount ||
+                  !withdrawForm.isValidAmount ||
+                  withdrawWrite.isLoading,
+                isSigning: withdrawWrite.isLoading,
+                error: withdrawWrite.error,
+                reset: withdrawForm.resetForm,
+                clearErrors: withdrawWrite.reset,
+                write: withdrawWrite.write
+              })}
+        >
+          {isRestakeTab ? 'Restake' : 'Request withdrawal'}
+        </TransactionButton>
+        {!restakeForm.isAllowed && address && (
+          <ApproveButtons
+            allowanceTarget={restakeForm.allowanceTarget}
+            accountAddress={address}
+            isValidAmount={restakeForm.isValidAmount}
+            amount={restakeForm.amount || BigInt(0)}
+            token={restakeForm.activeToken}
+            refetchAllowance={restakeForm.handleRefetchAllowance}
+          />
+        )}
+        {restakeForm.allowanceNote && (
+          <p className="text-sm text-center px-2 mt-2 text-foregroundA8 font-normal">
+            {restakeForm.allowanceNote}
+          </p>
+        )}
+      </TabCard>
     </>
+  );
+}
+
+function detailBoxStyle(isMobile: boolean, hidden?: boolean) {
+  return {
+    opacity: hidden ? 0 : 1,
+    zoom: hidden ? 0.8 : 1,
+    flexGrow: hidden ? 0 : 1,
+    flexShrink: hidden ? 1 : 0,
+    flexBasis: hidden ? 0 : 'calc(33% - 32px)',
+    ...(isMobile
+      ? {
+          maxHeight: hidden ? 0 : 200,
+          height: hidden ? 0 : 'auto',
+          marginTop: hidden ? 0 : '0.5rem',
+          marginBottom: hidden ? 0 : '0.5rem'
+        }
+      : {
+          width: hidden ? 0 : '100%',
+          marginLeft: hidden ? 0 : '0.5rem',
+          marginRight: hidden ? 0 : '0.5rem'
+        })
+  };
+}
+
+function AppearingDetailBox({
+  children,
+  isMobile
+}: {
+  isMobile: boolean;
+  children: React.ReactNode;
+}) {
+  const hidden = useMemo(() => detailBoxStyle(isMobile, true), [isMobile]);
+  const visible = useMemo(() => detailBoxStyle(isMobile), [isMobile]);
+  return (
+    <motion.div
+      initial={hidden}
+      animate={visible}
+      exit={hidden}
+      transition={{ duration: 0.2 }}
+      className="relative origin-[50% 50%] w-full md:w-[unset]"
+      style={visible}
+    >
+      {children}
+    </motion.div>
   );
 }

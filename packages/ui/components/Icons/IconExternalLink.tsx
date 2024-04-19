@@ -12,7 +12,7 @@ export function IconSocialX({
       viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn('[&>path]:fill-gray-500', className)}
+      className={cn('[&>path]:fill-foregroundA6', className)}
       {...props}
     >
       <path

@@ -1,6 +1,6 @@
 {
   "name": "@rionetwork/sdk",
-  "version": "0.1.0-alpha.21",
+  "version": "0.1.1",
   "description": "Utilities that simplify interaction with the Rio Network protocol",
   "license": "GPL-3.0",
   "publishConfig": {
@@ -30,7 +30,7 @@
     "big.js": "^6.2.1",
     "cacheables": "^1.2.2",
     "graphql-request": "^6.1.0",
-    "viem": "^1.18.8"
+    "viem": "^2.7.13"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.0",

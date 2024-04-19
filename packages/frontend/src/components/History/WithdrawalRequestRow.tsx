@@ -1,16 +1,20 @@
-import React, { useMemo } from 'react';
-import TransactionStatusLabel from '@rio-monorepo/ui/components/Shared/TransactionStatusLabel';
-import SymbolPill from '@rio-monorepo/ui/components/Shared/SymbolPill';
+import { type WithdrawalRequest } from '@rionetwork/sdk-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useMediaQuery } from 'react-responsive';
+import { type Hash } from 'viem';
+import { useMemo } from 'react';
+import TransactionStatusLabel from '@rio-monorepo/ui/components/Shared/TransactionStatusLabel';
+import IconExternal from '@rio-monorepo/ui/components/Icons/IconExternal';
+import { Button } from '@rio-monorepo/ui/components/shadcn/button';
+import { useGetAssetsList } from '@rio-monorepo/ui/hooks/useGetAssetsList';
+import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
 import {
   dateFromTimestamp,
-  displayEthAmount
+  displayEthAmount,
+  isEqualAddress,
+  linkToTxOnBlockExplorer
 } from '@rio-monorepo/ui/lib/utilities';
-import { useMediaQuery } from 'react-responsive';
-import { DESKTOP_MQ } from '@rio-monorepo/ui/lib/constants';
-import { WithdrawalRequest } from '@rionetwork/sdk-react';
-import { useGetAssetsList } from '@rio-monorepo/ui/hooks/useGetAssetsList';
-import { getAddress } from 'viem';
+import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
 
 type Props = {
   transaction: WithdrawalRequest;
@@ -23,6 +27,7 @@ const WithdrawalRequestRow = ({
   index,
   nextRebalanceTimestamp
 }: Props) => {
+  const { chain } = useAccountIfMounted();
   const isDesktopOrLaptop = useMediaQuery({
     query: DESKTOP_MQ
   });
@@ -33,15 +38,24 @@ const WithdrawalRequestRow = ({
   const { data } = useGetAssetsList();
 
   const asset = useMemo(() => {
-    return data?.find(
-      (asset) => getAddress(asset.address) === getAddress(transaction.assetOut)
-    );
-  }, [data, transaction.assetOut]);
+    const { isClaimed, restakingToken, assetOut } = transaction;
+    const address = isClaimed ? assetOut : restakingToken;
+    return data?.find((asset) => isEqualAddress(asset.address, address));
+  }, [
+    data,
+    transaction.assetOut,
+    transaction.isClaimed,
+    transaction.restakingToken
+  ]);
+
+  const amount = transaction.isClaimed
+    ? transaction.amountOut
+    : transaction.amountIn;
 
   return (
     <AnimatePresence>
       <motion.tr
-        className="flex w-full border-b border-b-gray-200"
+        className="flex w-full border-t border-t-border/40 dark:border-t-border/80 first:border-t-0"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0, transition: { duration: exitDuration } }}
@@ -51,35 +65,57 @@ const WithdrawalRequestRow = ({
         }}
       >
         <td className="w-full flex flex-row justify-between items-center">
-          <div className="w-full py-4 flex flex-row justify-between items-center">
-            <div className="flex flex-col items-start px-4 lg:px-6 whitespace-nowrap text-sm font-medium text-gray-900">
-              <span className="mb-1 lg:mb-0">
+          <div className="w-full py-4 md:py-2 flex flex-row justify-between items-center">
+            <div className="flex flex-col items-start gap-1 px-4 md:pl-6 whitespace-nowrap text-sm font-medium text-foregroundA11">
+              <span className="mb-1 md:mb-0 text-foreground/50">
                 {dateFromTimestamp(+transaction.timestamp)}
               </span>
               {!isDesktopOrLaptop && (
                 <TransactionStatusLabel
                   nextRebalanceTimestamp={nextRebalanceTimestamp}
                   transaction={transaction}
+                  isLink={false}
                 />
               )}
             </div>
+
             {isDesktopOrLaptop && (
               <div className="flex flex-row flex-1">
                 <TransactionStatusLabel
                   nextRebalanceTimestamp={nextRebalanceTimestamp}
                   transaction={transaction}
+                  isLink={false}
                 />
               </div>
             )}
-            <div className="px-4 lg:px-6 whitespace-nowrap text-sm flex items-center justify-end gap-2">
-              {transaction.amountOut && (
-                <div className="flex items-center gap-0 font-medium">
-                  <span className="mr-2">
-                    {displayEthAmount(transaction.amountOut)}
-                  </span>
-                  <SymbolPill symbol={asset?.symbol} />
+
+            <div className="px-4 md:px-2 whitespace-nowrap text-sm flex items-center justify-end gap-4 font-medium">
+              {amount && (
+                <div className="text-foreground/50">
+                  {displayEthAmount(amount)} {asset?.symbol}
                 </div>
               )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="h-[unset] py-1.5"
+              >
+                <a
+                  href={linkToTxOnBlockExplorer(
+                    (transaction.claimTx || transaction.tx) as Hash,
+                    chain?.id
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>View</span>
+                    <IconExternal />
+                  </span>
+                </a>
+              </Button>
             </div>
           </div>
         </td>

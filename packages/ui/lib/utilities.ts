@@ -8,7 +8,6 @@ import {
   type BaseAssetDetails,
   type BaseAssetSubgraphResponse,
   type BaseLRTSubgraphResponse,
-  type CHAIN_ID_NUMBER,
   type ContractError,
   type LRTDetails,
   type LRTSubgraphResponse,
@@ -19,37 +18,54 @@ import {
 } from './typings';
 import dayjs from 'dayjs';
 import bigDecimal from 'js-big-decimal';
-import { NATIVE_ETH_ADDRESS } from '../config';
+import { CHAIN_ID, NATIVE_ETH_ADDRESS } from '../config';
 import { type SubgraphClient } from '@rionetwork/sdk-react';
+import {
+  base,
+  baseGoerli,
+  foundry,
+  goerli,
+  holesky,
+  mainnet,
+  optimism,
+  optimismGoerli,
+  sepolia,
+  zora,
+  zoraSepolia
+} from 'viem/chains';
 
 export const getChainName = (chainId: number) => {
   switch (chainId) {
-    case 1:
+    case mainnet.id:
       return 'mainnet';
-    case 5:
+    case goerli.id:
       return 'goerli';
-    case 11155111:
+    case sepolia.id:
       return 'sepolia';
-    case 10:
+    case holesky.id:
+      return 'holesky';
+    case optimism.id:
       return 'optimism';
-    case 420:
+    case optimismGoerli.id:
       return 'optimism-goerli';
-    case 8453:
+    case base.id:
       return 'base';
-    case 84531:
+    case baseGoerli.id:
       return 'base-goerli';
-    case 7777777:
+    case zora.id:
       return 'zora';
     case 999:
       return 'zora-goerli';
-    case 31337:
+    case zoraSepolia.id:
+      return 'zora-sepolia';
+    case foundry.id:
       return 'foundry';
     default:
       return 'unknown';
   }
 };
 
-export const getAlchemyChainLabel = (chainId: CHAIN_ID_NUMBER) => {
+export const getAlchemyChainLabel = (chainId: number) => {
   switch (chainId) {
     case 1:
       return 'eth-mainnet';
@@ -74,13 +90,60 @@ export const getAlchemyChainLabel = (chainId: CHAIN_ID_NUMBER) => {
   }
 };
 
+export const getInfuraChainLabel = (chainId: number) => {
+  switch (chainId) {
+    case 1:
+      return 'mainnet';
+    case 5:
+      return 'goerli';
+    case 11155111:
+      return 'sepolia';
+    default:
+      return 'unknown';
+  }
+};
+export const getAnkrChainParam = (chainId: number) => {
+  switch (chainId) {
+    case 1:
+      return 'eth';
+    case 11155111:
+      return 'eth_sepolia';
+    case 17000:
+      return 'eth_holesky';
+    default:
+      return 'unknown';
+  }
+};
+
+export const getAlchemyRpcUrl = (chainId: number) => {
+  const subdomain = getAlchemyChainLabel(chainId);
+  const apiKey = process.env.NEXT_PUBLIC_ALCHEMY_ID;
+  if (subdomain === 'unknown' || !apiKey) return '';
+  return `https://${subdomain}.g.alchemy.com/v2/${apiKey}`;
+};
+
+export const getInfuraRpcUrl = (chainId: number) => {
+  const subdomain = getInfuraChainLabel(chainId);
+  const apiKey = process.env.NEXT_PUBLIC_INFURA_ID;
+  if (subdomain === 'unknown' || !apiKey) return '';
+  return `https://${subdomain}.infura.io/v3/${apiKey}`;
+};
+
+export const getAnkrRpcUrl = (chainId: number) => {
+  const param = getAnkrChainParam(chainId);
+  const apiKey = process.env.NEXT_PUBLIC_ANKR_ID;
+  if (param === 'unknown' || !apiKey) return '';
+  return `https://rpc.ankr.com/${param}/${apiKey}`;
+};
+
 export const linkToAddressOnBlockExplorer = (
   address: Address,
-  chainId: number
+  chainId: number = CHAIN_ID
 ) => {
   const chainName = getChainName(chainId);
-  const subdomain =
-    chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';
+  const subdomain = ['goerli', 'sepolia', 'holesky'].includes(chainName)
+    ? `${chainName}.`
+    : '';
   if (chainName === 'zora' || chainName === 'zora-goerli') {
     const subdomain = chainName === 'zora-goerli' ? 'testnet.' : '';
     return `https://${subdomain}explorer.zora.energy/address/${address}`;
@@ -88,10 +151,14 @@ export const linkToAddressOnBlockExplorer = (
   return `https://${subdomain}etherscan.io/address/${address}`;
 };
 
-export const linkToTxOnBlockExplorer = (address: Address, chainId: number) => {
+export const linkToTxOnBlockExplorer = (
+  address: Address,
+  chainId: number = CHAIN_ID
+) => {
   const chainName = getChainName(chainId);
-  const subdomain =
-    chainName === 'goerli' || chainName === 'sepolia' ? `${chainName}.` : '';
+  const subdomain = ['goerli', 'sepolia', 'holesky'].includes(chainName)
+    ? `${chainName}.`
+    : '';
   if (chainName === 'zora' || chainName === 'zora-goerli') {
     const subdomain = chainName === 'zora-goerli' ? 'testnet.' : '';
     return `https://${subdomain}explorer.zora.energy/tx/${address}`;
@@ -241,7 +308,8 @@ export const displayEthAmount = (amount: string, digits: number = 3) => {
     return '0';
   }
 
-  const parsedAmount = parseFloat(
+  const parsedAmount = parseFloat(new bigDecimal(amount).getValue());
+  const rounded = parseFloat(
     bigDecimal.round(amount, digits, bigDecimal.RoundingModes.DOWN)
   );
 
@@ -256,7 +324,7 @@ export const displayEthAmount = (amount: string, digits: number = 3) => {
         minimumFractionDigits: digits,
         maximumFractionDigits: digits
       })}`
-    : displayAmount(parsedAmount, 0, digits);
+    : displayAmount(rounded, 0, digits);
 };
 
 export const isEqualAddress = (a: string, b: string) => {
@@ -276,9 +344,11 @@ type SubgraphClienSimilarConfigs =
 
 export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(
   name: string,
+  chainId: number | undefined,
   config: T
 ): [
   name: string,
+  chainId: number | undefined,
   orderBy?: string,
   orderDirection?: string,
   page?: number,
@@ -286,6 +356,7 @@ export const buildRioSdkRestakingKey = <T extends SubgraphClienSimilarConfigs>(
   where?: string
 ] => [
   name,
+  chainId,
   config?.orderBy as string | undefined,
   config?.orderDirection as string | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -340,13 +411,40 @@ export function isUndefined(value: unknown): value is undefined {
 }
 
 export const storeBoolValueInStorage = (key: string, store?: Storage) => {
-  return async (value: boolean) =>
-    new Promise((resolve) => {
+  return async (value: boolean | null) =>
+    new Promise<boolean | null>((resolve) => {
       try {
         store?.setItem(key, String(value));
         return resolve(value);
       } catch (e) {
-        return resolve(undefined);
+        return resolve(null);
       }
     });
 };
+
+export const stripTokenDecimals = (amount: string, decimals: number = 18) => {
+  const normalized = amount.replace(/[^0-9.]/g, '');
+  const pointIdx = normalized.indexOf('.');
+  const whole = normalized.match(/^\d+/)?.[0] ?? '';
+  return !~pointIdx
+    ? normalized
+    : `${whole}.${normalized.slice(pointIdx + 1, pointIdx + decimals + 1)}`;
+};
+
+export function abbreviateAddress(
+  address?: string | null,
+  config?: {
+    startChars?: boolean | number;
+    lastChars?: boolean | number;
+  }
+) {
+  const { startChars = 6, lastChars = 4 } = config || {};
+  const startCharCount =
+    typeof startChars === 'number' ? startChars : startChars ? 6 : 0;
+  const _startChars = !startCharCount ? '' : address?.slice(0, startCharCount);
+  const lastCharCount =
+    typeof lastChars === 'number' ? lastChars : lastChars ? 4 : 0;
+  const _lastChars = !lastCharCount ? '' : address?.slice(-lastCharCount);
+  const ellipsis = _startChars && _lastChars ? '...' : '';
+  return address ? `${_startChars}${ellipsis}${_lastChars}` : null;
+}

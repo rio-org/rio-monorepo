@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../../tsconfig.base.json",
+  "display": "API",
+  "compilerOptions": {
+    "lib": ["ES2021"],
+    "moduleResolution": "Node10",
+    "module": "CommonJS",
+    "target": "ES2021",
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["jest", "node"]
+  }
+}

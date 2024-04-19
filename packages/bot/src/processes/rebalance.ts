@@ -33,11 +33,6 @@ export class RebalanceProcess implements IProcess {
   protected _rebalanceTimeouts: Record<ViemAddress, NodeJS.Timeout> = {};
 
   /**
-   * The number of seconds to wait between rebalances.
-   */
-  protected _rebalanceDelay: number | undefined;
-
-  /**
    * The coordinator contract instance.
    */
   protected _coordinator: GetContractReturnType<
@@ -117,15 +112,13 @@ export class RebalanceProcess implements IProcess {
 
   /**
    * Get the number of seconds until the next rebalance.
-   * @param lastRebalancedAt The unix timestamp of the last rebalance.
+   * @param nextRebalanceAfter The unix timestamp at which the next rebalance can occur.
    */
-  protected async getSecondsUntilNextRebalance(lastRebalancedAt: number) {
-    this._rebalanceDelay ||= await this._coordinator.read.rebalanceDelay();
-
+  protected getSecondsUntilNextRebalance(nextRebalanceAfter: bigint) {
     // prettier-ignore
     return Math.max(
       0,
-      lastRebalancedAt + this._rebalanceDelay + RebalanceProcess._BUFFER_SECS - this.nowSecs
+      parseInt(nextRebalanceAfter.toString(), 10) + RebalanceProcess._BUFFER_SECS - this.nowSecs
     );
   }
 
@@ -136,8 +129,8 @@ export class RebalanceProcess implements IProcess {
   // prettier-ignore
   protected async scheduleRebalance(asset: UnderlyingAsset): Promise<void> {
     const address = asset.address as ViemAddress;
-    const lastRebalancedAt = await this._coordinator.read.assetLastRebalancedAt([address]);
-    const nextRebalanceInSecs = await this.getSecondsUntilNextRebalance(Number(lastRebalancedAt));
+    const nextRebalanceAfter = await this._coordinator.read.assetNextRebalanceAfter([address]);
+    const nextRebalanceInSecs = this.getSecondsUntilNextRebalance(nextRebalanceAfter);
 
     const nextRebalanceInMs = nextRebalanceInSecs * 1_000;
     const relativeTime = formatDistance(new Date(Date.now() + nextRebalanceInMs), new Date(), { addSuffix: true })
@@ -188,11 +181,11 @@ export class RebalanceProcess implements IProcess {
    */
   // prettier-ignore
   protected async shouldRebalance(asset: ViemAddress): Promise<boolean> {
-    const lastRebalancedAt = await this._coordinator.read.assetLastRebalancedAt(
+    const nextRebalanceAfter = await this._coordinator.read.assetNextRebalanceAfter(
       [asset]
     );
 
-    if ((await this.getSecondsUntilNextRebalance(Number(lastRebalancedAt))) > 0) {
+    if (this.getSecondsUntilNextRebalance(nextRebalanceAfter) > 0) {
       return false;
     }
     if (await this.canQueueOrSettleWithdrawals(asset)) {

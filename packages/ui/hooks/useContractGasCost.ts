@@ -1,9 +1,8 @@
-import { ExtractAbiFunctionNames } from 'abitype';
-import { useFeeData, useNetwork } from 'wagmi';
-import { UseQueryOptions } from 'react-query';
+import { type UseQueryOptions } from '@tanstack/react-query';
+import { type Abi, type ContractFunctionName } from 'viem';
+import { useEstimateFeesPerGas } from 'wagmi';
 import { useCallback, useMemo } from 'react';
-import { Abi } from 'viem';
-import { CHAIN_ID } from '../config';
+import { useSupportedChainId } from './useSupportedChainId';
 import {
   useEstimateContractGas,
   UseEstimateContractGasParameters,
@@ -12,7 +11,7 @@ import {
 
 export type UseContractGasCostParameters<
   TAbi extends Abi,
-  TFunctionName extends ExtractAbiFunctionNames<TAbi>
+  TFunctionName extends ContractFunctionName<TAbi>
 > = UseEstimateContractGasParameters<TAbi, TFunctionName>;
 
 export type UseContractGasCostResult = {
@@ -24,23 +23,22 @@ export type UseContractGasCostResult = {
 
 export function useContractGasCost<
   TAbi extends Abi,
-  TFunctionName extends ExtractAbiFunctionNames<TAbi>
+  TFunctionName extends ContractFunctionName<TAbi>
 >(
   parameters: UseContractGasCostParameters<TAbi, TFunctionName>,
   queryConfig?: Omit<
     UseQueryOptions<UseEstimateContractGasResult, Error>,
-    'enabled'
+    'enabled' | 'queryKey' | 'queryFn'
   >
 ) {
-  const networkChainId = useNetwork().chain?.id || CHAIN_ID;
+  const networkChainId = useSupportedChainId();
   const chainId = parameters.chainId ?? networkChainId;
   const { data: estimatedGas, ...estimatedGasEtc } = useEstimateContractGas(
     parameters,
     queryConfig
   );
-  const { data: feeData, ...feeDataEtc } = useFeeData({
-    chainId,
-    enabled: parameters.enabled
+  const { data: feeData, ...feeDataEtc } = useEstimateFeesPerGas({
+    chainId
   });
 
   const refetch = useCallback(async () => {
@@ -55,9 +53,10 @@ export function useContractGasCost<
       typeof estimatedGas === 'undefined'
         ? undefined
         : {
-            maxFeePerGas: (feeData.maxFeePerGas * 110n) / 100n,
-            maxPriorityFeePerGas: (feeData.maxPriorityFeePerGas * 110n) / 100n,
-            gas: (estimatedGas * 110n) / 100n
+            maxFeePerGas: (BigInt(feeData.maxFeePerGas) * 110n) / 100n,
+            maxPriorityFeePerGas:
+              (BigInt(feeData.maxPriorityFeePerGas) * 110n) / 100n,
+            gas: (BigInt(estimatedGas) * 110n) / 100n + 20_000n
           },
     [feeData?.maxFeePerGas, feeData?.maxPriorityFeePerGas, estimatedGas]
   );
@@ -74,7 +73,6 @@ export function useContractGasCost<
       isLoading: feeDataEtc.isLoading || estimatedGasEtc.isLoading,
       isError: feeDataEtc.isError || estimatedGasEtc.isError,
       error: feeDataEtc.error || estimatedGasEtc.error,
-      isIdle: feeDataEtc.isIdle && estimatedGasEtc.isIdle,
       isFetched: feeDataEtc.isFetched && estimatedGasEtc.isFetched,
       isFetching: feeDataEtc.isFetching || estimatedGasEtc.isFetching,
       isRefetching: feeDataEtc.isRefetching || estimatedGasEtc.isRefetching,
@@ -90,7 +88,6 @@ export function useContractGasCost<
       feeDataEtc.isLoading,
       feeDataEtc.isError,
       feeDataEtc.error,
-      feeDataEtc.isIdle,
       feeDataEtc.isFetched,
       feeDataEtc.isFetching,
       feeDataEtc.isRefetching,
@@ -99,7 +96,6 @@ export function useContractGasCost<
       estimatedGasEtc.isLoading,
       estimatedGasEtc.isError,
       estimatedGasEtc.error,
-      estimatedGasEtc.isIdle,
       estimatedGasEtc.isFetched,
       estimatedGasEtc.isFetching,
       estimatedGasEtc.isRefetching,

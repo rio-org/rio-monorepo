@@ -18,7 +18,6 @@ import {
   displayEthAmount,
   linkToTxOnBlockExplorer
 } from '@rio-monorepo/ui/lib/utilities';
-import { CHAIN_ID } from '@rio-monorepo/ui/config';
 import {
   type LRTDetails,
   type MobileTableColumns,
@@ -37,7 +36,7 @@ interface Props {
 
 const TransactionHistoryTable = ({ lrt }: Props) => {
   const isDesktopOrLaptop = useMediaQuery({ query: DESKTOP_MQ });
-  const { address } = useAccountIfMounted();
+  const { address, chain } = useAccountIfMounted();
   const isMounted = useIsMounted();
 
   const { data: txHistory, isLoading } = useTransactionHistory({
@@ -58,7 +57,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
           return (
             <TableLabel>
               <a
-                href={linkToTxOnBlockExplorer(item.tx, CHAIN_ID)}
+                href={linkToTxOnBlockExplorer(item.tx, chain?.id)}
                 target="_blank"
                 rel="noreferrer"
                 className={cn(
@@ -129,7 +128,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         }
       }
     ],
-    []
+    [chain?.id]
   );
 
   const mobileColumns = useMemo<MobileTableColumns<TransactionEvent>>(
@@ -142,7 +141,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
             return (
               <TableLabel>
                 <a
-                  href={linkToTxOnBlockExplorer(item.tx, CHAIN_ID)}
+                  href={linkToTxOnBlockExplorer(item.tx, chain?.id)}
                   target="_blank"
                   rel="noreferrer"
                   className={cn(
@@ -218,7 +217,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         }
       ]
     }),
-    []
+    [chain?.id]
   );
 
   const tableHeader = isMounted && isDesktopOrLaptop && (
@@ -228,7 +227,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
           <th
             key={head}
             className={cn(
-              'text-[12px] font-normal px-4 py-2 opacity-50',
+              'text-sm font-bold px-4 py-4 opacity-50',
               i < 2 ? 'text-left' : 'text-right',
               i === 0 && 'pl-6',
               i === TX_HISTORY_TABLE_HEADER_LABELS.length - 1 && 'pr-6'
@@ -247,17 +246,19 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
       <AnimatePresence mode="wait">
         {isLoading || !address || !txHistory?.length ? (
           <motion.div
-            className="bg-[var(--color-element-wrapper-bg)] p-1 rounded-t-2xl rounded-b-2xl relative"
+            className="bg-background rounded-[4px] border border-border shadow-cardlight relative"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.1 }}
             layoutId="table-wrapper"
           >
-            <table className="w-full">{tableHeader}</table>
+            <table className="w-full border-b border-border p-1">
+              {tableHeader}
+            </table>
             <motion.div
               key="loading"
-              className="bg-white w-full h-30 flex items-center justify-center border-t border-blue-gray-50 px-4 py-8 rounded-xl"
+              className="w-full h-30 flex items-center justify-center px-4 py-8"
             >
               {isLoading ? (
                 <Spinner color="blue" />
@@ -273,7 +274,7 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
         ) : (
           <>
             <motion.div
-              className="bg-[var(--color-element-wrapper-bg)] p-1 rounded-t-2xl rounded-b-xl relative"
+              className="bg-background rounded-[4px] border border-border shadow-cardlight relative"
               layout
               key={pagination.currentPage}
               initial={false}
@@ -282,14 +283,14 @@ const TransactionHistoryTable = ({ lrt }: Props) => {
             >
               <motion.table
                 className={cn(
-                  'w-full min-w-fit table-auto text-left rounded-t-xl',
-                  pagination.pageCount < 2 && 'rounded-b-xl overflow-hidden'
+                  'w-full min-w-fit table-auto text-left',
+                  pagination.pageCount < 2 && 'overflow-hidden'
                 )}
               >
                 {tableHeader}
 
                 <motion.tbody
-                  className="divide-y divide-[var(--color-element-wrapper-bg)]"
+                  className="divide-y divide-border divide-opacity-50 md:border-t border-border"
                   layoutId="table-body"
                   transition={{
                     duration: 0.075

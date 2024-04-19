@@ -2,8 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { OperatorDelegator } from '@rionetwork/sdk-react';
 import { Address, zeroAddress } from 'viem';
 import { useAccountIfMounted } from '@rio-monorepo/ui/hooks/useAccountIfMounted';
+import { ContractAddressField } from '@rio-monorepo/ui/components/Shared/ContractAddressField';
 import { IconWarning } from '@rio-monorepo/ui/components/Icons/IconWarning';
-import { OperatorField } from './OperatorField';
 import { RioLRTOperatorRegistryABI } from '@rio-monorepo/ui/abi/RioLRTOperatorRegistryABI';
 import { useCompleteContractWrite } from '@rio-monorepo/ui/hooks/useCompleteContractWrite';
 import { useEffect } from 'react';
@@ -28,18 +28,21 @@ export function NewManagerPendingSection({
 
   const {
     status: { isTxComplete, isTxPending, isUserSigning },
-    contractWrite: { write, reset }
+    prepareContractWrite: { data: simulatedData },
+    contractWrite: { writeContract, reset }
   } = useCompleteContractWrite({
-    address: operatorRegistryAddress ?? zeroAddress,
+    address: isOpen ? operatorRegistryAddress ?? zeroAddress : undefined,
     abi: RioLRTOperatorRegistryABI,
     functionName: 'setOperatorPendingManager',
     args: [operatorDelegator.delegatorId, address || zeroAddress],
-    enabled:
-      !!address &&
-      !!operatorRegistryAddress &&
-      pendingManager &&
-      pendingManager !== zeroAddress &&
-      !isEqualAddress(address, pendingManager)
+    query: {
+      enabled:
+        !!address &&
+        !!operatorRegistryAddress &&
+        pendingManager &&
+        pendingManager !== zeroAddress &&
+        !isEqualAddress(address, pendingManager)
+    }
   });
 
   useEffect(() => {
@@ -60,16 +63,22 @@ export function NewManagerPendingSection({
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
         >
-          <div className="flex flex-col gap-3 p-2 border border-[#EEBA00] rounded-lg bg-gray-200 bg-opacity-50">
+          <div className="flex flex-col gap-3 p-2 border border-warning-foreground rounded-lg bg-foregroundA1">
             <div className="flex justify-between items-center">
-              <div className="flex gap-2 items-center text-[14px] font-medium text-[#EEBA00]">
-                <IconWarning className="[&>path]:stroke-[#EEBA00]" />
+              <div className="flex gap-2 items-center text-[14px] font-medium text-warningborder-warning-foreground">
+                <IconWarning className="[&>path]:stroke-warningborder-warning-foreground" />
                 <span className="leading-snug">New Manager Pending</span>
               </div>
               <button
-                disabled={isTxPending || !write || isUserSigning}
-                className="relative py-1.5 px-2.5 text-xs font-medium rounded-lg bg-[#EEBA00] text-black"
-                onClick={write}
+                disabled={
+                  isTxPending || !simulatedData?.request || isUserSigning
+                }
+                className="relative py-1.5 px-2.5 text-xs font-medium rounded-lg bg-warning-foreground text-foreground"
+                onClick={
+                  !simulatedData?.request
+                    ? undefined
+                    : () => writeContract(simulatedData.request)
+                }
               >
                 {(isTxPending || isUserSigning) && (
                   <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -90,11 +99,11 @@ export function NewManagerPendingSection({
               confirmation. Once confirmed, this will be the new manager and the
               connected wallet will lose access.
             </p>
-            <OperatorField
+            <ContractAddressField
               title="New Manager Address"
               value={pendingManager}
-              className="rounded-lg bg-white pt-4 px-3"
-              monospaceBoxClassName="bg-white pt-0 px-0"
+              className="rounded-lg bg-background pt-4 px-3"
+              monospaceBoxClassName="bg-background pt-0 px-0"
             />
           </div>
         </motion.div>

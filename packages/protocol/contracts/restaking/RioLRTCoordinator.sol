@@ -179,7 +179,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
         }
 
         // Deposit remaining ETH into EigenLayer if the guardian signature has been verified.
-        (uint256 ethDeposited, bool isDepositCapped) = depositPool().depositBalanceIntoEigenLayer(ETH_ADDRESS);
+        (uint256 ethDeposited, bool canMakeAdditionalDeposit) = depositPool().depositBalanceIntoEigenLayer(ETH_ADDRESS);
         if (sharesOwed == 0 && ethDeposited == 0) {
             revert NO_REBALANCE_NEEDED();
         }
@@ -187,10 +187,10 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
             assetRegistry().increaseUnverifiedValidatorETHBalance(ethDeposited);
         }
 
-        // When the deposit is not capped, the rebalance is considered complete, and the asset rebalance
-        // timestamp is increased by the specified delay. If capped, the asset may be rebalanced again
-        // immediately as there are more assets to deposit.
-        if (!isDepositCapped) {
+        // Additional funds may be available for deposit into EigenLayer, but the single transaction
+        // deposit limit for ETH has been reached to avoid exceeding the block gas limit. In this scenario,
+        // the rebalance timestamp is not updated to prevent unnecessary delays in the next rebalance.
+        if (!canMakeAdditionalDeposit) {
             assetNextRebalanceAfter[ETH_ADDRESS] = uint40(block.timestamp) + rebalanceDelay;
         }
         emit Rebalanced(ETH_ADDRESS);

@@ -3,7 +3,7 @@ import React from 'react';
 import { TX_BUTTON_VARIANTS } from '../../lib/constants';
 import { linkToTxOnBlockExplorer } from '../../lib/utilities';
 import IconExternal from '../Icons/IconExternal';
-import { CHAIN_ID } from '../../config';
+import { useAccountIfMounted } from '../../hooks/useAccountIfMounted';
 
 type Props = {
   isSuccess: boolean;
@@ -22,6 +22,7 @@ const Alert = ({
   setIsSuccess,
   setIsError
 }: Props) => {
+  const { chain } = useAccountIfMounted();
   return (
     <>
       {isSuccess && (
@@ -54,10 +55,10 @@ const Alert = ({
           >
             <div>
               <a
-                href={txHash ? linkToTxOnBlockExplorer(txHash, CHAIN_ID) : ''}
+                href={txHash ? linkToTxOnBlockExplorer(txHash, chain?.id) : ''}
                 target="_blank"
                 rel="noreferrer"
-                className="flex flex-row justify-center text-center px-[8px] py-[2px] text-gray-500 font-normal whitespace-nowrap text-sm items-center rounded-full w-full gap-2 h-fit transition-colors duration-200 leading-none"
+                className="flex flex-row justify-center text-center px-[8px] py-[2px] text-foregroundA6 font-normal whitespace-nowrap text-sm items-center rounded-full w-full gap-2 h-fit transition-colors duration-200 leading-none"
               >
                 View transaction
                 <div className="opacity-50">

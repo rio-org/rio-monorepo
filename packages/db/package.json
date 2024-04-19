@@ -1,0 +1,41 @@
+{
+  "name": "@internal/db",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean:build": "rimraf ./dist",
+    "dev": "docker-compose up -d && tsc -p tsconfig.json --watch ",
+    "migration:generate": "pnpm migration:generate:api && pnpm migration:generate:security",
+    "migration:generate:api": "drizzle-kit generate:pg --config ./src/config/drizzle.api.config.ts",
+    "migration:generate:security": "drizzle-kit generate:pg --config ./src/config/drizzle.security.config.ts",
+    "migration:run": "tsx ./src/migrate.ts",
+    "migration:run:api": "tsx ./src/migrate.ts api",
+    "migration:run:security": "tsx ./src/migrate.ts security",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "pnpm lint --fix",
+    "format": "prettier --check src/**/*.ts",
+    "format:fix": "prettier --write src/**/*.ts",
+    "typecheck": "tsc",
+    "start:external-services": "docker-compose -f docker-compose.yml up -d",
+    "start:external-services:f": "docker-compose -f docker-compose.yml up",
+    "stop:external-services": "docker-compose -f docker-compose.yml down"
+  },
+  "dependencies": {
+    "@internal/config": "workspace:*",
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.30.8",
+    "pg": "^8.11.5",
+    "postgres": "^3.4.4",
+    "tsx": "^4.7.2"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.5",
+    "drizzle-kit": "^0.20.14"
+  }
+}
