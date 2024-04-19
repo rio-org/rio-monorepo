@@ -59,7 +59,7 @@ library ValidatorDetails {
     /// @param keysCount Keys count to load.
     /// @param pubkeys Keys buffer to read from.
     /// @param signatures Signatures buffer to read from.
-    /// @return totalKeysCount New total keys count (last modified index).
+    /// @return totalKeysCount New total keys count.
     function saveValidatorDetails(
         bytes32 position,
         uint8 operatorId,
@@ -126,7 +126,7 @@ library ValidatorDetails {
 
         // forgefmt: disable-next-item
         // Ensure no overlap in indexes
-        if ((startIndex1 < startIndex2 && startIndex1 + keysCount > startIndex2) || (startIndex2 < startIndex1 && startIndex2 + keysCount > startIndex1)) {
+        if ((startIndex1 < startIndex2 && startIndex1 + keysCount >= startIndex2) || (startIndex2 < startIndex1 && startIndex2 + keysCount >= startIndex1)) {
             revert INDEXES_OVERLAP();
         }
 
@@ -200,7 +200,7 @@ library ValidatorDetails {
     /// @param position The storage slot.
     /// @param operatorId The Operator ID.
     /// @param startIndex The start index.
-    /// @param keysCount Key count to remove.
+    /// @param keysCount Keys count to load.
     /// @param totalKeysCount Current total keys count for operator.
     /// @return totalKeysCount New total keys count.
     function removeValidatorDetails(bytes32 position, uint8 operatorId, uint256 startIndex, uint256 keysCount, uint256 totalKeysCount) internal returns (uint40) {

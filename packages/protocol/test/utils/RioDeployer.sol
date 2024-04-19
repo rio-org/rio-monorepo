@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {EigenLayerDeployer} from 'test/utils/EigenLayerDeployer.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IERC20 as IERC20WithDecimals} from 'forge-std/interfaces/IERC20.sol';
 import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol';
 import {RioLRTOperatorRegistry} from 'contracts/restaking/RioLRTOperatorRegistry.sol';
 import {IRioLRTOperatorRegistry} from 'contracts/interfaces/IRioLRTOperatorRegistry.sol';
@@ -15,7 +16,6 @@ import {RioLRTWithdrawalQueue} from 'contracts/restaking/RioLRTWithdrawalQueue.s
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {BEACON_CHAIN_STRATEGY, ETH_ADDRESS} from 'contracts/utils/Constants.sol';
 import {RioLRTAssetRegistry} from 'contracts/restaking/RioLRTAssetRegistry.sol';
-import {IETHPOSDeposit} from 'contracts/interfaces/ethereum/IETHPOSDeposit.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
 import {RioLRTCoordinator} from 'contracts/restaking/RioLRTCoordinator.sol';
 import {RioLRTDepositPool} from 'contracts/restaking/RioLRTDepositPool.sol';
@@ -44,13 +44,23 @@ abstract contract RioDeployer is EigenLayerDeployer {
     address internal guardianSigner;
     uint256 internal guardianSignerPrivateKey;
 
-    address constant REETH_TREASURY = address(0x101);
-    address constant REETH_OPERATOR_REWARD_POOL = address(0x102);
+    address immutable REETH_TREASURY;
+    address immutable REETH_OPERATOR_REWARD_POOL;
 
-    address constant RELST_TREASURY = address(0x201);
-    address constant RELST_OPERATOR_REWARD_POOL = address(0x202);
+    address immutable RELST_TREASURY;
+    address immutable RELST_OPERATOR_REWARD_POOL;
 
-    address constant EOA = address(0xE0A);
+    address immutable EOA;
+
+    constructor() {
+        REETH_TREASURY = makeAddr('REETH_TREASURY');
+        REETH_OPERATOR_REWARD_POOL = makeAddr('REETH_OPERATOR_REWARD_POOL');
+
+        RELST_TREASURY = makeAddr('RELST_TREASURY');
+        RELST_OPERATOR_REWARD_POOL = makeAddr('RELST_OPERATOR_REWARD_POOL');
+
+        EOA = makeAddr('EOA');
+    }
 
     function deployRio() public {
         deployEigenLayer();
@@ -66,6 +76,7 @@ abstract contract RioDeployer is EigenLayerDeployer {
                 address(
                     new RioLRTOperatorRegistry(
                         issuerAddress,
+                        STRATEGY_MANAGER_ADDRESS,
                         address(this),
                         address(
                             new RioLRTOperatorDelegator(
@@ -88,6 +99,40 @@ abstract contract RioDeployer is EigenLayerDeployer {
         );
 
         vm.deal(EOA, 100 ether);
+    }
+
+    // forgefmt: disable-next-item
+    function issueRestakedToken(
+        IRioLRTAssetRegistry.AssetConfig[] memory tokens,
+        uint8 priceFeedDecimals,
+        address operatorRewardPool,
+        address treasury
+    ) public returns (TestLRTDeployment memory td) {
+        // Use the first asset for the sacrificial deposit.
+        IERC20WithDecimals token = IERC20WithDecimals(tokens[0].asset);
+        token.approve(address(issuer), 10 ** token.decimals());
+        
+        IRioLRTIssuer.LRTDeployment memory deployment = issuer.issueLRT(
+            'Restaked Token',
+            'reTKN',
+            IRioLRTIssuer.LRTConfig({
+                assets: tokens,
+                priceFeedDecimals: priceFeedDecimals,
+                operatorRewardPool: operatorRewardPool,
+                treasury: treasury,
+                deposit: IRioLRTIssuer.SacrificialDeposit({asset: tokens[0].asset, amount: 10 ** token.decimals() })
+            })
+        );
+        td = TestLRTDeployment({
+            token: IERC20(deployment.token),
+            coordinator: RioLRTCoordinator(payable(deployment.coordinator)),
+            assetRegistry: RioLRTAssetRegistry(deployment.assetRegistry),
+            operatorRegistry: RioLRTOperatorRegistry(payable(deployment.operatorRegistry)),
+            avsRegistry: RioLRTAVSRegistry(deployment.avsRegistry),
+            depositPool: RioLRTDepositPool(payable(deployment.depositPool)),
+            withdrawalQueue: RioLRTWithdrawalQueue(payable(deployment.withdrawalQueue)),
+            rewardDistributor: RioLRTRewardDistributor(payable(deployment.rewardDistributor))
+        });
     }
 
     // forgefmt: disable-next-item

@@ -171,7 +171,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         }
 
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
-        IERC20(asset).approve(address(coordinator), amount);
+        IERC20(asset).forceApprove(address(coordinator), amount);
 
         coordinator.deposit(asset, amount);
     }

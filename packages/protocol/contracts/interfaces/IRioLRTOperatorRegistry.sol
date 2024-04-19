@@ -284,6 +284,13 @@ interface IRioLRTOperatorRegistry {
     /// @param validatorCount The number of validators that were exited out of order.
     event OperatorOutOfOrderValidatorExitsReported(uint8 indexed operatorId, uint256 validatorCount);
 
+    /// @notice Emitted when the number of shares allocated to an operator has been synced.
+    /// @param operatorId The operator's ID.
+    /// @param strategy The strategy that the shares were synced for.
+    /// @param oldShares The previous number of shares allocated to the operator.
+    /// @param newShares The new number of shares allocated to the operator.
+    event StrategySharesSynced(uint8 indexed operatorId, address strategy, uint256 oldShares, uint256 newShares);
+
     /// @notice Emitted when strategy shares have been allocated to an operator.
     /// @param operatorId The operator's ID.
     /// @param strategy The strategy that the shares were allocated to.

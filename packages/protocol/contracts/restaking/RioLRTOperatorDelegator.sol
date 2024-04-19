@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IDelegationManager} from 'contracts/interfaces/eigenlayer/IDelegationManager.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
@@ -165,6 +166,20 @@ contract RioLRTOperatorDelegator is IRioLRTOperatorDelegator, RioLRTCore {
         uint256 ethWithdrawable = eigenPod.withdrawableRestakedExecutionLayerGwei().toWei();
         uint256 ethQueuedForWithdrawal = getETHQueuedForWithdrawal();
         if (ethWithdrawable <= ethQueuedForWithdrawal + MIN_EXCESS_FULL_WITHDRAWAL_ETH_FOR_SCRAPE) {
+            revert INSUFFICIENT_EXCESS_FULL_WITHDRAWAL_ETH();
+        }
+        _queueWithdrawalForOperatorExitOrScrape(BEACON_CHAIN_STRATEGY, ethWithdrawable - ethQueuedForWithdrawal);
+    }
+
+    /// @notice Scrapes excess full withdrawal ETH from the operator delegator's EigenPod
+    /// to the deposit pool WITHOUT checking whether the minimum excess ETH amount is met.
+    /// @dev Only the operator registry owner can call this function.
+    function emergencyScrapeExcessFullWithdrawalETHFromEigenPod() external {
+        if (msg.sender != OwnableUpgradeable(address(operatorRegistry())).owner()) revert ONLY_REGISTRY_OWNER();
+
+        uint256 ethWithdrawable = eigenPod.withdrawableRestakedExecutionLayerGwei().toWei();
+        uint256 ethQueuedForWithdrawal = getETHQueuedForWithdrawal();
+        if (ethWithdrawable <= ethQueuedForWithdrawal) {
             revert INSUFFICIENT_EXCESS_FULL_WITHDRAWAL_ETH();
         }
         _queueWithdrawalForOperatorExitOrScrape(BEACON_CHAIN_STRATEGY, ethWithdrawable - ethQueuedForWithdrawal);

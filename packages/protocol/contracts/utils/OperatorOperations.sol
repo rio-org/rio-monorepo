@@ -17,9 +17,6 @@ library OperatorOperations {
     /// do not match the number of shares requested.
     error INCORRECT_NUMBER_OF_SHARES_QUEUED();
 
-    /// @notice Thrown when the amount of shares received is not the expected amount.
-    error INCORRECT_NUMBER_OF_SHARES_RECEIVED();
-
     /// @notice Deposits ETH into EigenLayer through the operators that are returned from the registry.
     /// @param operatorRegistry The operator registry used allocate to and deallocate from EigenLayer operators.
     /// @param amount The amount of ETH to deposit.
@@ -54,7 +51,7 @@ library OperatorOperations {
         address strategy,
         uint256 sharesToAllocate
     ) internal returns (uint256 sharesReceived) {
-        (uint256 sharesAllocated, IRioLRTOperatorRegistry.OperatorStrategyAllocation[] memory  allocations) = operatorRegistry.allocateStrategyShares(
+        (, IRioLRTOperatorRegistry.OperatorStrategyAllocation[] memory  allocations) = operatorRegistry.allocateStrategyShares(
             strategy, sharesToAllocate
         );
 
@@ -64,7 +61,6 @@ library OperatorOperations {
             IERC20(token).safeTransfer(allocation.delegator, allocation.tokens);
             sharesReceived += IRioLRTOperatorDelegator(allocation.delegator).stakeERC20(strategy, token, allocation.tokens);
         }
-        if (sharesReceived != sharesAllocated) revert INCORRECT_NUMBER_OF_SHARES_RECEIVED();
     }
 
     /// @notice Queues withdrawals from EigenLayer through the operators that are returned from the registry.

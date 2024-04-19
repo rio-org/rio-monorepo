@@ -37,10 +37,16 @@ interface IRioLRTOperatorDelegator {
     /// @notice Thrown when the calling account is not authorized to claim a withdrawal.
     error UNAUTHORIZED_CLAIMER();
 
+    /// @notice Thrown when the caller is not the owner of the operator registry contract.
+    error ONLY_REGISTRY_OWNER();
+
     /// @notice Initializes the contract by delegating to the provided EigenLayer operator.
     /// @param token The address of the liquid restaking token.
     /// @param operator The operator's address.
     function initialize(address token, address operator) external;
+
+    /// @notice The primary delegation contract for EigenLayer.
+    function delegationManager() external view returns (IDelegationManager);
 
     /// @notice The operator delegator's EigenPod.
     function eigenPod() external view returns (IEigenPod);

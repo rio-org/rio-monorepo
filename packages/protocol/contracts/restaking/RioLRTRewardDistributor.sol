@@ -46,6 +46,24 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         _setOperatorETHValidatorRewardShareBPS(500); // 5%
     }
 
+    /// @notice Distributes ETH validator rewards held in this contract to the treasury, operator pool,
+    /// and deposit pool.
+    /// @dev All recipients are trusted internal contracts that require no reentrancy protection.
+    function distributeETHValidatorRewards() external {
+        uint256 amount = address(this).balance;
+        if (amount == 0) revert NO_ETH_VALIDATOR_REWARDS_TO_DISTRIBUTE();
+
+        uint256 treasuryShare = amount * treasuryETHValidatorRewardShareBPS / MAX_BPS;
+        uint256 operatorShare = amount * operatorETHValidatorRewardShareBPS / MAX_BPS;
+        uint256 poolShare = amount - treasuryShare - operatorShare;
+
+        if (treasuryShare > 0) treasury.transferETH(treasuryShare);
+        if (operatorShare > 0) operatorRewardPool.transferETH(operatorShare);
+        if (poolShare > 0) address(depositPool()).transferETH(poolShare);
+
+        emit ETHValidatorRewardsDistributed(treasuryShare, operatorShare, poolShare);
+    }
+
     /// @notice Sets the treasury and operator's share of ETH validator rewards.
     /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
     /// @param newOperatorETHValidatorRewardShareBPS The new operator share in basis points.
@@ -92,20 +110,8 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         emit OperatorETHValidatorRewardShareBPSSet(newOperatorETHValidatorRewardShareBPS);
     }
 
-    /// @notice Receives ETH and distributes it to the treasury, operator, and deposit pool.
-    receive() external payable {
-        uint256 value = msg.value;
-
-        uint256 treasuryShare = value * treasuryETHValidatorRewardShareBPS / MAX_BPS;
-        uint256 operatorShare = value * operatorETHValidatorRewardShareBPS / MAX_BPS;
-        uint256 poolShare = value - treasuryShare - operatorShare;
-
-        if (treasuryShare > 0) treasury.transferETH(treasuryShare);
-        if (operatorShare > 0) operatorRewardPool.transferETH(operatorShare);
-        if (poolShare > 0) address(depositPool()).transferETH(poolShare);
-
-        emit ETHValidatorRewardsDistributed(treasuryShare, operatorShare, poolShare);
-    }
+    /// @notice Receives ETH for distribution.
+    receive() external payable {}
 
     /// @dev Allows the owner to upgrade the reward distributor implementation.
     /// @param newImplementation The implementation to upgrade to.

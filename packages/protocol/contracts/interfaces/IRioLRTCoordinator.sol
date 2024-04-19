@@ -17,7 +17,7 @@ interface IRioLRTCoordinator {
     error DEPOSIT_CAP_REACHED(address asset, uint256 depositCap);
 
     /// @notice Thrown when attempting to request a withdrawal for an amount that would exceed the
-    /// total number of shares in EigenLayer.
+    /// total share value available.
     error INSUFFICIENT_SHARES_FOR_WITHDRAWAL();
 
     /// @notice Thrown when the `msg.sender` is a contract.
@@ -40,6 +40,10 @@ interface IRioLRTCoordinator {
 
     /// @notice Thrown when attempting to rebalance an asset that does not need to be rebalanced.
     error NO_REBALANCE_NEEDED();
+
+    /// @notice Thrown when attempting to pause the coordinator due to forceful undelegation
+    /// when no operator has forcefully undelegated.
+    error NO_OPERATOR_UNDELEGATED();
 
     /// @notice Emitted when a user deposits an asset into Rio.
     /// @param user The address of the user.
@@ -120,8 +124,8 @@ interface IRioLRTCoordinator {
 
     /// @notice Requests a withdrawal to `asset` for `amountIn` restaking tokens.
     /// @param asset The asset being withdrawn.
-    /// @param amountIn The amount of restaking tokens being redeemed.
-    function requestWithdrawal(address asset, uint256 amountIn) external returns (uint256);
+    /// @param amountIn The amount of restaking tokens requested for withdrawal.
+    function requestWithdrawal(address asset, uint256 amountIn) external;
 
     /// @notice Rebalances ETH by processing outstanding withdrawals and depositing remaining
     /// ETH into EigenLayer.

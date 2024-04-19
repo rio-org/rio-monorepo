@@ -192,7 +192,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         address priceFeed = assetInfo[asset].priceFeed;
         uint256 price = getPrice(priceFeed);
 
-        return _normalizeDecimals(price * amount / priceScale, assetInfo[asset].decimals, priceFeedDecimals);
+        return _normalizeDecimals(price * amount, assetInfo[asset].decimals, priceFeedDecimals) / priceScale;
     }
 
     /// @notice Converts the unit of account value to its equivalent in the asset. The unit of
@@ -206,7 +206,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         address priceFeed = assetInfo[asset].priceFeed;
         uint256 price = getPrice(priceFeed);
 
-        return _normalizeDecimals(value * priceScale / price, priceFeedDecimals, assetInfo[asset].decimals);
+        return _normalizeDecimals(value * priceScale, priceFeedDecimals, assetInfo[asset].decimals) / price;
     }
 
     /// @notice Converts an amount of an asset to the equivalent amount of EigenLayer shares.

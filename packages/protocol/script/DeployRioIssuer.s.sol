@@ -26,6 +26,7 @@ contract DeployRioIssuer is ScriptBase {
                 address(
                     new RioLRTOperatorRegistry(
                         issuerAddress,
+                        strategyManager,
                         deployer,
                         address(
                             new RioLRTOperatorDelegator(

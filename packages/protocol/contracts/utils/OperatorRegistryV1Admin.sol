@@ -255,6 +255,7 @@ library OperatorRegistryV1Admin {
             // If the operator has allocations, queue them for exit.
             if (currentShareDetails.allocation > 0) {
                 operatorDetails.queueOperatorStrategyExit(operatorId, newShareCap.strategy);
+                operatorDetails.shareDetails[newShareCap.strategy].allocation = 0;
             }
             // Remove the operator from the utilization heap.
             utilizationHeap.removeByID(operatorId);

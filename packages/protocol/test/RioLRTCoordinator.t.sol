@@ -2,8 +2,10 @@
 pragma solidity 0.8.23;
 
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
+import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {EmptyContract} from 'test/utils/EmptyContract.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 import {
@@ -23,6 +25,55 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         (reETH,) = issueRestakedETH();
         (reLST,) = issueRestakedLST();
+    }
+
+    function test_pauseNonOwnerReverts() public {
+        vm.prank(address(42));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
+
+        reETH.coordinator.pause();
+    }
+
+    function test_unpauseNonOwnerReverts() public {
+        reETH.coordinator.pause();
+
+        vm.prank(address(42));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
+
+        reETH.coordinator.unpause();
+    }
+
+    function test_emergencyPauseOperatorUndelegatedNoOperatorsReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.NO_OPERATOR_UNDELEGATED.selector));
+        reETH.coordinator.emergencyPauseOperatorUndelegated();
+    }
+
+    function test_emergencyPauseOperatorUndelegatedStillDelegatedReverts() public {
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 10);
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.NO_OPERATOR_UNDELEGATED.selector));
+        reETH.coordinator.emergencyPauseOperatorUndelegated();
+    }
+
+    function test_emergencyPauseOperatorUndelegated() public {
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 10);
+
+        address delegator = reETH.operatorRegistry.getOperatorDetails(4).delegator;
+        address operator = delegationManager.delegatedTo(delegator);
+
+        vm.prank(operator);
+        delegationManager.undelegate(delegator);
+
+        reETH.coordinator.emergencyPauseOperatorUndelegated();
+
+        assertTrue(reETH.coordinator.paused());
+    }
+
+    function test_depositETHWhenPausedReverts() public {
+        reETH.coordinator.pause();
+
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
+        reETH.coordinator.depositETH{value: 1 ether}();
     }
 
     function test_depositETHNotSupportedReverts() public {
@@ -50,6 +101,13 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(reETH.token.balanceOf(address(this)), 1 ether);
     }
 
+    function test_depositERC20WhenPausedReverts() public {
+        reLST.coordinator.pause();
+
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
+        reLST.coordinator.deposit(address(42), 20e18);
+    }
+
     function test_depositERC20NotSupportedReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.ASSET_NOT_SUPPORTED.selector, address(42)));
         reLST.coordinator.deposit(address(42), 20e18);
@@ -68,6 +126,13 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(reLST.token.balanceOf(address(this)), price * 20);
     }
 
+    function test_requestEtherWithdrawalWhenPausedReverts() public {
+        reETH.coordinator.pause();
+
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
+        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, 1 ether);
+    }
+
     function test_requestWithdrawalEtherNotSupportedReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.ASSET_NOT_SUPPORTED.selector, ETH_ADDRESS));
         reLST.coordinator.requestWithdrawal(ETH_ADDRESS, 1 ether);
@@ -79,9 +144,9 @@ contract RioLRTCoordinatorTest is RioDeployer {
     }
 
     function test_requestEtherWithdrawal() public {
-        reETH.coordinator.depositETH{value: 1 ether}();
+        uint256 amountOut = reETH.coordinator.depositETH{value: 1 ether}();
 
-        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, 1 ether);
+        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, amountOut);
 
         uint256 currentEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
@@ -90,14 +155,20 @@ contract RioLRTCoordinatorTest is RioDeployer {
             reETH.withdrawalQueue.getUserWithdrawalSummary(ETH_ADDRESS, currentEpoch, address(this));
 
         assertEq(reETH.token.balanceOf(address(this)), 0);
-        assertEq(reETH.withdrawalQueue.getSharesOwedInCurrentEpoch(ETH_ADDRESS), 1 ether);
+        assertEq(reETH.withdrawalQueue.getRestakingTokensInCurrentEpoch(ETH_ADDRESS), amountOut);
 
         assertFalse(epochSummary.settled);
-        assertEq(epochSummary.sharesOwed, 1 ether);
-        assertEq(epochSummary.amountToBurnAtSettlement, 1 ether);
+        assertEq(epochSummary.amountIn, amountOut);
 
         assertFalse(userSummary.claimed);
-        assertEq(userSummary.sharesOwed, 1 ether);
+        assertEq(epochSummary.amountIn, amountOut);
+    }
+
+    function test_requestERC20WithdrawalWhenPausedReverts() public {
+        reLST.coordinator.pause();
+
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
+        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, 20e18);
     }
 
     function test_requestWithdrawalERC20NotSupportedReverts() public {
@@ -108,6 +179,14 @@ contract RioLRTCoordinatorTest is RioDeployer {
     function test_requestERC20WithdrawalZeroValueReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.AMOUNT_MUST_BE_GREATER_THAN_ZERO.selector));
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, 0);
+    }
+
+    function test_requestWithdrawalBeyondAmountAvailableReverts() public {
+        rETH.approve(address(reLST.coordinator), 100e18);
+        reLST.coordinator.deposit(RETH_ADDRESS, 100e18);
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.INSUFFICIENT_SHARES_FOR_WITHDRAWAL.selector));
+        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, 100e18);
     }
 
     function test_requestERC20Withdrawal() public {
@@ -125,14 +204,13 @@ contract RioLRTCoordinatorTest is RioDeployer {
             reLST.withdrawalQueue.getUserWithdrawalSummary(CBETH_ADDRESS, currentEpoch, address(this));
 
         assertEq(reLST.token.balanceOf(address(this)), 0);
-        assertEq(reLST.withdrawalQueue.getSharesOwedInCurrentEpoch(CBETH_ADDRESS), amount);
+        assertEq(reLST.withdrawalQueue.getRestakingTokensInCurrentEpoch(CBETH_ADDRESS), amountOut);
 
         assertFalse(epochSummary.settled);
-        assertEq(epochSummary.sharesOwed, amount);
-        assertEq(epochSummary.amountToBurnAtSettlement, amountOut);
+        assertEq(epochSummary.amountIn, amountOut);
 
         assertFalse(userSummary.claimed);
-        assertEq(userSummary.sharesOwed, amount);
+        assertEq(userSummary.amountIn, amountOut);
     }
 
     function test_setRebalanceDelayNonOwnerReverts() public {
@@ -206,6 +284,15 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         // The rebalance delay should have taken effect now.
         vm.prank(EOA, EOA);
+        reETH.coordinator.rebalanceETH(root, signature);
+    }
+
+    function test_rebalanceETHWhenPausedReverts() public {
+        reETH.coordinator.pause();
+
+        (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
         reETH.coordinator.rebalanceETH(root, signature);
     }
 
@@ -452,6 +539,51 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(address(reETH.withdrawalQueue).balance, 0);
     }
 
+    function test_rebalanceETHCompletesWithdrawalsFromDepositPoolIfDepositToEigenLayerFails() public {
+        // Ensure there is an operator to allocate to.
+        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
+
+        uint256 amount = ETH_DEPOSIT_SIZE * 10;
+        uint256 amountOut = reETH.coordinator.depositETH{value: amount}();
+        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, amountOut);
+
+        // Make the deposit revert.
+        vm.mockCallRevert(
+            address(reETH.depositPool),
+            abi.encodeWithSelector(IRioLRTDepositPool.depositBalanceIntoEigenLayer.selector, ETH_ADDRESS),
+            abi.encode('StrategyBaseTVLLimits: max per deposit exceeded')
+        );
+
+        uint256 epoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
+
+        vm.expectEmit(true, false, false, true, address(reETH.coordinator));
+        emit IRioLRTCoordinator.PartiallyRebalanced(ETH_ADDRESS);
+
+        // Get the latest POS deposit root and guardian signature.
+        (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+
+        vm.prank(EOA, EOA);
+        reETH.coordinator.rebalanceETH(root, signature);
+
+        // Ensure the next rebalance timestamp has increased.
+        assertEq(
+            reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS), block.timestamp + reETH.coordinator.rebalanceDelay()
+        );
+
+        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
+            reETH.withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, epoch);
+        assertTrue(epochSummary.settled);
+        assertEq(epochSummary.assetsReceived, amount);
+        assertEq(address(reETH.withdrawalQueue).balance, amount);
+    }
+
+    function test_rebalanceERC20WhenPausedReverts() public {
+        reETH.coordinator.pause();
+
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
+        reETH.coordinator.rebalanceERC20(address(42));
+    }
+
     function test_rebalanceERC20SettlesWithdrawalEpochIfSufficientERC20sInDepositPool() public {
         // Ensure there is an operator to allocate to.
         addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
@@ -538,6 +670,44 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertNotEq(epochSummary.aggregateRoot, bytes32(0));
         assertEq(epochSummary.assetsReceived, 0);
         assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), 0);
+    }
+
+    function test_rebalanceERC20CompletesWithdrawalsFromDepositPoolIfDepositToEigenLayerFails() public {
+        // Ensure there is an operator to allocate to.
+        addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
+
+        uint256 amount = 20e18;
+        cbETH.approve(address(reLST.coordinator), amount);
+
+        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut);
+
+        // Make the deposit revert.
+        vm.mockCallRevert(
+            address(reLST.depositPool),
+            abi.encodeWithSelector(IRioLRTDepositPool.depositBalanceIntoEigenLayer.selector, CBETH_ADDRESS),
+            abi.encode('StrategyBaseTVLLimits: max per deposit exceeded')
+        );
+
+        uint256 epoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
+
+        vm.expectEmit(true, false, false, true, address(reLST.coordinator));
+        emit IRioLRTCoordinator.PartiallyRebalanced(CBETH_ADDRESS);
+
+        vm.prank(EOA, EOA);
+        reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
+
+        // Ensure the next rebalance timestamp has increased.
+        assertEq(
+            reLST.coordinator.assetNextRebalanceAfter(CBETH_ADDRESS),
+            block.timestamp + reLST.coordinator.rebalanceDelay()
+        );
+
+        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
+            reLST.withdrawalQueue.getEpochWithdrawalSummary(CBETH_ADDRESS, epoch);
+        assertTrue(epochSummary.settled);
+        assertEq(epochSummary.assetsReceived, amount);
+        assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), amount);
     }
 
     function test_inflationAttackFails() public {

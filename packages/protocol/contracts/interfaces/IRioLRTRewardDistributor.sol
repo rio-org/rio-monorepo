@@ -2,6 +2,9 @@
 pragma solidity 0.8.23;
 
 interface IRioLRTRewardDistributor {
+    /// @notice Thrown when there are no ETH validator rewards to distribute.
+    error NO_ETH_VALIDATOR_REWARDS_TO_DISTRIBUTE();
+
     /// @notice Thrown when the ETH validator reward share is too high.
     error ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
 

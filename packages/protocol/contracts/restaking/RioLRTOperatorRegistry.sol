@@ -10,6 +10,7 @@ import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Own
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
+import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
 import {BLS_PUBLIC_KEY_LENGTH, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {OperatorRegistryV1Admin} from 'contracts/utils/OperatorRegistryV1Admin.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
@@ -28,7 +29,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     using Asset for address;
     using LibMap for *;
 
-    /// @dev The validator details storage position.
+    /// @notice The primary entry and exit-point for funds into and out of EigenLayer.
+    IStrategyManager public immutable strategyManager;
 
     /// @notice The operator delegator beacon contract.
     address public immutable operatorDelegatorBeacon;
@@ -60,10 +62,13 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         _;
     }
 
+    // forgefmt: disable-next-item
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
+    /// @param strategyManager_ The primary entry and exit-point for funds into and out of EigenLayer.
     /// @param initialBeaconOwner The initial owner who can upgrade the operator delegator beacon contract.
     /// @param operatorDelegatorImpl_ The operator contract implementation.
-    constructor(address issuer_, address initialBeaconOwner, address operatorDelegatorImpl_) RioLRTCore(issuer_) {
+    constructor(address issuer_, address strategyManager_, address initialBeaconOwner, address operatorDelegatorImpl_) RioLRTCore(issuer_) {
+        strategyManager = IStrategyManager(strategyManager_);
         operatorDelegatorBeacon = address(new UpgradeableBeacon(operatorDelegatorImpl_, initialBeaconOwner));
     }
 
@@ -305,7 +310,6 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         // next confirmation timestamp as we may be moving pending keys into the place of confirmed keys.
         if (fromIndex < validators.confirmed) {
             operator.validatorDetails.confirmed = uint40(fromIndex);
-            operator.validatorDetails.nextConfirmationTimestamp = uint40(block.timestamp + s.validatorKeyReviewPeriod);
         }
         emit OperatorValidatorDetailsRemoved(operatorId, validatorCount);
     }
@@ -342,9 +346,39 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
                 operatorId, fromIndex, validators.exited, validatorCount
             );
         }
-        operator.validatorDetails.exited += uint40(validatorCount);
+        OperatorUtilizationHeap.Data memory heap = s.getOperatorUtilizationHeapForETH();
+
+        // Update the number of exited validators and the operator's utilization and update the in-memory cache.
+        validators.exited = operator.validatorDetails.exited += uint40(validatorCount);
+
+        heap.updateUtilizationByID(operatorId, (validators.deposited - validators.exited).divWad(validators.cap));
+        heap.store(s.activeOperatorsByETHDepositUtilization, OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         emit OperatorOutOfOrderValidatorExitsReported(operatorId, validatorCount);
+    }
+
+    /// @notice Syncs the stored strategy share allocations for the provided operator IDs with EigenLayer.
+    /// @param operatorIds The operator IDs to sync.
+    /// @param strategy The strategy to sync.
+    function syncStrategyShares(uint8[] memory operatorIds, address strategy) external {
+        OperatorUtilizationHeap.Data memory heap = s.getOperatorUtilizationHeapForStrategy(strategy);
+        for (uint256 i = 0; i < operatorIds.length; ++i) {
+            uint8 operatorId = operatorIds[i];
+
+            OperatorDetails storage operator = s.operatorDetails[operatorId];
+            OperatorShareDetails memory operatorShares = operator.shareDetails[strategy];
+
+            uint256 actualShareAllocation = strategyManager.stakerStrategyShares(operator.delegator, strategy);
+            if (operatorShares.allocation != actualShareAllocation) {
+                heap.updateUtilizationByID(operatorId, actualShareAllocation.divWad(operatorShares.cap));
+                operator.shareDetails[strategy].allocation = SafeCast.toUint128(actualShareAllocation);
+
+                emit StrategySharesSynced(operatorId, strategy, operatorShares.allocation, actualShareAllocation);
+            }
+        }
+        heap.store(
+            s.activeOperatorsByStrategyShareUtilization[strategy], OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT
+        );
     }
 
     // forgefmt: disable-next-item

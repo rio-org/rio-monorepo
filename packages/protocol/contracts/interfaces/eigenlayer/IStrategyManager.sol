@@ -76,7 +76,7 @@ interface IStrategyManager {
     function withdrawSharesAsTokens(address recipient, IStrategy strategy, uint256 shares, IERC20 token) external;
 
     /// @notice Returns the current shares of `user` in `strategy`
-    function stakerStrategyShares(address user, IStrategy strategy) external view returns (uint256 shares);
+    function stakerStrategyShares(address user, address strategy) external view returns (uint256 shares);
 
     /// @notice Get all details on the staker's deposits and corresponding shares
     /// @return (staker's strategies, shares in these strategies)

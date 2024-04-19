@@ -25,8 +25,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
     function test_claimWithdrawalsForEpochAllEtherPaidFromDepositPool() public {
         uint256 initialTotalSupply = reETH.token.totalSupply();
 
-        reETH.coordinator.depositETH{value: 1 ether}();
-        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, 1 ether);
+        uint256 amountOut = reETH.coordinator.depositETH{value: 1 ether}();
+        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, amountOut);
 
         uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
 
@@ -46,19 +46,21 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertEq(reETH.token.totalSupply(), initialTotalSupply);
 
         assertTrue(epochSummary.settled);
+        assertEq(epochSummary.amountIn, amountOut);
         assertEq(epochSummary.assetsReceived, 1 ether);
-        assertEq(epochSummary.shareValueOfAssetsReceived, 1 ether);
+        assertEq(epochSummary.sharesOutstanding, 0);
+        assertEq(epochSummary.amountToBurnAtSettlement, 0);
 
         assertFalse(userSummary.claimed);
 
         uint256 balanceBefore = address(this).balance;
 
         // Claim the withdrawal.
-        uint256 amountOut = reETH.withdrawalQueue.claimWithdrawalsForEpoch(
+        uint256 amountClaimed = reETH.withdrawalQueue.claimWithdrawalsForEpoch(
             IRioLRTWithdrawalQueue.ClaimRequest({asset: ETH_ADDRESS, epoch: withdrawalEpoch})
         );
 
-        assertEq(amountOut, 1 ether);
+        assertEq(amountClaimed, 1 ether);
         assertEq(address(this).balance - balanceBefore, 1 ether);
     }
 
@@ -81,6 +83,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // Request a withdrawal and rebalance.
         uint256 withdrawalAmount = ETH_DEPOSIT_SIZE + 1 ether;
         reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
+
+        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
         skip(reETH.coordinator.rebalanceDelay());
 
         (root, signature) = signCurrentDepositRoot(reETH.coordinator);
@@ -93,7 +97,6 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         verifyAndProcessWithdrawalsForValidatorIndexes(operatorDelegator, validatorIndices);
 
         // Settle the withdrawal epoch.
-        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
         IDelegationManager.Withdrawal[] memory withdrawals = new IDelegationManager.Withdrawal[](1);
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
@@ -104,14 +107,17 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
             strategies: BEACON_CHAIN_STRATEGY.toArray(),
             shares: uint256(1 ether).toArray()
         });
-        reETH.withdrawalQueue.settleEpochFromEigenLayer(ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1));
+        reETH.withdrawalQueue.completeEpochSettlementFromEigenLayer(
+            ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1)
+        );
 
         // Assert epoch summary details.
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
             reETH.withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch);
         assertTrue(epochSummary.settled);
+        assertEq(epochSummary.amountIn, withdrawalAmount);
         assertEq(epochSummary.assetsReceived, withdrawalAmount);
-        assertEq(epochSummary.shareValueOfAssetsReceived, withdrawalAmount);
+        assertEq(epochSummary.sharesOutstanding, 0);
 
         // Claim and assert withdrawal.
         uint256 balanceBefore = address(this).balance;
@@ -124,6 +130,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertTrue(userSummary.claimed);
         assertEq(amountOut, withdrawalAmount);
         assertEq(address(this).balance - balanceBefore, withdrawalAmount);
+        assertEq(reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS), withdrawalEpoch + 1);
     }
 
     function test_claimWithdrawalsForEpochSomeEtherPaidFromEigenLayerPreciseDecimals() public {
@@ -149,8 +156,12 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
 
         // Request a withdrawal and rebalance.
         uint256 withdrawalAmount = ETH_DEPOSIT_SIZE + 10 ** 18 * 2 - 1;
-        uint256 expectedAmountOut = reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
+
+        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
         skip(reETH.coordinator.rebalanceDelay());
+
+        uint256 expectedAmountOut = withdrawalAmount.reducePrecisionToGwei(); // Assumes 1:1 share value.
+        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
 
         (root, signature) = signCurrentDepositRoot(reETH.coordinator);
 
@@ -164,7 +175,6 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         verifyAndProcessWithdrawalsForValidatorIndexes(operatorDelegator, validatorIndices);
 
         // Settle the withdrawal epoch.
-        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
         IDelegationManager.Withdrawal[] memory withdrawals = new IDelegationManager.Withdrawal[](1);
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
@@ -175,14 +185,17 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
             strategies: BEACON_CHAIN_STRATEGY.toArray(),
             shares: expectedShareWithdrawal.toArray()
         });
-        reETH.withdrawalQueue.settleEpochFromEigenLayer(ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1));
+        reETH.withdrawalQueue.completeEpochSettlementFromEigenLayer(
+            ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1)
+        );
 
         // Assert epoch summary details.
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
             reETH.withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch);
         assertTrue(epochSummary.settled);
+        assertEq(epochSummary.amountIn, withdrawalAmount);
         assertEq(epochSummary.assetsReceived, expectedAmountOut);
-        assertEq(epochSummary.shareValueOfAssetsReceived, expectedAmountOut);
+        assertEq(epochSummary.sharesOutstanding, 0);
 
         // Claim and assert withdrawal.
         uint256 balanceBefore = address(this).balance;
@@ -195,6 +208,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertTrue(userSummary.claimed);
         assertEq(amountOut, expectedAmountOut);
         assertEq(address(this).balance - balanceBefore, expectedAmountOut);
+        assertEq(reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS), withdrawalEpoch + 1);
     }
 
     function test_claimWithdrawalsForEpochAllEtherPaidFromEigenLayer() public {
@@ -215,6 +229,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // Request a withdrawal and rebalance.
         uint256 withdrawalAmount = 16 ether;
         reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
+
+        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
         skip(reETH.coordinator.rebalanceDelay());
 
         (root, signature) = signCurrentDepositRoot(reETH.coordinator);
@@ -227,7 +243,6 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         verifyAndProcessWithdrawalsForValidatorIndexes(operatorDelegator, validatorIndices);
 
         // Settle the withdrawal epoch.
-        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
         IDelegationManager.Withdrawal[] memory withdrawals = new IDelegationManager.Withdrawal[](1);
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
@@ -238,14 +253,17 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
             strategies: BEACON_CHAIN_STRATEGY.toArray(),
             shares: withdrawalAmount.toArray()
         });
-        reETH.withdrawalQueue.settleEpochFromEigenLayer(ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1));
+        reETH.withdrawalQueue.completeEpochSettlementFromEigenLayer(
+            ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1)
+        );
 
         // Assert epoch summary details.
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
             reETH.withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch);
         assertTrue(epochSummary.settled);
+        assertEq(epochSummary.amountIn, withdrawalAmount);
         assertEq(epochSummary.assetsReceived, withdrawalAmount);
-        assertEq(epochSummary.shareValueOfAssetsReceived, withdrawalAmount);
+        assertEq(epochSummary.sharesOutstanding, 0);
 
         // Claim and assert withdrawal.
         uint256 balanceBefore = address(this).balance;
@@ -258,6 +276,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertTrue(userSummary.claimed);
         assertEq(amountOut, withdrawalAmount);
         assertEq(address(this).balance - balanceBefore, withdrawalAmount);
+        assertEq(reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS), withdrawalEpoch + 1);
     }
 
     function test_claimWithdrawalsForEpochAllEtherPaidFromEigenLayerPreciseDecimals() public {
@@ -279,8 +298,12 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
 
         // Request a withdrawal for an amount with very precise decimals and rebalance.
         uint256 withdrawalAmount = 10 ** 18 - 1;
-        uint256 expectedAmountOut = reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
+
+        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, withdrawalAmount);
         skip(reETH.coordinator.rebalanceDelay());
+
+        uint256 expectedAmountOut = withdrawalAmount.reducePrecisionToGwei(); // Assumes 1:1 share value.
+        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
 
         (root, signature) = signCurrentDepositRoot(reETH.coordinator);
 
@@ -292,7 +315,6 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         verifyAndProcessWithdrawalsForValidatorIndexes(operatorDelegator, validatorIndices);
 
         // Settle the withdrawal epoch.
-        uint256 withdrawalEpoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
         IDelegationManager.Withdrawal[] memory withdrawals = new IDelegationManager.Withdrawal[](1);
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
@@ -303,25 +325,29 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
             strategies: BEACON_CHAIN_STRATEGY.toArray(),
             shares: expectedAmountOut.toArray()
         });
-        reETH.withdrawalQueue.settleEpochFromEigenLayer(ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1));
+        reETH.withdrawalQueue.completeEpochSettlementFromEigenLayer(
+            ETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1)
+        );
 
         // Assert epoch summary details.
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
             reETH.withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch);
         assertTrue(epochSummary.settled);
+        assertEq(epochSummary.amountIn, withdrawalAmount);
         assertEq(epochSummary.assetsReceived, expectedAmountOut);
-        assertEq(epochSummary.shareValueOfAssetsReceived, expectedAmountOut);
+        assertEq(epochSummary.sharesOutstanding, 0);
 
         // Claim and assert withdrawal.
         uint256 balanceBefore = address(this).balance;
-        uint256 amountOut = reETH.withdrawalQueue.claimWithdrawalsForEpoch(
+        uint256 amountClaimed = reETH.withdrawalQueue.claimWithdrawalsForEpoch(
             IRioLRTWithdrawalQueue.ClaimRequest({asset: ETH_ADDRESS, epoch: withdrawalEpoch})
         );
         IRioLRTWithdrawalQueue.UserWithdrawalSummary memory userSummary =
             reETH.withdrawalQueue.getUserWithdrawalSummary(ETH_ADDRESS, withdrawalEpoch, address(this));
 
         assertTrue(userSummary.claimed);
-        assertEq(amountOut, expectedAmountOut);
+        assertEq(userSummary.amountIn, withdrawalAmount);
+        assertEq(amountClaimed, expectedAmountOut);
         assertEq(address(this).balance - balanceBefore, expectedAmountOut);
     }
 
@@ -349,10 +375,12 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertEq(reLST.token.totalSupply(), initialTotalSupply);
 
         assertTrue(epochSummary.settled);
+        assertEq(epochSummary.amountIn, amountOut);
         assertEq(epochSummary.assetsReceived, amount);
-        assertEq(epochSummary.shareValueOfAssetsReceived, amount);
+        assertEq(epochSummary.sharesOutstanding, 0);
 
         assertFalse(userSummary.claimed);
+        assertEq(userSummary.amountIn, amountOut);
 
         uint256 balanceBefore = cbETH.balanceOf(address(this));
 
@@ -386,6 +414,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // Request a withdrawal for an amount greater than the deposit pool balance and rebalance.
         uint256 withdrawalLRTAmount = restakingTokensInDP + restakingTokensInEL;
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, withdrawalLRTAmount);
+
+        uint256 withdrawalEpoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
         skip(reLST.coordinator.rebalanceDelay());
 
         vm.prank(EOA, EOA);
@@ -395,7 +425,6 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertApproxEqAbs(reLST.token.totalSupply(), restakingTokensInEL + initialTotalSupply, 100);
 
         // Settle the withdrawal epoch.
-        uint256 withdrawalEpoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
         IDelegationManager.Withdrawal[] memory withdrawals = new IDelegationManager.Withdrawal[](1);
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
@@ -406,14 +435,17 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
             strategies: CBETH_STRATEGY.toArray(),
             shares: amount.toArray()
         });
-        reLST.withdrawalQueue.settleEpochFromEigenLayer(CBETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1));
+        reLST.withdrawalQueue.completeEpochSettlementFromEigenLayer(
+            CBETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1)
+        );
 
         // Assert epoch summary details.
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
             reLST.withdrawalQueue.getEpochWithdrawalSummary(CBETH_ADDRESS, withdrawalEpoch);
         assertTrue(epochSummary.settled);
+        assertEq(epochSummary.amountIn, withdrawalLRTAmount);
         assertEq(epochSummary.assetsReceived, expectedTokensOut);
-        assertEq(epochSummary.shareValueOfAssetsReceived, expectedTokensOut); // Share value is 1:1 initially.
+        assertEq(epochSummary.sharesOutstanding, 0);
 
         // Claim and assert withdrawal.
         uint256 balanceBefore = cbETH.balanceOf(address(this));
@@ -426,6 +458,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertTrue(userSummary.claimed);
         assertEq(cbETHWithdrawn, expectedTokensOut);
         assertEq(cbETH.balanceOf(address(this)) - balanceBefore, expectedTokensOut);
+        assertEq(reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS), withdrawalEpoch + 1);
     }
 
     function test_claimWithdrawalsForEpochAllERC20sPaidFromEigenLayer() public {
@@ -445,6 +478,8 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
 
         // Request a withdrawal for the tokens from EigenLayer and rebalance.
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, restakingTokensOut);
+
+        uint256 withdrawalEpoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
         skip(reLST.coordinator.rebalanceDelay());
 
         vm.prank(EOA, EOA);
@@ -454,7 +489,6 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertEq(reLST.token.totalSupply(), restakingTokensOut + initialTotalSupply);
 
         // Settle the withdrawal epoch.
-        uint256 withdrawalEpoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
         IDelegationManager.Withdrawal[] memory withdrawals = new IDelegationManager.Withdrawal[](1);
         withdrawals[0] = IDelegationManager.Withdrawal({
             staker: operatorDelegator,
@@ -465,14 +499,17 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
             strategies: CBETH_STRATEGY.toArray(),
             shares: amount.toArray()
         });
-        reLST.withdrawalQueue.settleEpochFromEigenLayer(CBETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1));
+        reLST.withdrawalQueue.completeEpochSettlementFromEigenLayer(
+            CBETH_ADDRESS, withdrawalEpoch, withdrawals, new uint256[](1)
+        );
 
         // Assert epoch summary details.
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
             reLST.withdrawalQueue.getEpochWithdrawalSummary(CBETH_ADDRESS, withdrawalEpoch);
         assertTrue(epochSummary.settled);
+        assertEq(epochSummary.amountIn, restakingTokensOut);
         assertEq(epochSummary.assetsReceived, amount);
-        assertEq(epochSummary.shareValueOfAssetsReceived, amount); // Share value is 1:1 initially.
+        assertEq(epochSummary.sharesOutstanding, 0);
 
         // Claim and assert withdrawal.
         uint256 balanceBefore = cbETH.balanceOf(address(this));
@@ -485,6 +522,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         assertTrue(userSummary.claimed);
         assertEq(cbETHWithdrawn, amount);
         assertEq(cbETH.balanceOf(address(this)) - balanceBefore, amount);
+        assertEq(reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS), withdrawalEpoch + 1);
     }
 
     function test_claimWithdrawalsForManyEpochs() public {

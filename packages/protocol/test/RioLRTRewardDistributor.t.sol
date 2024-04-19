@@ -69,7 +69,7 @@ contract RioLRTRewardDistributorTest is RioDeployer {
         assertEq(reETH.rewardDistributor.operatorETHValidatorRewardShareBPS(), 50);
     }
 
-    function test_receiveFunctionCorrectlySplitsEther() public {
+    function test_distributeETHValidatorRewardsCorrectlySplitsEther() public {
         vm.deal(address(reETH.depositPool), 0); // Zero out deposit pool balance.
 
         uint256 amount = 16.2 ether;
@@ -79,6 +79,8 @@ contract RioLRTRewardDistributorTest is RioDeployer {
 
         (bool success,) = address(reETH.rewardDistributor).call{value: amount}('');
         assertTrue(success);
+
+        reETH.rewardDistributor.distributeETHValidatorRewards();
 
         uint256 EXPECTED_TREASURY_BALANCE = (amount * 4) / 100;
         uint256 EXPECTED_OPERATOR_BALANCE = (amount * 6) / 100;

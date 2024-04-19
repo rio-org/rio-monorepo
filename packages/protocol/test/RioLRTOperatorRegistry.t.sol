@@ -323,17 +323,19 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
     }
 
     function test_reportOutOfOrderValidatorExits() public {
-        uint40 DEPOSIT_COUNT = 300;
+        uint40 UPLOADED_KEY_COUNT = 1_000;
+
+        uint256 DEPOSIT_COUNT = 300;
         uint256 OOO_EXIT_STARTING_INDEX = 150;
         uint256 OOO_EXIT_COUNT = 88;
 
         // forgefmt: disable-next-item
         uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 0);
-        reETH.operatorRegistry.setOperatorValidatorCap(operatorId, DEPOSIT_COUNT);
+        reETH.operatorRegistry.setOperatorValidatorCap(operatorId, UPLOADED_KEY_COUNT);
 
         // Populate the keys and signatures with random bytes.
-        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getRandomValidatorKeys(DEPOSIT_COUNT);
-        reETH.operatorRegistry.addValidatorDetails(operatorId, DEPOSIT_COUNT, publicKeys, signatures);
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getRandomValidatorKeys(UPLOADED_KEY_COUNT);
+        reETH.operatorRegistry.addValidatorDetails(operatorId, UPLOADED_KEY_COUNT, publicKeys, signatures);
 
         // Fast forward to allow validator keys time to confirm.
         skip(reETH.operatorRegistry.validatorKeyReviewPeriod());
@@ -489,6 +491,38 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         assertEq(details.validatorDetails.exited, OOO_EXIT_COUNT);
     }
 
+    function test_syncStrategyShares() public {
+        // First, set up an edge case scenario where the actual operator allocation can differ very
+        // slightly from the stored allocation due to rounding differences.
+        uint8[] memory operatorIds = addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
+
+        // Deposit and push the balance into EigenLayer.
+        cbETH.approve(address(reLST.coordinator), type(uint256).max);
+        reLST.coordinator.deposit(CBETH_ADDRESS, 100e18);
+
+        vm.prank(EOA, EOA);
+        reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
+
+        // Donate 10 wei of cbETH to the EigenLayer strategy.
+        cbETH.transfer(address(0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc), 10);
+
+        reLST.coordinator.deposit(CBETH_ADDRESS, 100000000000000000010);
+        skip(reLST.coordinator.rebalanceDelay());
+
+        vm.prank(EOA, EOA);
+        reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
+
+        uint128 storedAllocationBefore = reLST.operatorRegistry.getOperatorShareDetails(1, CBETH_STRATEGY).allocation;
+        assertEq(storedAllocationBefore, 200000000000000000000);
+
+        // Sync the strategy shares with EigenLayer.
+        reLST.operatorRegistry.syncStrategyShares(operatorIds, CBETH_STRATEGY);
+
+        // Ensure the stored allocation is updated to the actual allocation.
+        uint128 storedAllocationAfter = reLST.operatorRegistry.getOperatorShareDetails(1, CBETH_STRATEGY).allocation;
+        assertEq(storedAllocationAfter, 199999999999999999999);
+    }
+
     function test_removeValidatorDetailsDepositedKeysReverts() public {
         uint8 operatorId =
             addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 10);
@@ -546,8 +580,6 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         assertEq(operator.validatorDetails.confirmed, 10);
         assertEq(operator.validatorDetails.total, 20);
 
-        uint40 nextConfirmationTimestampBeforeRemoval = operator.validatorDetails.nextConfirmationTimestamp;
-
         // Remove 10 validators starting at index 3.
         uint40 fromIndex = 3;
         uint40 validatorsToRemove = 10;
@@ -556,9 +588,6 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         operator = reETH.operatorRegistry.getOperatorDetails(operatorId);
         assertEq(operator.validatorDetails.confirmed, fromIndex); // Confirmed has been decreased to the `fromIndex`.
         assertEq(operator.validatorDetails.total, 20 - validatorsToRemove); // Total has been decreased by `validatorsToRemove`.
-
-        // Ensure the next confirmation timestamp has increased following removal of confirmed keys.
-        assertGt(operator.validatorDetails.nextConfirmationTimestamp, nextConfirmationTimestampBeforeRemoval);
     }
 
     function test_allocateStrategySharesInvalidCallerReverts() public {
