@@ -91,7 +91,7 @@ library OperatorRegistryV1Admin {
 
         // Populate the validator cap for the operator, if applicable.
         if (config.validatorCap > 0) {
-            s.setOperatorValidatorCap(operatorId, config.validatorCap);
+            s.setOperatorValidatorCapInternal(operatorId, config.validatorCap);
         }
     }
 
@@ -133,7 +133,7 @@ library OperatorRegistryV1Admin {
             );
         }
         if (operator.validatorDetails.cap > 0) {
-            s.setOperatorValidatorCap(operatorId, 0);
+            s.setOperatorValidatorCapInternal(operatorId, 0);
         }
 
         operator.active = false;
@@ -229,6 +229,18 @@ library OperatorRegistryV1Admin {
         emit IRioLRTOperatorRegistry.ValidatorKeyReviewPeriodSet(newValidatorKeyReviewPeriod);
     }
 
+    /// @notice Sets the operator's maximum active validator cap.
+    /// @param s The operator registry v1 storage accessor.
+    /// @param operatorId The unique identifier of the operator.
+    /// @param newValidatorCap The new maximum active validator cap.
+    function setOperatorValidatorCap(
+        RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
+        uint8 operatorId,
+        uint40 newValidatorCap
+    ) external {
+        s.setOperatorValidatorCapInternal(operatorId, newValidatorCap);
+    }
+
     // forgefmt: disable-next-item
     /// @notice Sets the strategy share cap for a given operator.
     /// @param s The operator registry v1 storage accessor.
@@ -283,7 +295,7 @@ library OperatorRegistryV1Admin {
     /// @param s The operator registry v1 storage accessor.
     /// @param operatorId The unique identifier of the operator.
     /// @param newValidatorCap The new maximum active validator cap.
-    function setOperatorValidatorCap(
+    function setOperatorValidatorCapInternal(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
         uint8 operatorId,
         uint40 newValidatorCap
