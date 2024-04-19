@@ -253,7 +253,7 @@ contract RioLRTDepositPoolTest is RioDeployer {
 
         // Allocate to cbETH strategy.
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
-        reLST.coordinator.deposit(CBETH_ADDRESS, AMOUNT);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, AMOUNT);
 
         // Push funds into EigenLayer.
         vm.prank(EOA, EOA);

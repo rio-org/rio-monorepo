@@ -237,7 +237,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Allocate to cbETH strategy.
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
-        reLST.coordinator.deposit(CBETH_ADDRESS, AMOUNT);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, AMOUNT);
 
         // Push funds into EigenLayer.
         vm.prank(EOA, EOA);
@@ -498,7 +498,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Deposit and push the balance into EigenLayer.
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
-        reLST.coordinator.deposit(CBETH_ADDRESS, 100e18);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, 100e18);
 
         vm.prank(EOA, EOA);
         reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
@@ -506,7 +506,7 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         // Donate 10 wei of cbETH to the EigenLayer strategy.
         cbETH.transfer(address(0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc), 10);
 
-        reLST.coordinator.deposit(CBETH_ADDRESS, 100000000000000000010);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, 100000000000000000010);
         skip(reLST.coordinator.rebalanceDelay());
 
         vm.prank(EOA, EOA);

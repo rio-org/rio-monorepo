@@ -117,7 +117,7 @@ interface IRioLRTCoordinator {
     /// @notice Deposits ERC20 tokens and mints restaking token(s) to the caller.
     /// @param asset The asset being deposited.
     /// @param amountIn The amount of the asset being deposited.
-    function deposit(address asset, uint256 amountIn) external returns (uint256);
+    function depositERC20(address asset, uint256 amountIn) external returns (uint256);
 
     /// @notice Deposits ETH and mints restaking token(s) to the caller.
     function depositETH() external payable returns (uint256);

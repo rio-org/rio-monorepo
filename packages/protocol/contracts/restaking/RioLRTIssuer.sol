@@ -173,7 +173,7 @@ contract RioLRTIssuer is IRioLRTIssuer, OwnableUpgradeable, UUPSUpgradeable {
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
         IERC20(asset).forceApprove(address(coordinator), amount);
 
-        coordinator.deposit(asset, amount);
+        coordinator.depositERC20(asset, amount);
     }
 
     /// @dev Allows the owner to upgrade the LRT issuer implementation.

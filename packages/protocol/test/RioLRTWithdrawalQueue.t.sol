@@ -356,7 +356,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         uint256 amount = 55e18;
 
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
-        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        uint256 amountOut = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
 
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut);
 
@@ -405,11 +405,11 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
         // Deposit cbETH, rebalance, and deposit again to create a balance in EigenLayer
         // and the deposit pool.
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
-        uint256 restakingTokensInEL = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        uint256 restakingTokensInEL = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
 
         vm.prank(EOA, EOA);
         reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
-        uint256 restakingTokensInDP = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        uint256 restakingTokensInDP = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
 
         // Request a withdrawal for an amount greater than the deposit pool balance and rebalance.
         uint256 withdrawalLRTAmount = restakingTokensInDP + restakingTokensInEL;
@@ -471,7 +471,7 @@ contract RioLRTWithdrawalQueueTest is RioDeployer {
 
         // Deposit cbETH and rebalance to move all tokens to EigenLayer.
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
-        uint256 restakingTokensOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        uint256 restakingTokensOut = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
 
         vm.prank(EOA, EOA);
         reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);

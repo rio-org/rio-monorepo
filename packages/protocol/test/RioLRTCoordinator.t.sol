@@ -105,22 +105,22 @@ contract RioLRTCoordinatorTest is RioDeployer {
         reLST.coordinator.pause();
 
         vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
-        reLST.coordinator.deposit(address(42), 20e18);
+        reLST.coordinator.depositERC20(address(42), 20e18);
     }
 
     function test_depositERC20NotSupportedReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.ASSET_NOT_SUPPORTED.selector, address(42)));
-        reLST.coordinator.deposit(address(42), 20e18);
+        reLST.coordinator.depositERC20(address(42), 20e18);
     }
 
     function test_depositERC20ZeroValueReverts() public {
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.AMOUNT_MUST_BE_GREATER_THAN_ZERO.selector));
-        reLST.coordinator.deposit(CBETH_ADDRESS, 0);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, 0);
     }
 
     function test_depositERC20() public {
         cbETH.approve(address(reLST.coordinator), 20e18);
-        reLST.coordinator.deposit(CBETH_ADDRESS, 20e18);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, 20e18);
 
         uint256 price = reLST.assetRegistry.getAssetPrice(CBETH_ADDRESS);
         assertEq(reLST.token.balanceOf(address(this)), price * 20);
@@ -183,7 +183,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
     function test_requestWithdrawalBeyondAmountAvailableReverts() public {
         rETH.approve(address(reLST.coordinator), 100e18);
-        reLST.coordinator.deposit(RETH_ADDRESS, 100e18);
+        reLST.coordinator.depositERC20(RETH_ADDRESS, 100e18);
 
         vm.expectRevert(abi.encodeWithSelector(IRioLRTCoordinator.INSUFFICIENT_SHARES_FOR_WITHDRAWAL.selector));
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, 100e18);
@@ -193,7 +193,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         uint256 amount = 50e18;
 
         cbETH.approve(address(reLST.coordinator), amount);
-        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        uint256 amountOut = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
 
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut);
 
@@ -592,7 +592,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
 
         cbETH.approve(address(reLST.coordinator), amount);
 
-        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        uint256 amountOut = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut);
 
         uint256 epoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
@@ -615,14 +615,14 @@ contract RioLRTCoordinatorTest is RioDeployer {
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
 
         // Deposit and push the balance into EigenLayer.
-        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        uint256 amountOut = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
 
         vm.prank(EOA, EOA);
         reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
 
         // Deposit again and request a withdrawal. Following this deposit,
         // both EigenLayer and the deposit pool will have `amount` cbETH.
-        reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut + 1e18);
 
         skip(reLST.coordinator.rebalanceDelay());
@@ -649,7 +649,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
 
         // Deposit and push the balance into EigenLayer.
-        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        uint256 amountOut = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
 
         vm.prank(EOA, EOA);
         reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
@@ -679,7 +679,7 @@ contract RioLRTCoordinatorTest is RioDeployer {
         uint256 amount = 20e18;
         cbETH.approve(address(reLST.coordinator), amount);
 
-        uint256 amountOut = reLST.coordinator.deposit(CBETH_ADDRESS, amount);
+        uint256 amountOut = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
         reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut);
 
         // Make the deposit revert.
