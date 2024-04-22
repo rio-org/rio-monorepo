@@ -1,0 +1,39 @@
+# Yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: CI
+
+on:
+  push:
+    branches: ['main']
+
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint-and-format:
+    name: Lint and format packages
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      RUN_LINT_AND_FORMAT: true
+
+  typecheck:
+    name: Type-check packages
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      RUN_TYPECHECK: true
+
+  test:
+    name: Test packages
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      RUN_TESTS: true
+
+  datadog-sourcemaps:
+    name: Upload sourcemaps to Datadog
+    uses: ./.github/workflows/build.yaml
+    with:
+      SHA: ${{ github.sha }}
+      DATADOG_API_KEY: ${{ vars.DATADOG_API_KEY }}
+      RUN_DATADOG_UPLOAD: true
