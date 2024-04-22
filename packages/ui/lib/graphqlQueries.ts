@@ -29,7 +29,6 @@ export const getLiquidRestakingTokenList = () => {
         symbol
         name
         address
-        percentAPY
         totalSupply
         totalValueUSD
         totalValueETH
