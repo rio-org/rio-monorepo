@@ -16,12 +16,12 @@ interface IRioLRTWithdrawalQueue {
     struct EpochWithdrawals {
         /// @dev Indicates whether or not the epoch has been settled.
         bool settled;
-        /// @dev The total amount of restaking tokens requested for withdrawal in the epoch.
-        uint120 amountIn;
         /// @dev The amount of assets received to settle the epoch.
         uint120 assetsReceived;
         /// @dev The total number of shares outstanding in the epoch.
         uint120 sharesOutstanding;
+        /// @dev The total amount of restaking tokens requested for withdrawal in the epoch.
+        uint120 amountIn;
         /// @dev The amount of restaking tokens that to burn upon epoch settlement.
         uint120 amountToBurnAtSettlement;
         /// @dev The aggregate root of the queued EigenLayer withdrawals.
