@@ -149,8 +149,8 @@ export function findOrCreateWithdrawalEpoch(restakingToken: string, epoch: BigIn
   withdrawalEpoch.status = WithdrawalEpochStatus.ACTIVE;
   withdrawalEpoch.restakingToken = restakingToken;
   withdrawalEpoch.sharesOwed = ZERO_BD;
+  withdrawalEpoch.amountIn = ZERO_BD;
   withdrawalEpoch.assetsReceived = ZERO_BD;
-  withdrawalEpoch.shareValueOfAssetsReceived = ZERO_BD;
   withdrawalEpoch.amountToBurnAtSettlement = ZERO_BD;
   withdrawalEpoch.requestCount = 0;
   withdrawalEpoch.claimCount = 0;

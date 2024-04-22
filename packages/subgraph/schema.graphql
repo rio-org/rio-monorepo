@@ -118,7 +118,6 @@ type WithdrawalRequest @entity {
   sender: Bytes!
   epoch: WithdrawalEpoch!
   assetOut: Asset!
-  sharesOwed: BigDecimal!
   amountIn: BigDecimal!
   restakingToken: LiquidRestakingToken!
   restakingTokenPriceUSD: BigDecimal
@@ -177,9 +176,9 @@ type WithdrawalEpoch @entity {
   restakingToken: LiquidRestakingToken!
   queuedTimestamp: BigInt
   settledTimestamp: BigInt
+  amountIn: BigDecimal!
   sharesOwed: BigDecimal!
   assetsReceived: BigDecimal!
-  shareValueOfAssetsReceived: BigDecimal!
   amountToBurnAtSettlement: BigDecimal!
   aggregateRoot: Bytes
   requests: [WithdrawalRequest!] @derivedFrom(field: "epoch")

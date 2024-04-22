@@ -13,6 +13,7 @@
     "deploy:local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 rio-org",
     "build:goerli": "graph build --network goerli",
     "deploy:goerli": "graph deploy --network goerli --product hosted-service rio-org/rio-network-goerli",
+    "deploy:holesky": "goldsky subgraph deploy rio-network-holesky/0.1.3",
     "test": "graph test"
   },
   "dependencies": {
