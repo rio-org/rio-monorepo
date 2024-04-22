@@ -1,0 +1,187 @@
+specVersion: 0.0.4
+features:
+  - ipfsOnEthereumContracts
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: RioLRTIssuer
+    source:
+      abi: RioLRTIssuer
+      address: "0x95e7fef8e83e4e69f42c17a7b474913df5124270"
+      startBlock: 1187678
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/issuer.ts
+      entities:
+        - LRTIssuer
+        - LiquidRestakingToken
+      abis:
+        - name: RioLRTIssuer
+          file: ./abis/RioLRTIssuer.json
+        - name: ERC20Token
+          file: ./abis/ERC20Token.json
+        - name: PriceFeed
+          file: ./abis/PriceFeed.json
+      eventHandlers:
+        - event: LiquidRestakingTokenIssued(string,string,((address,uint96,address,address)[],(address,uint256),uint8,address,address),(address,address,address,address,address,address,address,address))
+          handler: handleLiquidRestakingTokenIssued
+    network: holesky
+  - kind: ethereum/contract
+    name: DelegationManager
+    source:
+      abi: DelegationManager
+      address: "0xA44151489861Fe9e3055d95adC98FbD462B948e7"
+      startBlock: 1187678
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/delegation-manager.ts
+      entities:
+        - Operator
+      abis:
+        - name: DelegationManager
+          file: ./abis/DelegationManager.json
+      eventHandlers:
+        - event: OperatorMetadataURIUpdated(indexed address,string)
+          handler: handleOperatorMetadataURIUpdated
+        - event: OperatorDetailsModified(indexed address,(address,address,uint32))
+          handler: handleOperatorDetailsModified
+    network: holesky
+templates:
+  - name: LiquidRestakingToken
+    kind: ethereum/contract
+    source:
+      abi: RioLRT
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/liquid-restaking-token.ts
+      entities:
+        - LiquidRestakingToken
+      abis:
+        - name: RioLRT
+          file: ./abis/RioLRT.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleLiquidRestakingTokenTransfer
+    network: holesky
+  - name: Coordinator
+    kind: ethereum/contract
+    source:
+      abi: RioLRTCoordinator
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/coordinator.ts
+      entities:
+        - User
+        - Deposit
+        - Withdrawal
+      abis:
+        - name: RioLRTCoordinator
+          file: ./abis/RioLRTCoordinator.json
+      eventHandlers:
+        - event: Deposited(indexed address,indexed address,uint256,uint256)
+          handler: handleDeposited
+    network: holesky
+  - name: WithdrawalQueue
+    kind: ethereum/contract
+    source:
+      abi: RioLRTWithdrawalQueue
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/withdrawal-queue.ts
+      entities:
+        - User
+        - Withdrawal
+      abis:
+        - name: RioLRTWithdrawalQueue
+          file: ./abis/RioLRTWithdrawalQueue.json
+      eventHandlers:
+        # This legacy handler is only needed on Holesky.
+        - event: WithdrawalQueued(indexed uint256,address,address,uint256,uint256)
+          handler: handleWithdrawalQueuedLegacy
+        - event: WithdrawalQueued(indexed uint256,address,address,uint256)
+          handler: handleWithdrawalQueued
+        - event: WithdrawalsClaimedForEpoch(indexed uint256,address,address,uint256)
+          handler: handleWithdrawalsClaimedForEpoch
+        - event: EpochSettledFromDepositPool(indexed uint256,address,uint256)
+          handler: handleEpochSettledFromDepositPool
+        # This legacy handler is only needed on Holesky.
+        - event: EpochQueuedForSettlementFromEigenLayer(indexed uint256,address,uint256,uint256,uint256,bytes32)
+          handler: handleEpochQueuedForSettlementFromEigenLayerLegacy
+        - event: EpochQueuedForSettlementFromEigenLayer(indexed uint256,address,uint256,uint256,uint256,uint256,bytes32)
+          handler: handleEpochQueuedForSettlementFromEigenLayer
+        - event: EpochSettledFromEigenLayer(indexed uint256,address,uint256)
+          handler: handleEpochSettledFromEigenLayer
+    network: holesky
+  - name: OperatorRegistry
+    kind: ethereum/contract
+    source:
+      abi: RioLRTOperatorRegistry
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/operator-registry.ts
+      entities:
+        - Operator
+      abis:
+        - name: RioLRTOperatorRegistry
+          file: ./abis/RioLRTOperatorRegistry.json
+        - name: DelegationManager
+          file: ./abis/DelegationManager.json
+        - name: EigenPodManager
+          file: ./abis/EigenPodManager.json
+      eventHandlers:
+        - event: OperatorAdded(indexed uint8,indexed address,indexed
+            address,address,address,string)
+          handler: handleOperatorAdded
+        - event: ValidatorDetailsAdded(indexed uint8,bytes)
+          handler: handleValidatorDetailsAdded
+        - event: ValidatorDetailsRemoved(indexed uint8,bytes)
+          handler: handleValidatorDetailsRemoved
+        - event: ETHDepositsAllocated(indexed uint8,uint256,bytes)
+          handler: handleETHDepositsAllocated
+        - event: ETHDepositsDeallocated(indexed uint8,uint256,bytes)
+          handler: handleETHDepositsDeallocated
+    network: holesky
+  - name: OperatorMetadata
+    kind: file/ipfs
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/operator-metadata.ts
+      handler: handleOperatorMetadata
+      entities:
+        - OperatorMetadata
+      abis:
+        - name: RioLRTOperatorRegistry
+          file: ./abis/RioLRTOperatorRegistry.json
+    network: holesky
+  - name: PriceSource
+    kind: ethereum/contract
+    source:
+      abi: PriceSource
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/price.ts
+      entities:
+        - PriceSource
+      abis:
+        - name: PriceSource
+          file: ./abis/PriceSource.json
+      eventHandlers:
+        - event: AnswerUpdated(indexed int256,indexed uint256,uint256)
+          handler: handleAnswerUpdated
+    network: holesky

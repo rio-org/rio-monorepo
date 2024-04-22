@@ -1,0 +1,36 @@
+# Generated files
+node_modules
+dist
+.DS_Store
+## Keep ui package def file because it doesn't build itself.
+!packages/ui/next-env.d.ts
+
+# Docker container volumes
+.volumes
+
+# Typescript
+*.tsbuildinfo
+*.d.ts
+
+# Turborepo
+.turbo
+
+# Jetbrains
+.idea
+
+# Jest
+coverage
+.coverage
+
+# Env files
+.env*
+!.env.example
+
+# Foundry
+cache
+out
+
+# Next.js/Vercel build output
+.vercel
+.next
+out

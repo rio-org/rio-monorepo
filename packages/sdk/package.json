@@ -1,0 +1,40 @@
+{
+  "name": "@rionetwork/sdk",
+  "version": "0.2.1",
+  "description": "Utilities that simplify interaction with the Rio Network protocol",
+  "license": "GPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=16",
+    "pnpm": ">=9"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean:build": "rimraf ./dist",
+    "dev": "nodemon",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "pnpm lint --fix",
+    "format": "prettier --check src/**/*.ts",
+    "format:fix": "prettier --write src/**/*.ts",
+    "test": "jest",
+    "typecheck": "tsc",
+    "codegen": "graphql-codegen --config scripts/gql-codegen.ts"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "abitype": "^0.10.3",
+    "big.js": "^6.2.1",
+    "cacheables": "^1.2.2",
+    "graphql-request": "^6.1.0",
+    "viem": "^2.7.13"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.0",
+    "@graphql-codegen/client-preset": "^4.1.0",
+    "@types/big.js": "^6.2.2"
+  }
+}

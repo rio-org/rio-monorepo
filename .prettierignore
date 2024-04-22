@@ -1,0 +1,13 @@
+# Generated files
+.pnpm-store
+pnpm-lock.yaml
+node_modules
+dist
+
+# Packages
+/packages/protocol
+/packages/sdk
+/packages/sdk-react
+/packages/subgraph
+
+# Docker container volumes
