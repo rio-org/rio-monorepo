@@ -102,7 +102,6 @@ export enum AvsRegistry_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -185,7 +184,6 @@ export enum AssetRegistry_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -368,7 +366,6 @@ export enum Coordinator_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -458,7 +455,6 @@ export enum DepositPool_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -652,7 +648,6 @@ export enum Deposit_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -740,7 +735,6 @@ export type LiquidRestakingToken = {
   issuer: Issuer;
   name: Scalars['String']['output'];
   operatorRegistry: OperatorRegistry;
-  percentAPY?: Maybe<Scalars['BigDecimal']['output']>;
   priceFeeds?: Maybe<Array<PriceFeed>>;
   rewardDistributor: RewardDistributor;
   symbol: Scalars['String']['output'];
@@ -860,14 +854,6 @@ export type LiquidRestakingToken_Filter = {
   name_starts_with_nocase?: InputMaybe<Scalars['String']['input']>;
   operatorRegistry_?: InputMaybe<OperatorRegistry_Filter>;
   or?: InputMaybe<Array<InputMaybe<LiquidRestakingToken_Filter>>>;
-  percentAPY?: InputMaybe<Scalars['BigDecimal']['input']>;
-  percentAPY_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
-  percentAPY_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
-  percentAPY_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  percentAPY_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
-  percentAPY_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
-  percentAPY_not?: InputMaybe<Scalars['BigDecimal']['input']>;
-  percentAPY_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   priceFeeds_?: InputMaybe<PriceFeed_Filter>;
   rewardDistributor_?: InputMaybe<RewardDistributor_Filter>;
   symbol?: InputMaybe<Scalars['String']['input']>;
@@ -944,7 +930,6 @@ export enum LiquidRestakingToken_OrderBy {
   OperatorRegistry = 'operatorRegistry',
   OperatorRegistryAddress = 'operatorRegistry__address',
   OperatorRegistryId = 'operatorRegistry__id',
-  PercentApy = 'percentAPY',
   PriceFeeds = 'priceFeeds',
   RewardDistributor = 'rewardDistributor',
   RewardDistributorAddress = 'rewardDistributor__address',
@@ -976,6 +961,7 @@ export type OperatorDelegator = {
   delegatorId: Scalars['Int']['output'];
   depositedValidatorKeyCount: Scalars['BigInt']['output'];
   earningsReceiver: Scalars['Bytes']['output'];
+  eigenPod: Scalars['Bytes']['output'];
   exitedValidatorKeyCount: Scalars['BigInt']['output'];
   id: Scalars['ID']['output'];
   manager: Scalars['Bytes']['output'];
@@ -1036,6 +1022,16 @@ export type OperatorDelegator_Filter = {
   earningsReceiver_not?: InputMaybe<Scalars['Bytes']['input']>;
   earningsReceiver_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   earningsReceiver_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  eigenPod?: InputMaybe<Scalars['Bytes']['input']>;
+  eigenPod_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  eigenPod_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  eigenPod_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  eigenPod_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  eigenPod_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  eigenPod_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  eigenPod_not?: InputMaybe<Scalars['Bytes']['input']>;
+  eigenPod_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  eigenPod_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
   exitedValidatorKeyCount?: InputMaybe<Scalars['BigInt']['input']>;
   exitedValidatorKeyCount_gt?: InputMaybe<Scalars['BigInt']['input']>;
   exitedValidatorKeyCount_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -1135,6 +1131,7 @@ export enum OperatorDelegator_OrderBy {
   DelegatorId = 'delegatorId',
   DepositedValidatorKeyCount = 'depositedValidatorKeyCount',
   EarningsReceiver = 'earningsReceiver',
+  EigenPod = 'eigenPod',
   ExitedValidatorKeyCount = 'exitedValidatorKeyCount',
   Id = 'id',
   Manager = 'manager',
@@ -1151,7 +1148,6 @@ export enum OperatorDelegator_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -1360,7 +1356,6 @@ export enum OperatorRegistry_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -1462,6 +1457,7 @@ export enum Operator_OrderBy {
   DelegatorDelegatorId = 'delegator__delegatorId',
   DelegatorDepositedValidatorKeyCount = 'delegator__depositedValidatorKeyCount',
   DelegatorEarningsReceiver = 'delegator__earningsReceiver',
+  DelegatorEigenPod = 'delegator__eigenPod',
   DelegatorExitedValidatorKeyCount = 'delegator__exitedValidatorKeyCount',
   DelegatorId = 'delegator__id',
   DelegatorManager = 'delegator__manager',
@@ -2281,7 +2277,6 @@ export enum RewardDistributor_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -2947,7 +2942,6 @@ export enum TokenTransfer_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -3145,7 +3139,6 @@ export enum UnderlyingAsset_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -3394,6 +3387,7 @@ export enum Validator_OrderBy {
   DelegatorDelegatorId = 'delegator__delegatorId',
   DelegatorDepositedValidatorKeyCount = 'delegator__depositedValidatorKeyCount',
   DelegatorEarningsReceiver = 'delegator__earningsReceiver',
+  DelegatorEigenPod = 'delegator__eigenPod',
   DelegatorExitedValidatorKeyCount = 'delegator__exitedValidatorKeyCount',
   DelegatorId = 'delegator__id',
   DelegatorManager = 'delegator__manager',
@@ -3617,7 +3611,6 @@ export enum WithdrawalClaim_OrderBy {
   EpochQueuedTimestamp = 'epoch__queuedTimestamp',
   EpochRequestCount = 'epoch__requestCount',
   EpochSettledTimestamp = 'epoch__settledTimestamp',
-  EpochShareValueOfAssetsReceived = 'epoch__shareValueOfAssetsReceived',
   EpochSharesOwed = 'epoch__sharesOwed',
   EpochStatus = 'epoch__status',
   Id = 'id',
@@ -3630,7 +3623,6 @@ export enum WithdrawalClaim_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -3660,7 +3652,6 @@ export type WithdrawalEpoch = {
   requests?: Maybe<Array<WithdrawalRequest>>;
   restakingToken: LiquidRestakingToken;
   settledTimestamp?: Maybe<Scalars['BigInt']['output']>;
-  shareValueOfAssetsReceived: Scalars['BigDecimal']['output'];
   sharesOwed: Scalars['BigDecimal']['output'];
   status: WithdrawalEpochStatus;
 };
@@ -3801,7 +3792,6 @@ export enum WithdrawalEpochUserSummary_OrderBy {
   EpochQueuedTimestamp = 'epoch__queuedTimestamp',
   EpochRequestCount = 'epoch__requestCount',
   EpochSettledTimestamp = 'epoch__settledTimestamp',
-  EpochShareValueOfAssetsReceived = 'epoch__shareValueOfAssetsReceived',
   EpochSharesOwed = 'epoch__sharesOwed',
   EpochStatus = 'epoch__status',
   Id = 'id',
@@ -3941,18 +3931,6 @@ export type WithdrawalEpoch_Filter = {
   settledTimestamp_lte?: InputMaybe<Scalars['BigInt']['input']>;
   settledTimestamp_not?: InputMaybe<Scalars['BigInt']['input']>;
   settledTimestamp_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
-  shareValueOfAssetsReceived?: InputMaybe<Scalars['BigDecimal']['input']>;
-  shareValueOfAssetsReceived_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
-  shareValueOfAssetsReceived_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
-  shareValueOfAssetsReceived_in?: InputMaybe<
-    Array<Scalars['BigDecimal']['input']>
-  >;
-  shareValueOfAssetsReceived_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
-  shareValueOfAssetsReceived_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
-  shareValueOfAssetsReceived_not?: InputMaybe<Scalars['BigDecimal']['input']>;
-  shareValueOfAssetsReceived_not_in?: InputMaybe<
-    Array<Scalars['BigDecimal']['input']>
-  >;
   sharesOwed?: InputMaybe<Scalars['BigDecimal']['input']>;
   sharesOwed_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   sharesOwed_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3993,13 +3971,11 @@ export enum WithdrawalEpoch_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
   RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD',
   SettledTimestamp = 'settledTimestamp',
-  ShareValueOfAssetsReceived = 'shareValueOfAssetsReceived',
   SharesOwed = 'sharesOwed',
   Status = 'status'
 }
@@ -4069,7 +4045,6 @@ export enum WithdrawalQueue_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -4348,7 +4323,6 @@ export enum WithdrawalRequest_OrderBy {
   EpochQueuedTimestamp = 'epoch__queuedTimestamp',
   EpochRequestCount = 'epoch__requestCount',
   EpochSettledTimestamp = 'epoch__settledTimestamp',
-  EpochShareValueOfAssetsReceived = 'epoch__shareValueOfAssetsReceived',
   EpochSharesOwed = 'epoch__sharesOwed',
   EpochStatus = 'epoch__status',
   Id = 'id',
@@ -4362,7 +4336,6 @@ export enum WithdrawalRequest_OrderBy {
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
   RestakingTokenId = 'restakingToken__id',
   RestakingTokenName = 'restakingToken__name',
-  RestakingTokenPercentApy = 'restakingToken__percentAPY',
   RestakingTokenSymbol = 'restakingToken__symbol',
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
@@ -4434,7 +4407,6 @@ export type LiquidRestakingTokenFieldsFragment = {
   totalValueUSD?: any | null;
   exchangeRateETH?: any | null;
   exchangeRateUSD?: any | null;
-  percentAPY?: any | null;
   underlyingAssets?: Array<{
     __typename?: 'UnderlyingAsset';
     address: any;
@@ -4606,7 +4578,6 @@ export type LiquidRestakingTokenQuery = {
     totalValueUSD?: any | null;
     exchangeRateETH?: any | null;
     exchangeRateUSD?: any | null;
-    percentAPY?: any | null;
     underlyingAssets?: Array<{
       __typename?: 'UnderlyingAsset';
       address: any;
@@ -4653,7 +4624,6 @@ export type ManyLiquidRestakingTokensQuery = {
     totalValueUSD?: any | null;
     exchangeRateETH?: any | null;
     exchangeRateUSD?: any | null;
-    percentAPY?: any | null;
     underlyingAssets?: Array<{
       __typename?: 'UnderlyingAsset';
       address: any;
@@ -4913,7 +4883,6 @@ export const LiquidRestakingTokenFieldsFragmentDoc = {
           { kind: 'Field', name: { kind: 'Name', value: 'totalValueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateETH' } },
           { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateUSD' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'percentAPY' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'underlyingAssets' },
@@ -5559,7 +5528,6 @@ export const LiquidRestakingTokenDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'totalValueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateETH' } },
           { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateUSD' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'percentAPY' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'underlyingAssets' },
@@ -5815,7 +5783,6 @@ export const ManyLiquidRestakingTokensDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'totalValueUSD' } },
           { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateETH' } },
           { kind: 'Field', name: { kind: 'Name', value: 'exchangeRateUSD' } },
-          { kind: 'Field', name: { kind: 'Name', value: 'percentAPY' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'underlyingAssets' },

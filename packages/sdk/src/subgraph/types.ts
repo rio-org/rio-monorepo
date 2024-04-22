@@ -53,7 +53,6 @@ export interface LiquidRestakingToken {
   totalValueUSD: string | null;
   exchangeRateETH: string | null;
   exchangeRateUSD: string | null;
-  percentAPY: string | null;
   underlyingAssets: UnderlyingAsset[];
   deployment: ContractDeployment;
 }

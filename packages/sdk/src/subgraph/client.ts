@@ -453,7 +453,6 @@ export class SubgraphClient {
       totalValueUSD,
       exchangeRateETH,
       exchangeRateUSD,
-      percentAPY,
       coordinator,
       assetRegistry,
       operatorRegistry,
@@ -473,7 +472,6 @@ export class SubgraphClient {
       totalValueUSD,
       exchangeRateETH,
       exchangeRateUSD,
-      percentAPY,
       deployment: {
         coordinator: coordinator.id,
         assetRegistry: assetRegistry.id,

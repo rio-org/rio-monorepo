@@ -25,7 +25,6 @@ export const LiquidRestakingTokenFields = graphql(`
     totalValueUSD
     exchangeRateETH
     exchangeRateUSD
-    percentAPY
     underlyingAssets {
       address
       asset {
