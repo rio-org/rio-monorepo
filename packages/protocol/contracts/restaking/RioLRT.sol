@@ -24,6 +24,12 @@ contract RioLRT is IRioLRT, ERC20BurnableUpgradeable, ERC20PermitUpgradeable, ER
         _;
     }
 
+    /// @notice Require that the caller is the LRT withdrawal queue.
+    modifier onlyWithdrawalQueue() {
+        if (msg.sender != issuer.getWithdrawalQueue(address(this))) revert ONLY_WITHDRAWAL_QUEUE();
+        _;
+    }
+
     /// @dev Prevent any future reinitialization.
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
     constructor(address issuer_) {
@@ -58,7 +64,8 @@ contract RioLRT is IRioLRT, ERC20BurnableUpgradeable, ERC20PermitUpgradeable, ER
 
     /// @notice Burn `amount` tokens from the `msg.sender`.
     /// @param amount The amount of tokens to burn.
-    function burn(uint256 amount) public override(IRioLRT, ERC20BurnableUpgradeable) {
+    /// @dev This function is only callable by the LRT withdrawal queue.
+    function burn(uint256 amount) public override(IRioLRT, ERC20BurnableUpgradeable) onlyWithdrawalQueue {
         super.burn(amount);
     }
 

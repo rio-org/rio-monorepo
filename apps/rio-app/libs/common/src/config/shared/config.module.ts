@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
-import { getSharedConfig, sharedConfigPath } from './shared.config';
+import {
+  getSharedConfig,
+  sharedConfigLocalPath,
+  sharedConfigPath,
+} from './shared.config';
 import { SharedConfigService } from './config.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UtilsModule } from '../../utils';
@@ -14,7 +18,7 @@ import { LoggerModule } from '../../logger';
     LoggerModule,
     ConfigModule.forRoot({
       load: [getSharedConfig],
-      envFilePath: sharedConfigPath,
+      envFilePath: [sharedConfigLocalPath, sharedConfigPath],
     }),
   ],
   providers: [ConfigService, SharedConfigService],

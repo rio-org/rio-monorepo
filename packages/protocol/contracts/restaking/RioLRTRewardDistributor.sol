@@ -46,45 +46,16 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
         _setOperatorETHValidatorRewardShareBPS(500); // 5%
     }
 
-    /// @notice Sets the treasury's share of ETH validator rewards.
-    /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
-    function setTreasuryETHValidatorRewardShareBPS(uint16 newTreasuryETHValidatorRewardShareBPS) external onlyOwner {
-        _setTreasuryETHValidatorRewardShareBPS(newTreasuryETHValidatorRewardShareBPS);
-    }
+    /// @notice Distributes ETH validator rewards held in this contract to the treasury, operator pool,
+    /// and deposit pool.
+    /// @dev All recipients are trusted internal contracts that require no reentrancy protection.
+    function distributeETHValidatorRewards() external {
+        uint256 amount = address(this).balance;
+        if (amount == 0) revert NO_ETH_VALIDATOR_REWARDS_TO_DISTRIBUTE();
 
-    /// @notice Sets the operator's share of ETH validator rewards.
-    /// @param newOperatorETHValidatorRewardShareBPS The new operator share in basis points.
-    function setOperatorETHValidatorRewardShareBPS(uint16 newOperatorETHValidatorRewardShareBPS) external onlyOwner {
-        _setOperatorETHValidatorRewardShareBPS(newOperatorETHValidatorRewardShareBPS);
-    }
-
-    /// @notice Sets the treasury's share of Ethereum validator rewards.
-    /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
-    function _setTreasuryETHValidatorRewardShareBPS(uint16 newTreasuryETHValidatorRewardShareBPS) internal {
-        if (newTreasuryETHValidatorRewardShareBPS + operatorETHValidatorRewardShareBPS > MAX_BPS) {
-            revert TREASURY_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
-        }
-        treasuryETHValidatorRewardShareBPS = newTreasuryETHValidatorRewardShareBPS;
-        emit TreasuryETHValidatorRewardShareBPSSet(newTreasuryETHValidatorRewardShareBPS);
-    }
-
-    /// @notice Sets the operator's share of Ethereum validator rewards.
-    /// @param newOperatorETHValidatorRewardShareBPS The new operator share in basis points.
-    function _setOperatorETHValidatorRewardShareBPS(uint16 newOperatorETHValidatorRewardShareBPS) internal {
-        if (newOperatorETHValidatorRewardShareBPS + treasuryETHValidatorRewardShareBPS > MAX_BPS) {
-            revert OPERATOR_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
-        }
-        operatorETHValidatorRewardShareBPS = newOperatorETHValidatorRewardShareBPS;
-        emit OperatorETHValidatorRewardShareBPSSet(newOperatorETHValidatorRewardShareBPS);
-    }
-
-    /// @notice Receives ETH and distributes it to the treasury, operator, and deposit pool.
-    receive() external payable {
-        uint256 value = msg.value;
-
-        uint256 treasuryShare = value * treasuryETHValidatorRewardShareBPS / MAX_BPS;
-        uint256 operatorShare = value * operatorETHValidatorRewardShareBPS / MAX_BPS;
-        uint256 poolShare = value - treasuryShare - operatorShare;
+        uint256 treasuryShare = amount * treasuryETHValidatorRewardShareBPS / MAX_BPS;
+        uint256 operatorShare = amount * operatorETHValidatorRewardShareBPS / MAX_BPS;
+        uint256 poolShare = amount - treasuryShare - operatorShare;
 
         if (treasuryShare > 0) treasury.transferETH(treasuryShare);
         if (operatorShare > 0) operatorRewardPool.transferETH(operatorShare);
@@ -92,6 +63,55 @@ contract RioLRTRewardDistributor is IRioLRTRewardDistributor, OwnableUpgradeable
 
         emit ETHValidatorRewardsDistributed(treasuryShare, operatorShare, poolShare);
     }
+
+    /// @notice Sets the treasury and operator's share of ETH validator rewards.
+    /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
+    /// @param newOperatorETHValidatorRewardShareBPS The new operator share in basis points.
+    function setTreasuryAndOperatorETHValidatorRewardShareBPS(
+        uint16 newTreasuryETHValidatorRewardShareBPS,
+        uint16 newOperatorETHValidatorRewardShareBPS
+    ) external onlyOwner {
+        if (newTreasuryETHValidatorRewardShareBPS + newOperatorETHValidatorRewardShareBPS > MAX_BPS) {
+            revert ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
+        }
+        _setTreasuryETHValidatorRewardShareBPS(newTreasuryETHValidatorRewardShareBPS);
+        _setOperatorETHValidatorRewardShareBPS(newOperatorETHValidatorRewardShareBPS);
+    }
+
+    /// @notice Sets the treasury's share of ETH validator rewards.
+    /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
+    function setTreasuryETHValidatorRewardShareBPS(uint16 newTreasuryETHValidatorRewardShareBPS) external onlyOwner {
+        if (newTreasuryETHValidatorRewardShareBPS + operatorETHValidatorRewardShareBPS > MAX_BPS) {
+            revert TREASURY_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
+        }
+        _setTreasuryETHValidatorRewardShareBPS(newTreasuryETHValidatorRewardShareBPS);
+    }
+
+    /// @notice Sets the operator's share of ETH validator rewards.
+    /// @param newOperatorETHValidatorRewardShareBPS The new operator share in basis points.
+    function setOperatorETHValidatorRewardShareBPS(uint16 newOperatorETHValidatorRewardShareBPS) external onlyOwner {
+        if (newOperatorETHValidatorRewardShareBPS + treasuryETHValidatorRewardShareBPS > MAX_BPS) {
+            revert OPERATOR_ETH_VALIDATOR_SHARE_BPS_TOO_HIGH();
+        }
+        _setOperatorETHValidatorRewardShareBPS(newOperatorETHValidatorRewardShareBPS);
+    }
+
+    /// @notice Sets the treasury's share of Ethereum validator rewards.
+    /// @param newTreasuryETHValidatorRewardShareBPS The new treasury share in basis points.
+    function _setTreasuryETHValidatorRewardShareBPS(uint16 newTreasuryETHValidatorRewardShareBPS) internal {
+        treasuryETHValidatorRewardShareBPS = newTreasuryETHValidatorRewardShareBPS;
+        emit TreasuryETHValidatorRewardShareBPSSet(newTreasuryETHValidatorRewardShareBPS);
+    }
+
+    /// @notice Sets the operator's share of Ethereum validator rewards.
+    /// @param newOperatorETHValidatorRewardShareBPS The new operator share in basis points.
+    function _setOperatorETHValidatorRewardShareBPS(uint16 newOperatorETHValidatorRewardShareBPS) internal {
+        operatorETHValidatorRewardShareBPS = newOperatorETHValidatorRewardShareBPS;
+        emit OperatorETHValidatorRewardShareBPSSet(newOperatorETHValidatorRewardShareBPS);
+    }
+
+    /// @notice Receives ETH for distribution.
+    receive() external payable {}
 
     /// @dev Allows the owner to upgrade the reward distributor implementation.
     /// @param newImplementation The implementation to upgrade to.

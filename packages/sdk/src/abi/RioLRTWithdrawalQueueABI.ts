@@ -1,10 +1,7 @@
 export const RioLRTWithdrawalQueueABI = [
   {
     type: 'constructor',
-    inputs: [
-      { name: 'issuer_', type: 'address', internalType: 'address' },
-      { name: 'delegationManager_', type: 'address', internalType: 'address' }
-    ],
+    inputs: [{ name: 'issuer_', type: 'address', internalType: 'address' }],
     stateMutability: 'nonpayable'
   },
   { type: 'receive', stateMutability: 'payable' },
@@ -14,28 +11,6 @@ export const RioLRTWithdrawalQueueABI = [
     inputs: [],
     outputs: [{ name: '', type: 'string', internalType: 'string' }],
     stateMutability: 'view'
-  },
-  {
-    type: 'function',
-    name: '_computeWithdrawalRoot',
-    inputs: [
-      {
-        name: 'withdrawal',
-        type: 'tuple',
-        internalType: 'struct IDelegationManager.Withdrawal',
-        components: [
-          { name: 'staker', type: 'address', internalType: 'address' },
-          { name: 'delegatedTo', type: 'address', internalType: 'address' },
-          { name: 'withdrawer', type: 'address', internalType: 'address' },
-          { name: 'nonce', type: 'uint256', internalType: 'uint256' },
-          { name: 'startBlock', type: 'uint32', internalType: 'uint32' },
-          { name: 'strategies', type: 'address[]', internalType: 'address[]' },
-          { name: 'shares', type: 'uint256[]', internalType: 'uint256[]' }
-        ]
-      }
-    ],
-    outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
-    stateMutability: 'pure'
   },
   {
     type: 'function',
@@ -75,12 +50,32 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'function',
-    name: 'delegationManager',
-    inputs: [],
-    outputs: [
-      { name: '', type: 'address', internalType: 'contract IDelegationManager' }
+    name: 'completeEpochSettlementFromEigenLayer',
+    inputs: [
+      { name: 'asset', type: 'address', internalType: 'address' },
+      { name: 'epoch', type: 'uint256', internalType: 'uint256' },
+      {
+        name: 'queuedWithdrawals',
+        type: 'tuple[]',
+        internalType: 'struct IDelegationManager.Withdrawal[]',
+        components: [
+          { name: 'staker', type: 'address', internalType: 'address' },
+          { name: 'delegatedTo', type: 'address', internalType: 'address' },
+          { name: 'withdrawer', type: 'address', internalType: 'address' },
+          { name: 'nonce', type: 'uint256', internalType: 'uint256' },
+          { name: 'startBlock', type: 'uint32', internalType: 'uint32' },
+          { name: 'strategies', type: 'address[]', internalType: 'address[]' },
+          { name: 'shares', type: 'uint256[]', internalType: 'uint256[]' }
+        ]
+      },
+      {
+        name: 'middlewareTimesIndexes',
+        type: 'uint256[]',
+        internalType: 'uint256[]'
+      }
     ],
-    stateMutability: 'view'
+    outputs: [],
+    stateMutability: 'nonpayable'
   },
   {
     type: 'function',
@@ -103,19 +98,19 @@ export const RioLRTWithdrawalQueueABI = [
         internalType: 'struct IRioLRTWithdrawalQueue.EpochWithdrawalSummary',
         components: [
           { name: 'settled', type: 'bool', internalType: 'bool' },
+          { name: 'amountIn', type: 'uint120', internalType: 'uint120' },
           { name: 'assetsReceived', type: 'uint120', internalType: 'uint120' },
           {
-            name: 'shareValueOfAssetsReceived',
+            name: 'sharesOutstanding',
             type: 'uint120',
             internalType: 'uint120'
           },
-          { name: 'sharesOwed', type: 'uint120', internalType: 'uint120' },
-          { name: 'aggregateRoot', type: 'bytes32', internalType: 'bytes32' },
           {
             name: 'amountToBurnAtSettlement',
-            type: 'uint256',
-            internalType: 'uint256'
-          }
+            type: 'uint120',
+            internalType: 'uint120'
+          },
+          { name: 'aggregateRoot', type: 'bytes32', internalType: 'bytes32' }
         ]
       }
     ],
@@ -123,9 +118,16 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'function',
-    name: 'getSharesOwedInCurrentEpoch',
+    name: 'getRestakingTokensInCurrentEpoch',
     inputs: [{ name: 'asset', type: 'address', internalType: 'address' }],
-    outputs: [{ name: 'sharesOwed', type: 'uint256', internalType: 'uint256' }],
+    outputs: [{ name: 'amountIn', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
+    name: 'getTotalSharesOwed',
+    inputs: [{ name: 'asset', type: 'address', internalType: 'address' }],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     stateMutability: 'view'
   },
   {
@@ -143,7 +145,7 @@ export const RioLRTWithdrawalQueueABI = [
         internalType: 'struct IRioLRTWithdrawalQueue.UserWithdrawalSummary',
         components: [
           { name: 'claimed', type: 'bool', internalType: 'bool' },
-          { name: 'sharesOwed', type: 'uint120', internalType: 'uint120' }
+          { name: 'amountIn', type: 'uint120', internalType: 'uint120' }
         ]
       }
     ],
@@ -182,12 +184,17 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'function',
-    name: 'queueCurrentEpochSettlement',
+    name: 'queueCurrentEpochSettlementFromEigenLayer',
     inputs: [
       { name: 'asset', type: 'address', internalType: 'address' },
       { name: 'assetsReceived', type: 'uint256', internalType: 'uint256' },
       {
         name: 'shareValueOfAssetsReceived',
+        type: 'uint256',
+        internalType: 'uint256'
+      },
+      {
+        name: 'totalShareValueAtRebalance',
         type: 'uint256',
         internalType: 'uint256'
       },
@@ -202,7 +209,6 @@ export const RioLRTWithdrawalQueueABI = [
     inputs: [
       { name: 'withdrawer', type: 'address', internalType: 'address' },
       { name: 'asset', type: 'address', internalType: 'address' },
-      { name: 'sharesOwed', type: 'uint256', internalType: 'uint256' },
       { name: 'amountIn', type: 'uint256', internalType: 'uint256' }
     ],
     outputs: [],
@@ -217,44 +223,10 @@ export const RioLRTWithdrawalQueueABI = [
   },
   {
     type: 'function',
-    name: 'settleCurrentEpoch',
+    name: 'settleCurrentEpochFromDepositPool',
     inputs: [
       { name: 'asset', type: 'address', internalType: 'address' },
-      { name: 'assetsReceived', type: 'uint256', internalType: 'uint256' },
-      {
-        name: 'shareValueOfAssetsReceived',
-        type: 'uint256',
-        internalType: 'uint256'
-      }
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable'
-  },
-  {
-    type: 'function',
-    name: 'settleEpochFromEigenLayer',
-    inputs: [
-      { name: 'asset', type: 'address', internalType: 'address' },
-      { name: 'epoch', type: 'uint256', internalType: 'uint256' },
-      {
-        name: 'queuedWithdrawals',
-        type: 'tuple[]',
-        internalType: 'struct IDelegationManager.Withdrawal[]',
-        components: [
-          { name: 'staker', type: 'address', internalType: 'address' },
-          { name: 'delegatedTo', type: 'address', internalType: 'address' },
-          { name: 'withdrawer', type: 'address', internalType: 'address' },
-          { name: 'nonce', type: 'uint256', internalType: 'uint256' },
-          { name: 'startBlock', type: 'uint32', internalType: 'uint32' },
-          { name: 'strategies', type: 'address[]', internalType: 'address[]' },
-          { name: 'shares', type: 'uint256[]', internalType: 'uint256[]' }
-        ]
-      },
-      {
-        name: 'middlewareTimesIndexes',
-        type: 'uint256[]',
-        internalType: 'uint256[]'
-      }
+      { name: 'assetsReceived', type: 'uint256', internalType: 'uint256' }
     ],
     outputs: [],
     stateMutability: 'nonpayable'
@@ -307,6 +279,12 @@ export const RioLRTWithdrawalQueueABI = [
       },
       {
         name: 'shareValueOfAssetsReceived',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256'
+      },
+      {
+        name: 'totalShareValueAtRebalance',
         type: 'uint256',
         indexed: false,
         internalType: 'uint256'
@@ -444,12 +422,6 @@ export const RioLRTWithdrawalQueueABI = [
         internalType: 'address'
       },
       {
-        name: 'sharesOwed',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256'
-      },
-      {
         name: 'amountIn',
         type: 'uint256',
         indexed: false,
@@ -518,8 +490,9 @@ export const RioLRTWithdrawalQueueABI = [
     inputs: []
   },
   { type: 'error', name: 'InvalidInitialization', inputs: [] },
-  { type: 'error', name: 'NO_SHARES_OWED', inputs: [] },
-  { type: 'error', name: 'NO_SHARES_OWED_IN_EPOCH', inputs: [] },
+  { type: 'error', name: 'NOTHING_TO_CLAIM', inputs: [] },
+  { type: 'error', name: 'NO_AMOUNT_IN', inputs: [] },
+  { type: 'error', name: 'NO_WITHDRAWALS_IN_EPOCH', inputs: [] },
   { type: 'error', name: 'NotInitializing', inputs: [] },
   { type: 'error', name: 'ONLY_COORDINATOR', inputs: [] },
   { type: 'error', name: 'ONLY_DEPOSIT_POOL', inputs: [] },

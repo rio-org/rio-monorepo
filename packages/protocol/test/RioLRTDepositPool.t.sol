@@ -187,7 +187,7 @@ contract RioLRTDepositPoolTest is RioDeployer {
             IDelegationManager.Withdrawal({
                 staker: address(42),
                 delegatedTo: address(1),
-                withdrawer: address(1),
+                withdrawer: address(42),
                 nonce: 0,
                 startBlock: 1,
                 strategies: BEACON_CHAIN_STRATEGY.toArray(),
@@ -206,9 +206,12 @@ contract RioLRTDepositPoolTest is RioDeployer {
         // Allocate ETH.
         reETH.coordinator.depositETH{value: AMOUNT}();
 
+        // Get the latest POS deposit root and guardian signature.
+        (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+
         // Push funds into EigenLayer.
         vm.prank(EOA, EOA);
-        reETH.coordinator.rebalance(ETH_ADDRESS);
+        reETH.coordinator.rebalanceETH(root, signature);
 
         // Verify validator withdrawal credentials.
         uint40[] memory validatorIndices =
@@ -229,7 +232,7 @@ contract RioLRTDepositPoolTest is RioDeployer {
             IDelegationManager.Withdrawal({
                 staker: operatorDelegator,
                 delegatedTo: address(1),
-                withdrawer: address(reETH.depositPool),
+                withdrawer: operatorDelegator,
                 nonce: 0,
                 startBlock: 1,
                 strategies: BEACON_CHAIN_STRATEGY.toArray(),
@@ -250,11 +253,11 @@ contract RioLRTDepositPoolTest is RioDeployer {
 
         // Allocate to cbETH strategy.
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
-        reLST.coordinator.deposit(CBETH_ADDRESS, AMOUNT);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, AMOUNT);
 
         // Push funds into EigenLayer.
         vm.prank(EOA, EOA);
-        reLST.coordinator.rebalance(CBETH_ADDRESS);
+        reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
 
         // Queue the cbETH exit.
         IRioLRTOperatorRegistry.StrategyShareCap[] memory strategyShareCaps =
@@ -271,7 +274,7 @@ contract RioLRTDepositPoolTest is RioDeployer {
             IDelegationManager.Withdrawal({
                 staker: operatorDelegator,
                 delegatedTo: address(1),
-                withdrawer: address(reLST.depositPool),
+                withdrawer: operatorDelegator,
                 nonce: 0,
                 startBlock: 1,
                 strategies: CBETH_STRATEGY.toArray(),

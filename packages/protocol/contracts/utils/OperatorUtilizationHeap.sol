@@ -65,12 +65,33 @@ library OperatorUtilizationHeap {
     /// @notice Inserts the heap into storage.
     /// @param self The heap.
     /// @param heapStore The stored heap.
-    function store(Data memory self, LibMap.Uint8Map storage heapStore) internal {
+    /// @param maxOperatorsInHeap The maximum number of operators that can currently be stored in the heap.
+    function store(Data memory self, LibMap.Uint8Map storage heapStore, uint256 maxOperatorsInHeap) internal {
+        uint256 map;
+        uint256 mapIndex;
+
         for (uint8 i = 0; i < self.count;) {
             unchecked {
-                heapStore.set(i, self.operators[i + 1].id);
-                ++i;
+                // Calculate position within the current map.
+                uint256 position = i % 32;
+
+                // Update the map with the operator's ID shifted to its position.
+                map |= (uint256(self.operators[i + 1].id) << (position * 8));
+
+                ++i; // Move to the next operator.
+
+                // If position is at the end of the map or it's the last operator, update storage and reset the map.
+                if (position == 31 || i == self.count) {
+                    heapStore.map[mapIndex++] = map;
+                    map = 0;
+                }
             }
+        }
+
+        // Clear any potentially stale maps beyond the current usage.
+        uint256 totalMapsNeeded = (maxOperatorsInHeap + 31) / 32;
+        while (mapIndex < totalMapsNeeded) {
+            heapStore.map[mapIndex++] = 0;
         }
     }
 
@@ -95,8 +116,13 @@ library OperatorUtilizationHeap {
         if (index < ROOT_INDEX || index > self.count) revert INVALID_INDEX();
 
         self._remove(index);
-        self._bubbleUp(index);
-        self._bubbleDown(index);
+
+        // We only need to re-heapify if the removed operator was not the last.
+        // Note that `self.count` is decremented in the `_remove` function.
+        if (index <= self.count) {
+            self._bubbleUp(index);
+            self._bubbleDown(index);
+        }
     }
 
     /// @notice Removes an operator from the heap by its ID.
@@ -386,7 +412,8 @@ library OperatorUtilizationHeap {
     /// @param self The heap.
     /// @param i The index of the operator to extract.
     function _remove(Data memory self, uint8 i) internal pure {
-        self.operators[i] = self.operators[self.count--];
+        self.operators[i] = self.operators[self.count];
+        delete self.operators[self.count--];
     }
 
     /// @dev Returns the index of the smallest child or grandchild of the node at index `i`.

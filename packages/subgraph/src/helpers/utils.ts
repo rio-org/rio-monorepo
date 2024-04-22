@@ -1,5 +1,5 @@
 import { Address, BigDecimal, BigInt, Bytes, Entity, Value, dataSource, store } from '@graphprotocol/graph-ts';
-import { AVSRegistry, Asset, AssetRegistry, Coordinator, DepositPool, HistoricalExchangeRate, OperatorRegistry, PriceFeed, PriceSource, RewardDistributor, User, WithdrawalEpoch, WithdrawalQueue } from '../../generated/schema';
+import { AVSRegistry, Asset, AssetRegistry, Coordinator, DepositPool, OperatorRegistry, PriceFeed, PriceSource, RewardDistributor, User, WithdrawalEpoch, WithdrawalQueue } from '../../generated/schema';
 import { CHAINLINK_FEED_TYPE, ETH_ADDRESS, ETH_USD_CHAINLINK_FEEDS, PUBKEY_LENGTH, SupportingContractName, USD_PRICE_FEED_DECIMALS, WithdrawalEpochStatus, ZERO_ADDRESS, ZERO_BD } from './constants';
 import { PriceFeed as PriceFeedContract } from '../../generated/RioLRTIssuer/PriceFeed';
 import { PriceSource as PriceSourceTemplate } from '../../generated/templates';
@@ -98,22 +98,6 @@ export function findOrCreateUser(address: string, save: boolean = false): User {
 }
 
 /**
- * Find or create a user by their address.
- * @param restakingToken The address of the restaking token.
- * @param timestamp The timestamp of the exchange rate
- */
-export function findOrCreateHistoricalExchangeRate(restakingToken: string, timestamp: BigInt): HistoricalExchangeRate {
-  let exchangeRate: HistoricalExchangeRate | null = HistoricalExchangeRate.load(`${restakingToken}-${timestamp}`);
-  if (exchangeRate != null) return exchangeRate;
-
-  exchangeRate = new HistoricalExchangeRate(`${restakingToken}-${timestamp}`);
-  exchangeRate.restakingToken = restakingToken;
-  exchangeRate.timestamp = timestamp;
-
-  return exchangeRate;
-}
-
-/**
  * Find or create an asset by its address.
  * @param address The address of the asset.
  * @param save Whether to save the asset.
@@ -165,8 +149,8 @@ export function findOrCreateWithdrawalEpoch(restakingToken: string, epoch: BigIn
   withdrawalEpoch.status = WithdrawalEpochStatus.ACTIVE;
   withdrawalEpoch.restakingToken = restakingToken;
   withdrawalEpoch.sharesOwed = ZERO_BD;
+  withdrawalEpoch.amountIn = ZERO_BD;
   withdrawalEpoch.assetsReceived = ZERO_BD;
-  withdrawalEpoch.shareValueOfAssetsReceived = ZERO_BD;
   withdrawalEpoch.amountToBurnAtSettlement = ZERO_BD;
   withdrawalEpoch.requestCount = 0;
   withdrawalEpoch.claimCount = 0;

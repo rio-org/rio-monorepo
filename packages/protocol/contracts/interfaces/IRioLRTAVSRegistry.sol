@@ -23,6 +23,14 @@ interface IRioLRTAVSRegistry {
     /// @dev Thrown when the provided registry contract address is not a contract.
     error INVALID_REGISTRY_CONTRACT();
 
+    /// @dev Thrown when attempting add or activate an AVS with a slashing contract that is already active
+    /// in another AVS.
+    error SLASHING_CONTRACT_ALREADY_ACTIVE();
+
+    /// @dev Thrown when attempting add or activate an AVS with a registry contract that is already active
+    /// in another AVS.
+    error REGISTRY_CONTRACT_ALREADY_ACTIVE();
+
     /// @dev Thrown when attempting to activate or deactivate an AVS that is not registered.
     error AVS_NOT_REGISTERED();
 

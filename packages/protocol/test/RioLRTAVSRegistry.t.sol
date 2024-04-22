@@ -42,6 +42,30 @@ contract RioLRTAVSRegistryTest is RioDeployer {
         reETH.avsRegistry.addAVS('Test AVS', slashingContract, address(2));
     }
 
+    function test_addAVSDuplicateSlashingContractReverts() public {
+        reETH.avsRegistry.addAVS('Test AVS', slashingContract, registryContract);
+
+        assertTrue(reETH.avsRegistry.isActiveSlashingContract(slashingContract));
+        assertTrue(reETH.avsRegistry.isActiveRegistryContract(registryContract));
+
+        address anotherRegistryContract = address(new EmptyContract());
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAVSRegistry.SLASHING_CONTRACT_ALREADY_ACTIVE.selector));
+        reETH.avsRegistry.addAVS('Test AVS 2', slashingContract, anotherRegistryContract);
+    }
+
+    function test_addAVSDuplicateRegistryContractReverts() public {
+        reETH.avsRegistry.addAVS('Test AVS', slashingContract, registryContract);
+
+        assertTrue(reETH.avsRegistry.isActiveSlashingContract(slashingContract));
+        assertTrue(reETH.avsRegistry.isActiveRegistryContract(registryContract));
+
+        address anotherSlashingContract = address(new EmptyContract());
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAVSRegistry.REGISTRY_CONTRACT_ALREADY_ACTIVE.selector));
+        reETH.avsRegistry.addAVS('Test AVS 2', anotherSlashingContract, registryContract);
+    }
+
     function test_addAVS() public {
         uint128 avsId = reETH.avsRegistry.addAVS('Test AVS', slashingContract, registryContract);
         assertEq(reETH.avsRegistry.avsCount(), 1);
@@ -54,7 +78,7 @@ contract RioLRTAVSRegistryTest is RioDeployer {
         assertTrue(reETH.avsRegistry.isActiveSlashingContract(slashingContract));
         assertTrue(reETH.avsRegistry.isActiveRegistryContract(registryContract));
 
-        reETH.avsRegistry.addAVS('Test AVS 2', slashingContract, registryContract);
+        reETH.avsRegistry.addAVS('Test AVS 2', address(new EmptyContract()), address(new EmptyContract()));
         assertEq(reETH.avsRegistry.avsCount(), 2);
         assertEq(reETH.avsRegistry.activeAVSCount(), 2);
     }
@@ -74,6 +98,26 @@ contract RioLRTAVSRegistryTest is RioDeployer {
         uint128 avsId = reETH.avsRegistry.addAVS('Test AVS', slashingContract, registryContract);
 
         vm.expectRevert(abi.encodeWithSelector(IRioLRTAVSRegistry.AVS_ALREADY_ACTIVE.selector));
+        reETH.avsRegistry.activateAVS(avsId);
+    }
+
+    function test_activateAVSDuplicateSlashingContractReverts() public {
+        uint128 avsId = reETH.avsRegistry.addAVS('Test AVS', slashingContract, registryContract);
+        reETH.avsRegistry.deactivateAVS(avsId);
+
+        reETH.avsRegistry.addAVS('Test AVS 2', slashingContract, address(new EmptyContract()));
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAVSRegistry.SLASHING_CONTRACT_ALREADY_ACTIVE.selector));
+        reETH.avsRegistry.activateAVS(avsId);
+    }
+
+    function test_activateAVSDuplicateRegistryContractReverts() public {
+        uint128 avsId = reETH.avsRegistry.addAVS('Test AVS', slashingContract, registryContract);
+        reETH.avsRegistry.deactivateAVS(avsId);
+
+        reETH.avsRegistry.addAVS('Test AVS 2', address(new EmptyContract()), registryContract);
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAVSRegistry.REGISTRY_CONTRACT_ALREADY_ACTIVE.selector));
         reETH.avsRegistry.activateAVS(avsId);
     }
 

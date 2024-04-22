@@ -10,30 +10,26 @@ import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {RioLRTCore} from 'contracts/restaking/base/RioLRTCore.sol';
 import {ETH_ADDRESS} from 'contracts/utils/Constants.sol';
-import {Array} from 'contracts/utils/Array.sol';
 import {Asset} from 'contracts/utils/Asset.sol';
 
 contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UUPSUpgradeable, RioLRTCore {
     using FixedPointMathLib for *;
     using Asset for address;
-    using Array for *;
-
-    /// @notice The primary delegation contract for EigenLayer.
-    IDelegationManager public immutable delegationManager;
 
     /// @notice Current asset withdrawal epochs. Incoming withdrawals are included
-    /// in the current epoch, which will be processed by the asset manager.
+    /// in the current epoch.
     mapping(address asset => uint256 epoch) internal currentEpochsByAsset;
 
     /// @notice The amount of assets owed to users in a given epoch, as well as the state
     /// of the epoch's withdrawals.
     mapping(address asset => mapping(uint256 epoch => EpochWithdrawals withdrawals)) internal epochWithdrawalsByAsset;
 
+    /// @notice The total amount of shares owed to withdrawers across all epochs for `asset`,
+    /// excluding the current epoch.
+    mapping(address asset => uint256 sharesOwed) internal sharesOwedByAsset;
+
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    /// @param delegationManager_ The EigenLayer delegation manager.
-    constructor(address issuer_, address delegationManager_) RioLRTCore(issuer_) {
-        delegationManager = IDelegationManager(delegationManager_);
-    }
+    constructor(address issuer_) RioLRTCore(issuer_) {}
 
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
@@ -50,10 +46,16 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         return currentEpochsByAsset[asset];
     }
 
-    /// @notice Get the amount of strategy shares owed to withdrawers in the current `epoch` for `asset`.
-    /// @param asset The withdrawal asset.
-    function getSharesOwedInCurrentEpoch(address asset) external view returns (uint256 sharesOwed) {
-        sharesOwed = _getEpochWithdrawals(asset, getCurrentEpoch(asset)).sharesOwed;
+    /// @notice Get the amount of restaking tokens requested for withdrawal in the current `epoch` for `asset`.
+    /// @param asset The address of the withdrawal asset.
+    function getRestakingTokensInCurrentEpoch(address asset) external view returns (uint256 amountIn) {
+        amountIn = _getEpochWithdrawals(asset, getCurrentEpoch(asset)).amountIn;
+    }
+
+    /// @notice Get the total amount of shares owed to withdrawers across all epochs for `asset`.
+    /// @param asset The address of the withdrawal asset.
+    function getTotalSharesOwed(address asset) external view returns (uint256) {
+        return sharesOwedByAsset[asset];
     }
 
     /// @notice Retrieve withdrawal epoch information for a given asset and epoch.
@@ -67,9 +69,9 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         EpochWithdrawals storage withdrawals = _getEpochWithdrawals(asset, epoch);
         return EpochWithdrawalSummary({
             settled: withdrawals.settled,
+            amountIn: withdrawals.amountIn,
             assetsReceived: withdrawals.assetsReceived,
-            shareValueOfAssetsReceived: withdrawals.shareValueOfAssetsReceived,
-            sharesOwed: withdrawals.sharesOwed,
+            sharesOutstanding: withdrawals.sharesOutstanding,
             amountToBurnAtSettlement: withdrawals.amountToBurnAtSettlement,
             aggregateRoot: withdrawals.aggregateRoot
         });
@@ -96,12 +98,12 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         if (!epochWithdrawals.settled) revert EPOCH_NOT_SETTLED();
 
         UserWithdrawalSummary memory userSummary = epochWithdrawals.users[withdrawer];
-        if (userSummary.sharesOwed == 0) revert NO_SHARES_OWED_IN_EPOCH();
+        if (userSummary.amountIn == 0) revert NOTHING_TO_CLAIM();
         if (userSummary.claimed) revert WITHDRAWAL_ALREADY_CLAIMED();
 
         epochWithdrawals.users[withdrawer].claimed = true;
 
-        amountOut = userSummary.sharesOwed.mulDiv(epochWithdrawals.assetsReceived, epochWithdrawals.sharesOwed);
+        amountOut = userSummary.amountIn.mulDiv(epochWithdrawals.assetsReceived, epochWithdrawals.amountIn);
         request.asset.transferTo(withdrawer, amountOut);
 
         emit WithdrawalsClaimedForEpoch(request.epoch, request.asset, withdrawer, amountOut);
@@ -121,48 +123,40 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
         }
     }
 
-    /// @notice Queue `sharesOwed` of `asset` to `withdrawer` in the current epoch. These owed shares
+    /// @notice Queue withdrawal of `asset` to `withdrawer` in the current epoch. The withdrawal
     /// can be claimed as the underlying asset by the withdrawer once the current epoch is settled.
     /// @param withdrawer The address requesting the withdrawal.
     /// @param asset The address of the asset being withdrawn.
-    /// @param sharesOwed The amount of shares owed to the withdrawer.
-    /// @param amountIn The amount of restaking tokens pulled from the withdrawer.
-    function queueWithdrawal(address withdrawer, address asset, uint256 sharesOwed, uint256 amountIn)
-        external
-        onlyCoordinator
-    {
-        if (sharesOwed == 0) revert NO_SHARES_OWED();
+    /// @param amountIn The amount of restaking tokens to queue for withdrawal.
+    function queueWithdrawal(address withdrawer, address asset, uint256 amountIn) external onlyCoordinator {
+        if (amountIn == 0) revert NO_AMOUNT_IN();
+
         uint256 currentEpoch = getCurrentEpoch(asset);
+        uint120 amountIn_ = SafeCast.toUint120(amountIn);
 
         EpochWithdrawals storage epochWithdrawals = _getEpochWithdrawals(asset, currentEpoch);
-        epochWithdrawals.sharesOwed += SafeCast.toUint120(sharesOwed);
-        epochWithdrawals.amountToBurnAtSettlement += amountIn;
+        epochWithdrawals.amountIn += amountIn_;
 
         UserWithdrawalSummary storage userSummary = epochWithdrawals.users[withdrawer];
-        userSummary.sharesOwed += SafeCast.toUint120(sharesOwed);
+        userSummary.amountIn += amountIn_;
 
-        emit WithdrawalQueued(currentEpoch, asset, withdrawer, sharesOwed, amountIn);
+        emit WithdrawalQueued(currentEpoch, asset, withdrawer, amountIn);
     }
 
     /// @notice Settle the current epoch for `asset` using `assetsReceived` from the deposit pool.
     /// @param asset The address of the withdrawal asset.
     /// @param assetsReceived The amount of assets received to settle the epoch.
-    /// @param shareValueOfAssetsReceived The value of the assets received in EigenLayer shares.
-    function settleCurrentEpoch(address asset, uint256 assetsReceived, uint256 shareValueOfAssetsReceived)
-        external
-        onlyCoordinator
-    {
+    function settleCurrentEpochFromDepositPool(address asset, uint256 assetsReceived) external onlyCoordinator {
         uint256 currentEpoch = getCurrentEpoch(asset);
 
         EpochWithdrawals storage epochWithdrawals = _getEpochWithdrawals(asset, currentEpoch);
-        if (epochWithdrawals.sharesOwed == 0) revert NO_SHARES_OWED_IN_EPOCH();
+        if (epochWithdrawals.amountIn == 0) revert NO_WITHDRAWALS_IN_EPOCH();
         if (epochWithdrawals.settled) revert EPOCH_ALREADY_SETTLED();
 
         epochWithdrawals.settled = true;
         epochWithdrawals.assetsReceived = SafeCast.toUint120(assetsReceived);
-        epochWithdrawals.shareValueOfAssetsReceived = SafeCast.toUint120(shareValueOfAssetsReceived);
 
-        token.burn(epochWithdrawals.amountToBurnAtSettlement);
+        token.burn(epochWithdrawals.amountIn);
         currentEpochsByAsset[asset] += 1;
 
         emit EpochSettledFromDepositPool(currentEpoch, asset, assetsReceived);
@@ -173,11 +167,13 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     /// @param asset The address of the withdrawal asset.
     /// @param assetsReceived The amount of assets received from the deposit pool.
     /// @param shareValueOfAssetsReceived The value of the assets received in EigenLayer shares.
+    /// @param totalShareValueAtRebalance The total epoch share value at the time of rebalance.
     /// @param aggregateRoot The aggregate root of the queued EigenLayer withdrawals.
-    function queueCurrentEpochSettlement(
+    function queueCurrentEpochSettlementFromEigenLayer(
         address asset,
         uint256 assetsReceived,
         uint256 shareValueOfAssetsReceived,
+        uint256 totalShareValueAtRebalance,
         bytes32 aggregateRoot
     ) external onlyCoordinator {
         if (aggregateRoot == bytes32(0)) revert INVALID_AGGREGATE_WITHDRAWAL_ROOT();
@@ -186,25 +182,38 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
         EpochWithdrawals storage epochWithdrawals = _getEpochWithdrawals(asset, currentEpoch);
         if (epochWithdrawals.aggregateRoot != bytes32(0)) revert WITHDRAWALS_ALREADY_QUEUED_FOR_EPOCH();
-        if (epochWithdrawals.sharesOwed == 0) revert NO_SHARES_OWED_IN_EPOCH();
+        if (epochWithdrawals.amountIn == 0) revert NO_WITHDRAWALS_IN_EPOCH();
         if (epochWithdrawals.settled) revert EPOCH_ALREADY_SETTLED();
 
         uint256 restakingTokensToBurn;
+        // forgefmt: disable-next-item
         if (assetsReceived > 0) {
             epochWithdrawals.assetsReceived = SafeCast.toUint120(assetsReceived);
-            epochWithdrawals.shareValueOfAssetsReceived = SafeCast.toUint120(shareValueOfAssetsReceived);
 
-            restakingTokensToBurn = epochWithdrawals.amountToBurnAtSettlement.mulWad(
-                shareValueOfAssetsReceived.divWad(epochWithdrawals.sharesOwed)
+            restakingTokensToBurn = epochWithdrawals.amountIn.mulWad(
+                shareValueOfAssetsReceived.divWad(totalShareValueAtRebalance)
             );
             token.burn(restakingTokensToBurn);
 
-            epochWithdrawals.amountToBurnAtSettlement -= restakingTokensToBurn;
+            epochWithdrawals.amountToBurnAtSettlement = SafeCast.toUint120(
+                epochWithdrawals.amountIn - restakingTokensToBurn
+            );
         }
+        epochWithdrawals.sharesOutstanding = SafeCast.toUint120(totalShareValueAtRebalance - shareValueOfAssetsReceived);
+
+        sharesOwedByAsset[asset] += epochWithdrawals.sharesOutstanding;
         epochWithdrawals.aggregateRoot = aggregateRoot;
 
+        currentEpochsByAsset[asset] += 1;
+
         emit EpochQueuedForSettlementFromEigenLayer(
-            currentEpoch, asset, assetsReceived, shareValueOfAssetsReceived, restakingTokensToBurn, aggregateRoot
+            currentEpoch,
+            asset,
+            assetsReceived,
+            shareValueOfAssetsReceived,
+            totalShareValueAtRebalance,
+            restakingTokensToBurn,
+            aggregateRoot
         );
     }
 
@@ -213,14 +222,14 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
     /// @param epoch The epoch to settle.
     /// @param queuedWithdrawals The queued withdrawals from EigenLayer.
     /// @param middlewareTimesIndexes The middleware times indexes for the queued withdrawals.
-    function settleEpochFromEigenLayer(
+    function completeEpochSettlementFromEigenLayer(
         address asset,
         uint256 epoch,
         IDelegationManager.Withdrawal[] calldata queuedWithdrawals,
         uint256[] calldata middlewareTimesIndexes
     ) external {
         EpochWithdrawals storage epochWithdrawals = _getEpochWithdrawals(asset, epoch);
-        if (epochWithdrawals.sharesOwed == 0) revert NO_SHARES_OWED_IN_EPOCH();
+        if (epochWithdrawals.amountIn == 0) revert NO_WITHDRAWALS_IN_EPOCH();
         if (epochWithdrawals.settled) revert EPOCH_ALREADY_SETTLED();
         if (epochWithdrawals.aggregateRoot == bytes32(0)) revert WITHDRAWALS_NOT_QUEUED_FOR_EPOCH();
 
@@ -229,40 +238,31 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
         epochWithdrawals.settled = true;
 
-        // forgefmt: disable-next-item
-        uint256 sharesReceivedDuringSettlement = epochWithdrawals.sharesOwed - epochWithdrawals.shareValueOfAssetsReceived;
-
         // If not ETH, decrease the shares held for the asset. The decrease in queued ETH is
         // handled on a per-operator basis below.
         if (asset != ETH_ADDRESS) {
-            assetRegistry().decreaseSharesHeldForAsset(asset, sharesReceivedDuringSettlement);
+            assetRegistry().decreaseSharesHeldForAsset(asset, epochWithdrawals.sharesOutstanding);
         }
         token.burn(epochWithdrawals.amountToBurnAtSettlement);
 
         uint256 balanceBefore = asset.getSelfBalance();
 
-        address[] memory assets = asset.toArray();
         bytes32[] memory roots = new bytes32[](queuedWithdrawalCount);
 
         IDelegationManager.Withdrawal memory queuedWithdrawal;
         for (uint256 i; i < queuedWithdrawalCount; ++i) {
             queuedWithdrawal = queuedWithdrawals[i];
-
-            roots[i] = _computeWithdrawalRoot(queuedWithdrawal);
-            delegationManager.completeQueuedWithdrawal(queuedWithdrawal, assets, middlewareTimesIndexes[i], true);
-
-            // Decrease the amount of ETH queued for withdrawal. We do not need to validate the staker as
-            // the aggregate root will be validated below.
-            if (asset == ETH_ADDRESS) {
-                IRioLRTOperatorDelegator(queuedWithdrawal.staker).decreaseETHQueuedForUserSettlement(
-                    queuedWithdrawal.shares[0]
-                );
-            }
+            roots[i] = IRioLRTOperatorDelegator(queuedWithdrawal.staker).completeQueuedWithdrawal(
+                queuedWithdrawal, asset, middlewareTimesIndexes[i]
+            );
         }
+
+        sharesOwedByAsset[asset] -= epochWithdrawals.sharesOutstanding;
+        epochWithdrawals.sharesOutstanding = 0; // Zero out the outstanding shares.
+
         if (epochWithdrawals.aggregateRoot != keccak256(abi.encode(roots))) {
             revert INVALID_AGGREGATE_WITHDRAWAL_ROOT();
         }
-        epochWithdrawals.shareValueOfAssetsReceived = SafeCast.toUint120(epochWithdrawals.sharesOwed);
 
         uint256 assetsReceived = asset.getSelfBalance() - balanceBefore;
         epochWithdrawals.assetsReceived += SafeCast.toUint120(assetsReceived);
@@ -272,12 +272,6 @@ contract RioLRTWithdrawalQueue is IRioLRTWithdrawalQueue, OwnableUpgradeable, UU
 
     /// @dev Receives ETH for withdrawals.
     receive() external payable {}
-
-    /// @dev Returns the keccak256 hash of `withdrawal`.
-    /// @param withdrawal The withdrawal.
-    function _computeWithdrawalRoot(IDelegationManager.Withdrawal memory withdrawal) public pure returns (bytes32) {
-        return keccak256(abi.encode(withdrawal));
-    }
 
     function _getEpochWithdrawals(address asset, uint256 epoch) internal view returns (EpochWithdrawals storage) {
         return epochWithdrawalsByAsset[asset][epoch];

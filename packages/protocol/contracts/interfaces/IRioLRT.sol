@@ -10,6 +10,9 @@ interface IRioLRT is IERC20 {
     /// @notice Thrown when the caller is not the LRT coordinator.
     error ONLY_COORDINATOR();
 
+    /// @notice Thrown when the caller is not the LRT withdrawal queue.
+    error ONLY_WITHDRAWAL_QUEUE();
+
     /// @notice Initializes the contract.
     /// @param initialOwner The initial owner of the contract.
     /// @param name The name of the token.

@@ -3,8 +3,10 @@ pragma solidity 0.8.23;
 
 import {MockERC20} from '@solady/../test/utils/mocks/MockERC20.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {TransparentUpgradeableProxy} from '@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol';
 import {IRioLRTAssetRegistry} from 'contracts/interfaces/IRioLRTAssetRegistry.sol';
 import {ETH_ADDRESS, BEACON_CHAIN_STRATEGY} from 'contracts/utils/Constants.sol';
+import {RioLRTAssetRegistry} from 'contracts/restaking/RioLRTAssetRegistry.sol';
 import {MockPriceFeed} from 'test/utils/MockPriceFeed.sol';
 import {MockStrategy} from 'test/utils/MockStrategy.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
@@ -131,6 +133,26 @@ contract RioLRTAssetRegistryTest is RioDeployer {
         assertEq(reLST.assetRegistry.getSupportedAssets().length, 0);
     }
 
+    function test_forceRemoveAssetNonOwnerReverts() public {
+        vm.prank(address(42));
+        vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
+        reETH.assetRegistry.forceRemoveAsset(address(1));
+    }
+
+    function test_forceRemoveUnsupportedAssetReverts() public {
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTAssetRegistry.ASSET_NOT_SUPPORTED.selector, address(1)));
+        reETH.assetRegistry.forceRemoveAsset(address(1));
+    }
+
+    function test_forceRemoveAssetWithBalanceSucceeds() public {
+        assertGt(rETH.balanceOf(address(reLST.depositPool)), 0);
+
+        uint256 countBefore = reLST.assetRegistry.getSupportedAssets().length;
+
+        reLST.assetRegistry.forceRemoveAsset(RETH_ADDRESS);
+        assertEq(countBefore - reLST.assetRegistry.getSupportedAssets().length, 1);
+    }
+
     function test_setDepositCapNonOwnerReverts() public {
         vm.prank(address(42));
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, address(42)));
@@ -175,5 +197,56 @@ contract RioLRTAssetRegistryTest is RioDeployer {
         MockPriceFeed feed = new MockPriceFeed(1e18);
         reETH.assetRegistry.setAssetPriceFeed(ETH_ADDRESS, address(feed));
         assertEq(reETH.assetRegistry.getAssetPriceFeed(ETH_ADDRESS), address(feed));
+    }
+
+    function test_convertToUnitOfAccountFromAssetRetainsPrecision() public {
+        MockERC20 token_ = new MockERC20('Test', 'TEST', 6);
+        token_.mint(address(this), 100e6);
+
+        address token = address(token_);
+        address tokenStrategy = makeAddr('TOKEN_STRATEGY');
+
+        _deployStrategyForToken(token, tokenStrategy);
+
+        IRioLRTAssetRegistry.AssetConfig[] memory assets = new IRioLRTAssetRegistry.AssetConfig[](1);
+        assets[0] = IRioLRTAssetRegistry.AssetConfig({
+            asset: token,
+            depositCap: 0,
+            strategy: tokenStrategy,
+            priceFeed: address(new MockPriceFeed(294104713183814))
+        });
+
+        // Deploy an LRT instance containing an underlying token with 6 decimals and a price feed with 18 decimals.
+        TestLRTDeployment memory td = issueRestakedToken(assets, 18, address(this), address(this));
+
+        uint256 value = td.assetRegistry.convertToUnitOfAccountFromAsset(token, 100e6);
+        assertEq(value, 29410471318381400);
+    }
+
+    function test_convertFromUnitOfAccountToAssetRetainsPrecision() public {
+        MockERC20 token_ = new MockERC20('Test', 'TEST', 18);
+        token_.mint(address(this), 100e18);
+
+        address token = address(token_);
+        address tokenStrategy = makeAddr('TOKEN_STRATEGY');
+
+        _deployStrategyForToken(token, tokenStrategy);
+
+        MockPriceFeed priceFeed = new MockPriceFeed(123456789);
+        priceFeed.setDecimals(8);
+
+        IRioLRTAssetRegistry.AssetConfig[] memory assets = new IRioLRTAssetRegistry.AssetConfig[](1);
+        assets[0] = IRioLRTAssetRegistry.AssetConfig({
+            asset: token,
+            depositCap: 0,
+            strategy: tokenStrategy,
+            priceFeed: address(priceFeed)
+        });
+
+        // Deploy an LRT instance containing an underlying token with 18 decimals and a price feed with 8 decimals.
+        TestLRTDeployment memory td = issueRestakedToken(assets, 8, address(this), address(this));
+
+        uint256 amount = td.assetRegistry.convertFromUnitOfAccountToAsset(token, 294104713);
+        assertEq(amount, 2382248196978458592);
     }
 }

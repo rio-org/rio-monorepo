@@ -7,9 +7,8 @@ interface IRioLRTWithdrawalQueue {
     struct UserWithdrawalSummary {
         /// @dev Indicates whether or not the user has completed the withdrawal.
         bool claimed;
-        /// @dev The amount of shares owed to the user. Owed shares will
-        /// be available to the user upon epoch settlement.
-        uint120 sharesOwed;
+        /// @dev The amount of restaking tokens requested for withdrawal.
+        uint120 amountIn;
     }
 
     /// @notice How many shares owed to all users in a given epoch,
@@ -19,15 +18,14 @@ interface IRioLRTWithdrawalQueue {
         bool settled;
         /// @dev The amount of assets received to settle the epoch.
         uint120 assetsReceived;
-        /// @dev The value of the assets received in EigenLayer shares at
-        /// the time that the assets were received.
-        uint120 shareValueOfAssetsReceived;
-        /// @dev The total number of shares owed to users in the epoch.
-        uint120 sharesOwed;
+        /// @dev The total number of shares outstanding in the epoch.
+        uint120 sharesOutstanding;
+        /// @dev The total amount of restaking tokens requested for withdrawal in the epoch.
+        uint120 amountIn;
+        /// @dev The amount of restaking tokens that to burn upon epoch settlement.
+        uint120 amountToBurnAtSettlement;
         /// @dev The aggregate root of the queued EigenLayer withdrawals.
         bytes32 aggregateRoot;
-        /// @dev The amount of restaking tokens that to burn upon epoch settlement.
-        uint256 amountToBurnAtSettlement;
         /// @dev All user withdrawals in the epoch.
         mapping(address => UserWithdrawalSummary) users;
     }
@@ -37,17 +35,16 @@ interface IRioLRTWithdrawalQueue {
     struct EpochWithdrawalSummary {
         /// @dev Indicates whether or not the epoch has been settled.
         bool settled;
+        /// @dev The amount of restaking tokens requested for withdrawal in the epoch.
+        uint120 amountIn;
         /// @dev The amount of assets received to settle the epoch.
         uint120 assetsReceived;
-        /// @dev The value of the assets received in EigenLayer shares at
-        /// the time that the assets were received.
-        uint120 shareValueOfAssetsReceived;
-        /// @dev The total number of shares owed to users in the epoch.
-        uint120 sharesOwed;
+        /// @dev The total number of shares outstanding in the epoch.
+        uint120 sharesOutstanding;
+        /// @dev The amount of restaking tokens that to burn upon epoch settlement.
+        uint120 amountToBurnAtSettlement;
         /// @dev The aggregate root of the queued EigenLayer withdrawals.
         bytes32 aggregateRoot;
-        /// @dev The amount of restaking tokens that to burn upon epoch settlement.
-        uint256 amountToBurnAtSettlement;
     }
 
     /// @notice The information needed to claim an owed asset in a given epoch.
@@ -56,11 +53,14 @@ interface IRioLRTWithdrawalQueue {
         uint256 epoch;
     }
 
-    /// @notice Thrown when attempting to queue a withdrawal with no shares owed.
-    error NO_SHARES_OWED();
+    /// @notice Thrown when the amount in is zero.
+    error NO_AMOUNT_IN();
 
-    /// @notice Thrown when attempting an operation on an epoch in which no shares are owed.
-    error NO_SHARES_OWED_IN_EPOCH();
+    /// @notice Thrown when there is nothing to claim.
+    error NOTHING_TO_CLAIM();
+
+    /// @notice Thrown when attempting an operation on an epoch with no withdrawals.
+    error NO_WITHDRAWALS_IN_EPOCH();
 
     /// @notice Thrown when attempting to settle an epoch that has already been settled.
     error EPOCH_ALREADY_SETTLED();
@@ -87,11 +87,8 @@ interface IRioLRTWithdrawalQueue {
     /// @param epoch The epoch containing the withdrawal.
     /// @param asset The address of the asset.
     /// @param withdrawer The address of the withdrawer.
-    /// @param sharesOwed The amount of EigenLayer shares owed to the user.
     /// @param amountIn The amount of restaking tokens pulled from the user.
-    event WithdrawalQueued(
-        uint256 indexed epoch, address asset, address withdrawer, uint256 sharesOwed, uint256 amountIn
-    );
+    event WithdrawalQueued(uint256 indexed epoch, address asset, address withdrawer, uint256 amountIn);
 
     /// @notice Emitted when a user claims a withdrawal.
     /// @param epoch The epoch containing the withdrawal.
@@ -111,6 +108,7 @@ interface IRioLRTWithdrawalQueue {
     /// @param asset The address of the asset that was queued.
     /// @param assetsReceived The amount of assets received from the deposit pool.
     /// @param shareValueOfAssetsReceived The value of the assets received in EigenLayer shares.
+    /// @param totalShareValueAtRebalance The total epoch share value at the time of rebalance.
     /// @param restakingTokensBurned The amount of restaking tokens burned.
     /// @param aggregateRoot The aggregate root of the queued EigenLayer withdrawals.
     event EpochQueuedForSettlementFromEigenLayer(
@@ -118,6 +116,7 @@ interface IRioLRTWithdrawalQueue {
         address asset,
         uint256 assetsReceived,
         uint256 shareValueOfAssetsReceived,
+        uint256 totalShareValueAtRebalance,
         uint256 restakingTokensBurned,
         bytes32 aggregateRoot
     );
@@ -137,9 +136,13 @@ interface IRioLRTWithdrawalQueue {
     /// @param asset The asset to retrieve the current epoch for.
     function getCurrentEpoch(address asset) external view returns (uint256);
 
-    /// @notice Get the amount of shares owed to withdrawers in the current `epoch` for `asset`.
+    /// @notice Get the amount of restaking tokens requested for withdrawal in the current `epoch` for `asset`.
     /// @param asset The address of the withdrawal asset.
-    function getSharesOwedInCurrentEpoch(address asset) external view returns (uint256 sharesOwed);
+    function getRestakingTokensInCurrentEpoch(address asset) external view returns (uint256);
+
+    /// @notice Get the total amount of shares owed to withdrawers across all epochs for `asset`.
+    /// @param asset The address of the withdrawal asset.
+    function getTotalSharesOwed(address asset) external view returns (uint256);
 
     /// @notice Retrieve withdrawal epoch information for a given asset and epoch.
     /// @param asset The withdrawal asset.
@@ -158,13 +161,12 @@ interface IRioLRTWithdrawalQueue {
         view
         returns (UserWithdrawalSummary memory);
 
-    /// @notice Queue `sharesOwed` of `asset` to `withdrawer` in the current epoch. These owed shares
+    /// @notice Queue withdrawal of `asset` to `withdrawer` in the current epoch. The withdrawal
     /// can be claimed as the underlying asset by the withdrawer once the current epoch is settled.
     /// @param withdrawer The address requesting the withdrawal.
     /// @param asset The address of the asset being withdrawn.
-    /// @param sharesOwed The amount of shares owed to the withdrawer.
     /// @param amountIn The amount of restaking tokens pulled from the withdrawer.
-    function queueWithdrawal(address withdrawer, address asset, uint256 sharesOwed, uint256 amountIn) external;
+    function queueWithdrawal(address withdrawer, address asset, uint256 amountIn) external;
 
     /// @notice Withdraws all `asset` owed to the caller in a given epoch.
     /// @param request The asset claim request.
@@ -176,22 +178,23 @@ interface IRioLRTWithdrawalQueue {
         external
         returns (uint256[] memory amountsOut);
 
-    /// @notice Settle the current epoch for `asset` using `assetsPaid` from the deposit pool.
+    /// @notice Settle the current epoch for `asset` using `assetsReceived` from the deposit pool.
     /// @param asset The address of the withdrawal asset.
     /// @param assetsReceived The amount of assets received to settle the epoch.
-    /// @param shareValueOfAssetsReceived The value of the assets received in EigenLayer shares.
-    function settleCurrentEpoch(address asset, uint256 assetsReceived, uint256 shareValueOfAssetsReceived) external;
+    function settleCurrentEpochFromDepositPool(address asset, uint256 assetsReceived) external;
 
     /// @notice Queues the current epoch for `asset` settlement via EigenLayer and record
     /// the amount of assets received from the deposit pool.
     /// @param asset The address of the withdrawal asset.
     /// @param assetsReceived The amount of assets received from the deposit pool.
     /// @param shareValueOfAssetsReceived The value of the assets received in EigenLayer shares.
+    /// @param totalShareValueAtRebalance The total epoch share value at the time of rebalance.
     /// @param aggregateRoot The aggregate root of the queued EigenLayer withdrawals.
-    function queueCurrentEpochSettlement(
+    function queueCurrentEpochSettlementFromEigenLayer(
         address asset,
         uint256 assetsReceived,
         uint256 shareValueOfAssetsReceived,
+        uint256 totalShareValueAtRebalance,
         bytes32 aggregateRoot
     ) external;
 }

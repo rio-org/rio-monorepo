@@ -52,11 +52,59 @@ contract OperatorUtilizationHeapTest is Test {
         heap.insert(OperatorUtilizationHeap.Operator({id: 2, utilization: 10}));
         heap.insert(OperatorUtilizationHeap.Operator({id: 3, utilization: 15}));
 
-        heap.store(heapStore);
+        heap.store(heapStore, 32);
 
         for (uint8 i; i < heap.count; i++) {
             assertEq(heapStore.get(i), heap.operators[i + 1].id);
         }
+    }
+
+    function test_storeInMultipleStorageSlots() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(100);
+
+        for (uint8 i = 1; i <= 100; i++) {
+            heap.insert(OperatorUtilizationHeap.Operator({id: i, utilization: i}));
+        }
+        heap.store(heapStore, 254);
+
+        assertEq(heap.count, 100);
+        for (uint8 i; i < heap.count; i++) {
+            assertEq(heapStore.get(i), heap.operators[i + 1].id);
+        }
+    }
+
+    function test_storeCorrectlyRemovesOperator() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(5);
+
+        heap.insert(OperatorUtilizationHeap.Operator({id: 1, utilization: 5}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 2, utilization: 10}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 3, utilization: 15}));
+
+        heap.store(heapStore, 32);
+
+        heap.remove(1);
+
+        heap.store(heapStore, 32);
+
+        assertEq(heapStore.get(0), 2);
+        assertEq(heapStore.get(1), 3);
+        assertEq(heapStore.get(2), 0); // No operator present
+    }
+
+    function test_storeCorrectlyRemovesStaleOperatorInSubsequentMap() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(33);
+
+        for (uint8 i = 1; i <= 33; i++) {
+            heap.insert(OperatorUtilizationHeap.Operator({id: i, utilization: i}));
+        }
+        heap.store(heapStore, 64);
+
+        heap.remove(1);
+
+        heap.store(heapStore, 64);
+
+        // The ID at index 32 (the only value in the second map) should no longer exist.
+        assertEq(heapStore.get(32), 0);
     }
 
     function test_insert() public {
@@ -96,6 +144,20 @@ contract OperatorUtilizationHeapTest is Test {
         assertEq(heap.count, 2);
         assertEq(heap.extractMin().id, 3);
         assertEq(heap.extractMin().id, 1);
+    }
+
+    function test_removeLastOperatorMaintainsHeap() public {
+        OperatorUtilizationHeap.Data memory heap = OperatorUtilizationHeap.initialize(5);
+
+        heap.insert(OperatorUtilizationHeap.Operator({id: 1, utilization: 1}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 2, utilization: 2}));
+        heap.insert(OperatorUtilizationHeap.Operator({id: 3, utilization: 3}));
+
+        heap.remove(3);
+
+        assertEq(heap.count, 2);
+        assertEq(heap.getMin().id, 1);
+        assertEq(heap.getMax().id, 2);
     }
 
     function test_removeByID() public {

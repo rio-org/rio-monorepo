@@ -31,6 +31,22 @@ export interface RedisCacheConfig {
 export interface HttpPortConfig {
   apiRio: number;
   taskSyncDBService: number;
+  rebalancerBotService: number;
+  securityDaemonService: number;
+}
+
+/**
+ * Discord configuration values
+ */
+export interface DiscordConfig {
+  token: string;
+}
+
+/**
+ * Deployment configuration values
+ */
+export interface DeploymentConfig {
+  environment: 'production' | 'staging' | 'local';
 }
 
 /**
@@ -43,6 +59,8 @@ export interface SharedConfig {
   redis: RedisConfig;
   redisCache: RedisCacheConfig;
   logger: LoggerModuleOptions;
+  discord: DiscordConfig;
+  deployment: DeploymentConfig;
   localhost: string;
 }
 

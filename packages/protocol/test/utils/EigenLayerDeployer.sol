@@ -208,36 +208,8 @@ abstract contract EigenLayerDeployer is Test {
         );
 
         // Deploy LST strategies
-        _deployTo(
-            type(TransparentUpgradeableProxy).creationCode,
-            abi.encode(
-                STRATEGY_BASE_TVL_LIMITS_IMPL_ADDRESS,
-                OWNER_ADDRESS,
-                abi.encodeWithSignature(
-                    'initialize(uint256,uint256,address,address)',
-                    type(uint256).max, // Max Per Deposit
-                    type(uint256).max, // Max Total Deposits
-                    RETH_ADDRESS, // Underlying Token
-                    address(1) // Pauser Registry
-                )
-            ),
-            RETH_STRATEGY
-        );
-        _deployTo(
-            type(TransparentUpgradeableProxy).creationCode,
-            abi.encode(
-                STRATEGY_BASE_TVL_LIMITS_IMPL_ADDRESS,
-                OWNER_ADDRESS,
-                abi.encodeWithSignature(
-                    'initialize(uint256,uint256,address,address)',
-                    type(uint256).max, // Max Per Deposit
-                    type(uint256).max, // Max Total Deposits
-                    CBETH_ADDRESS, // Underlying Token
-                    address(1) // Pauser Registry
-                )
-            ),
-            CBETH_STRATEGY
-        );
+        _deployStrategyForToken(RETH_ADDRESS, RETH_STRATEGY);
+        _deployStrategyForToken(CBETH_ADDRESS, CBETH_STRATEGY);
 
         // Whitelist strategies
         address[] memory strategies = new address[](2);
@@ -257,5 +229,26 @@ abstract contract EigenLayerDeployer is Test {
         (bool success, bytes memory runtimeBytecode) = where.call('');
         require(success, 'StdCheats deployCodeTo(string,bytes,uint256,address): Failed to create runtime bytecode.');
         vm.etch(where, runtimeBytecode);
+    }
+
+    /// @dev Deploys an EigenLayer strategy for `token` to the provided address.
+    /// @param token The underlying token address.
+    /// @param where The address to deploy the strategy to.
+    function _deployStrategyForToken(address token, address where) internal {
+        _deployTo(
+            type(TransparentUpgradeableProxy).creationCode,
+            abi.encode(
+                STRATEGY_BASE_TVL_LIMITS_IMPL_ADDRESS,
+                OWNER_ADDRESS,
+                abi.encodeWithSignature(
+                    'initialize(uint256,uint256,address,address)',
+                    type(uint256).max, // Max Per Deposit
+                    type(uint256).max, // Max Total Deposits
+                    token, // Underlying Token
+                    address(1) // Pauser Registry
+                )
+            ),
+            where
+        );
     }
 }

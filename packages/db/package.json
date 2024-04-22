@@ -1,6 +1,6 @@
 {
   "name": "@internal/db",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -11,8 +11,12 @@
     "build": "tsc -p tsconfig.json",
     "clean:build": "rimraf ./dist",
     "dev": "docker-compose up -d && tsc -p tsconfig.json --watch ",
-    "migration:generate": "drizzle-kit generate:pg",
+    "migration:generate": "pnpm migration:generate:api && pnpm migration:generate:security",
+    "migration:generate:api": "drizzle-kit generate:pg --config ./src/config/drizzle.api.config.ts",
+    "migration:generate:security": "drizzle-kit generate:pg --config ./src/config/drizzle.security.config.ts",
     "migration:run": "tsx ./src/migrate.ts",
+    "migration:run:api": "tsx ./src/migrate.ts api",
+    "migration:run:security": "tsx ./src/migrate.ts security",
     "lint": "eslint src --ext .ts",
     "lint:fix": "pnpm lint --fix",
     "format": "prettier --check src/**/*.ts",
@@ -24,14 +28,14 @@
   },
   "dependencies": {
     "@internal/config": "workspace:*",
-    "dotenv": "^16.3.2",
-    "drizzle-orm": "^0.30.4",
-    "pg": "^8.11.3",
+    "dotenv": "^16.4.5",
+    "drizzle-orm": "^0.30.8",
+    "pg": "^8.11.5",
     "postgres": "^3.4.4",
-    "tsx": "^4.7.1"
+    "tsx": "^4.7.2"
   },
   "devDependencies": {
-    "@types/pg": "^8.11.4",
+    "@types/pg": "^8.11.5",
     "drizzle-kit": "^0.20.14"
   }
 }

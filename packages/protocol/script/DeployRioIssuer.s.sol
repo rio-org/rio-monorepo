@@ -7,6 +7,7 @@ import {ERC1967Proxy} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {RioLRTOperatorRegistry} from 'contracts/restaking/RioLRTOperatorRegistry.sol';
 import {RioLRTRewardDistributor} from 'contracts/restaking/RioLRTRewardDistributor.sol';
 import {RioLRTOperatorDelegator} from 'contracts/restaking/RioLRTOperatorDelegator.sol';
+import {UpgradeableBeacon} from '@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol';
 import {RioLRTWithdrawalQueue} from 'contracts/restaking/RioLRTWithdrawalQueue.sol';
 import {RioLRTAssetRegistry} from 'contracts/restaking/RioLRTAssetRegistry.sol';
 import {RioLRTCoordinator} from 'contracts/restaking/RioLRTCoordinator.sol';
@@ -17,26 +18,22 @@ import {RioLRT} from 'contracts/restaking/RioLRT.sol';
 
 contract DeployRioIssuer is ScriptBase {
     function run() public broadcast returns (RioLRTIssuer issuer) {
-        address issuerAddress = computeCreateAddress(deployer, vm.getNonce(deployer) + 10);
+        address issuerAddress = computeCreateAddress(deployer, vm.getNonce(deployer) + 11);
+        address operatorDelegatorBeacon = address(
+            new UpgradeableBeacon(
+                address(new RioLRTOperatorDelegator(issuerAddress, strategyManager, eigenPodManager, delegationManager)),
+                deployer
+            )
+        );
         address issuerImpl = address(
             new RioLRTIssuer(
                 address(new RioLRT(issuerAddress)),
-                address(new RioLRTCoordinator(issuerAddress)),
+                address(new RioLRTCoordinator(issuerAddress, ethPOS)),
                 address(new RioLRTAssetRegistry(issuerAddress)),
-                address(
-                    new RioLRTOperatorRegistry(
-                        issuerAddress,
-                        deployer,
-                        address(
-                            new RioLRTOperatorDelegator(
-                                issuerAddress, strategyManager, eigenPodManager, delegationManager
-                            )
-                        )
-                    )
-                ),
+                address(new RioLRTOperatorRegistry(issuerAddress, strategyManager, operatorDelegatorBeacon)),
                 address(new RioLRTAVSRegistry(issuerAddress)),
-                address(new RioLRTDepositPool(issuerAddress, delegationManager)),
-                address(new RioLRTWithdrawalQueue(issuerAddress, delegationManager)),
+                address(new RioLRTDepositPool(issuerAddress)),
+                address(new RioLRTWithdrawalQueue(issuerAddress)),
                 address(new RioLRTRewardDistributor(issuerAddress))
             )
         );

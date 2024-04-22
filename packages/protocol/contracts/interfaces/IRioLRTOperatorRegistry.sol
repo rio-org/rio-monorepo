@@ -274,15 +274,22 @@ interface IRioLRTOperatorRegistry {
     /// @param validatorCount The number of validator details that were added.
     event OperatorPendingValidatorDetailsAdded(uint8 indexed operatorId, uint256 validatorCount);
 
-    /// @notice Emitted when an operator removes pending validator details (public keys and signatures).
+    /// @notice Emitted when an operator removes pending or confirmed validator details (public keys and signatures).
     /// @param operatorId The operator's ID.
-    /// @param validatorCount The number of pending validator details that were removed.
-    event OperatorPendingValidatorDetailsRemoved(uint8 indexed operatorId, uint256 validatorCount);
+    /// @param validatorCount The number of validator details that were removed.
+    event OperatorValidatorDetailsRemoved(uint8 indexed operatorId, uint256 validatorCount);
 
     /// @notice Emitted when out of order validator exits are reported.
     /// @param operatorId The operator's ID.
     /// @param validatorCount The number of validators that were exited out of order.
     event OperatorOutOfOrderValidatorExitsReported(uint8 indexed operatorId, uint256 validatorCount);
+
+    /// @notice Emitted when the number of shares allocated to an operator has been synced.
+    /// @param operatorId The operator's ID.
+    /// @param strategy The strategy that the shares were synced for.
+    /// @param oldShares The previous number of shares allocated to the operator.
+    /// @param newShares The new number of shares allocated to the operator.
+    event StrategySharesSynced(uint8 indexed operatorId, address strategy, uint256 oldShares, uint256 newShares);
 
     /// @notice Emitted when strategy shares have been allocated to an operator.
     /// @param operatorId The operator's ID.

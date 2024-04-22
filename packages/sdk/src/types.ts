@@ -37,20 +37,20 @@ export interface EstimateOutRequestWithdrawalParams {
 
 //#region Write Functions
 
-export interface DepositParams {
+export interface DepositETHParams {
+  /**
+   * The amount of ETH to deposit.
+   */
+  amount: string | bigint;
+}
+
+export interface DepositERC20Params {
   /**
    * The address of the token to deposit.
    */
   tokenIn: Address;
   /**
    * The amount of the asset to deposit.
-   */
-  amount: string | bigint;
-}
-
-export interface DepositETHParams {
-  /**
-   * The amount of ETH to deposit.
    */
   amount: string | bigint;
 }

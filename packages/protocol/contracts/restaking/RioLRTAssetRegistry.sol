@@ -192,7 +192,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         address priceFeed = assetInfo[asset].priceFeed;
         uint256 price = getPrice(priceFeed);
 
-        return _normalizeDecimals(price * amount / priceScale, assetInfo[asset].decimals, priceFeedDecimals);
+        return _normalizeDecimals(price * amount, assetInfo[asset].decimals, priceFeedDecimals) / priceScale;
     }
 
     /// @notice Converts the unit of account value to its equivalent in the asset. The unit of
@@ -206,7 +206,7 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         address priceFeed = assetInfo[asset].priceFeed;
         uint256 price = getPrice(priceFeed);
 
-        return _normalizeDecimals(value * priceScale / price, priceFeedDecimals, assetInfo[asset].decimals);
+        return _normalizeDecimals(value * priceScale, priceFeedDecimals, assetInfo[asset].decimals) / price;
     }
 
     /// @notice Converts an amount of an asset to the equivalent amount of EigenLayer shares.
@@ -230,7 +230,8 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         amount = IStrategy(strategy).sharesToUnderlyingView(shares);
     }
 
-    /// @dev Get the current price from the provided price feed.
+    /// @dev Get the current price from the provided price feed. This function performs no checks on the
+    /// price feed. Its output should not be trusted unless the price feed parameter is known and trusted.
     /// @param priceFeed The price feed contract address.
     function getPrice(address priceFeed) public view returns (uint256) {
         if (priceFeed == address(0)) {
@@ -248,18 +249,14 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
     /// @notice Removes an underlying asset from the liquid restaking token.
     /// @param asset The address of the asset to remove.
     function removeAsset(address asset) external onlyOwner {
-        if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
-        if (getTVLForAsset(asset) > 0) revert ASSET_HAS_BALANCE();
+        _removeAsset(asset, false);
+    }
 
-        uint256 assetCount = supportedAssets.length;
-        uint256 assetIndex = _findAssetIndex(asset);
-
-        supportedAssets[assetIndex] = supportedAssets[assetCount - 1];
-        supportedAssets.pop();
-
-        delete assetInfo[asset];
-
-        emit AssetRemoved(asset);
+    /// @notice Force removes an underlying asset from the liquid restaking token
+    /// regardless of its balance.
+    /// @param asset The address of the asset to force remove.
+    function forceRemoveAsset(address asset) external onlyOwner {
+        _removeAsset(asset, true);
     }
 
     /// @dev Sets the asset's deposit cap.
@@ -349,6 +346,24 @@ contract RioLRTAssetRegistry is IRioLRTAssetRegistry, OwnableUpgradeable, UUPSUp
         info.strategy = config.strategy;
 
         emit AssetAdded(config);
+    }
+
+    /// @dev Removes an underlying asset from the liquid restaking token.
+    /// @param asset The address of the asset to remove.
+    /// @param force If true, the asset will be removed regardless of its balance.
+    function _removeAsset(address asset, bool force) internal {
+        if (!isSupportedAsset(asset)) revert ASSET_NOT_SUPPORTED(asset);
+        if (!force && getTVLForAsset(asset) > 0) revert ASSET_HAS_BALANCE();
+
+        uint256 assetCount = supportedAssets.length;
+        uint256 assetIndex = _findAssetIndex(asset);
+
+        supportedAssets[assetIndex] = supportedAssets[assetCount - 1];
+        supportedAssets.pop();
+
+        delete assetInfo[asset];
+
+        emit AssetRemoved(asset, force);
     }
 
     /// @dev Returns the index of the asset in the supported assets array.

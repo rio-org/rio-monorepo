@@ -1,10 +1,20 @@
 export const RioLRTCoordinatorABI = [
   {
     type: 'constructor',
-    inputs: [{ name: 'issuer_', type: 'address', internalType: 'address' }],
+    inputs: [
+      { name: 'issuer_', type: 'address', internalType: 'address' },
+      { name: 'ethPOS_', type: 'address', internalType: 'address' }
+    ],
     stateMutability: 'nonpayable'
   },
   { type: 'receive', stateMutability: 'payable' },
+  {
+    type: 'function',
+    name: 'DEPOSIT_ROOT_TYPEHASH',
+    inputs: [],
+    outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
+    stateMutability: 'view'
+  },
   {
     type: 'function',
     name: 'UPGRADE_INTERFACE_VERSION',
@@ -16,7 +26,7 @@ export const RioLRTCoordinatorABI = [
     type: 'function',
     name: 'assetNextRebalanceAfter',
     inputs: [{ name: 'asset', type: 'address', internalType: 'address' }],
-    outputs: [{ name: 'timestamp', type: 'uint256', internalType: 'uint256' }],
+    outputs: [{ name: 'timestamp', type: 'uint40', internalType: 'uint40' }],
     stateMutability: 'view'
   },
   {
@@ -65,7 +75,7 @@ export const RioLRTCoordinatorABI = [
   },
   {
     type: 'function',
-    name: 'deposit',
+    name: 'depositERC20',
     inputs: [
       { name: 'asset', type: 'address', internalType: 'address' },
       { name: 'amountIn', type: 'uint256', internalType: 'uint256' }
@@ -82,9 +92,54 @@ export const RioLRTCoordinatorABI = [
   },
   {
     type: 'function',
+    name: 'eip712Domain',
+    inputs: [],
+    outputs: [
+      { name: 'fields', type: 'bytes1', internalType: 'bytes1' },
+      { name: 'name', type: 'string', internalType: 'string' },
+      { name: 'version', type: 'string', internalType: 'string' },
+      { name: 'chainId', type: 'uint256', internalType: 'uint256' },
+      { name: 'verifyingContract', type: 'address', internalType: 'address' },
+      { name: 'salt', type: 'bytes32', internalType: 'bytes32' },
+      { name: 'extensions', type: 'uint256[]', internalType: 'uint256[]' }
+    ],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
+    name: 'emergencyPauseOperatorUndelegated',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable'
+  },
+  {
+    type: 'function',
+    name: 'ethPOS',
+    inputs: [],
+    outputs: [
+      { name: '', type: 'address', internalType: 'contract IETHPOSDeposit' }
+    ],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
     name: 'getTVL',
     inputs: [],
     outputs: [{ name: 'value', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
+    name: 'guardianSigner',
+    inputs: [],
+    outputs: [{ name: '', type: 'address', internalType: 'address' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
+    name: 'hashTypedData',
+    inputs: [{ name: 'structHash', type: 'bytes32', internalType: 'bytes32' }],
+    outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
     stateMutability: 'view'
   },
   {
@@ -113,6 +168,20 @@ export const RioLRTCoordinatorABI = [
   },
   {
     type: 'function',
+    name: 'pause',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable'
+  },
+  {
+    type: 'function',
+    name: 'paused',
+    inputs: [],
+    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
     name: 'proxiableUUID',
     inputs: [],
     outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
@@ -120,17 +189,27 @@ export const RioLRTCoordinatorABI = [
   },
   {
     type: 'function',
-    name: 'rebalance',
-    inputs: [{ name: 'asset', type: 'address', internalType: 'address' }],
+    name: 'rebalanceDelay',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint24', internalType: 'uint24' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
+    name: 'rebalanceERC20',
+    inputs: [{ name: 'token', type: 'address', internalType: 'address' }],
     outputs: [],
     stateMutability: 'nonpayable'
   },
   {
     type: 'function',
-    name: 'rebalanceDelay',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint24', internalType: 'uint24' }],
-    stateMutability: 'view'
+    name: 'rebalanceETH',
+    inputs: [
+      { name: 'root', type: 'bytes32', internalType: 'bytes32' },
+      { name: 'signature', type: 'bytes', internalType: 'bytes' }
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable'
   },
   {
     type: 'function',
@@ -146,7 +225,16 @@ export const RioLRTCoordinatorABI = [
       { name: 'asset', type: 'address', internalType: 'address' },
       { name: 'amountIn', type: 'uint256', internalType: 'uint256' }
     ],
-    outputs: [{ name: 'sharesOwed', type: 'uint256', internalType: 'uint256' }],
+    outputs: [],
+    stateMutability: 'nonpayable'
+  },
+  {
+    type: 'function',
+    name: 'setGuardianSigner',
+    inputs: [
+      { name: 'newGuardianSigner', type: 'address', internalType: 'address' }
+    ],
+    outputs: [],
     stateMutability: 'nonpayable'
   },
   {
@@ -169,6 +257,13 @@ export const RioLRTCoordinatorABI = [
     type: 'function',
     name: 'transferOwnership',
     inputs: [{ name: 'newOwner', type: 'address', internalType: 'address' }],
+    outputs: [],
+    stateMutability: 'nonpayable'
+  },
+  {
+    type: 'function',
+    name: 'unpause',
+    inputs: [],
     outputs: [],
     stateMutability: 'nonpayable'
   },
@@ -210,6 +305,19 @@ export const RioLRTCoordinatorABI = [
   },
   {
     type: 'event',
+    name: 'GuardianSignerSet',
+    inputs: [
+      {
+        name: 'newGuardianSigner',
+        type: 'address',
+        indexed: false,
+        internalType: 'address'
+      }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
     name: 'Initialized',
     inputs: [
       {
@@ -242,6 +350,27 @@ export const RioLRTCoordinatorABI = [
   },
   {
     type: 'event',
+    name: 'PartiallyRebalanced',
+    inputs: [
+      { name: 'asset', type: 'address', indexed: true, internalType: 'address' }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
+    name: 'Paused',
+    inputs: [
+      {
+        name: 'account',
+        type: 'address',
+        indexed: false,
+        internalType: 'address'
+      }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
     name: 'RebalanceDelaySet',
     inputs: [
       {
@@ -258,6 +387,19 @@ export const RioLRTCoordinatorABI = [
     name: 'Rebalanced',
     inputs: [
       { name: 'asset', type: 'address', indexed: true, internalType: 'address' }
+    ],
+    anonymous: false
+  },
+  {
+    type: 'event',
+    name: 'Unpaused',
+    inputs: [
+      {
+        name: 'account',
+        type: 'address',
+        indexed: false,
+        internalType: 'address'
+      }
     ],
     anonymous: false
   },
@@ -308,10 +450,15 @@ export const RioLRTCoordinatorABI = [
   },
   { type: 'error', name: 'ERC1967NonPayable', inputs: [] },
   { type: 'error', name: 'ETH_TRANSFER_FAILED', inputs: [] },
+  { type: 'error', name: 'EnforcedPause', inputs: [] },
+  { type: 'error', name: 'ExpectedPause', inputs: [] },
   { type: 'error', name: 'FailedInnerCall', inputs: [] },
   { type: 'error', name: 'INCORRECT_NUMBER_OF_SHARES_QUEUED', inputs: [] },
   { type: 'error', name: 'INSUFFICIENT_SHARES_FOR_WITHDRAWAL', inputs: [] },
+  { type: 'error', name: 'INVALID_GUARDIAN_SIGNATURE', inputs: [] },
+  { type: 'error', name: 'INVALID_TOKEN_ADDRESS', inputs: [] },
   { type: 'error', name: 'InvalidInitialization', inputs: [] },
+  { type: 'error', name: 'NO_OPERATOR_UNDELEGATED', inputs: [] },
   { type: 'error', name: 'NO_REBALANCE_NEEDED', inputs: [] },
   { type: 'error', name: 'NotInitializing', inputs: [] },
   { type: 'error', name: 'ONLY_COORDINATOR', inputs: [] },
@@ -331,6 +478,7 @@ export const RioLRTCoordinatorABI = [
   },
   { type: 'error', name: 'REBALANCE_DELAY_NOT_MET', inputs: [] },
   { type: 'error', name: 'REBALANCE_DELAY_TOO_LONG', inputs: [] },
+  { type: 'error', name: 'STALE_DEPOSIT_ROOT', inputs: [] },
   {
     type: 'error',
     name: 'SafeERC20FailedOperation',

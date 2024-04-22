@@ -7,7 +7,7 @@ import {
   SubgraphClient,
 } from '@rionetwork/sdk';
 import { Cron } from '@nestjs/schedule';
-import { desc, schema, sql } from '@internal/db';
+import { desc, apiSchema, sql } from '@internal/db';
 import {
   Deposit_OrderBy,
   OrderDirection,
@@ -26,11 +26,8 @@ import {
 @Injectable()
 export class SyncExchangeRatesTaskManagerService {
   private readonly db: ReturnType<
-    typeof this.databaseService.getConnection
+    typeof this.databaseService.getApiConnection
   >['db'];
-  private readonly client: ReturnType<
-    typeof this.databaseService.getConnection
-  >['client'];
 
   constructor(
     @Inject(TaskSyncDBProvider.CRON_TASK)
@@ -41,10 +38,7 @@ export class SyncExchangeRatesTaskManagerService {
     private readonly databaseService: DatabaseService,
   ) {
     this.logger.setContext(this.constructor.name);
-
-    const { db, client } = this.databaseService.getConnection();
-    this.db = db;
-    this.client = client;
+    this.db = this.databaseService.getApiConnection().db;
   }
 
   @Cron('10 0-23/1 * * *')
@@ -114,13 +108,9 @@ export class SyncExchangeRatesTaskManagerService {
 
       // Get the last balance sheet entry
       let lastEntry = await this.db.query.balanceSheet.findFirst({
-        // eslint-disable-next-line
-        // @ts-ignore
         where: (balances, { eq }) =>
-          // eslint-disable-next-line
-          // @ts-ignore
           eq(balances.restakingToken, liquidRestakingToken.symbol),
-        orderBy: [desc(schema.balanceSheet.timestamp)],
+        orderBy: [desc(apiSchema.balanceSheet.timestamp)],
       });
 
       // If there is no last entry, insert a dummy entry for 1 wei at the beginning of time
@@ -130,7 +120,7 @@ export class SyncExchangeRatesTaskManagerService {
         );
         lastEntry = (
           await this.db
-            .insert(schema.balanceSheet)
+            .insert(apiSchema.balanceSheet)
             .values({
               chainId,
               asset: 'ETH',
@@ -172,16 +162,16 @@ export class SyncExchangeRatesTaskManagerService {
           .db.execute(sql`
               WITH deposited AS (
                 SELECT 1 AS idx,
-                       SUM(${schema.transfer.value})/1e18 AS value
-                  FROM ${schema.transfer}
-                 WHERE ${schema.transfer.from} = '0x0000000000000000000000000000000000000000'
-                   AND ${schema.transfer.timestamp} <= ${_timestampStr}
+                       SUM(${apiSchema.transfer.value})/1e18 AS value
+                  FROM ${apiSchema.transfer}
+                 WHERE ${apiSchema.transfer.from} = '0x0000000000000000000000000000000000000000'
+                   AND ${apiSchema.transfer.timestamp} <= ${_timestampStr}
               ), withdrawn AS (
                 SELECT 1 AS idx,
-                       SUM(${schema.transfer.value})/1e18 AS value
-                  FROM ${schema.transfer}
-                 WHERE ${schema.transfer.to} = '0x0000000000000000000000000000000000000000'
-                   AND ${schema.transfer.timestamp} <= ${_timestampStr}
+                       SUM(${apiSchema.transfer.value})/1e18 AS value
+                  FROM ${apiSchema.transfer}
+                 WHERE ${apiSchema.transfer.to} = '0x0000000000000000000000000000000000000000'
+                   AND ${apiSchema.transfer.timestamp} <= ${_timestampStr}
               )
 
               SELECT deposited.value - withdrawn.value AS supply
@@ -323,7 +313,7 @@ export class SyncExchangeRatesTaskManagerService {
     // Insert the new balance sheet entry
     return (
       await this.db
-        .insert(schema.balanceSheet)
+        .insert(apiSchema.balanceSheet)
         .values({
           chainId,
           asset: 'ETH',

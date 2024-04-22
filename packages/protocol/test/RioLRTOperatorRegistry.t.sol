@@ -237,11 +237,11 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Allocate to cbETH strategy.
         cbETH.approve(address(reLST.coordinator), type(uint256).max);
-        reLST.coordinator.deposit(CBETH_ADDRESS, AMOUNT);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, AMOUNT);
 
         // Push funds into EigenLayer.
         vm.prank(EOA, EOA);
-        reLST.coordinator.rebalance(CBETH_ADDRESS);
+        reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
 
         vm.recordLogs();
         reLST.operatorRegistry.setOperatorStrategyShareCaps(operatorId, zeroStrategyShareCaps);
@@ -289,9 +289,12 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         // Allocate ETH.
         reETH.coordinator.depositETH{value: AMOUNT}();
 
+        // Get the latest POS deposit root and guardian signature.
+        (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
+
         // Push funds into EigenLayer.
         vm.prank(EOA, EOA);
-        reETH.coordinator.rebalance(ETH_ADDRESS);
+        reETH.coordinator.rebalanceETH(root, signature);
 
         // Verify validator withdrawal credentials.
         verifyCredentialsForValidators(reETH.operatorRegistry, operatorId, uint8(AMOUNT / 32 ether));
@@ -326,9 +329,16 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
         uint256 OOO_EXIT_STARTING_INDEX = 150;
         uint256 OOO_EXIT_COUNT = 88;
 
-        uint8 operatorId = addOperatorDelegator(
-            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, UPLOADED_KEY_COUNT
-        );
+        // forgefmt: disable-next-item
+        uint8 operatorId = addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 0);
+        reETH.operatorRegistry.setOperatorValidatorCap(operatorId, UPLOADED_KEY_COUNT);
+
+        // Populate the keys and signatures with random bytes.
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getRandomValidatorKeys(UPLOADED_KEY_COUNT);
+        reETH.operatorRegistry.addValidatorDetails(operatorId, UPLOADED_KEY_COUNT, publicKeys, signatures);
+
+        // Fast forward to allow validator keys time to confirm.
+        skip(reETH.operatorRegistry.validatorKeyReviewPeriod());
 
         IRioLRTOperatorRegistry.OperatorPublicDetails memory details =
             reETH.operatorRegistry.getOperatorDetails(operatorId);
@@ -346,8 +356,99 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
 
         // Ensure the expected public keys are swapped.
         uint256 j = OOO_EXIT_STARTING_INDEX;
-        (bytes memory expectedPublicKeys,) = TestUtils.getValidatorKeys(UPLOADED_KEY_COUNT);
         for (uint256 i = 0; i < OOO_EXIT_COUNT; i++) {
+            uint256 key1Start = j * ValidatorDetails.PUBKEY_LENGTH;
+            uint256 key1End = (j + 1) * ValidatorDetails.PUBKEY_LENGTH;
+
+            uint256 key2Start = i * ValidatorDetails.PUBKEY_LENGTH;
+            uint256 key2End = (i + 1) * ValidatorDetails.PUBKEY_LENGTH;
+
+            vm.expectEmit(true, false, false, true, address(reETH.operatorRegistry));
+            emit ValidatorDetails.ValidatorDetailsSwapped(
+                operatorId,
+                bytes(LibString.slice(string(publicKeys), key1Start, key1End)),
+                bytes(LibString.slice(string(publicKeys), key2Start, key2End))
+            );
+
+            j++;
+        }
+
+        // Report the out of order exits of `OOO_EXIT_COUNT` validators starting at index `OOO_EXIT_STARTING_INDEX`.
+        reETH.operatorRegistry.reportOutOfOrderValidatorExits(operatorId, OOO_EXIT_STARTING_INDEX, OOO_EXIT_COUNT);
+
+        details = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(details.validatorDetails.exited, OOO_EXIT_COUNT);
+    }
+
+    function test_reportOutOfOrderValidatorExitsDoesNotSwapIfNextInLineToBeExited() public {
+        uint40 DEPOSIT_COUNT = 20;
+        uint256 OOO_EXIT_STARTING_INDEX = 0;
+        uint256 OOO_EXIT_COUNT = 10;
+
+        uint8 operatorId = addOperatorDelegator(
+            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, DEPOSIT_COUNT
+        );
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory details =
+            reETH.operatorRegistry.getOperatorDetails(operatorId);
+
+        // Allocate `DEPOSIT_COUNT` deposits
+        vm.prank(address(reETH.depositPool));
+        reETH.operatorRegistry.allocateETHDeposits(DEPOSIT_COUNT);
+
+        // Mark operators as withdrawn.
+        vm.mockCall(
+            address(IRioLRTOperatorDelegator(details.delegator).eigenPod()),
+            abi.encodeWithSelector(IEigenPod.validatorStatus.selector),
+            abi.encode(IEigenPod.VALIDATOR_STATUS.WITHDRAWN)
+        );
+
+        vm.expectEmit(true, false, false, true, address(reETH.operatorRegistry));
+        emit IRioLRTOperatorRegistry.OperatorOutOfOrderValidatorExitsReported(operatorId, OOO_EXIT_COUNT);
+
+        vm.recordLogs();
+
+        // Report the out of order exits of `OOO_EXIT_COUNT` validators starting at index `OOO_EXIT_STARTING_INDEX`.
+        reETH.operatorRegistry.reportOutOfOrderValidatorExits(operatorId, OOO_EXIT_STARTING_INDEX, OOO_EXIT_COUNT);
+
+        // No swapping events should have been emitted.
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        assertEq(logs.length, 1);
+
+        details = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(details.validatorDetails.exited, OOO_EXIT_COUNT);
+    }
+
+    function test_reportOutOfOrderValidatorExitsWhenTwoCallsRequiredToAvoidOverlappingIndexes() public {
+        uint40 DEPOSIT_COUNT = 300;
+        uint256 OOO_EXIT_STARTING_INDEX = 50;
+        uint256 OOO_EXIT_COUNT = 150;
+
+        uint8 operatorId = addOperatorDelegator(
+            reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, DEPOSIT_COUNT
+        );
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory details =
+            reETH.operatorRegistry.getOperatorDetails(operatorId);
+
+        // Allocate `DEPOSIT_COUNT` deposits
+        vm.prank(address(reETH.depositPool));
+        reETH.operatorRegistry.allocateETHDeposits(DEPOSIT_COUNT);
+
+        // Mark operators as withdrawn.
+        vm.mockCall(
+            address(IRioLRTOperatorDelegator(details.delegator).eigenPod()),
+            abi.encodeWithSelector(IEigenPod.validatorStatus.selector),
+            abi.encode(IEigenPod.VALIDATOR_STATUS.WITHDRAWN)
+        );
+
+        uint256 FIRST_CALL_STARTING_INDEX = 100;
+        uint256 FIRST_CALL_EXIT_COUNT = 50;
+
+        // Ensure the last 50 public keys are swapped to fill the gap between the remaining.
+        uint256 j = FIRST_CALL_STARTING_INDEX;
+        (bytes memory expectedPublicKeys,) = TestUtils.getValidatorKeys(DEPOSIT_COUNT);
+        for (uint256 i = 0; i < FIRST_CALL_EXIT_COUNT; i++) {
             uint256 key1Start = j * ValidatorDetails.PUBKEY_LENGTH;
             uint256 key1End = (j + 1) * ValidatorDetails.PUBKEY_LENGTH;
 
@@ -364,11 +465,129 @@ contract RioLRTOperatorRegistryTest is RioDeployer {
             j++;
         }
 
-        // Report the out of order exits of `OOO_EXIT_COUNT` validators starting at index `OOO_EXIT_STARTING_INDEX`.
-        reETH.operatorRegistry.reportOutOfOrderValidatorExits(operatorId, OOO_EXIT_STARTING_INDEX, OOO_EXIT_COUNT);
+        // Report the out of order exits of `FIRST_CALL_EXIT_COUNT` validators starting at index `FIRST_CALL_STARTING_INDEX`.
+        reETH.operatorRegistry.reportOutOfOrderValidatorExits(
+            operatorId, FIRST_CALL_STARTING_INDEX, FIRST_CALL_EXIT_COUNT
+        );
+
+        // Report the remaining exits now that there is no longer a gap.
+        uint256 SECOND_CALL_EXIT_COUNT = OOO_EXIT_COUNT - FIRST_CALL_EXIT_COUNT;
+
+        vm.expectEmit(true, false, false, true, address(reETH.operatorRegistry));
+        emit IRioLRTOperatorRegistry.OperatorOutOfOrderValidatorExitsReported(operatorId, SECOND_CALL_EXIT_COUNT);
+
+        vm.recordLogs();
+
+        // Report the out of order exits of `SECOND_CALL_EXIT_COUNT` validators starting at index `OOO_EXIT_STARTING_INDEX`.
+        reETH.operatorRegistry.reportOutOfOrderValidatorExits(
+            operatorId, OOO_EXIT_STARTING_INDEX, SECOND_CALL_EXIT_COUNT
+        );
+
+        // No swapping events should have been emitted.
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        assertEq(logs.length, 1);
 
         details = reETH.operatorRegistry.getOperatorDetails(operatorId);
         assertEq(details.validatorDetails.exited, OOO_EXIT_COUNT);
+    }
+
+    function test_syncStrategyShares() public {
+        // First, set up an edge case scenario where the actual operator allocation can differ very
+        // slightly from the stored allocation due to rounding differences.
+        uint8[] memory operatorIds = addOperatorDelegators(reLST.operatorRegistry, address(reLST.rewardDistributor), 1);
+
+        // Deposit and push the balance into EigenLayer.
+        cbETH.approve(address(reLST.coordinator), type(uint256).max);
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, 100e18);
+
+        vm.prank(EOA, EOA);
+        reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
+
+        // Donate 10 wei of cbETH to the EigenLayer strategy.
+        cbETH.transfer(address(0x54945180dB7943c0ed0FEE7EdaB2Bd24620256bc), 10);
+
+        reLST.coordinator.depositERC20(CBETH_ADDRESS, 100000000000000000010);
+        skip(reLST.coordinator.rebalanceDelay());
+
+        vm.prank(EOA, EOA);
+        reLST.coordinator.rebalanceERC20(CBETH_ADDRESS);
+
+        uint128 storedAllocationBefore = reLST.operatorRegistry.getOperatorShareDetails(1, CBETH_STRATEGY).allocation;
+        assertEq(storedAllocationBefore, 200000000000000000000);
+
+        // Sync the strategy shares with EigenLayer.
+        reLST.operatorRegistry.syncStrategyShares(operatorIds, CBETH_STRATEGY);
+
+        // Ensure the stored allocation is updated to the actual allocation.
+        uint128 storedAllocationAfter = reLST.operatorRegistry.getOperatorShareDetails(1, CBETH_STRATEGY).allocation;
+        assertEq(storedAllocationAfter, 199999999999999999999);
+    }
+
+    function test_removeValidatorDetailsDepositedKeysReverts() public {
+        uint8 operatorId =
+            addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 10);
+
+        vm.prank(address(reETH.depositPool));
+        reETH.operatorRegistry.allocateETHDeposits(10);
+
+        vm.expectRevert(abi.encodeWithSelector(IRioLRTOperatorRegistry.INVALID_INDEX.selector));
+        reETH.operatorRegistry.removeValidatorDetails(operatorId, 1, 1);
+    }
+
+    function test_removeValidatorDetailsRemovesPendingKeys() public {
+        uint8 operatorId =
+            addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 0);
+
+        // Add validator keys, but do not allow enough time for them to confirm.
+        uint40 validatorCount = 10;
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(validatorCount);
+        reETH.operatorRegistry.addValidatorDetails(operatorId, validatorCount, publicKeys, signatures);
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory operator;
+
+        operator = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(operator.validatorDetails.confirmed, 0);
+        assertEq(operator.validatorDetails.total, 10);
+
+        // Remove 5 validators starting at index 5.
+        reETH.operatorRegistry.removeValidatorDetails(operatorId, 5, 5);
+
+        operator = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(operator.validatorDetails.confirmed, 0);
+        assertEq(operator.validatorDetails.total, 5); // Total has been decreased by 5.
+    }
+
+    function test_removeValidatorDetailsRemovesConfirmedKeys() public {
+        uint8 operatorId =
+            addOperatorDelegator(reETH.operatorRegistry, address(reETH.rewardDistributor), emptyStrategyShareCaps, 0);
+
+        // Add 10 validator keys and allow enough time for them to confirm.
+        (bytes memory publicKeys, bytes memory signatures) = TestUtils.getValidatorKeys(10);
+        reETH.operatorRegistry.addValidatorDetails(operatorId, 10, publicKeys, signatures);
+
+        // Fast forward to allow validator keys time to confirm.
+        skip(reETH.operatorRegistry.validatorKeyReviewPeriod());
+
+        // Add 10 more validator keys and leave them pending in order to confirm the first 10.
+        reETH.operatorRegistry.addValidatorDetails(operatorId, 10, publicKeys, signatures);
+
+        // Fast forward, but not enough for new keys to confirm.
+        skip(reETH.operatorRegistry.validatorKeyReviewPeriod() / 2);
+
+        IRioLRTOperatorRegistry.OperatorPublicDetails memory operator;
+
+        operator = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(operator.validatorDetails.confirmed, 10);
+        assertEq(operator.validatorDetails.total, 20);
+
+        // Remove 10 validators starting at index 3.
+        uint40 fromIndex = 3;
+        uint40 validatorsToRemove = 10;
+        reETH.operatorRegistry.removeValidatorDetails(operatorId, fromIndex, validatorsToRemove);
+
+        operator = reETH.operatorRegistry.getOperatorDetails(operatorId);
+        assertEq(operator.validatorDetails.confirmed, fromIndex); // Confirmed has been decreased to the `fromIndex`.
+        assertEq(operator.validatorDetails.total, 20 - validatorsToRemove); // Total has been decreased by `validatorsToRemove`.
     }
 
     function test_allocateStrategySharesInvalidCallerReverts() public {

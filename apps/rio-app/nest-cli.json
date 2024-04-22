@@ -28,6 +28,24 @@
         "tsConfigPath": "apps/task-sync-db/tsconfig.app.json"
       }
     },
+    "rebalancer-bot": {
+      "type": "application",
+      "root": "apps/rebalancer-bot",
+      "entryFile": "main",
+      "sourceRoot": "apps/rebalancer-bot/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/rebalancer-bot/tsconfig.app.json"
+      }
+    },
+    "security-daemon": {
+      "type": "application",
+      "root": "apps/security-daemon",
+      "entryFile": "main",
+      "sourceRoot": "apps/security-daemon/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/security-daemon/tsconfig.app.json"
+      }
+    },
     "common": {
       "type": "library",
       "root": "libs/common",
@@ -35,15 +53,6 @@
       "sourceRoot": "libs/common/src",
       "compilerOptions": {
         "tsConfigPath": "libs/common/tsconfig.lib.json"
-      }
-    },
-    "config": {
-      "type": "library",
-      "root": "libs/config",
-      "entryFile": "index",
-      "sourceRoot": "libs/config/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/config/tsconfig.lib.json"
       }
     }
   }

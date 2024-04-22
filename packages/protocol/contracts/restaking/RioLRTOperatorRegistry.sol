@@ -4,12 +4,12 @@ pragma solidity 0.8.23;
 import {LibMap} from '@solady/utils/LibMap.sol';
 import {FixedPointMathLib} from '@solady/utils/FixedPointMathLib.sol';
 import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
-import {UpgradeableBeacon} from '@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol';
 import {UUPSUpgradeable} from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
 import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {RioLRTOperatorRegistryStorageV1} from 'contracts/restaking/storage/RioLRTOperatorRegistryStorageV1.sol';
 import {IRioLRTOperatorDelegator} from 'contracts/interfaces/IRioLRTOperatorDelegator.sol';
 import {IBeaconChainProofs} from 'contracts/interfaces/eigenlayer/IBeaconChainProofs.sol';
+import {IStrategyManager} from 'contracts/interfaces/eigenlayer/IStrategyManager.sol';
 import {BLS_PUBLIC_KEY_LENGTH, ETH_DEPOSIT_SIZE} from 'contracts/utils/Constants.sol';
 import {OperatorRegistryV1Admin} from 'contracts/utils/OperatorRegistryV1Admin.sol';
 import {OperatorUtilizationHeap} from 'contracts/utils/OperatorUtilizationHeap.sol';
@@ -28,7 +28,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     using Asset for address;
     using LibMap for *;
 
-    /// @dev The validator details storage position.
+    /// @notice The primary entry and exit-point for funds into and out of EigenLayer.
+    IStrategyManager public immutable strategyManager;
 
     /// @notice The operator delegator beacon contract.
     address public immutable operatorDelegatorBeacon;
@@ -61,10 +62,11 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     }
 
     /// @param issuer_ The LRT issuer that's authorized to deploy this contract.
-    /// @param initialBeaconOwner The initial owner who can upgrade the operator delegator beacon contract.
-    /// @param operatorDelegatorImpl_ The operator contract implementation.
-    constructor(address issuer_, address initialBeaconOwner, address operatorDelegatorImpl_) RioLRTCore(issuer_) {
-        operatorDelegatorBeacon = address(new UpgradeableBeacon(operatorDelegatorImpl_, initialBeaconOwner));
+    /// @param strategyManager_ The primary entry and exit-point for funds into and out of EigenLayer.
+    /// @param operatorDelegatorBeacon_ The operator delegator beacon contract.
+    constructor(address issuer_, address strategyManager_, address operatorDelegatorBeacon_) RioLRTCore(issuer_) {
+        strategyManager = IStrategyManager(strategyManager_);
+        operatorDelegatorBeacon = operatorDelegatorBeacon_;
     }
 
     /// @notice Initializes the contract.
@@ -282,7 +284,8 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
     }
 
     // forgefmt: disable-next-item
-    /// @notice Removes pending validator details (public keys and signatures) from storage for the provided operator.
+    /// @notice Removes pending or confirmed validator details (public keys and signatures) from storage
+    /// for the provided operator.
     /// @param operatorId The operator's ID.
     /// @param fromIndex The index of the first validator to remove.
     /// @param validatorCount The number of validator to remove.
@@ -294,12 +297,18 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         OperatorValidatorDetails memory validators = operator.validatorDetails;
 
         if (validatorCount == 0) revert INVALID_VALIDATOR_COUNT();
-        if (fromIndex < validators.confirmed || fromIndex + validatorCount > validators.total) revert INVALID_INDEX();
+        if (fromIndex < validators.deposited || fromIndex + validatorCount > validators.total) revert INVALID_INDEX();
 
         operator.validatorDetails.total = OperatorRegistryV1Admin.VALIDATOR_DETAILS_POSITION.removeValidatorDetails(
             operatorId, fromIndex, validatorCount, validators.total
         );
-        emit OperatorPendingValidatorDetailsRemoved(operatorId, validatorCount);
+
+        // If removing confirmed keys, we must reduce the confirmed key count to the `fromIndex` and update the
+        // next confirmation timestamp as we may be moving pending keys into the place of confirmed keys.
+        if (fromIndex < validators.confirmed) {
+            operator.validatorDetails.confirmed = uint40(fromIndex);
+        }
+        emit OperatorValidatorDetailsRemoved(operatorId, validatorCount);
     }
 
     /// @notice Reports validator exits that occur prior to instruction by the protocol.
@@ -327,13 +336,46 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
             }
         }
 
-        // Swap the position of the validators starting from the `fromIndex` with the validators that were next in line to be exited.
-        OperatorRegistryV1Admin.VALIDATOR_DETAILS_POSITION.swapValidatorDetails(
-            operatorId, fromIndex, validators.exited, validatorCount
-        );
-        operator.validatorDetails.exited += uint40(validatorCount);
+        // If the exited validators were not next in line to be exited, swap the position of the validators starting
+        // at the `fromIndex` with the validators that were next in line to be exited.
+        if (fromIndex > validators.exited) {
+            OperatorRegistryV1Admin.VALIDATOR_DETAILS_POSITION.swapValidatorDetails(
+                operatorId, fromIndex, validators.exited, validatorCount
+            );
+        }
+        OperatorUtilizationHeap.Data memory heap = s.getOperatorUtilizationHeapForETH();
+
+        // Update the number of exited validators and the operator's utilization and update the in-memory cache.
+        validators.exited = operator.validatorDetails.exited += uint40(validatorCount);
+
+        heap.updateUtilizationByID(operatorId, (validators.deposited - validators.exited).divWad(validators.cap));
+        heap.store(s.activeOperatorsByETHDepositUtilization, OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         emit OperatorOutOfOrderValidatorExitsReported(operatorId, validatorCount);
+    }
+
+    /// @notice Syncs the stored strategy share allocations for the provided operator IDs with EigenLayer.
+    /// @param operatorIds The operator IDs to sync.
+    /// @param strategy The strategy to sync.
+    function syncStrategyShares(uint8[] memory operatorIds, address strategy) external {
+        OperatorUtilizationHeap.Data memory heap = s.getOperatorUtilizationHeapForStrategy(strategy);
+        for (uint256 i = 0; i < operatorIds.length; ++i) {
+            uint8 operatorId = operatorIds[i];
+
+            OperatorDetails storage operator = s.operatorDetails[operatorId];
+            OperatorShareDetails memory operatorShares = operator.shareDetails[strategy];
+
+            uint256 actualShareAllocation = strategyManager.stakerStrategyShares(operator.delegator, strategy);
+            if (operatorShares.allocation != actualShareAllocation) {
+                heap.updateUtilizationByID(operatorId, actualShareAllocation.divWad(operatorShares.cap));
+                operator.shareDetails[strategy].allocation = SafeCast.toUint128(actualShareAllocation);
+
+                emit StrategySharesSynced(operatorId, strategy, operatorShares.allocation, actualShareAllocation);
+            }
+        }
+        heap.store(
+            s.activeOperatorsByStrategyShareUtilization[strategy], OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT
+        );
     }
 
     // forgefmt: disable-next-item
@@ -382,7 +424,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         }
         sharesAllocated = sharesToAllocate - remainingShares;
 
-        heap.store(s.activeOperatorsByStrategyShareUtilization[strategy]);
+        heap.store(s.activeOperatorsByStrategyShareUtilization[strategy], OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         // Shrink the array length to the number of allocations made.
         if (allocationIndex < s.activeOperatorCount) {
@@ -471,7 +513,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         for (uint256 i = 0; i < skippedOperatorCount; ++i) {
             heap.insert(skippedOperators[i]);
         }
-        heap.store(s.activeOperatorsByETHDepositUtilization);
+        heap.store(s.activeOperatorsByETHDepositUtilization, OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         // Shrink the array length to the number of allocations made.
         if (allocationIndex < s.activeOperatorCount) {
@@ -526,7 +568,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         }
         sharesDeallocated = sharesToDeallocate - remainingShares;
 
-        heap.store(s.activeOperatorsByStrategyShareUtilization[strategy]);
+        heap.store(s.activeOperatorsByStrategyShareUtilization[strategy], OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         // Shrink the array length to the number of deallocations made.
         if (deallocationIndex < s.activeOperatorCount) {
@@ -584,7 +626,7 @@ contract RioLRTOperatorRegistry is OwnableUpgradeable, UUPSUpgradeable, RioLRTCo
         }
         depositsDeallocated = depositsToDeallocate - remainingDeposits;
 
-        heap.store(s.activeOperatorsByETHDepositUtilization);
+        heap.store(s.activeOperatorsByETHDepositUtilization, OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT);
 
         // Shrink the array length to the number of deallocations made.
         if (deallocationIndex < s.activeOperatorCount) {

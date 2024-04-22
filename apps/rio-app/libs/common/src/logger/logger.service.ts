@@ -100,10 +100,9 @@ export class LoggerService extends ConsoleLogger {
    * Write an 'error' level log to stderr
    * Send the message to slack if configured
    * @param message Error message to write
-   * @param trace Optional trace string
    * @param context Optional context name
    */
-  error(message: string, trace?: string, context?: string): void {
+  error(message: string, context?: string): void {
     this._logger.error(message, { context: context || this.context });
   }
 }

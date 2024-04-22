@@ -29,8 +29,9 @@ library OperatorRegistryV1Admin {
     /// @notice The maximum number of operators allowed in the registry.
     uint8 public constant MAX_OPERATOR_COUNT = 254;
 
-    /// @notice The maximum number of active operators allowed.
-    uint8 public constant MAX_ACTIVE_OPERATOR_COUNT = 64;
+    /// @notice The maximum number of active operators allowed. This may be increased
+    /// to `64` in the future.
+    uint8 public constant MAX_ACTIVE_OPERATOR_COUNT = 32;
 
     /// @dev The validator details storage position.
     bytes32 internal constant VALIDATOR_DETAILS_POSITION = keccak256('RIO.OPERATOR_REGISTRY.VALIDATOR_DETAILS');
@@ -90,7 +91,7 @@ library OperatorRegistryV1Admin {
 
         // Populate the validator cap for the operator, if applicable.
         if (config.validatorCap > 0) {
-            s.setOperatorValidatorCap(operatorId, config.validatorCap);
+            s.setOperatorValidatorCapInternal(operatorId, config.validatorCap);
         }
     }
 
@@ -132,7 +133,7 @@ library OperatorRegistryV1Admin {
             );
         }
         if (operator.validatorDetails.cap > 0) {
-            s.setOperatorValidatorCap(operatorId, 0);
+            s.setOperatorValidatorCapInternal(operatorId, 0);
         }
 
         operator.active = false;
@@ -228,6 +229,18 @@ library OperatorRegistryV1Admin {
         emit IRioLRTOperatorRegistry.ValidatorKeyReviewPeriodSet(newValidatorKeyReviewPeriod);
     }
 
+    /// @notice Sets the operator's maximum active validator cap.
+    /// @param s The operator registry v1 storage accessor.
+    /// @param operatorId The unique identifier of the operator.
+    /// @param newValidatorCap The new maximum active validator cap.
+    function setOperatorValidatorCap(
+        RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
+        uint8 operatorId,
+        uint40 newValidatorCap
+    ) external {
+        s.setOperatorValidatorCapInternal(operatorId, newValidatorCap);
+    }
+
     // forgefmt: disable-next-item
     /// @notice Sets the strategy share cap for a given operator.
     /// @param s The operator registry v1 storage accessor.
@@ -254,6 +267,7 @@ library OperatorRegistryV1Admin {
             // If the operator has allocations, queue them for exit.
             if (currentShareDetails.allocation > 0) {
                 operatorDetails.queueOperatorStrategyExit(operatorId, newShareCap.strategy);
+                operatorDetails.shareDetails[newShareCap.strategy].allocation = 0;
             }
             // Remove the operator from the utilization heap.
             utilizationHeap.removeByID(operatorId);
@@ -266,7 +280,10 @@ library OperatorRegistryV1Admin {
         }
 
         // Persist the updated heap to the active operators tracking.
-        utilizationHeap.store(s.activeOperatorsByStrategyShareUtilization[newShareCap.strategy]);
+        utilizationHeap.store(
+            s.activeOperatorsByStrategyShareUtilization[newShareCap.strategy],
+            OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT
+        );
 
         // Update the share cap in the operator details.
         operatorDetails.shareDetails[newShareCap.strategy].cap = newShareCap.cap;
@@ -278,7 +295,7 @@ library OperatorRegistryV1Admin {
     /// @param s The operator registry v1 storage accessor.
     /// @param operatorId The unique identifier of the operator.
     /// @param newValidatorCap The new maximum active validator cap.
-    function setOperatorValidatorCap(
+    function setOperatorValidatorCapInternal(
         RioLRTOperatorRegistryStorageV1.StorageV1 storage s,
         uint8 operatorId,
         uint40 newValidatorCap
@@ -323,7 +340,9 @@ library OperatorRegistryV1Admin {
         }
 
         // Persist the updated heap to the active operators tracking for ETH deposits.
-        utilizationHeap.store(s.activeOperatorsByETHDepositUtilization);
+        utilizationHeap.store(
+            s.activeOperatorsByETHDepositUtilization, OperatorRegistryV1Admin.MAX_ACTIVE_OPERATOR_COUNT
+        );
 
         // Update the validator cap in the operator details.
         operatorDetails.validatorDetails.cap = newValidatorCap;
