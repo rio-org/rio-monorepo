@@ -263,7 +263,6 @@ export class SubgraphClient {
         sender,
         epoch,
         assetOut,
-        sharesOwed,
         amountIn,
         restakingToken,
         restakingTokenPriceUSD,
@@ -276,7 +275,7 @@ export class SubgraphClient {
         claim
       }) => {
         const isReadyToClaim = (epoch.status as WithdrawalEpochStatus) === WithdrawalEpochStatus.Settled;
-        const amountOut = isReadyToClaim && BN(sharesOwed).mul(epoch.assetsReceived).div(epoch.sharesOwed).round(
+        const amountOut = isReadyToClaim && BN(amountIn).mul(epoch.assetsReceived).div(epoch.amountIn).round(
           18, BN.roundDown
         )?.toString() || null;
         return {
@@ -286,7 +285,6 @@ export class SubgraphClient {
           epochStatus: epoch.status,
           assetOut: assetOut.id,
           amountOut,
-          sharesOwed,
           amountIn,
           valueUSD,
           restakingToken: restakingToken.id,
@@ -453,7 +451,6 @@ export class SubgraphClient {
       totalValueUSD,
       exchangeRateETH,
       exchangeRateUSD,
-      percentAPY,
       coordinator,
       assetRegistry,
       operatorRegistry,
@@ -473,7 +470,6 @@ export class SubgraphClient {
       totalValueUSD,
       exchangeRateETH,
       exchangeRateUSD,
-      percentAPY,
       deployment: {
         coordinator: coordinator.id,
         assetRegistry: assetRegistry.id,

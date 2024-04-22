@@ -8,6 +8,7 @@ import {
 } from '@rionetwork/sdk';
 import {
   GetContractReturnType,
+  Hex,
   PublicClient,
   Address as ViemAddress,
   WalletClient,
@@ -15,6 +16,9 @@ import {
 } from 'viem';
 import { IProcess, RebalanceProcessConfig } from './types';
 import { formatDistance } from 'date-fns';
+import { signDepositRoot } from '../utils';
+import { CHAIN_ID, DEPOSIT_CONTRACTS_BY_CHAIN } from '../config';
+import { DepositContractABI } from '../abi';
 
 export class RebalanceProcess implements IProcess {
   /**
@@ -51,6 +55,14 @@ export class RebalanceProcess implements IProcess {
   >;
 
   /**
+   * The deposit contract instance.
+   */
+  protected _depositContract: GetContractReturnType<
+    typeof DepositContractABI,
+    PublicClient
+  >;
+
+  /**
    * The underlying token contract instances.
    */
   protected _underlyingTokens: Record<
@@ -73,6 +85,11 @@ export class RebalanceProcess implements IProcess {
       abi: RioLRTWithdrawalQueueABI,
       publicClient: _config.publicClient,
       walletClient: _config.walletClient
+    });
+    this._depositContract = getContract({
+      address: DEPOSIT_CONTRACTS_BY_CHAIN[CHAIN_ID],
+      abi: DepositContractABI,
+      publicClient: _config.publicClient
     });
   }
 
@@ -114,11 +131,11 @@ export class RebalanceProcess implements IProcess {
    * Get the number of seconds until the next rebalance.
    * @param nextRebalanceAfter The unix timestamp at which the next rebalance can occur.
    */
-  protected getSecondsUntilNextRebalance(nextRebalanceAfter: bigint) {
+  protected getSecondsUntilNextRebalance(nextRebalanceAfter: number) {
     // prettier-ignore
     return Math.max(
       0,
-      parseInt(nextRebalanceAfter.toString(), 10) + RebalanceProcess._BUFFER_SECS - this.nowSecs
+      nextRebalanceAfter + RebalanceProcess._BUFFER_SECS - this.nowSecs
     );
   }
 
@@ -161,18 +178,57 @@ export class RebalanceProcess implements IProcess {
   }
 
   /**
-   * Rebalance the given asset.
-   * @param assetAddress The address of the asset to rebalance.
+   * Rebalance ETH.
+   * @param params The information required to rebalance ETH.
    */
-  protected async rebalance(assetAddress: ViemAddress): Promise<`0x${string}`> {
+  protected async rebalanceETH(params: {
+    root: Hex;
+    signature: Hex;
+  }): Promise<`0x${string}`> {
     const { request } = await this._config.publicClient.simulateContract({
       account: this._config.walletClient.account,
       address: this._config.token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
-      functionName: 'rebalance',
+      functionName: 'rebalanceETH',
+      args: [params.root, params.signature]
+    });
+    return this._config.walletClient.writeContract(request);
+  }
+
+  /**
+   * Rebalance the given ERC20 token.
+   * @param assetAddress The address of the asset to rebalance.
+   */
+  protected async rebalanceERC20(
+    assetAddress: ViemAddress
+  ): Promise<`0x${string}`> {
+    const { request } = await this._config.publicClient.simulateContract({
+      account: this._config.walletClient.account,
+      address: this._config.token.deployment.coordinator as ViemAddress,
+      abi: RioLRTCoordinatorABI,
+      functionName: 'rebalanceERC20',
       args: [assetAddress]
     });
     return this._config.walletClient.writeContract(request);
+  }
+
+  /**
+   * Rebalance the given asset.
+   * @param assetAddress The address of the asset to rebalance.
+   */
+  protected async rebalance(assetAddress: ViemAddress): Promise<`0x${string}`> {
+    if (assetAddress === ETH_ADDRESS) {
+      // TODO: Temporary stub until the guardian bot is implemented.
+      // DO NOT USE IN PRODUCTION.
+      const root = await this._depositContract.read.get_deposit_root();
+      const signature = await signDepositRoot({
+        chainId: CHAIN_ID,
+        verifyingContract: this._coordinator.address,
+        root
+      });
+      return this.rebalanceETH({ root, signature });
+    }
+    return this.rebalanceERC20(assetAddress);
   }
 
   /**
@@ -195,15 +251,15 @@ export class RebalanceProcess implements IProcess {
   }
 
   /**
-   * Check if the withdrawal queue owes shares for the given asset.
+   * Check if the withdrawal queue has any tokens awaiting withdrawal.
    * @param assetAddress The address of the asset to check.
    */
   // prettier-ignore
   protected async canQueueOrSettleWithdrawals(
     assetAddress: ViemAddress
   ): Promise<boolean> {
-    const sharesOwed = await this._withdrawalQueue.read.getSharesOwedInCurrentEpoch([assetAddress]);
-    return sharesOwed > 0n;
+    const amountInEpoch = await this._withdrawalQueue.read.getRestakingTokensInCurrentEpoch([assetAddress]);
+    return amountInEpoch > 0n;
   }
 
   /**

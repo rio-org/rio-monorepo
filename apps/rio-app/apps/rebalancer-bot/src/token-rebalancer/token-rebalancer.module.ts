@@ -23,7 +23,13 @@ export class TokenRebalancerModule {
     const { bots } = moduleOptions;
     const botProviders: Array<Provider> = [];
 
-    for (const { chainId, rpcUrl, privateKey, isEnabled } of bots) {
+    for (const {
+      chainId,
+      rpcUrl,
+      privateKey,
+      guardianStubPrivateKey,
+      isEnabled,
+    } of bots) {
       if (!isEnabled) {
         console.log(`Rebalancer bot not enabled for chain id: ${chainId}`);
         break;
@@ -41,6 +47,7 @@ export class TokenRebalancerModule {
             chainId,
             rpcUrl,
             privateKey,
+            guardianStubPrivateKey,
             token,
           };
           botProviders.push({

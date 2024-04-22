@@ -21,12 +21,19 @@ import {
   createWalletClient,
   http,
   Chain,
+  Hex,
   WalletClient,
   PublicClient,
   Account,
   HttpTransport,
+  Address,
+  PrivateKeyAccount,
 } from 'viem';
-import { LoggerService, RebalancerBotConfig } from '@rio-app/common';
+import {
+  DepositContractABI,
+  LoggerService,
+  RebalancerBotConfig,
+} from '@rio-app/common';
 import { privateKeyToAccount } from 'viem/accounts';
 import { goerli, holesky, mainnet } from 'viem/chains';
 
@@ -55,6 +62,11 @@ export class TokenRebalancerService
   protected _withdrawalQueue: any;
 
   /**
+   * The withdrawal queue contract instance.
+   */
+  protected _depositContract: any;
+
+  /**
    * The underlying token contract instances.
    */
   protected _underlyingTokens: Record<
@@ -65,10 +77,18 @@ export class TokenRebalancerService
   protected walletClient: WalletClient;
   protected publicClient: PublicClient<HttpTransport, Chain, Account>;
 
+  protected guardianStubSigner: PrivateKeyAccount;
+
   protected supportedChains: Record<number, Chain> = {
     1: mainnet,
     5: goerli,
     17000: holesky,
+  };
+
+  protected depositContractsByChain: Record<number, Address> = {
+    1: '0x00000000219ab540356cBB839Cbe05303d7705Fa',
+    5: '0xff50ed3d0ec03aC01D4C79aAd74928BFF48a7b2b',
+    17000: '0x4242424242424242424242424242424242424242',
   };
 
   constructor(
@@ -77,7 +97,7 @@ export class TokenRebalancerService
     private serviceName: string,
   ) {
     this.logger.setContext(serviceName);
-    const { chainId, privateKey, token } = bot;
+    const { chainId, privateKey, guardianStubPrivateKey, token } = bot;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -97,6 +117,8 @@ export class TokenRebalancerService
       account,
     });
 
+    this.guardianStubSigner = privateKeyToAccount(guardianStubPrivateKey);
+
     this._coordinator = getContract({
       address: token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
@@ -105,6 +127,11 @@ export class TokenRebalancerService
     this._withdrawalQueue = getContract({
       address: token.deployment.withdrawalQueue as ViemAddress,
       abi: RioLRTWithdrawalQueueABI,
+      client: { public: this.publicClient as Client },
+    });
+    this._depositContract = getContract({
+      address: this.depositContractsByChain[chainId],
+      abi: DepositContractABI,
       client: { public: this.publicClient as Client },
     });
   }
@@ -191,18 +218,57 @@ export class TokenRebalancerService
   }
 
   /**
-   * Rebalance the given asset.
-   * @param assetAddress The address of the asset to rebalancer-token.
+   * Rebalance ETH.
+   * @param params The information required to rebalance ETH.
    */
-  protected async rebalance(assetAddress: ViemAddress): Promise<`0x${string}`> {
+  protected async rebalanceETH(params: {
+    root: Hex;
+    signature: Hex;
+  }): Promise<`0x${string}`> {
     const { request } = await this.publicClient.simulateContract({
       account: this.walletClient.account,
       address: this.bot.token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
-      functionName: 'rebalance',
+      functionName: 'rebalanceETH',
+      args: [params.root, params.signature],
+    });
+    return this.walletClient.writeContract(request);
+  }
+
+  /**
+   * Rebalance the given ERC20 token.
+   * @param assetAddress The address of the asset to rebalance.
+   */
+  protected async rebalanceERC20(
+    assetAddress: ViemAddress,
+  ): Promise<`0x${string}`> {
+    const { request } = await this.publicClient.simulateContract({
+      account: this.walletClient.account,
+      address: this.bot.token.deployment.coordinator as ViemAddress,
+      abi: RioLRTCoordinatorABI,
+      functionName: 'rebalanceERC20',
       args: [assetAddress],
     });
     return this.walletClient.writeContract(request);
+  }
+
+  /**
+   * Rebalance the given asset.
+   * @param assetAddress The address of the asset to rebalance.
+   */
+  protected async rebalance(assetAddress: ViemAddress): Promise<`0x${string}`> {
+    if (assetAddress === ETH_ADDRESS) {
+      // TODO: Temporary stub until the guardian bot is implemented.
+      // DO NOT USE IN PRODUCTION.
+      const root = await this._depositContract.read.get_deposit_root();
+      const signature = await this.signDepositRoot({
+        chainId: this.bot.chainId,
+        verifyingContract: this._coordinator.address,
+        root,
+      });
+      return this.rebalanceETH({ root, signature });
+    }
+    return this.rebalanceERC20(assetAddress);
   }
 
   /**
@@ -225,15 +291,15 @@ export class TokenRebalancerService
   }
 
   /**
-   * Check if the withdrawal queue owes shares for the given asset.
+   * Check if the withdrawal queue has any tokens awaiting withdrawal.
    * @param assetAddress The address of the asset to check.
    */
   // prettier-ignore
   protected async canQueueOrSettleWithdrawals(
-    assetAddress: ViemAddress,
+    assetAddress: ViemAddress
   ): Promise<boolean> {
-    const sharesOwed = await this._withdrawalQueue.read.getSharesOwedInCurrentEpoch([assetAddress,]);
-    return sharesOwed > 0n;
+    const amountInEpoch = await this._withdrawalQueue.read.getRestakingTokensInCurrentEpoch([assetAddress]);
+    return amountInEpoch > 0n;
   }
 
   /**
@@ -265,5 +331,30 @@ export class TokenRebalancerService
       abi: ERC20ABI,
       client: { public: this.publicClient as Client },
     }));
+  }
+
+  /**
+   * Use the stubbed guardian to sign the deposit root.
+   * @param params The information required to sign the deposit root.
+   */
+  protected async signDepositRoot(params: {
+    chainId: number;
+    verifyingContract: Address;
+    root: Hex;
+  }): Promise<Hex> {
+    const { chainId, verifyingContract, root } = params;
+    return this.guardianStubSigner.signTypedData({
+      domain: {
+        name: 'Rio Network',
+        version: '1',
+        chainId,
+        verifyingContract,
+      },
+      types: {
+        DepositRoot: [{ name: 'root', type: 'bytes32' }],
+      },
+      primaryType: 'DepositRoot',
+      message: { root },
+    });
   }
 }

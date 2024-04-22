@@ -106,14 +106,19 @@ templates:
         - name: RioLRTWithdrawalQueue
           file: ./abis/RioLRTWithdrawalQueue.json
       eventHandlers:
+        # This legacy handler is only needed on Holesky.
         - event: WithdrawalQueued(indexed uint256,address,address,uint256,uint256)
+          handler: handleWithdrawalQueuedLegacy
+        - event: WithdrawalQueued(indexed uint256,address,address,uint256)
           handler: handleWithdrawalQueued
         - event: WithdrawalsClaimedForEpoch(indexed uint256,address,address,uint256)
           handler: handleWithdrawalsClaimedForEpoch
         - event: EpochSettledFromDepositPool(indexed uint256,address,uint256)
           handler: handleEpochSettledFromDepositPool
-        - event: EpochQueuedForSettlementFromEigenLayer(indexed
-            uint256,address,uint256,uint256,uint256,bytes32)
+        # This legacy handler is only needed on Holesky.
+        - event: EpochQueuedForSettlementFromEigenLayer(indexed uint256,address,uint256,uint256,uint256,bytes32)
+          handler: handleEpochQueuedForSettlementFromEigenLayerLegacy
+        - event: EpochQueuedForSettlementFromEigenLayer(indexed uint256,address,uint256,uint256,uint256,uint256,bytes32)
           handler: handleEpochQueuedForSettlementFromEigenLayer
         - event: EpochSettledFromEigenLayer(indexed uint256,address,uint256)
           handler: handleEpochSettledFromEigenLayer

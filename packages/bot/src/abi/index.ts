@@ -1,0 +1,1 @@
+export { DepositContractABI } from './DepositContractABI';
