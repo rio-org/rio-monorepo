@@ -180,7 +180,6 @@ export interface AssetFinancials<T extends number | NumberString = number> {
 }
 
 export interface LRTFinancials<T extends number | NumberString = number> {
-  percentAPY: T | null;
   totalSupply: T;
   totalValueUSD: T | null;
   totalValueETH: T | null;
