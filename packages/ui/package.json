@@ -28,7 +28,7 @@
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@rainbow-me/rainbowkit": "^2.0.1",
-    "@rionetwork/sdk-react": "0.1.0-alpha.25",
+    "@rionetwork/sdk-react": "0.2.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tanstack/react-query": "^5.22.2",
     "@vercel/analytics": "^1.1.2",
