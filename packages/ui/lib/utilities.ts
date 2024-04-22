@@ -251,7 +251,6 @@ export const parseSubgraphLRT = (lrt: LRTSubgraphResponse) => {
     ...parseBaseSubgraphAsset(lrt),
     decimals: /USD/i.test(lrt.symbol) ? 6 : 18,
     totalSupply: Number(lrt.totalSupply),
-    percentAPY: Number(lrt.percentAPY),
     totalValueUSD: Number(lrt.totalValueUSD),
     totalValueETH: Number(lrt.totalValueETH),
     exchangeRateUSD: Number(lrt.exchangeRateUSD),
