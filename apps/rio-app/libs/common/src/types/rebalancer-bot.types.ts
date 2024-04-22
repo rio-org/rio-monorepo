@@ -1,5 +1,6 @@
 import { CHAIN_ID } from './chain.types';
 import { LiquidRestakingToken } from '@rionetwork/sdk';
+import type { Hex } from 'viem';
 
 /**
  * The configuration for single bot task
@@ -8,7 +9,8 @@ export interface RebalancerBots {
   isEnabled: boolean;
   chainId: CHAIN_ID;
   rpcUrl: string;
-  privateKey: `0x${string}`;
+  privateKey: Hex;
+  guardianStubPrivateKey: Hex;
 }
 
 /**
@@ -31,6 +33,7 @@ export interface RebalancerTokenModuleOptions {
 export interface RebalancerBotConfig {
   chainId: CHAIN_ID;
   rpcUrl: string;
-  privateKey: `0x${string}`;
+  privateKey: Hex;
+  guardianStubPrivateKey: Hex;
   token: LiquidRestakingToken;
 }
