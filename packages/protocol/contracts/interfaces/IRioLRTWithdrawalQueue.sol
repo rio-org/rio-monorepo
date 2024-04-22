@@ -26,6 +26,8 @@ interface IRioLRTWithdrawalQueue {
         uint120 amountToBurnAtSettlement;
         /// @dev The aggregate root of the queued EigenLayer withdrawals.
         bytes32 aggregateRoot;
+        /// @dev Holesky storage upgrade gap.
+        uint256 __gap;
         /// @dev All user withdrawals in the epoch.
         mapping(address => UserWithdrawalSummary) users;
     }
