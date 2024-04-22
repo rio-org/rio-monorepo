@@ -102,7 +102,6 @@ export interface WithdrawalRequest {
   epochStatus: WithdrawalEpochStatus;
   assetOut: Address;
   amountOut: string | null; // Populated on epoch settlement.
-  sharesOwed: string;
   amountIn: string;
   valueUSD: string | null;
   restakingToken: Address;

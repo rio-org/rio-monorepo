@@ -114,13 +114,12 @@ export const WithdrawalRequestFields = graphql(`
     epoch {
       epoch
       status
-      sharesOwed
+      amountIn
       assetsReceived
     }
     assetOut {
       id
     }
-    sharesOwed
     amountIn
     restakingToken {
       id

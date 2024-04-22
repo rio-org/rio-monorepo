@@ -3603,6 +3603,7 @@ export enum WithdrawalClaim_OrderBy {
   BlockNumber = 'blockNumber',
   Epoch = 'epoch',
   EpochAggregateRoot = 'epoch__aggregateRoot',
+  EpochAmountIn = 'epoch__amountIn',
   EpochAmountToBurnAtSettlement = 'epoch__amountToBurnAtSettlement',
   EpochAssetsReceived = 'epoch__assetsReceived',
   EpochClaimCount = 'epoch__claimCount',
@@ -3640,6 +3641,7 @@ export enum WithdrawalClaim_OrderBy {
 export type WithdrawalEpoch = {
   __typename?: 'WithdrawalEpoch';
   aggregateRoot?: Maybe<Scalars['Bytes']['output']>;
+  amountIn: Scalars['BigDecimal']['output'];
   amountToBurnAtSettlement: Scalars['BigDecimal']['output'];
   asset: Asset;
   assetsReceived: Scalars['BigDecimal']['output'];
@@ -3784,6 +3786,7 @@ export enum WithdrawalEpochUserSummary_OrderBy {
   AssetSymbol = 'asset__symbol',
   Epoch = 'epoch',
   EpochAggregateRoot = 'epoch__aggregateRoot',
+  EpochAmountIn = 'epoch__amountIn',
   EpochAmountToBurnAtSettlement = 'epoch__amountToBurnAtSettlement',
   EpochAssetsReceived = 'epoch__assetsReceived',
   EpochClaimCount = 'epoch__claimCount',
@@ -3815,6 +3818,14 @@ export type WithdrawalEpoch_Filter = {
   aggregateRoot_not?: InputMaybe<Scalars['Bytes']['input']>;
   aggregateRoot_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   aggregateRoot_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  amountIn?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amountIn_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amountIn_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amountIn_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
+  amountIn_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amountIn_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amountIn_not?: InputMaybe<Scalars['BigDecimal']['input']>;
+  amountIn_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   amountToBurnAtSettlement?: InputMaybe<Scalars['BigDecimal']['input']>;
   amountToBurnAtSettlement_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
   amountToBurnAtSettlement_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
@@ -3947,6 +3958,7 @@ export type WithdrawalEpoch_Filter = {
 
 export enum WithdrawalEpoch_OrderBy {
   AggregateRoot = 'aggregateRoot',
+  AmountIn = 'amountIn',
   AmountToBurnAtSettlement = 'amountToBurnAtSettlement',
   Asset = 'asset',
   AssetAddress = 'asset__address',
@@ -4064,7 +4076,6 @@ export type WithdrawalRequest = {
   restakingToken: LiquidRestakingToken;
   restakingTokenPriceUSD?: Maybe<Scalars['BigDecimal']['output']>;
   sender: Scalars['Bytes']['output'];
-  sharesOwed: Scalars['BigDecimal']['output'];
   timestamp: Scalars['BigInt']['output'];
   tx: Scalars['Bytes']['output'];
   user: User;
@@ -4220,14 +4231,6 @@ export type WithdrawalRequest_Filter = {
   sender_not?: InputMaybe<Scalars['Bytes']['input']>;
   sender_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
   sender_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
-  sharesOwed?: InputMaybe<Scalars['BigDecimal']['input']>;
-  sharesOwed_gt?: InputMaybe<Scalars['BigDecimal']['input']>;
-  sharesOwed_gte?: InputMaybe<Scalars['BigDecimal']['input']>;
-  sharesOwed_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
-  sharesOwed_lt?: InputMaybe<Scalars['BigDecimal']['input']>;
-  sharesOwed_lte?: InputMaybe<Scalars['BigDecimal']['input']>;
-  sharesOwed_not?: InputMaybe<Scalars['BigDecimal']['input']>;
-  sharesOwed_not_in?: InputMaybe<Array<Scalars['BigDecimal']['input']>>;
   timestamp?: InputMaybe<Scalars['BigInt']['input']>;
   timestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   timestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -4315,6 +4318,7 @@ export enum WithdrawalRequest_OrderBy {
   ClaimValueUsd = 'claim__valueUSD',
   Epoch = 'epoch',
   EpochAggregateRoot = 'epoch__aggregateRoot',
+  EpochAmountIn = 'epoch__amountIn',
   EpochAmountToBurnAtSettlement = 'epoch__amountToBurnAtSettlement',
   EpochAssetsReceived = 'epoch__assetsReceived',
   EpochClaimCount = 'epoch__claimCount',
@@ -4341,7 +4345,6 @@ export enum WithdrawalRequest_OrderBy {
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
   RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD',
   Sender = 'sender',
-  SharesOwed = 'sharesOwed',
   Timestamp = 'timestamp',
   Tx = 'tx',
   User = 'user',
@@ -4468,7 +4471,6 @@ export type WithdrawalRequestFieldsFragment = {
   __typename?: 'WithdrawalRequest';
   id: string;
   sender: any;
-  sharesOwed: any;
   amountIn: any;
   restakingTokenPriceUSD?: any | null;
   userBalanceAfter: any;
@@ -4481,7 +4483,7 @@ export type WithdrawalRequestFieldsFragment = {
     __typename?: 'WithdrawalEpoch';
     epoch: any;
     status: WithdrawalEpochStatus;
-    sharesOwed: any;
+    amountIn: any;
     assetsReceived: any;
   };
   assetOut: { __typename?: 'Asset'; id: string };
@@ -4718,7 +4720,6 @@ export type ManyWithdrawalRequestsQuery = {
     __typename?: 'WithdrawalRequest';
     id: string;
     sender: any;
-    sharesOwed: any;
     amountIn: any;
     restakingTokenPriceUSD?: any | null;
     userBalanceAfter: any;
@@ -4731,7 +4732,7 @@ export type ManyWithdrawalRequestsQuery = {
       __typename?: 'WithdrawalEpoch';
       epoch: any;
       status: WithdrawalEpochStatus;
-      sharesOwed: any;
+      amountIn: any;
       assetsReceived: any;
     };
     assetOut: { __typename?: 'Asset'; id: string };
@@ -5141,7 +5142,7 @@ export const WithdrawalRequestFieldsFragmentDoc = {
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'epoch' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'status' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'sharesOwed' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'amountIn' } },
                 {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'assetsReceived' }
@@ -5159,7 +5160,6 @@ export const WithdrawalRequestFieldsFragmentDoc = {
               ]
             }
           },
-          { kind: 'Field', name: { kind: 'Name', value: 'sharesOwed' } },
           { kind: 'Field', name: { kind: 'Name', value: 'amountIn' } },
           {
             kind: 'Field',
@@ -6404,7 +6404,7 @@ export const ManyWithdrawalRequestsDocument = {
               selections: [
                 { kind: 'Field', name: { kind: 'Name', value: 'epoch' } },
                 { kind: 'Field', name: { kind: 'Name', value: 'status' } },
-                { kind: 'Field', name: { kind: 'Name', value: 'sharesOwed' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'amountIn' } },
                 {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'assetsReceived' }
@@ -6422,7 +6422,6 @@ export const ManyWithdrawalRequestsDocument = {
               ]
             }
           },
-          { kind: 'Field', name: { kind: 'Name', value: 'sharesOwed' } },
           { kind: 'Field', name: { kind: 'Name', value: 'amountIn' } },
           {
             kind: 'Field',
