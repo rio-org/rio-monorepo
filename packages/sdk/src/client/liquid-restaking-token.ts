@@ -8,7 +8,7 @@ import {
 import {
   Address,
   DepositETHParams,
-  DepositParams,
+  DepositERC20Params,
   RequestWithdrawalParams,
   ClaimWithdrawalParams,
   EstimateOutDepositETHParams,
@@ -203,8 +203,8 @@ export class LiquidRestakingTokenClient {
    * @param params The parameters required to deposit ERC20 tokens.
    * @param overrides Optional transaction overrides.
    */
-  public async deposit(
-    params: DepositParams,
+  public async depositERC20(
+    params: DepositERC20Params,
     overrides?: TxOverrides
   ): Promise<WriteContractReturnType> {
     if (!this._wallet) throw new Error('Wallet client is not available.');
@@ -212,7 +212,7 @@ export class LiquidRestakingTokenClient {
 
     type SimulateContractParams = SimulateContractParameters<
       typeof RioLRTCoordinatorABI,
-      'deposit',
+      'depositERC20',
       [ViemAddress, bigint],
       undefined,
       undefined,
@@ -224,7 +224,7 @@ export class LiquidRestakingTokenClient {
       account: this._wallet.account,
       address: this._token.deployment.coordinator as ViemAddress,
       abi: RioLRTCoordinatorABI,
-      functionName: 'deposit',
+      functionName: 'depositERC20',
       args: [tokenIn as ViemAddress, BigInt(amount)],
       ...overrides
     } as SimulateContractParams);
