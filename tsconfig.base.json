@@ -7,6 +7,9 @@
     "allowJs": true,
     "noEmit": true,
 
+    /* Import Helpers */
+    "esModuleInterop": true,
+
     /* Strict Type-Checking Options */
     "noImplicitAny": true,
     "strictNullChecks": true,

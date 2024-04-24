@@ -371,6 +371,7 @@ export class SubgraphClient {
         address,
         operator: o,
         manager,
+        eigenPod,
         earningsReceiver,
         unusedValidatorKeyCount,
         depositedValidatorKeyCount,
@@ -392,6 +393,7 @@ export class SubgraphClient {
           delegationApprover: o.delegationApprover,
           stakerOptOutWindowBlocks: o.stakerOptOutWindowBlocks
         },
+        eigenPod,
         earningsReceiver,
         unusedValidatorKeyCount,
         depositedValidatorKeyCount,

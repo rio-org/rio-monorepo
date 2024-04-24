@@ -35,6 +35,11 @@ export type Scalars = {
    *
    */
   Int8: { input: any; output: any };
+  /**
+   * A string representation of microseconds UNIX timestamp (16 digits)
+   *
+   */
+  Timestamp: { input: any; output: any };
 };
 
 export type AvsRegistry = {
@@ -106,6 +111,11 @@ export enum AvsRegistry_OrderBy {
   RestakingTokenTotalSupply = 'restakingToken__totalSupply',
   RestakingTokenTotalValueEth = 'restakingToken__totalValueETH',
   RestakingTokenTotalValueUsd = 'restakingToken__totalValueUSD'
+}
+
+export enum Aggregation_Interval {
+  Day = 'day',
+  Hour = 'hour'
 }
 
 export type Asset = {
@@ -1782,7 +1792,8 @@ export type Query = {
   operator?: Maybe<Operator>;
   operatorDelegator?: Maybe<OperatorDelegator>;
   operatorDelegators: Array<OperatorDelegator>;
-  operatorMetadata: Array<OperatorMetadata>;
+  operatorMetadata?: Maybe<OperatorMetadata>;
+  operatorMetadata_collection: Array<OperatorMetadata>;
   operatorRegistries: Array<OperatorRegistry>;
   operatorRegistry?: Maybe<OperatorRegistry>;
   operators: Array<Operator>;
@@ -1969,6 +1980,12 @@ export type QueryOperatorDelegatorsArgs = {
 };
 
 export type QueryOperatorMetadataArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryOperatorMetadata_CollectionArgs = {
   block?: InputMaybe<Block_Height>;
   first?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<OperatorMetadata_OrderBy>;
@@ -2306,7 +2323,8 @@ export type Subscription = {
   operator?: Maybe<Operator>;
   operatorDelegator?: Maybe<OperatorDelegator>;
   operatorDelegators: Array<OperatorDelegator>;
-  operatorMetadata: Array<OperatorMetadata>;
+  operatorMetadata?: Maybe<OperatorMetadata>;
+  operatorMetadata_collection: Array<OperatorMetadata>;
   operatorRegistries: Array<OperatorRegistry>;
   operatorRegistry?: Maybe<OperatorRegistry>;
   operators: Array<Operator>;
@@ -2493,6 +2511,12 @@ export type SubscriptionOperatorDelegatorsArgs = {
 };
 
 export type SubscriptionOperatorMetadataArgs = {
+  block?: InputMaybe<Block_Height>;
+  id: Scalars['ID']['input'];
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionOperatorMetadata_CollectionArgs = {
   block?: InputMaybe<Block_Height>;
   first?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<OperatorMetadata_OrderBy>;
@@ -4362,6 +4386,8 @@ export type _Block_ = {
   hash?: Maybe<Scalars['Bytes']['output']>;
   /** The block number */
   number: Scalars['Int']['output'];
+  /** The hash of the parent block */
+  parentHash?: Maybe<Scalars['Bytes']['output']>;
   /** Integer representation of the timestamp stored in blocks for the chain */
   timestamp?: Maybe<Scalars['Int']['output']>;
 };
@@ -4513,6 +4539,7 @@ export type OperatorDelegatorFieldsFragment = {
   delegatorId: number;
   address: any;
   manager: any;
+  eigenPod: any;
   earningsReceiver: any;
   unusedValidatorKeyCount: any;
   depositedValidatorKeyCount: any;
@@ -4784,6 +4811,7 @@ export type ManyOperatorDelegatorsQuery = {
     delegatorId: number;
     address: any;
     manager: any;
+    eigenPod: any;
     earningsReceiver: any;
     unusedValidatorKeyCount: any;
     depositedValidatorKeyCount: any;
@@ -5325,6 +5353,7 @@ export const OperatorDelegatorFieldsFragmentDoc = {
             }
           },
           { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'eigenPod' } },
           { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
           {
             kind: 'Field',
@@ -6831,6 +6860,7 @@ export const ManyOperatorDelegatorsDocument = {
             }
           },
           { kind: 'Field', name: { kind: 'Name', value: 'manager' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'eigenPod' } },
           { kind: 'Field', name: { kind: 'Name', value: 'earningsReceiver' } },
           {
             kind: 'Field',

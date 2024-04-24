@@ -137,6 +137,7 @@ export interface OperatorDelegator {
   delegatorId: number;
   address: Address;
   manager: Address;
+  eigenPod: Address;
   operator: Operator;
   earningsReceiver: Address;
   unusedValidatorKeyCount: string;

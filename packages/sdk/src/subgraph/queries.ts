@@ -183,6 +183,7 @@ export const OperatorDelegatorFields = graphql(`
       stakerOptOutWindowBlocks
     }
     manager
+    eigenPod
     earningsReceiver
     unusedValidatorKeyCount
     depositedValidatorKeyCount
