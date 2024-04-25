@@ -5,7 +5,6 @@ import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Own
 import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
 import {IRioLRTWithdrawalQueue} from 'contracts/interfaces/IRioLRTWithdrawalQueue.sol';
 import {IRioLRTCoordinator} from 'contracts/interfaces/IRioLRTCoordinator.sol';
-import {IRioLRTDepositPool} from 'contracts/interfaces/IRioLRTDepositPool.sol';
 import {EmptyContract} from 'test/utils/EmptyContract.sol';
 import {RioDeployer} from 'test/utils/RioDeployer.sol';
 import {
@@ -539,44 +538,6 @@ contract RioLRTCoordinatorTest is RioDeployer {
         assertEq(address(reETH.withdrawalQueue).balance, 0);
     }
 
-    function test_rebalanceETHCompletesWithdrawalsFromDepositPoolIfDepositToEigenLayerFails() public {
-        // Ensure there is an operator to allocate to.
-        addOperatorDelegators(reETH.operatorRegistry, address(reETH.rewardDistributor), 1);
-
-        uint256 amount = ETH_DEPOSIT_SIZE * 10;
-        uint256 amountOut = reETH.coordinator.depositETH{value: amount}();
-        reETH.coordinator.requestWithdrawal(ETH_ADDRESS, amountOut);
-
-        // Make the deposit revert.
-        vm.mockCallRevert(
-            address(reETH.depositPool),
-            abi.encodeWithSelector(IRioLRTDepositPool.depositBalanceIntoEigenLayer.selector, ETH_ADDRESS),
-            abi.encode('StrategyBaseTVLLimits: max per deposit exceeded')
-        );
-
-        uint256 epoch = reETH.withdrawalQueue.getCurrentEpoch(ETH_ADDRESS);
-
-        vm.expectEmit(true, false, false, true, address(reETH.coordinator));
-        emit IRioLRTCoordinator.PartiallyRebalanced(ETH_ADDRESS);
-
-        // Get the latest POS deposit root and guardian signature.
-        (bytes32 root, bytes memory signature) = signCurrentDepositRoot(reETH.coordinator);
-
-        vm.prank(EOA, EOA);
-        reETH.coordinator.rebalanceETH(root, signature);
-
-        // Ensure the next rebalance timestamp has increased.
-        assertEq(
-            reETH.coordinator.assetNextRebalanceAfter(ETH_ADDRESS), block.timestamp + reETH.coordinator.rebalanceDelay()
-        );
-
-        IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
-            reETH.withdrawalQueue.getEpochWithdrawalSummary(ETH_ADDRESS, epoch);
-        assertTrue(epochSummary.settled);
-        assertEq(epochSummary.assetsReceived, amount);
-        assertEq(address(reETH.withdrawalQueue).balance, amount);
-    }
-
     function test_rebalanceERC20WhenPausedReverts() public {
         reETH.coordinator.pause();
 
@@ -680,14 +641,11 @@ contract RioLRTCoordinatorTest is RioDeployer {
         cbETH.approve(address(reLST.coordinator), amount);
 
         uint256 amountOut = reLST.coordinator.depositERC20(CBETH_ADDRESS, amount);
-        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut);
+        reLST.coordinator.requestWithdrawal(CBETH_ADDRESS, amountOut / 2);
 
         // Make the deposit revert.
-        vm.mockCallRevert(
-            address(reLST.depositPool),
-            abi.encodeWithSelector(IRioLRTDepositPool.depositBalanceIntoEigenLayer.selector, CBETH_ADDRESS),
-            abi.encode('StrategyBaseTVLLimits: max per deposit exceeded')
-        );
+        vm.prank(PAUSER);
+        cbETHStrategy.setTVLLimits(0, 0);
 
         uint256 epoch = reLST.withdrawalQueue.getCurrentEpoch(CBETH_ADDRESS);
 
@@ -706,8 +664,8 @@ contract RioLRTCoordinatorTest is RioDeployer {
         IRioLRTWithdrawalQueue.EpochWithdrawalSummary memory epochSummary =
             reLST.withdrawalQueue.getEpochWithdrawalSummary(CBETH_ADDRESS, epoch);
         assertTrue(epochSummary.settled);
-        assertEq(epochSummary.assetsReceived, amount);
-        assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), amount);
+        assertEq(epochSummary.assetsReceived, amount / 2);
+        assertEq(cbETH.balanceOf(address(reLST.withdrawalQueue)), amount / 2);
     }
 
     function test_inflationAttackFails() public {

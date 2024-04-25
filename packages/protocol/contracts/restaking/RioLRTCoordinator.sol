@@ -203,7 +203,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
                 assetNextRebalanceAfter[ETH_ADDRESS] = uint40(block.timestamp) + rebalanceDelay;
             }
             emit Rebalanced(ETH_ADDRESS);
-        } catch {
+        } catch Error(string memory) {
             // Always increase the next rebalance timestamp if deposits fail.
             assetNextRebalanceAfter[ETH_ADDRESS] = uint40(block.timestamp) + rebalanceDelay;
 
@@ -239,7 +239,7 @@ contract RioLRTCoordinator is IRioLRTCoordinator, OwnableUpgradeable, UUPSUpgrad
             assetNextRebalanceAfter[token] = uint40(block.timestamp) + rebalanceDelay;
 
             emit Rebalanced(token);
-        } catch {
+        } catch Error(string memory) {
             // Always increase the next rebalance timestamp if deposits fail.
             assetNextRebalanceAfter[token] = uint40(block.timestamp) + rebalanceDelay;
 
