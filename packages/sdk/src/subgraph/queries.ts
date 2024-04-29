@@ -20,6 +20,7 @@ export const LiquidRestakingTokenFields = graphql(`
     symbol
     name
     createdTimestamp
+    createdBlockNumber
     totalSupply
     totalValueETH
     totalValueUSD

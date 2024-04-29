@@ -48,6 +48,7 @@ export interface LiquidRestakingToken {
   symbol: string;
   name: string;
   createdTimestamp: string;
+  createdBlockNumber: string;
   totalSupply: string;
   totalValueETH: string | null;
   totalValueUSD: string | null;
