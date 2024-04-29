@@ -103,8 +103,8 @@ importers:
   packages/sdk-react:
     dependencies:
       '@rionetwork/sdk':
-        specifier: 0.2.0
-        version: 0.2.0(bufferutil@4.0.8)(encoding@0.1.13)(graphql@16.8.1)(typescript@5.3.3)(utf-8-validate@6.0.3)(zod@3.22.4)
+        specifier: 0.2.1
+        version: 0.2.1(bufferutil@4.0.8)(encoding@0.1.13)(graphql@16.8.1)(typescript@5.3.3)(utf-8-validate@6.0.3)(zod@3.22.4)
     devDependencies:
       '@types/react':
         specifier: ^18.2.37
@@ -2194,8 +2194,8 @@ packages:
   '@rescript/std@9.0.0':
     resolution: {integrity: sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==}
 
-  '@rionetwork/sdk@0.2.0':
-    resolution: {integrity: sha512-kp8Zr6ZOOYegQXTcjvD34WQI+FGwBqNPkG/4gFkkdIgeezPpRDDM8hAnLAZ5o0LGciYRJ4jRBzJqt8IdU4rg1w==}
+  '@rionetwork/sdk@0.2.1':
+    resolution: {integrity: sha512-yKlSR3lmjXt1bowTpAMAd1YYacTX6dJd8d9A26Co7DHjf5l5K5FIIK7VBdYs+q+HNFwz9T2S7Q6alAugRbvLWQ==}
     engines: {node: '>=16', pnpm: '>=9'}
 
   '@safe-global/safe-apps-provider@0.18.1':
@@ -11404,7 +11404,7 @@ snapshots:
 
   '@rescript/std@9.0.0': {}
 
-  '@rionetwork/sdk@0.2.0(bufferutil@4.0.8)(encoding@0.1.13)(graphql@16.8.1)(typescript@5.3.3)(utf-8-validate@6.0.3)(zod@3.22.4)':
+  '@rionetwork/sdk@0.2.1(bufferutil@4.0.8)(encoding@0.1.13)(graphql@16.8.1)(typescript@5.3.3)(utf-8-validate@6.0.3)(zod@3.22.4)':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       abitype: 0.10.3(typescript@5.3.3)(zod@3.22.4)

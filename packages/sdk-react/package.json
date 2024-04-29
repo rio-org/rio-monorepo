@@ -1,6 +1,6 @@
 {
   "name": "@rionetwork/sdk-react",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Utilities that simplify interaction with the Rio Network from React applications",
   "license": "GPL-3.0",
   "publishConfig": {
@@ -28,7 +28,7 @@
     "wagmi": ">=2.5"
   },
   "dependencies": {
-    "@rionetwork/sdk": "0.2.0"
+    "@rionetwork/sdk": "0.2.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",
