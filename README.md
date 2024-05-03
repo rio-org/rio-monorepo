@@ -15,8 +15,6 @@
 <a href="./packages/sdk">SDK</a>
 &nbsp;&nbsp;&nbsp;
 <a href="./packages/subgraph">Subgraph</a>
-&nbsp;&nbsp;&nbsp;
-<a href="./packages/frontend">Frontend</a>
 
   <p align="center">
     <a href="https://rio.network/">
