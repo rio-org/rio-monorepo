@@ -1,6 +1,6 @@
 {
   "name": "@rionetwork/sdk-react",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Utilities that simplify interaction with the Rio Network from React applications",
   "license": "GPL-3.0",
   "publishConfig": {
