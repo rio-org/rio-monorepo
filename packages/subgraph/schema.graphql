@@ -64,6 +64,7 @@ type LiquidRestakingToken @entity {
   name: String!
 
   createdTimestamp: BigInt!
+  createdBlockNumber: BigInt!
   totalSupply: BigDecimal!
   totalValueETH: BigDecimal
   totalValueUSD: BigDecimal

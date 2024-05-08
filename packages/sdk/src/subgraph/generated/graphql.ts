@@ -102,6 +102,7 @@ export enum AvsRegistry_OrderBy {
   Id = 'id',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -189,6 +190,7 @@ export enum AssetRegistry_OrderBy {
   Id = 'id',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -371,6 +373,7 @@ export enum Coordinator_OrderBy {
   Id = 'id',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -460,6 +463,7 @@ export enum DepositPool_OrderBy {
   Id = 'id',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -653,6 +657,7 @@ export enum Deposit_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenPriceUsd = 'restakingTokenPriceUSD',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -737,6 +742,7 @@ export type LiquidRestakingToken = {
   assetRegistry: AssetRegistry;
   avsRegistry: AvsRegistry;
   coordinator: Coordinator;
+  createdBlockNumber: Scalars['BigInt']['output'];
   createdTimestamp: Scalars['BigInt']['output'];
   depositPool: DepositPool;
   exchangeRateETH?: Maybe<Scalars['BigDecimal']['output']>;
@@ -788,6 +794,14 @@ export type LiquidRestakingToken_Filter = {
   assetRegistry_?: InputMaybe<AssetRegistry_Filter>;
   avsRegistry_?: InputMaybe<AvsRegistry_Filter>;
   coordinator_?: InputMaybe<Coordinator_Filter>;
+  createdBlockNumber?: InputMaybe<Scalars['BigInt']['input']>;
+  createdBlockNumber_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  createdBlockNumber_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  createdBlockNumber_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  createdBlockNumber_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  createdBlockNumber_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  createdBlockNumber_not?: InputMaybe<Scalars['BigInt']['input']>;
+  createdBlockNumber_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
   createdTimestamp?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gt?: InputMaybe<Scalars['BigInt']['input']>;
   createdTimestamp_gte?: InputMaybe<Scalars['BigInt']['input']>;
@@ -925,6 +939,7 @@ export enum LiquidRestakingToken_OrderBy {
   Coordinator = 'coordinator',
   CoordinatorAddress = 'coordinator__address',
   CoordinatorId = 'coordinator__id',
+  CreatedBlockNumber = 'createdBlockNumber',
   CreatedTimestamp = 'createdTimestamp',
   DepositPool = 'depositPool',
   DepositPoolAddress = 'depositPool__address',
@@ -1153,6 +1168,7 @@ export enum OperatorDelegator_OrderBy {
   OperatorStakerOptOutWindowBlocks = 'operator__stakerOptOutWindowBlocks',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -1361,6 +1377,7 @@ export enum OperatorRegistry_OrderBy {
   Id = 'id',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -2289,6 +2306,7 @@ export enum RewardDistributor_OrderBy {
   Id = 'id',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -2961,6 +2979,7 @@ export enum TokenTransfer_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenPriceUsd = 'restakingTokenPriceUSD',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -3158,6 +3177,7 @@ export enum UnderlyingAsset_OrderBy {
   PriceFeedQuoteAssetSymbol = 'priceFeed__quoteAssetSymbol',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -3643,6 +3663,7 @@ export enum WithdrawalClaim_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenPriceUsd = 'restakingTokenPriceUSD',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -4002,6 +4023,7 @@ export enum WithdrawalEpoch_OrderBy {
   Requests = 'requests',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -4076,6 +4098,7 @@ export enum WithdrawalQueue_OrderBy {
   Id = 'id',
   RestakingToken = 'restakingToken',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -4359,6 +4382,7 @@ export enum WithdrawalRequest_OrderBy {
   RestakingToken = 'restakingToken',
   RestakingTokenPriceUsd = 'restakingTokenPriceUSD',
   RestakingTokenAddress = 'restakingToken__address',
+  RestakingTokenCreatedBlockNumber = 'restakingToken__createdBlockNumber',
   RestakingTokenCreatedTimestamp = 'restakingToken__createdTimestamp',
   RestakingTokenExchangeRateEth = 'restakingToken__exchangeRateETH',
   RestakingTokenExchangeRateUsd = 'restakingToken__exchangeRateUSD',
@@ -4431,6 +4455,7 @@ export type LiquidRestakingTokenFieldsFragment = {
   symbol: string;
   name: string;
   createdTimestamp: any;
+  createdBlockNumber: any;
   totalSupply: any;
   totalValueETH?: any | null;
   totalValueUSD?: any | null;
@@ -4602,6 +4627,7 @@ export type LiquidRestakingTokenQuery = {
     symbol: string;
     name: string;
     createdTimestamp: any;
+    createdBlockNumber: any;
     totalSupply: any;
     totalValueETH?: any | null;
     totalValueUSD?: any | null;
@@ -4648,6 +4674,7 @@ export type ManyLiquidRestakingTokensQuery = {
     symbol: string;
     name: string;
     createdTimestamp: any;
+    createdBlockNumber: any;
     totalSupply: any;
     totalValueETH?: any | null;
     totalValueUSD?: any | null;
@@ -4907,6 +4934,10 @@ export const LiquidRestakingTokenFieldsFragmentDoc = {
           { kind: 'Field', name: { kind: 'Name', value: 'symbol' } },
           { kind: 'Field', name: { kind: 'Name', value: 'name' } },
           { kind: 'Field', name: { kind: 'Name', value: 'createdTimestamp' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'createdBlockNumber' }
+          },
           { kind: 'Field', name: { kind: 'Name', value: 'totalSupply' } },
           { kind: 'Field', name: { kind: 'Name', value: 'totalValueETH' } },
           { kind: 'Field', name: { kind: 'Name', value: 'totalValueUSD' } },
@@ -5552,6 +5583,10 @@ export const LiquidRestakingTokenDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'symbol' } },
           { kind: 'Field', name: { kind: 'Name', value: 'name' } },
           { kind: 'Field', name: { kind: 'Name', value: 'createdTimestamp' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'createdBlockNumber' }
+          },
           { kind: 'Field', name: { kind: 'Name', value: 'totalSupply' } },
           { kind: 'Field', name: { kind: 'Name', value: 'totalValueETH' } },
           { kind: 'Field', name: { kind: 'Name', value: 'totalValueUSD' } },
@@ -5807,6 +5842,10 @@ export const ManyLiquidRestakingTokensDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'symbol' } },
           { kind: 'Field', name: { kind: 'Name', value: 'name' } },
           { kind: 'Field', name: { kind: 'Name', value: 'createdTimestamp' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'createdBlockNumber' }
+          },
           { kind: 'Field', name: { kind: 'Name', value: 'totalSupply' } },
           { kind: 'Field', name: { kind: 'Name', value: 'totalValueETH' } },
           { kind: 'Field', name: { kind: 'Name', value: 'totalValueUSD' } },

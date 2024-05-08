@@ -25,6 +25,7 @@ export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssu
   restakingToken.symbol = event.params.symbol;
   restakingToken.name = event.params.name;
   restakingToken.createdTimestamp = event.block.timestamp;
+  restakingToken.createdBlockNumber = event.block.number
   restakingToken.totalSupply = ZERO_BD;
 
   for (let i = 0; i < event.params.config.assets.length; i++) {
@@ -36,7 +37,6 @@ export function handleLiquidRestakingTokenIssued(event: LiquidRestakingTokenIssu
     const priceFeed = findOrCreatePriceFeed(restakingToken.address, assetConfig.priceFeed, asset, true);
 
     const underlyingAsset = new UnderlyingAsset(`${restakingToken.id}-${asset.id}`);
-    
     underlyingAsset.address = asset.address;
     underlyingAsset.restakingToken = restakingToken.id;
     underlyingAsset.asset = asset.id;
